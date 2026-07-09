@@ -1,0 +1,735 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Response-Rate Validity Assessment Tool</title>
+<style>
+  :root{
+    --bg:#f6f7fb; --panel:#ffffff; --ink:#152033; --muted:#5d6b82; --line:#d8dee9;
+    --brand:#243b64; --brand2:#2e5a88; --soft:#edf3fb; --ok:#176d3b; --okbg:#e9f7ef;
+    --warn:#8a5a00; --warnbg:#fff4d6; --bad:#9b1c1c; --badbg:#fde8e8; --info:#1f5f8b; --infobg:#eaf4fb;
+    --shadow:0 12px 30px rgba(28,41,62,.09); --radius:18px;
+  }
+  *{box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{margin:0;background:var(--bg);color:var(--ink);font-family:Arial,Helvetica,sans-serif;line-height:1.45}
+  a{color:var(--brand2)}
+  header{background:linear-gradient(135deg,var(--brand),#4b719b);color:#fff;padding:26px 32px 22px 32px;position:sticky;top:0;z-index:20;box-shadow:0 5px 18px rgba(0,0,0,.18)}
+  .hero{display:flex;gap:18px;align-items:flex-start;justify-content:space-between;max-width:1500px;margin:auto}
+  h1{font-size:clamp(1.35rem,2.2vw,2.2rem);margin:0 0 8px 0;line-height:1.12}
+  .subtitle{max-width:980px;margin:0;color:#e8f0fb;font-size:1rem}
+  .actions{display:flex;flex-wrap:wrap;gap:8px;justify-content:flex-end;min-width:260px}
+  button,.btn{border:0;border-radius:999px;padding:10px 14px;font-weight:700;cursor:pointer;background:#fff;color:var(--brand);box-shadow:0 2px 8px rgba(0,0,0,.12)}
+  button:hover,.btn:hover{transform:translateY(-1px)}
+  button.secondary{background:#eaf0f7;color:#17325a}
+  button.danger{background:#fff1f1;color:#9b1c1c}
+  button.small{font-size:.82rem;padding:7px 10px}
+  button.ghost{background:transparent;border:1px solid var(--line);box-shadow:none;color:var(--brand)}
+  .layout{max-width:1500px;margin:18px auto;display:grid;grid-template-columns:280px minmax(0,1fr) 320px;gap:18px;padding:0 18px}
+  nav{position:sticky;top:126px;align-self:start;background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow);padding:14px}
+  nav h2{font-size:.85rem;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin:4px 8px 10px}
+  nav a{display:block;text-decoration:none;padding:9px 10px;border-radius:10px;color:var(--ink);font-weight:700;font-size:.92rem}
+  nav a:hover{background:var(--soft)}
+  main{display:flex;flex-direction:column;gap:18px;min-width:0}
+  aside{position:sticky;top:126px;align-self:start;display:flex;flex-direction:column;gap:12px}
+  section,.panel{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow);padding:22px}
+  section h2{margin:0 0 8px;font-size:1.45rem;color:#172542}
+  section h3{margin:24px 0 8px;font-size:1.08rem;color:#243b64}
+  .intro{color:var(--muted);margin:0 0 16px}
+  .grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
+  .grid3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}
+  .field{display:flex;flex-direction:column;gap:6px;min-width:0}
+  label{font-weight:700;font-size:.92rem;color:#26344f}
+  .hint{font-size:.82rem;color:var(--muted)}
+  input,select,textarea{width:100%;border:1px solid #cfd7e5;border-radius:12px;background:#fff;padding:10px 11px;font:inherit;color:var(--ink)}
+  textarea{min-height:88px;resize:vertical}
+  input[type="range"]{padding:0;border:0}
+  input:focus,select:focus,textarea:focus{outline:3px solid rgba(46,90,136,.22);border-color:#4d7aa8}
+  .inline{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+  .check{display:flex;gap:8px;align-items:flex-start;padding:7px 0;color:#243044}
+  .check input{width:auto;margin-top:4px;flex:0 0 auto}
+  .calc-grid{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:10px;margin-top:12px}
+  .metric{background:#f8fafc;border:1px solid var(--line);border-radius:14px;padding:12px;min-height:90px}
+  .metric .value{font-size:1.35rem;font-weight:800;margin:3px 0;color:#14223d}
+  .metric .label{font-weight:800;font-size:.85rem;color:#3c4c68}
+  .metric .explain{font-size:.8rem;color:var(--muted)}
+  .status{display:inline-flex;align-items:center;gap:6px;border-radius:999px;padding:5px 9px;font-size:.78rem;font-weight:800}
+  .status.strong{background:var(--okbg);color:var(--ok)}
+  .status.adequate{background:var(--infobg);color:var(--info)}
+  .status.attn{background:var(--warnbg);color:var(--warn)}
+  .status.concern{background:var(--badbg);color:var(--bad)}
+  .status.neutral{background:#eef2f7;color:#46576f}
+  details{border:1px solid var(--line);border-radius:14px;padding:12px;background:#fbfcfe;margin:12px 0}
+  summary{cursor:pointer;font-weight:800;color:#243b64}
+  .domain-card{border:1px solid var(--line);border-radius:16px;padding:18px;background:#fcfdff;margin:14px 0}
+  .domain-head{display:flex;justify-content:space-between;gap:12px;align-items:flex-start;border-bottom:1px solid var(--line);padding-bottom:12px;margin-bottom:12px}
+  .scorebox{min-width:165px;background:#f3f6fa;border:1px solid var(--line);border-radius:14px;padding:10px;text-align:center}
+  .scorebox output{font-size:1.75rem;font-weight:900;display:block;color:#14223d}
+  .questions{columns:2;column-gap:26px;margin:10px 0 0;padding-left:18px}
+  .questions li{break-inside:avoid;margin:0 0 7px;color:#303d54}
+  .redflags{background:#fff8f8;border:1px solid #f2caca;border-radius:14px;padding:10px;margin-top:10px}
+  .actions-list{background:#f4f9f6;border:1px solid #cfe6d6;border-radius:14px;padding:10px;margin-top:10px}
+  .dashboard-card{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow);padding:16px}
+  .dashboard-card h2{font-size:1rem;margin:0 0 10px;color:#243b64}
+  .progress-wrap{height:12px;background:#e8edf5;border-radius:999px;overflow:hidden;border:1px solid #d5dde9}
+  .progress-bar{height:100%;width:0;background:linear-gradient(90deg,#6d88a8,#243b64);transition:width .2s}
+  .dash-row{display:flex;justify-content:space-between;gap:8px;border-bottom:1px solid #edf0f5;padding:8px 0;font-size:.9rem}
+  .dash-row:last-child{border-bottom:0}
+  .dash-row strong{text-align:right}
+  .validation{display:flex;flex-direction:column;gap:8px;margin-top:12px}
+  .alert{border-radius:14px;padding:10px 12px;border:1px solid;display:flex;gap:9px;align-items:flex-start}
+  .alert.bad{background:var(--badbg);border-color:#f4b6b6;color:#751414}
+  .alert.warn{background:var(--warnbg);border-color:#f0d38b;color:#735000}
+  .alert.info{background:var(--infobg);border-color:#b9d9ee;color:#174c73}
+  .matrix{display:grid;grid-template-columns:110px repeat(2,1fr);gap:8px;align-items:stretch;margin:16px 0}
+  .matrix > div{border:1px solid var(--line);border-radius:14px;padding:12px;background:#f9fbfd}
+  .matrix .hdr{background:#eaf0f7;font-weight:900;text-align:center;color:#243b64}
+  .matrix .rowhdr{background:#eaf0f7;font-weight:900;display:flex;align-items:center;justify-content:center;text-align:center;color:#243b64}
+  .matrix .cell{min-height:115px}
+  .matrix .active{outline:4px solid rgba(36,59,100,.24);border-color:#243b64;background:#eef5ff}
+  .score-table{width:100%;border-collapse:collapse;margin-top:10px}
+  .score-table th,.score-table td{border-bottom:1px solid var(--line);padding:9px;text-align:left;vertical-align:top}
+  .score-table th{background:#f3f6fa;color:#243b64}
+  .modulebar{display:flex;flex-wrap:wrap;gap:8px;margin:10px 0}
+  .pill{display:inline-block;border:1px solid var(--line);border-radius:999px;padding:5px 9px;background:#fff;font-size:.82rem;color:#43536d}
+  .pill.checked{background:#e9f7ef;color:#176d3b;border-color:#b8dfc3}
+  .output-box{white-space:pre-wrap;background:#f8fafc;border:1px solid var(--line);border-radius:14px;padding:12px;min-height:120px;margin-top:10px;font-size:.94rem}
+  .tabs{display:flex;gap:8px;flex-wrap:wrap;margin:8px 0 12px}
+  .tabbtn{background:#eef2f7;color:#25344e;box-shadow:none;border:1px solid var(--line)}
+  .tabbtn.active{background:#243b64;color:#fff}
+  .export-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+  .footer-credit{font-size:.88rem;color:#506079;border-top:1px solid var(--line);padding-top:14px;margin-top:18px}
+  .sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
+  @media (max-width:1200px){.layout{grid-template-columns:240px minmax(0,1fr)} aside{grid-column:1/-1;position:relative;top:0;display:grid;grid-template-columns:repeat(2,1fr)} .calc-grid{grid-template-columns:repeat(3,1fr)}}
+  @media (max-width:860px){header{position:relative}.hero{flex-direction:column}.actions{justify-content:flex-start}.layout{display:block;padding:0 12px}nav{position:relative;top:0;margin-bottom:14px}aside{display:block}.grid,.grid3,.calc-grid,.export-grid{grid-template-columns:1fr}.questions{columns:1}.matrix{grid-template-columns:1fr}.matrix .rowhdr,.matrix .hdr{text-align:left;justify-content:flex-start}.domain-head{flex-direction:column}.scorebox{width:100%}}
+  @media print{header,nav,aside,.no-print,button{display:none !important}body{background:#fff;color:#000}.layout{display:block;margin:0;padding:0}section,.panel{box-shadow:none;border:1px solid #bbb;break-inside:avoid;margin-bottom:14px}.output-box{border:1px solid #999}.questions{columns:1}}
+</style>
+</head>
+<body>
+<header>
+  <div class="hero">
+    <div>
+      <h1>Response-Rate Validity Assessment Tool</h1>
+      <p class="subtitle">A self-contained offline tool for designing, documenting, and reporting evidence that a survey response rate supports defensible inferences about sample quality, appropriateness, and representativeness.</p>
+    </div>
+    <div class="actions no-print" aria-label="Primary actions">
+      <button type="button" id="saveBtn">Save</button>
+      <button type="button" id="printBtn" class="secondary">Print</button>
+      <button type="button" id="exportHTMLBtn" class="secondary">Export report</button>
+      <button type="button" id="resetBtn" class="danger">Reset</button>
+    </div>
+  </div>
+</header>
+
+<div class="layout">
+  <nav class="no-print" aria-label="Tool modules">
+    <h2>Workflow</h2>
+    <a href="#setup">1. Study setup</a>
+    <a href="#benchmark">2. Benchmark context</a>
+    <a href="#evidence">3. Validity evidence</a>
+    <a href="#classifier">4. Functional/dysfunctional RR</a>
+    <a href="#scorecard">5. Scorecard</a>
+    <a href="#checks">6. Nonresponse checks</a>
+    <a href="#planner">7. Improvement planner</a>
+    <a href="#manuscript">8. Manuscript text</a>
+    <a href="#reviewer">9. Reviewer audit</a>
+    <a href="#exports">10. Exports</a>
+    <a href="#about">About / citation</a>
+  </nav>
+
+  <main>
+    <section id="setup">
+      <h2>Module 1. Study setup</h2>
+      <p class="intro">Enter enough information to calculate the response rate transparently and to evaluate whether the resulting sample supports the intended inferences.</p>
+      <details open><summary>Why this matters</summary><p>Response-rate validity depends on more than a percentage. Transparent denominators, exclusions, eligibility decisions, recruitment mode, and data-quality procedures help readers judge whether the response rate is functional or dysfunctional for the study’s goals.</p></details>
+      <div class="grid">
+        <div class="field"><label for="studyTitle">Study title</label><input id="studyTitle" placeholder="Example: Employee voice and supervisor support study"></div>
+        <div class="field"><label for="researchQuestion">Research question</label><textarea id="researchQuestion" placeholder="What inference should the sample support?"></textarea></div>
+        <div class="field"><label for="targetPopulation">Target population</label><textarea id="targetPopulation" placeholder="Example: Full-time frontline employees in U.S. hospitality firms"></textarea></div>
+        <div class="field"><label for="samplingFrame">Sampling frame</label><textarea id="samplingFrame" placeholder="Describe the list, platform, organization, registry, or recruitment source"></textarea></div>
+        <div class="field"><label for="unitAnalysis">Unit of analysis</label><select id="unitAnalysis"><option value="">Select...</option><option>Individual</option><option>Dyad</option><option>Team/group</option><option>Organization/firm</option><option>Multiple</option><option>Other</option></select></div>
+        <div class="field"><label for="collectionMedium">Data-collection medium <span title="Mode through which the survey invitation or instrument was administered">ⓘ</span></label><select id="collectionMedium"><option value="">Select...</option><option>In-person</option><option>Mail</option><option>Phone</option><option>Web/online</option><option>Mixed</option><option>Other</option></select></div>
+        <div class="field"><label for="dataSource">Data source</label><select id="dataSource"><option value="">Select...</option><option>Researcher-collected</option><option>Organizationally sponsored</option><option>Panel administrator</option><option>Crowdsourcing platform</option><option>Mixed</option><option>Other</option></select></div>
+        <div class="field"><label for="countries">Country or countries of respondents</label><input id="countries" placeholder="Example: United States, China, Germany"></div>
+        <div class="field"><label for="culturalSetting">Organizational or cultural setting</label><textarea id="culturalSetting" placeholder="Example: Hierarchical organization; collectivistic cultural norms; unionized plant"></textarea></div>
+        <div class="field"><label for="surveyDesign">Survey design</label><select id="surveyDesign"><option>Single-wave</option><option>Multi-wave</option></select></div>
+        <div class="field"><label for="incentivesUsed">Incentives used?</label><select id="incentivesUsed"><option>No</option><option>Yes</option><option>Not reported / unknown</option></select></div>
+        <div class="field"><label for="remindersUsed">Reminders used?</label><select id="remindersUsed"><option>No</option><option>Yes</option><option>Not reported / unknown</option></select></div>
+        <div class="field"><label for="checksUsed">Data-quality checks used?</label><textarea id="checksUsed" placeholder="Attention checks, identity checks, role verification, bot/VPN checks, data-cleaning rules"></textarea></div>
+        <div class="field"><label for="exclusionReasons">Excluded cases and reasons</label><textarea id="exclusionReasons" placeholder="Example: Failed attention checks; incomplete cases; ineligible respondents"></textarea></div>
+      </div>
+      <h3>Response-rate denominators and numerators</h3>
+      <div class="grid3">
+        <div class="field"><label for="distributed">Surveys distributed</label><input id="distributed" type="number" min="0" step="1" placeholder="500"></div>
+        <div class="field"><label for="completed">Completed surveys returned</label><input id="completed" type="number" min="0" step="1" placeholder="300"></div>
+        <div class="field"><label for="usable">Usable responses</label><input id="usable" type="number" min="0" step="1" placeholder="280"></div>
+        <div class="field"><label for="excluded">Number excluded</label><input id="excluded" type="number" min="0" step="1" placeholder="20"></div>
+        <div class="field"><label for="undeliverable">Undeliverable or ineligible contacts</label><input id="undeliverable" type="number" min="0" step="1" placeholder="30"></div>
+        <div class="field"><label for="waveStart">Multi-wave starting N</label><input id="waveStart" type="number" min="0" step="1" placeholder="Wave 1 N"></div>
+        <div class="field"><label for="waveEnd">Multi-wave final N</label><input id="waveEnd" type="number" min="0" step="1" placeholder="Final wave N"></div>
+        <div class="field"><label for="reportedRR">Reported response rate, if known (%)</label><input id="reportedRR" type="number" min="0" max="100" step=".1" placeholder="Optional"></div>
+      </div>
+      <div class="calc-grid" aria-live="polite">
+        <div class="metric"><div class="label">Gross RR</div><div class="value" id="grossRate">—</div><div class="explain" id="grossExplain">Completed / distributed</div></div>
+        <div class="metric"><div class="label">Usable RR</div><div class="value" id="usableRate">—</div><div class="explain" id="usableExplain">Usable / distributed</div></div>
+        <div class="metric"><div class="label">Adjusted RR</div><div class="value" id="adjustedRate">—</div><div class="explain" id="adjustedExplain">Usable / eligible reachable</div></div>
+        <div class="metric"><div class="label">Attrition</div><div class="value" id="attritionRate">—</div><div class="explain" id="attritionExplain">Multi-wave only</div></div>
+        <div class="metric"><div class="label">Exclusion rate</div><div class="value" id="exclusionRate">—</div><div class="explain" id="exclusionExplain">Excluded / completed</div></div>
+      </div>
+      <div id="validationBox" class="validation" aria-live="polite"></div>
+    </section>
+
+    <section id="benchmark">
+      <h2>Module 2. Response-rate context and benchmark interpretation</h2>
+      <p class="intro">Use benchmarks cautiously. A benchmark can contextualize the numerical response rate, but it cannot substitute for evidence about sample appropriateness and representativeness.</p>
+      <div class="grid">
+        <div class="field"><label for="benchmarkSource">Benchmark source</label><input id="benchmarkSource" placeholder="Example: journal norms, prior meta-analysis, field convention"></div>
+        <div class="field"><label for="benchmarkRR">Benchmark or norm (%)</label><input id="benchmarkRR" type="number" min="0" max="100" step=".1" placeholder="Example: 50"></div>
+        <div class="field"><label for="benchmarkField">Field or discipline</label><input id="benchmarkField" placeholder="Management, applied psychology, health services, etc."></div>
+        <div class="field"><label for="benchmarkJournal">Journal or research area</label><input id="benchmarkJournal"></div>
+        <div class="field"><label for="benchmarkYear">Year or period</label><input id="benchmarkYear" placeholder="Example: 2015–2025"></div>
+        <div class="field"><label for="benchmarkLevel">Comparable level of analysis</label><input id="benchmarkLevel" placeholder="Individual, dyad, firm, etc."></div>
+        <div class="field"><label for="benchmarkPopulation">Comparable population and mode</label><textarea id="benchmarkPopulation" placeholder="Describe how comparable the benchmark is to your target population, country, mode, and sampling frame."></textarea></div>
+        <div class="field"><label for="benchmarkComparable">Is the benchmark truly comparable?</label><select id="benchmarkComparable"><option value="">Select...</option><option>Yes, highly comparable</option><option>Partly comparable</option><option>No / weakly comparable</option><option>Not sure</option></select></div>
+        <div class="field"><label for="classificationRateChoice">Rate to compare with benchmark</label><select id="classificationRateChoice"><option value="adjusted">Adjusted RR</option><option value="usable">Usable RR</option><option value="gross">Gross RR</option><option value="reported">Reported RR</option></select></div>
+        <div class="field"><label for="highLowThreshold">High/low cutoff (%)</label><input id="highLowThreshold" type="number" min="0" max="100" step=".1" placeholder="Defaults to benchmark or 50"></div>
+      </div>
+      <div class="output-box" id="benchmarkOutput">Enter benchmark information to generate a benchmark-caution statement.</div>
+    </section>
+
+    <section id="evidence">
+      <h2>Module 3. Validity-evidence assessment dashboard</h2>
+      <p class="intro">Rate each validity-evidence domain from 0 to 4. Use the score as an organizing aid only; the final judgment depends on convergence across evidence, contradictions, red flags, and documentation gaps.</p>
+      <details><summary>Rating scale guidance</summary><p><strong>0</strong> = no evidence or serious threat. <strong>1</strong> = weak evidence. <strong>2</strong> = mixed or incomplete evidence. <strong>3</strong> = good evidence. <strong>4</strong> = strong evidence. A high score requires concrete documentation, not just an assertion.</p></details>
+      <div id="domainContainer"></div>
+    </section>
+
+    <section id="classifier">
+      <h2>Module 4. Functional vs. dysfunctional response-rate classifier</h2>
+      <p class="intro">The classifier combines the numerical response rate, validity-evidence score, severe red flags, and documentation gaps. It never classifies the study based on the response-rate percentage alone.</p>
+      <div class="matrix" id="rrMatrix" aria-label="Functional and dysfunctional response rate matrix">
+        <div></div><div class="hdr">High RR</div><div class="hdr">Low RR</div>
+        <div class="rowhdr">Functional RR</div>
+        <div class="cell" data-cell="High RR / Functional RR"><strong>High RR / Functional</strong><p>High numerical RR plus strong validity evidence, few or no red flags, and adequate documentation.</p></div>
+        <div class="cell" data-cell="Low RR / Functional RR"><strong>Low RR / Functional</strong><p>Low numerical RR but strong sampling, representativeness, data-quality, and qualification evidence.</p></div>
+        <div class="rowhdr">Dysfunctional RR</div>
+        <div class="cell" data-cell="High RR / Dysfunctional RR"><strong>High RR / Dysfunctional</strong><p>High numerical RR but coercion, inattention, weak qualifications, or poor representativeness evidence.</p></div>
+        <div class="cell" data-cell="Low RR / Dysfunctional RR"><strong>Low RR / Dysfunctional</strong><p>Low numerical RR with unclear representativeness, poor data quality, or limited validity evidence.</p></div>
+      </div>
+      <div class="grid">
+        <div class="field"><label for="classificationOverride">Override classification</label><select id="classificationOverride"><option value="">No override</option><option>High RR / Functional RR</option><option>High RR / Dysfunctional RR</option><option>Low RR / Functional RR</option><option>Low RR / Dysfunctional RR</option></select></div>
+        <div class="field"><label for="overrideReason">Override rationale</label><textarea id="overrideReason" placeholder="Explain why the automated classification should be changed."></textarea></div>
+      </div>
+      <div class="output-box" id="classificationOutput"></div>
+    </section>
+
+    <section id="scorecard">
+      <h2>Module 5. Evidence triangulation and scorecard</h2>
+      <p class="intro">This scorecard summarizes evidence, red flags, gaps, and reporting strength. It is not a substitute for judgment; it surfaces where evidence converges and where it conflicts.</p>
+      <table class="score-table" id="scoreTable"><thead><tr><th>Domain</th><th>Score</th><th>Status</th><th>Evidence note</th><th>Red flags</th></tr></thead><tbody></tbody></table>
+      <div class="output-box" id="triangulationOutput"></div>
+    </section>
+
+    <section id="checks">
+      <h2>Module 6. Nonresponse and representativeness checks</h2>
+      <p class="intro">Plan analyses that make the response-rate validity claim more credible. Select each check you can conduct, then specify the comparison, available variables, strengthening/weakening evidence, and reporting plan.</p>
+      <div id="checksContainer"></div>
+    </section>
+
+    <section id="planner">
+      <h2>Module 7. Survey-design improvement planner</h2>
+      <p class="intro">Targeted recommendations are generated from missing denominators, low domain scores, red flags, and benchmark-comparability issues.</p>
+      <div class="output-box" id="recommendationsOutput"></div>
+    </section>
+
+    <section id="manuscript">
+      <h2>Module 8. Manuscript-ready reporting generator</h2>
+      <p class="intro">Copy and paste cautious, transparent language into a Method section, reviewer response, limitations section, or online appendix. The language avoids claiming that the response rate proves validity.</p>
+      <div class="tabs no-print" role="tablist" aria-label="Manuscript output styles">
+        <button type="button" class="tabbtn active" data-output="concise">Concise journal style</button>
+        <button type="button" class="tabbtn" data-output="detailed">Detailed methods</button>
+        <button type="button" class="tabbtn" data-output="reviewerResponse">Reviewer response</button>
+        <button type="button" class="tabbtn" data-output="limitations">Limitations</button>
+        <button type="button" class="tabbtn" data-output="appendix">Appendix checklist</button>
+      </div>
+      <textarea id="manuscriptOutput" aria-label="Generated manuscript text" style="min-height:260px"></textarea>
+      <div class="inline no-print" style="margin-top:10px"><button type="button" id="copyManuscriptBtn">Copy text</button><button type="button" id="downloadManuscriptBtn" class="secondary">Download text</button></div>
+    </section>
+
+    <section id="reviewer">
+      <h2>Module 9. Reviewer audit mode</h2>
+      <p class="intro">Paste a manuscript’s response-rate description, then complete the structured checklist. Because this file runs offline without AI APIs, the audit is implemented through guided self-assessment rather than automated natural-language analysis.</p>
+      <div class="field"><label for="reviewerText">Manuscript response-rate description</label><textarea id="reviewerText" style="min-height:140px" placeholder="Paste the manuscript’s sampling and response-rate description here."></textarea></div>
+      <div id="reviewerChecklist" class="grid"></div>
+      <div class="output-box" id="reviewerOutput"></div>
+    </section>
+
+    <section id="exports">
+      <h2>Module 10. Exportable outputs</h2>
+      <p class="intro">Export a report, manuscript text, reviewer checklist, JSON backup, or CSV of scores and red flags. All exports are generated locally in your browser.</p>
+      <div class="export-grid no-print">
+        <button type="button" id="downloadReportHTML">Full report as HTML</button>
+        <button type="button" id="downloadReportText">Full report as plain text</button>
+        <button type="button" id="downloadOnlyManuscript">Manuscript-ready text</button>
+        <button type="button" id="downloadReviewer">Reviewer checklist</button>
+        <button type="button" id="downloadJSON">JSON file with all inputs</button>
+        <button type="button" id="downloadCSV">CSV scores and red flags</button>
+      </div>
+      <h3>Print-friendly report preview</h3>
+      <div id="reportPreview" class="output-box"></div>
+    </section>
+
+    <section id="about">
+      <h2>About / Citation</h2>
+      <p>This tool operationalizes a response-rate validity assessment framework for evaluating whether a survey sample is high quality, appropriate, and representative for the intended inferences.</p>
+      <p>The tool is designed to help researchers gather and report validity evidence regarding the inferences supported by a particular response rate. The purpose is not simply to maximize response rate, but to maximize the quality and appropriateness of the sample for the study’s goals.</p>
+      <div class="footer-credit"><strong>Based on: Aguinis, H. 2025. Research methodology: Best practices for rigorous, credible, and impactful research. SAGE. https://collegepublishing.sagepub.com/products/research-methodology-1-280088</strong></div>
+    </section>
+  </main>
+
+  <aside class="no-print" aria-label="Dashboard summary">
+    <div class="dashboard-card">
+      <h2>Progress</h2>
+      <div class="progress-wrap"><div class="progress-bar" id="progressBar"></div></div>
+      <div class="dash-row"><span>Completed fields</span><strong id="progressText">0%</strong></div>
+      <div class="dash-row"><span>Saved</span><strong id="saveStatus">Not yet</strong></div>
+    </div>
+    <div class="dashboard-card">
+      <h2>Dashboard</h2>
+      <div class="dash-row"><span>Selected RR</span><strong id="dashSelectedRR">—</strong></div>
+      <div class="dash-row"><span>Evidence score</span><strong id="dashScore">0 / 24</strong></div>
+      <div class="dash-row"><span>Evidence status</span><strong id="dashStatus"><span class="status concern">Serious concern</span></strong></div>
+      <div class="dash-row"><span>Red flags</span><strong id="dashFlags">0</strong></div>
+      <div class="dash-row"><span>Severe flags</span><strong id="dashSevere">0</strong></div>
+      <div class="dash-row"><span>Documentation gaps</span><strong id="dashGaps">0</strong></div>
+      <div class="dash-row"><span>Classification</span><strong id="dashClass">—</strong></div>
+      <div class="dash-row"><span>Confidence</span><strong id="dashConfidence">Low</strong></div>
+    </div>
+    <div class="dashboard-card">
+      <h2>Interpretation rule</h2>
+      <p class="hint">High or low RR is not decisive. Functional RR requires convergent validity evidence. Severe coercion, unknown key qualifications, or serious data-quality failures override otherwise strong scores.</p>
+    </div>
+  </aside>
+</div>
+
+<script>
+(function(){
+  'use strict';
+  const storeKey = 'rrValidityAssessmentTool.v1';
+
+  const domains = [
+    {
+      id:'relationship', name:'Researcher–participant relationship',
+      questions:[
+        'Does the researcher or sponsoring institution have a relationship with respondents?',
+        'What is the quality of the relationship: low trust, moderate trust, or high trust?',
+        'Could respondents feel coerced, pressured, or obligated to participate?',
+        'Are participants students, employees, subordinates, clients, alumni, members of a sponsoring organization, or otherwise dependent on the researcher or sponsor?',
+        'Are participants likely to know the study hypotheses?',
+        'Was the pool of potential respondents randomly selected?',
+        'Are potential respondents representative of the population to which the research seeks to generalize?',
+        'What steps reduce coercion, social desirability, demand effects, or sponsor pressure?'
+      ],
+      flags:[
+        ['Students taught by the researcher', true], ['Employees surveyed by employer request without strong confidentiality protection', true], ['Participants directly dependent on researcher or sponsor', true], ['High trust or commitment relationship may induce helping behavior', false], ['Hypotheses transparent to respondents', false], ['Nonrandom sampling with no representativeness evidence', true]
+      ],
+      actions:['Add confidentiality protections','Use neutral invitations','Separate researcher from authority figure','Add nonresponse comparison','Add social desirability or demand-characteristic checks','Document why participation was voluntary']
+    },
+    {
+      id:'qualifications', name:'Participant qualifications',
+      questions:[
+        'Do potential respondents have first-hand knowledge of the phenomenon?', 'Are respondents the correct informants for the constructs?', 'Do respondents possess necessary knowledge, skills, abilities, experience, role access, or organizational visibility?', 'Are respondents representative of incumbents in the domain?', 'Could the wrong person have completed the survey?', 'For organizational or firm-level surveys, how do you know the respondent had authority or knowledge to answer?', 'For supervisor ratings, how many targets does the supervisor rate and what is the span of control?', 'Were screening, eligibility, identity, role-verification, or attention checks used?'
+      ],
+      flags:[['Unknown respondent identity', true], ['Lower-level informants answering top-management questions', true], ['Participants lack first-hand experience', true], ['Large span of control with fine-grained behavioral ratings', false], ['No screening or eligibility verification', true], ['Panel participants may pass screeners without real qualifications', false]],
+      actions:['Add role-verification checks','Collect job title, tenure, organizational position, and domain experience','Use multiple informants when appropriate','Add screening questions that are difficult to fake','Compare eligible and ineligible cases','Report participant qualification evidence explicitly']
+    },
+    {
+      id:'motivation', name:'Participant motivation',
+      questions:[
+        'Were participants paid?', 'What was the payment amount?', 'How does payment compare with local minimum wage or average wage?', 'Could payment be coercive or excessive in context?', 'Were participants professional respondents or panel participants?', 'How many surveys had they completed recently, if known?', 'Were reminders, nudges, personalized feedback, lotteries, or incentives used?', 'Could reminders or incentives shift motivation from thoughtful participation to compliance, speed, or compensation seeking?', 'Is there evidence of careful attention, such as attention checks, time checks, straightlining checks, open-ended response quality, or consistency checks?'
+      ],
+      flags:[['Very high incentive relative to local wage', true], ['Very low incentive that encourages speed', false], ['Professional respondents with heavy survey-taking history', false], ['Failed attention checks', true], ['Extremely short completion times', true], ['Straightlining', true], ['Inconsistent responses', true], ['Multiple reminders could create pressure', false], ['Eligibility checks easy to game', false]],
+      actions:['Add attention and comprehension checks','Use minimum completion-time rules','Inspect open-ended responses','Use duplicate, bot, VPN, geolocation, and identity checks where appropriate','Report incentive amount and rationale','Report reminder schedule','Conduct sensitivity analyses with and without low-quality cases']
+    },
+    {
+      id:'length', name:'Survey length and complexity',
+      questions:[
+        'How many survey items are included?', 'How cognitively demanding are the questions?', 'Are respondents asked simple facts, subjective perceptions, retrospective judgments, predictions, strategic assessments, or sensitive information?', 'What are the median and mean completion times?', 'What is the range of completion times?', 'Are there signs of fatigue, breakoff, item nonresponse, careless responding, or late-survey deterioration?', 'Did participants pause and return later?', 'Was the survey pretested for burden, readability, and completion time?'
+      ],
+      flags:[['Long survey with no pretest', true], ['Complex judgments from low-knowledge respondents', true], ['High item nonresponse', true], ['Late-survey decline in data quality', false], ['Median completion time implausibly short', true], ['Many participants pausing for long periods', false], ['Sensitive questions without appropriate protections', true]],
+      actions:['Shorten the survey','Move key variables earlier','Pretest burden and comprehension','Add progress indicator','Use adaptive branching','Separate complex judgments from simple factual items','Report survey length and completion-time evidence']
+    },
+    {
+      id:'waves', name:'Number of times the survey is administered',
+      questions:[
+        'Is the survey administered repeatedly?', 'How many waves are used?', 'What is the time interval between waves?', 'Are the same constructs or scales repeated?', 'What is attrition at each wave?', 'Are repeat respondents more or less attentive over time?', 'Could repeated measurement create consistency motives, memory effects, fatigue, or panel conditioning?', 'Could temporal separation introduce intervening events that affect validity?'
+      ],
+      flags:[['Large attrition across waves', true], ['No comparison of retained vs. dropped participants', true], ['Same items repeated many times without rationale', false], ['Strong panel-conditioning risk', false], ['No documentation of timing or intervening events', false]],
+      actions:['Create an attrition table','Compare retained and non-retained respondents','Report wave timing','Test whether key results change when including only complete cases','Document intervening events','Justify repeated administration theoretically and methodologically']
+    },
+    {
+      id:'culture', name:'Cultural and national context',
+      questions:[
+        'What are the relevant national, organizational, occupational, or community norms regarding survey participation?', 'Are respondents in a context where participation may be seen as obligatory, respectful, relationally expected, risky, or suspicious?', 'Is the response rate consistent with normative expectations in that context?', 'Could cultural norms encourage acquiescence, helping behavior, deference, socially desirable responding, or reluctance to dissent?', 'Is there a reason to expect coercive or forced response?', 'Were translations, back-translations, localization, or cultural adaptations used?', 'Are there cross-country differences in response rates or data quality?'
+      ],
+      flags:[['Cross-cultural sample with no context-specific response-rate discussion', true], ['High response rate in hierarchical or collectivistic setting with no coercion assessment', true], ['Low response rate in low-trust context with no representativeness check', true], ['Translation without validation', false], ['Combining countries without reporting country-level response rates', false]],
+      actions:['Report response rates by country or cultural subgroup','Explain normative expectations','Test measurement invariance when relevant','Document translation and localization','Add confidentiality protections','Discuss cultural response-style threats','Compare sample composition with known population parameters']
+    }
+  ];
+
+  const nonresponseChecks = [
+    'Compare early vs. late respondents', 'Compare respondents vs. known population benchmarks', 'Compare respondents vs. nonrespondents when auxiliary data are available', 'Compare retained vs. attrited participants in multi-wave studies', 'Compare included vs. excluded responses', 'Compare demographic, organizational, occupational, geographic, or role distributions', 'Conduct sensitivity analyses', 'Weight responses if justified', 'Report limitations honestly'
+  ];
+
+  const reviewerItems = [
+    'Response rate is calculable', 'All denominators are reported', 'Usable and completed responses are distinguished', 'Exclusions are explained', 'Reminders and incentives are reported', 'Sampling frame is described', 'Participant qualification evidence is provided', 'Representativeness is addressed', 'Nonresponse bias is assessed', 'Cultural/national context is addressed', 'The study does not overrely on a benchmark', 'The high/low RR is interpreted as functional or dysfunctional using evidence'
+  ];
+
+  const $ = (id)=>document.getElementById(id);
+  const qsa = (sel, root=document)=>Array.from(root.querySelectorAll(sel));
+  const val = (id)=>($(id) ? $(id).value.trim() : '');
+  const num = (id)=>{ const v = parseFloat(val(id)); return Number.isFinite(v) ? v : null; };
+  const pct = (x)=> Number.isFinite(x) ? (x*100).toFixed(1)+'%' : '—';
+  const safe = (s)=>String(s||'').replace(/[&<>"]/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[ch]));
+
+  function initGeneratedUI(){
+    const dc = $('domainContainer');
+    dc.innerHTML = domains.map((d, idx)=>`
+      <article class="domain-card" id="domain-${d.id}">
+        <div class="domain-head">
+          <div>
+            <h3>${idx+1}. ${d.name}</h3>
+            <ul class="questions">${d.questions.map(q=>`<li>${q}</li>`).join('')}</ul>
+          </div>
+          <div class="scorebox">
+            <label for="score_${d.id}">Score 0–4</label>
+            <output id="scoreOut_${d.id}">0</output>
+            <input id="score_${d.id}" data-domain-score="${d.id}" type="range" min="0" max="4" step="1" value="0" aria-describedby="scoreHelp_${d.id}">
+            <div class="hint" id="scoreHelp_${d.id}">0 no evidence; 4 strong evidence</div>
+          </div>
+        </div>
+        <div class="grid">
+          <div class="field"><label for="evidence_${d.id}">Evidence notes</label><textarea id="evidence_${d.id}" placeholder="Summarize validity evidence, including strengths and weaknesses."></textarea></div>
+          <div class="field"><label for="docs_${d.id}">Documentable evidence</label><textarea id="docs_${d.id}" placeholder="What can be reported, appended, tabulated, or audited?"></textarea></div>
+        </div>
+        <div class="redflags"><strong>Red flags</strong>${d.flags.map((f,i)=>`<label class="check"><input type="checkbox" id="flag_${d.id}_${i}" data-redflag="${d.id}" data-severe="${f[1] ? 'true':'false'}" data-label="${safe(f[0])}"> <span>${f[0]}${f[1] ? ' <span class="status concern">severe</span>':''}</span></label>`).join('')}</div>
+        <div class="actions-list"><strong>Recommended actions</strong>${d.actions.map((a,i)=>`<label class="check"><input type="checkbox" id="action_${d.id}_${i}"> <span>${a}</span></label>`).join('')}</div>
+      </article>
+    `).join('');
+
+    const cc = $('checksContainer');
+    cc.innerHTML = nonresponseChecks.map((c,i)=>`
+      <details class="check-plan" id="checkPlan_${i}">
+        <summary><label class="check" style="display:inline-flex"><input type="checkbox" id="nr_${i}" data-nrcheck="${i}"> <span>${c}</span></label></summary>
+        <div class="grid" style="margin-top:12px">
+          <div class="field"><label for="nr_compare_${i}">What comparison will be conducted?</label><textarea id="nr_compare_${i}"></textarea></div>
+          <div class="field"><label for="nr_vars_${i}">What variables are available?</label><textarea id="nr_vars_${i}"></textarea></div>
+          <div class="field"><label for="nr_strengthen_${i}">What result would strengthen validity evidence?</label><textarea id="nr_strengthen_${i}"></textarea></div>
+          <div class="field"><label for="nr_weaken_${i}">What result would weaken validity evidence?</label><textarea id="nr_weaken_${i}"></textarea></div>
+          <div class="field"><label for="nr_report_${i}">How will this be reported?</label><textarea id="nr_report_${i}"></textarea></div>
+        </div>
+      </details>
+    `).join('');
+
+    const rc = $('reviewerChecklist');
+    rc.innerHTML = reviewerItems.map((item,i)=>`<label class="check"><input type="checkbox" id="review_${i}" data-review="${i}"> <span>${item}</span></label>`).join('');
+  }
+
+  function collectState(){
+    const data = {};
+    qsa('input, select, textarea').forEach(el=>{
+      if(!el.id) return;
+      data[el.id] = el.type === 'checkbox' ? el.checked : el.value;
+    });
+    return data;
+  }
+
+  function applyState(data){
+    if(!data) return;
+    qsa('input, select, textarea').forEach(el=>{
+      if(!el.id || !(el.id in data)) return;
+      if(el.type === 'checkbox') el.checked = !!data[el.id]; else el.value = data[el.id];
+    });
+  }
+
+  function save(){
+    localStorage.setItem(storeKey, JSON.stringify(collectState()));
+    $('saveStatus').textContent = new Date().toLocaleTimeString();
+  }
+
+  function load(){
+    try{ applyState(JSON.parse(localStorage.getItem(storeKey) || '{}')); } catch(e){ console.warn(e); }
+  }
+
+  function calculateRates(){
+    const distributed=num('distributed'), completed=num('completed'), usable=num('usable'), excluded=num('excluded'), undeliv=num('undeliverable'), waveStart=num('waveStart'), waveEnd=num('waveEnd');
+    const gross = distributed>0 && completed!==null ? completed/distributed : null;
+    const usableRate = distributed>0 && usable!==null ? usable/distributed : null;
+    const eligible = distributed!==null && undeliv!==null ? distributed-undeliv : null;
+    const adjusted = eligible>0 && usable!==null ? usable/eligible : null;
+    const attrition = waveStart>0 && waveEnd!==null ? (waveStart-waveEnd)/waveStart : null;
+    const exclusion = completed>0 && excluded!==null ? excluded/completed : null;
+    return {distributed,completed,usable,excluded,undeliv,waveStart,waveEnd,eligible,gross,usableRate,adjusted,attrition,exclusion};
+  }
+
+  function setMetric(id, value, text){ $(id).textContent = pct(value); $(id.replace('Rate','Explain')).textContent = text; }
+
+  function validateRates(r){
+    const msgs=[];
+    if(r.distributed===null && num('reportedRR')!==null) msgs.push(['warn','A response rate is reported, but the distributed/contacted denominator is missing. Report enough information for readers to calculate the rate.']);
+    if(r.distributed!==null && r.distributed<=0) msgs.push(['bad','Surveys distributed must be greater than zero to calculate response rates.']);
+    if(r.eligible!==null && r.eligible<=0) msgs.push(['bad','Eligible reachable contacts are zero or negative because undeliverable/ineligible contacts are greater than or equal to distributed contacts.']);
+    if(r.usable!==null && r.completed!==null && r.usable>r.completed) msgs.push(['bad','Usable responses exceed completed responses. Check the numerators.']);
+    if(r.completed!==null && r.distributed!==null && r.completed>r.distributed) msgs.push(['bad','Completed responses exceed surveys distributed. Check the denominator or clarify whether additional contacts were added.']);
+    if(r.usable!==null && r.distributed!==null && r.usable>r.distributed) msgs.push(['bad','Usable responses exceed surveys distributed. Check the denominator.']);
+    if(r.undeliv!==null && r.distributed!==null && r.undeliv>r.distributed) msgs.push(['bad','Undeliverable/ineligible contacts exceed distributed contacts.']);
+    if(Number.isFinite(r.exclusion) && r.exclusion>.20) msgs.push(['warn','The exclusion rate exceeds 20%. Document exclusion rules and report sensitivity analyses with and without excluded cases when possible.']);
+    if(Number.isFinite(r.attrition) && r.attrition>.30) msgs.push(['warn','Multi-wave attrition exceeds 30%. Compare retained and dropped participants and report attrition by wave.']);
+    if(msgs.length===0) msgs.push(['info','No arithmetic inconsistencies detected. Continue by documenting validity evidence, not just the response-rate value.']);
+    return msgs;
+  }
+
+  function getScores(){
+    let total=0; const byDomain={};
+    domains.forEach(d=>{ const s=parseInt(val('score_'+d.id)||'0',10); byDomain[d.id]=s; total+=s; const out=$('scoreOut_'+d.id); if(out) out.textContent=s; });
+    return {total, byDomain};
+  }
+
+  function countFlags(){
+    const flags = qsa('[data-redflag]').filter(el=>el.checked).map(el=>({domain:el.dataset.redflag, label:el.dataset.label, severe:el.dataset.severe==='true'}));
+    return {flags, total:flags.length, severe:flags.filter(f=>f.severe).length};
+  }
+
+  function countGaps(){
+    let gaps=0;
+    const required=['studyTitle','researchQuestion','targetPopulation','samplingFrame','distributed','completed','usable','collectionMedium','dataSource'];
+    required.forEach(id=>{ if(!val(id)) gaps++; });
+    domains.forEach(d=>{ if(!val('evidence_'+d.id)) gaps++; if(!val('docs_'+d.id)) gaps++; });
+    return gaps;
+  }
+
+  function scoreStatus(total, severe){
+    // Transparent scoring rule: total evidence score is 0-24. Severe override prevents a strong-validity classification.
+    if(total<=8) return {label:'Serious validity concerns', cls:'concern'};
+    if(total<=14) return {label:'Weak or incomplete validity evidence', cls:'attn'};
+    if(total<=19 || severe>0) return {label: severe>0 && total>=20 ? 'Moderate evidence with severe-flag override' : 'Moderate validity evidence', cls:'adequate'};
+    return {label:'Strong validity evidence', cls:'strong'};
+  }
+
+  function selectedRate(r){
+    const choice = val('classificationRateChoice') || 'adjusted';
+    if(choice==='gross') return {name:'Gross RR', value:r.gross};
+    if(choice==='usable') return {name:'Usable RR', value:r.usableRate};
+    if(choice==='reported'){ const rr=num('reportedRR'); return {name:'Reported RR', value:rr!==null ? rr/100 : null}; }
+    return {name:'Adjusted RR', value:r.adjusted};
+  }
+
+  function classify(r, scores, flagCount, gaps){
+    const chosen = selectedRate(r);
+    const benchmark = num('highLowThreshold') ?? num('benchmarkRR') ?? 50;
+    const high = Number.isFinite(chosen.value) ? chosen.value*100 >= benchmark : false;
+    // Transparent functional/dysfunctional rule: functional requires at least moderate evidence, no severe red flags, and not too many unresolved gaps. Stronger scores increase confidence.
+    let functional = scores.total>=15 && flagCount.severe===0 && gaps<=8;
+    if(scores.total>=20 && flagCount.severe===0 && flagCount.total<=4) functional = true;
+    if(scores.total<15 || flagCount.severe>0) functional = false;
+    let classification = (high ? 'High RR' : 'Low RR') + ' / ' + (functional ? 'Functional RR' : 'Dysfunctional RR');
+    const override=val('classificationOverride');
+    if(override) classification=override;
+    let confidence='Low';
+    if(scores.total>=20 && flagCount.severe===0 && gaps<=5 && Number.isFinite(chosen.value)) confidence='High';
+    else if(scores.total>=15 && flagCount.severe===0 && gaps<=10) confidence='Moderate';
+    if(flagCount.severe>0 || scores.total<=8) confidence='Low';
+    return {classification, confidence, chosen, benchmark, high, functional, override:!!override};
+  }
+
+  function fieldSentence(label, value, fallback='not reported'){
+    return `${label}: ${value ? value : fallback}`;
+  }
+
+  function updateRatesDisplay(r){
+    setMetric('grossRate', r.gross, r.gross===null ? 'Need completed and distributed counts' : 'Completed responses divided by surveys distributed');
+    setMetric('usableRate', r.usableRate, r.usableRate===null ? 'Need usable and distributed counts' : 'Usable responses divided by surveys distributed');
+    setMetric('adjustedRate', r.adjusted, r.adjusted===null ? 'Need usable and eligible reachable contacts' : `Usable responses divided by ${r.eligible} eligible reachable contacts`);
+    setMetric('attritionRate', r.attrition, r.attrition===null ? 'Need starting and final wave Ns' : 'Starting N minus final N divided by starting N');
+    setMetric('exclusionRate', r.exclusion, r.exclusion===null ? 'Need excluded and completed counts' : 'Excluded responses divided by completed responses');
+    $('validationBox').innerHTML = validateRates(r).map(m=>`<div class="alert ${m[0]}"><strong>${m[0]==='bad'?'Problem':m[0]==='warn'?'Caution':'Note'}.</strong><span>${m[1]}</span></div>`).join('');
+  }
+
+  function benchmarkStatement(r, cls){
+    const rr = cls.chosen.value;
+    const rrText = Number.isFinite(rr) ? `${cls.chosen.name} is ${pct(rr)}` : `${cls.chosen.name} is not yet calculable`;
+    const bench = num('benchmarkRR');
+    const comp = val('benchmarkComparable');
+    let caution = 'Benchmark comparison alone is insufficient; proceed to the validity-evidence dashboard.';
+    if(comp.includes('highly')) caution = 'The benchmark appears reasonably comparable, but it should still be treated as context rather than proof of sample validity.';
+    else if(comp.includes('Partly')) caution = 'The benchmark is only partly comparable; interpret the numerical comparison cautiously.';
+    else if(comp.includes('No') || comp.includes('Not sure')) caution = 'The benchmark is weakly comparable or uncertain; do not use it as a strong justification.';
+    const comparison = Number.isFinite(bench) && Number.isFinite(rr) ? (rr*100>=bench ? `The selected response rate is ${(rr*100-bench).toFixed(1)} percentage points above the benchmark.` : `The selected response rate is ${(bench-rr*100).toFixed(1)} percentage points below the benchmark.`) : 'Enter a benchmark and a calculable response rate to compare them.';
+    return `${rrText}. ${comparison}\n\nBenchmark source: ${val('benchmarkSource') || 'not specified'}. Field/area: ${val('benchmarkField') || 'not specified'}; period: ${val('benchmarkYear') || 'not specified'}; comparable level/population/mode: ${val('benchmarkPopulation') || 'not specified'}.\n\nBenchmark caution: ${caution}`;
+  }
+
+  function domainStatus(score){
+    if(score>=4) return ['Strong','strong'];
+    if(score>=3) return ['Adequate','adequate'];
+    if(score>=2) return ['Needs attention','attn'];
+    return ['Serious concern','concern'];
+  }
+
+  function updateScoreTable(scores, flags){
+    const tbody = $('scoreTable').querySelector('tbody');
+    tbody.innerHTML = domains.map(d=>{
+      const s=scores.byDomain[d.id]; const st=domainStatus(s); const df=flags.flags.filter(f=>f.domain===d.id).map(f=>f.label).join('; ') || 'None selected';
+      return `<tr><td><strong>${d.name}</strong></td><td>${s}/4</td><td><span class="status ${st[1]}">${st[0]}</span></td><td>${safe(val('evidence_'+d.id) || 'No evidence note entered')}</td><td>${safe(df)}</td></tr>`;
+    }).join('');
+  }
+
+  function recommendations(scores, flags, r){
+    const rec=[];
+    if(!Number.isFinite(r.gross) || !Number.isFinite(r.usableRate)) rec.push('Report the number distributed, completed, usable, excluded, and undeliverable/ineligible so the response rate can be recalculated by readers.');
+    if(r.usable!==null && r.completed!==null && r.usable>r.completed) rec.push('Correct the inconsistency that usable responses exceed completed responses before reporting the response rate.');
+    if(Number.isFinite(r.exclusion) && r.exclusion>.20) rec.push('Because exclusions are high, document each exclusion rule and conduct sensitivity analyses with and without excluded cases.');
+    if(val('benchmarkComparable').includes('No') || val('benchmarkComparable').includes('Not sure')) rec.push('Do not lean on the benchmark as a primary justification; explain why the benchmark is weakly comparable and emphasize validity evidence.');
+    domains.forEach(d=>{ const s=scores.byDomain[d.id]; if(s<=2){
+      if(d.id==='relationship') rec.push('Strengthen the researcher–participant relationship evidence by adding neutral recruitment language, confidentiality protections, separation from authority figures, and nonresponse comparisons.');
+      if(d.id==='qualifications') rec.push('Strengthen participant qualification evidence by adding role verification, difficult-to-fake screeners, job/role/tenure documentation, and multiple-informant checks when appropriate.');
+      if(d.id==='motivation') rec.push('Strengthen participant motivation evidence by documenting incentives and reminders, checking attention and completion time, and inspecting straightlining, duplicate identities, bots, VPNs, and low-quality open-ended responses.');
+      if(d.id==='length') rec.push('Reduce survey-length and complexity threats by pretesting burden, reporting item count and completion time, moving key measures earlier, and checking late-survey deterioration.');
+      if(d.id==='waves') rec.push('For repeated administration, create an attrition table, compare retained and non-retained respondents, report timing, and document possible panel-conditioning or intervening-event threats.');
+      if(d.id==='culture') rec.push('For cultural/national context, report country or subgroup response rates, discuss normative expectations, validate translations, and compare sample composition with population parameters.');
+    }});
+    flags.flags.forEach(f=>{ if(f.severe) rec.push(`Resolve or explicitly discuss severe red flag: ${f.label}.`); });
+    const unique = Array.from(new Set(rec));
+    if(unique.length===0) unique.push('No major automated concerns detected. Continue documenting convergent evidence and residual limitations honestly.');
+    return unique;
+  }
+
+  function triangulationText(scores, flags, gaps, cls){
+    const status=scoreStatus(scores.total, flags.severe);
+    const lows=domains.filter(d=>scores.byDomain[d.id]<=2).map(d=>d.name);
+    const highs=domains.filter(d=>scores.byDomain[d.id]>=3).map(d=>d.name);
+    let txt=`Overall validity-evidence score: ${scores.total}/24 (${status.label}). Severe red flags: ${flags.severe}; total red flags: ${flags.total}; unresolved documentation gaps: ${gaps}. Recommended confidence in sample-based inferences: ${cls.confidence}.\n\n`;
+    txt += `Evidence convergence: ${highs.length ? highs.join('; ') : 'No domain currently has good or strong evidence.'}.\n`;
+    txt += `Evidence requiring attention: ${lows.length ? lows.join('; ') : 'No domain currently falls below good evidence.'}.\n\n`;
+    if(flags.severe>0) txt += 'Override logic: at least one severe coercion, unknown qualification, representativeness, or data-quality problem is selected. Therefore, the assessment should not be described as strong even if the numerical score is high.\n';
+    txt += `Recommended manuscript reporting strength: ${status.cls==='strong' && cls.confidence==='High' ? 'Strong and transparent, with residual limitations noted.' : status.cls==='adequate' ? 'Moderate; report evidence and limitations carefully without overclaiming.' : 'Limited; strengthen design, documentation, and nonresponse checks before making confident inferences.'}`;
+    return txt;
+  }
+
+  function manuscriptTexts(r, scores, flags, gaps, cls){
+    const rrParts = [`gross response rate = ${pct(r.gross)}`, `usable response rate = ${pct(r.usableRate)}`, `adjusted response rate = ${pct(r.adjusted)}`];
+    if(Number.isFinite(r.attrition)) rrParts.push(`multi-wave attrition = ${pct(r.attrition)}`);
+    if(Number.isFinite(r.exclusion)) rrParts.push(`exclusion rate = ${pct(r.exclusion)}`);
+    const evidenceSummary = domains.map(d=>`${d.name}: ${scores.byDomain[d.id]}/4`).join('; ');
+    const selectedChecks = nonresponseChecks.filter((_,i)=>$('nr_'+i)?.checked).join('; ') || 'no additional checks selected yet';
+    const classification = cls.classification;
+    const baseCounts = `We distributed ${r.distributed ?? '[number]'} surveys and received ${r.completed ?? '[number]'} completed responses, of which ${r.usable ?? '[number]'} were usable. ${r.excluded ?? '[number]'} responses were excluded (${val('exclusionReasons') || 'reasons not yet specified'}), and ${r.undeliv ?? '[number]'} contacts were undeliverable or ineligible.`;
+    const context = `The sampling frame was ${val('samplingFrame') || '[describe sampling frame]'}, the target population was ${val('targetPopulation') || '[describe target population]'}, the data-collection medium was ${val('collectionMedium') || '[mode]'}, and the data source was ${val('dataSource') || '[source]'}. Incentives: ${val('incentivesUsed') || 'not reported'}; reminders: ${val('remindersUsed') || 'not reported'}; data-quality checks: ${val('checksUsed') || 'not reported'}.`;
+    return {
+      concise:`${baseCounts} The resulting response-rate estimates were ${rrParts.join(', ')}. ${context} We assessed response-rate validity by evaluating evidence regarding the researcher–participant relationship, participant qualifications, participant motivation, survey length and complexity, repeated administration, and cultural/national context. The overall validity-evidence score was ${scores.total}/24, with ${flags.total} red flags (${flags.severe} severe), supporting a ${classification} classification with ${cls.confidence.toLowerCase()} confidence. These validity checks ${cls.confidence==='High'?'increase':'inform'} confidence in the appropriateness and representativeness of the sample, while not implying that the response rate alone proves validity.`,
+      detailed:`Sampling and response-rate calculation. ${baseCounts} Eligible reachable contacts were ${r.eligible ?? '[number]'}, yielding ${rrParts.join(', ')}. ${context}\n\nResponse-rate validity assessment. We evaluated the response rate as validity evidence rather than as a stand-alone indicator of sample quality. Domain scores were ${evidenceSummary}. Nonresponse and representativeness checks planned or conducted include: ${selectedChecks}. The final classification was ${classification}; confidence in sample-based inferences was ${cls.confidence.toLowerCase()}. This judgment reflects the convergence of evidence regarding sample quality, appropriateness, and representativeness, not merely whether the numerical response rate was high or low.`,
+      reviewerResponse:`We appreciate the concern about the response rate and agree that the percentage alone is insufficient to establish sample quality. In response, we have clarified the denominators and numerators used in the calculation: ${baseCounts} We now report ${rrParts.join(', ')}. We also added a response-rate validity assessment covering participant qualifications, motivation, researcher–participant relationship, survey burden, repeated administration, and cultural/national context. Current validity-evidence scores are ${evidenceSummary}, with ${flags.total} red flags (${flags.severe} severe). We therefore characterize the response rate as ${classification} and avoid claiming that the response rate by itself demonstrates validity.`,
+      limitations:`Several residual threats to response-rate validity remain. Although the study reports ${rrParts.join(', ')}, the response-rate value alone does not establish sample quality, appropriateness, or representativeness. The strongest remaining limitations are: ${domains.filter(d=>scores.byDomain[d.id]<=2).map(d=>d.name).join('; ') || 'none identified by the current scorecard'}. Red flags include: ${flags.flags.map(f=>f.label).join('; ') || 'none selected'}. Accordingly, the findings should be interpreted with ${cls.confidence.toLowerCase()} confidence regarding generalization to ${val('targetPopulation') || 'the intended target population'}, and future research should strengthen nonresponse, representativeness, and data-quality evidence.`,
+      appendix:`Online appendix response-rate validity checklist\n\nStudy title: ${val('studyTitle') || '[title]'}\nResearch question: ${val('researchQuestion') || '[question]'}\nTarget population: ${val('targetPopulation') || '[population]'}\nSampling frame: ${val('samplingFrame') || '[sampling frame]'}\nCounts: distributed=${r.distributed ?? ''}; completed=${r.completed ?? ''}; usable=${r.usable ?? ''}; excluded=${r.excluded ?? ''}; undeliverable/ineligible=${r.undeliv ?? ''}; eligible reachable=${r.eligible ?? ''}.\nRates: ${rrParts.join('; ')}.\nDomain scores: ${evidenceSummary}.\nRed flags: ${flags.flags.map(f=>f.label + (f.severe?' [severe]':'')).join('; ') || 'none selected'}.\nNonresponse/representativeness checks: ${selectedChecks}.\nClassification: ${classification}.\nConfidence: ${cls.confidence}.\nOverride rationale: ${val('overrideReason') || 'none'}.`
+    };
+  }
+
+  function reviewerAudit(){
+    const checked = reviewerItems.filter((_,i)=>$('review_'+i)?.checked);
+    const missing = reviewerItems.filter((_,i)=>!$('review_'+i)?.checked);
+    let txt=`Reviewer audit summary: ${checked.length}/${reviewerItems.length} reporting elements are marked as present.\n\n`;
+    txt += `Elements needing attention:\n${missing.map(m=>'• '+m).join('\n') || '• None selected as missing.'}\n\n`;
+    txt += `Questions reviewers can ask authors:\n`;
+    const qs=[];
+    if(missing.includes('Response rate is calculable') || missing.includes('All denominators are reported')) qs.push('Please report the number contacted, completed, usable, excluded, and ineligible/undeliverable so the response rate can be recalculated.');
+    if(missing.includes('Participant qualification evidence is provided')) qs.push('What evidence demonstrates that respondents were qualified informants for the constructs and level of analysis?');
+    if(missing.includes('Representativeness is addressed') || missing.includes('Nonresponse bias is assessed')) qs.push('What comparisons of respondents versus nonrespondents, population benchmarks, early/late respondents, or retained/attrited cases support representativeness?');
+    if(missing.includes('Cultural/national context is addressed')) qs.push('How might national, cultural, organizational, or occupational norms shape participation and response quality?');
+    if(missing.includes('The study does not overrely on a benchmark')) qs.push('Please explain why the response rate is functional or dysfunctional using validity evidence rather than relying only on a benchmark.');
+    txt += (qs.length ? qs.map(q=>'• '+q).join('\n') : '• The checklist does not surface major missing items, but reviewers should still evaluate whether the evidence converges.');
+    return txt;
+  }
+
+  function progress(){
+    const elems=qsa('input:not([type=checkbox]), select, textarea').filter(el=>!el.id.startsWith('nr_') && !el.id.startsWith('review_'));
+    const filled=elems.filter(el=>el.value && el.value.trim()!=='' && !['No override'].includes(el.value)).length;
+    const p=Math.round((filled/Math.max(elems.length,1))*100);
+    $('progressBar').style.width=p+'%'; $('progressText').textContent=p+'%';
+  }
+
+  function updateAll(){
+    const r=calculateRates(); const scores=getScores(); const flags=countFlags(); const gaps=countGaps(); const cls=classify(r, scores, flags, gaps); const st=scoreStatus(scores.total, flags.severe);
+    updateRatesDisplay(r); updateScoreTable(scores, flags); progress();
+    $('benchmarkOutput').textContent = benchmarkStatement(r, cls);
+    $('dashSelectedRR').textContent = `${cls.chosen.name}: ${pct(cls.chosen.value)}`;
+    $('dashScore').textContent = `${scores.total} / 24`;
+    $('dashStatus').innerHTML = `<span class="status ${st.cls}">${st.label}</span>`;
+    $('dashFlags').textContent = flags.total; $('dashSevere').textContent = flags.severe; $('dashGaps').textContent = gaps;
+    $('dashClass').textContent = cls.classification.replace(' / ',' /\n'); $('dashConfidence').textContent=cls.confidence;
+    qsa('#rrMatrix .cell').forEach(c=>c.classList.toggle('active', c.dataset.cell===cls.classification));
+    const explanation = `${cls.classification}${cls.override ? ' (overridden by user)' : ''}. The selected numerical comparison is ${cls.chosen.name} = ${pct(cls.chosen.value)}, using a high/low cutoff of ${cls.benchmark.toFixed(1)}%. The evidence score is ${scores.total}/24, with ${flags.total} red flags (${flags.severe} severe) and ${gaps} documentation gaps. Confidence: ${cls.confidence}.\n\nPlain-language interpretation: ${cls.functional ? 'The current evidence is sufficient to treat the response rate as functional for the intended inferences, provided the documented evidence is reported transparently.' : 'The current evidence is not yet sufficient to treat the response rate as functional. Strengthen validity evidence or report limitations more cautiously.'}${val('overrideReason') ? '\n\nOverride rationale: '+val('overrideReason') : ''}`;
+    $('classificationOutput').textContent = explanation;
+    $('triangulationOutput').textContent = triangulationText(scores, flags, gaps, cls);
+    $('recommendationsOutput').textContent = recommendations(scores, flags, r).map(x=>'• '+x).join('\n');
+    const texts=manuscriptTexts(r, scores, flags, gaps, cls); const active=qsa('.tabbtn.active')[0]?.dataset.output || 'concise'; $('manuscriptOutput').value=texts[active];
+    $('reviewerOutput').textContent = reviewerAudit();
+    $('reportPreview').textContent = makeReportText(r, scores, flags, gaps, cls, texts);
+    qsa('[data-domain-score]').forEach(el=>{ const s=parseInt(el.value,10); const st=domainStatus(s); el.closest('.scorebox').querySelector('.hint').textContent = `${st[0]}: ${scoreLabel(s)}`; });
+  }
+
+  function scoreLabel(s){ return ['No evidence or serious threat','Weak evidence','Mixed or incomplete evidence','Good evidence','Strong evidence'][s] || ''; }
+
+  function makeReportText(r, scores, flags, gaps, cls, texts){
+    const selectedChecks = nonresponseChecks.map((c,i)=>$('nr_'+i)?.checked ? `• ${c}: comparison=${val('nr_compare_'+i)||'not specified'}; variables=${val('nr_vars_'+i)||'not specified'}; reporting=${val('nr_report_'+i)||'not specified'}` : '').filter(Boolean).join('\n') || 'No checks selected yet.';
+    return `Response-Rate Validity Assessment Report\n\nStudy information\n${fieldSentence('Study title',val('studyTitle'))}\n${fieldSentence('Research question',val('researchQuestion'))}\n${fieldSentence('Target population',val('targetPopulation'))}\n${fieldSentence('Sampling frame',val('samplingFrame'))}\n${fieldSentence('Unit of analysis',val('unitAnalysis'))}\n${fieldSentence('Data-collection medium',val('collectionMedium'))}\n${fieldSentence('Data source',val('dataSource'))}\n${fieldSentence('Countries',val('countries'))}\n\nResponse-rate calculations\nGross RR: ${pct(r.gross)}\nUsable RR: ${pct(r.usableRate)}\nAdjusted RR: ${pct(r.adjusted)}\nAttrition: ${pct(r.attrition)}\nExclusion rate: ${pct(r.exclusion)}\n\nValidity-evidence scores\n${domains.map(d=>`• ${d.name}: ${scores.byDomain[d.id]}/4. Evidence: ${val('evidence_'+d.id)||'not entered'}`).join('\n')}\n\nRed flags\n${flags.flags.map(f=>`• ${f.label}${f.severe?' [severe]':''}`).join('\n') || 'None selected.'}\n\nClassification\n${cls.classification}; confidence = ${cls.confidence}; evidence score = ${scores.total}/24; documentation gaps = ${gaps}.\n\nNonresponse and representativeness checks\n${selectedChecks}\n\nRecommended actions\n${recommendations(scores, flags, r).map(x=>'• '+x).join('\n')}\n\nManuscript-ready reporting text\n${texts.concise}\n\nAppendix checklist\n${texts.appendix}\n\nSource credit\nBased on: Aguinis, H. 2025. Research methodology: Best practices for rigorous, credible, and impactful research. SAGE. https://collegepublishing.sagepub.com/products/research-methodology-1-280088`;
+  }
+
+  function makeReportHTML(){
+    return `<!DOCTYPE html><html><head><meta charset="utf-8"><title>Response-Rate Validity Report</title><style>body{font-family:Arial,Helvetica,sans-serif;max-width:980px;margin:30px auto;line-height:1.45;color:#172033}pre{white-space:pre-wrap;background:#f7f9fc;border:1px solid #d8dee9;border-radius:12px;padding:18px}</style></head><body><h1>Response-Rate Validity Report</h1><pre>${safe($('reportPreview').textContent)}</pre></body></html>`;
+  }
+
+  function download(filename, content, type='text/plain'){
+    const blob=new Blob([content],{type}); const url=URL.createObjectURL(blob); const a=document.createElement('a'); a.href=url; a.download=filename; document.body.appendChild(a); a.click(); a.remove(); setTimeout(()=>URL.revokeObjectURL(url),500);
+  }
+
+  function csvExport(scores, flags){
+    const rows=[['Domain','Score','Evidence notes','Documentable evidence','Selected red flags','Severe red flags']];
+    domains.forEach(d=>{ const df=flags.flags.filter(f=>f.domain===d.id); rows.push([d.name, scores.byDomain[d.id], val('evidence_'+d.id), val('docs_'+d.id), df.map(f=>f.label).join('; '), df.filter(f=>f.severe).map(f=>f.label).join('; ')]); });
+    return rows.map(row=>row.map(cell=>'"'+String(cell).replace(/"/g,'""')+'"').join(',')).join('\n');
+  }
+
+  function attachEvents(){
+    document.addEventListener('input', e=>{ if(e.target.matches('input, select, textarea')){ updateAll(); save(); } });
+    document.addEventListener('change', e=>{ if(e.target.matches('input, select, textarea')){ updateAll(); save(); } });
+    $('saveBtn').addEventListener('click', ()=>{ save(); updateAll(); });
+    $('printBtn').addEventListener('click', ()=>window.print());
+    $('exportHTMLBtn').addEventListener('click', ()=>$('downloadReportHTML').click());
+    $('resetBtn').addEventListener('click', ()=>{ if(confirm('Reset all inputs and delete saved local progress?')){ localStorage.removeItem(storeKey); qsa('input, select, textarea').forEach(el=>{ if(el.type==='checkbox') el.checked=false; else if(el.type==='range') el.value=0; else el.value=''; }); $('surveyDesign').value='Single-wave'; $('incentivesUsed').value='No'; $('remindersUsed').value='No'; $('classificationRateChoice').value='adjusted'; updateAll(); save(); }});
+    qsa('.tabbtn').forEach(btn=>btn.addEventListener('click',()=>{ qsa('.tabbtn').forEach(b=>b.classList.remove('active')); btn.classList.add('active'); updateAll(); }));
+    $('copyManuscriptBtn').addEventListener('click', async()=>{ try{ await navigator.clipboard.writeText($('manuscriptOutput').value); alert('Manuscript text copied.'); }catch(e){ $('manuscriptOutput').select(); document.execCommand('copy'); }});
+    $('downloadManuscriptBtn').addEventListener('click',()=>download('response-rate-validity-manuscript-text.txt',$('manuscriptOutput').value));
+    $('downloadReportHTML').addEventListener('click',()=>download('response-rate-validity-report.html',makeReportHTML(),'text/html'));
+    $('downloadReportText').addEventListener('click',()=>download('response-rate-validity-report.txt',$('reportPreview').textContent));
+    $('downloadOnlyManuscript').addEventListener('click',()=>download('response-rate-validity-manuscript-text.txt',$('manuscriptOutput').value));
+    $('downloadReviewer').addEventListener('click',()=>download('response-rate-validity-reviewer-checklist.txt',$('reviewerOutput').textContent));
+    $('downloadJSON').addEventListener('click',()=>download('response-rate-validity-inputs.json',JSON.stringify(collectState(),null,2),'application/json'));
+    $('downloadCSV').addEventListener('click',()=>{ const scores=getScores(); const flags=countFlags(); download('response-rate-validity-scores-redflags.csv',csvExport(scores,flags),'text/csv'); });
+  }
+
+  initGeneratedUI();
+  load();
+  attachEvents();
+  updateAll();
+})();
+</script>
+<!-- Begin Countercentral code v 7.0 --> 
+<span id="wts2576"></span> 
+<script>var wts=document.createElement('script');wts.async=true; 
+wts.src='https://server2.countercentral.com/log7.js';document.head.appendChild(wts); 
+wts.onload = function(){ wtslog7(2576,1); }; 
+</script><noscript><a href="https://www.countercentral.com"> 
+<img src="https://server2.countercentral.com/7/1/2576.png"  
+alt="Countercentral web traffic analysis"></a></noscript> 
+<!-- End Countercentral code v 7.0 --> 
+</body>
+</html>

@@ -1,0 +1,718 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Personal Impact Development Plan Builder</title>
+<style>
+:root{
+  --bg:#f5f7fb;
+  --panel:#ffffff;
+  --ink:#172033;
+  --muted:#5b677a;
+  --line:#d8deea;
+  --brand:#174ea6;
+  --brand2:#0b6b66;
+  --accent:#f4b942;
+  --danger:#b42318;
+  --good:#137333;
+  --warn:#a15c00;
+  --shadow:0 12px 28px rgba(23,32,51,.10);
+  --radius:18px;
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{
+  margin:0;
+  font-family:Arial, Helvetica, sans-serif;
+  background:linear-gradient(180deg,#eef3fb 0%,var(--bg) 25%,#fff 100%);
+  color:var(--ink);
+  line-height:1.5;
+}
+a{color:var(--brand)}
+button,input,select,textarea{font:inherit}
+button{
+  border:0;
+  border-radius:12px;
+  padding:.72rem 1rem;
+  background:var(--brand);
+  color:#fff;
+  cursor:pointer;
+  font-weight:700;
+  box-shadow:0 6px 14px rgba(23,78,166,.18);
+}
+button:hover{filter:brightness(.96)}
+button:focus,input:focus,select:focus,textarea:focus,[contenteditable="true"]:focus{outline:3px solid rgba(244,185,66,.55);outline-offset:2px}
+button.secondary{background:#e8edf7;color:var(--brand);box-shadow:none}
+button.ghost{background:transparent;color:var(--brand);border:1px solid var(--line);box-shadow:none}
+button.danger{background:var(--danger)}
+button.small{padding:.45rem .65rem;border-radius:9px;font-size:.86rem;box-shadow:none}
+button.good{background:var(--good)}
+button.warn{background:var(--warn)}
+.skip-link{position:absolute;left:-9999px;top:auto;width:1px;height:1px;overflow:hidden}
+.skip-link:focus{left:1rem;top:1rem;width:auto;height:auto;background:#fff;padding:.7rem 1rem;z-index:1000;border:2px solid var(--brand)}
+.hero{
+  background:linear-gradient(135deg,#10284e,#174ea6 55%,#0b6b66);
+  color:white;
+  padding:2rem clamp(1rem,4vw,4rem);
+}
+.hero-grid{display:grid;grid-template-columns:1.4fr .6fr;gap:2rem;align-items:center;max-width:1440px;margin:auto}
+.hero h1{font-size:clamp(2rem,4vw,4rem);line-height:1.05;margin:.2rem 0 .8rem}
+.hero p{font-size:1.08rem;max-width:74ch;color:#eaf1ff}
+.badges{display:flex;flex-wrap:wrap;gap:.55rem;margin-top:1.2rem}
+.badge{display:inline-flex;align-items:center;gap:.35rem;border:1px solid rgba(255,255,255,.28);background:rgba(255,255,255,.12);padding:.36rem .65rem;border-radius:999px;color:#fff;font-size:.88rem}
+.hero-card{background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.25);border-radius:var(--radius);padding:1.2rem;backdrop-filter:blur(4px)}
+.hero-card strong{display:block;font-size:1.3rem;margin-bottom:.4rem}
+.layout{display:grid;grid-template-columns:290px minmax(0,1fr);gap:1.2rem;max-width:1440px;margin:0 auto;padding:1.2rem}
+.sidebar{position:sticky;top:0;align-self:start;background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow);padding:1rem;max-height:98vh;overflow:auto}
+.sidebar h2{font-size:1rem;margin:.2rem 0 .7rem}
+.progress-wrap{background:#edf1f7;border-radius:999px;height:12px;overflow:hidden;margin:.5rem 0 .8rem}
+.progress-bar{height:100%;width:0;background:linear-gradient(90deg,var(--brand),var(--brand2));transition:width .3s}
+.progress-label{font-size:.88rem;color:var(--muted)}
+.nav{display:grid;gap:.3rem;margin-top:1rem}
+.nav a{text-decoration:none;color:var(--ink);padding:.55rem .7rem;border-radius:10px;border:1px solid transparent;font-size:.92rem}
+.nav a:hover,.nav a.active{background:#edf4ff;border-color:#d2e1fb;color:var(--brand)}
+.main{display:grid;gap:1rem;min-width:0}
+.section{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow);overflow:hidden}
+.section-header{display:flex;gap:1rem;align-items:center;justify-content:space-between;padding:1.05rem 1.2rem;border-bottom:1px solid var(--line);background:linear-gradient(180deg,#fff,#fbfcff)}
+.section-header h2{margin:0;font-size:1.35rem;line-height:1.2}
+.section-header .section-tag{font-size:.8rem;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);font-weight:700}
+.section-body{padding:1.2rem}
+.section.collapsed .section-body{display:none}
+.grid{display:grid;gap:1rem}
+.two{grid-template-columns:repeat(2,minmax(0,1fr))}
+.three{grid-template-columns:repeat(3,minmax(0,1fr))}
+.four{grid-template-columns:repeat(4,minmax(0,1fr))}
+.card{border:1px solid var(--line);border-radius:16px;background:#fff;padding:1rem}
+.card h3{margin:.1rem 0 .5rem;font-size:1.05rem}
+.card p{margin:.35rem 0;color:var(--muted)}
+.callout{border-left:5px solid var(--brand);background:#f2f6ff;border-radius:14px;padding:1rem}
+.callout.warn{border-color:var(--warn);background:#fff7ed}
+.callout.good{border-color:var(--good);background:#effaf2}
+label{font-weight:700;display:block;margin:.2rem 0 .3rem}
+.hint{font-size:.84rem;color:var(--muted);font-weight:400}
+input[type="text"],input[type="date"],input[type="number"],select,textarea{
+  width:100%;border:1px solid #cbd4e1;border-radius:12px;padding:.68rem .75rem;background:#fff;color:var(--ink)
+}
+textarea{min-height:88px;resize:vertical}
+.controls{display:flex;flex-wrap:wrap;gap:.55rem;align-items:center;margin:.8rem 0}
+.table-wrap{overflow:auto;border:1px solid var(--line);border-radius:14px;background:#fff}
+table{border-collapse:collapse;width:100%;min-width:860px}
+th,td{border-bottom:1px solid var(--line);padding:.62rem;vertical-align:top;text-align:left}
+th{background:#f4f7fb;font-size:.85rem;color:#334155;position:sticky;top:0;z-index:1}
+td input,td select,td textarea{min-width:140px;font-size:.9rem;padding:.5rem;border-radius:9px}
+td textarea{min-height:58px}
+.actions-cell{white-space:nowrap;min-width:200px}
+.kpi-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:.8rem}
+.kpi{background:linear-gradient(180deg,#fff,#f6f8fc);border:1px solid var(--line);border-radius:16px;padding:1rem}
+.kpi .num{font-size:2rem;font-weight:800;color:var(--brand);line-height:1.1}
+.kpi .label{color:var(--muted);font-size:.88rem}
+.pill{display:inline-block;border-radius:999px;padding:.25rem .55rem;font-size:.8rem;font-weight:700}
+.pill.low{background:#edf2f7;color:#334155}
+.pill.moderate{background:#fff7ed;color:#9a3412}
+.pill.high{background:#fef3c7;color:#92400e}
+.pill.urgent{background:#fee2e2;color:#991b1b}
+.pill.done{background:#dcfce7;color:#166534}
+.pill.open{background:#dbeafe;color:#1e40af}
+.pill.overdue{background:#fee2e2;color:#991b1b}
+.chart-box{border:1px solid var(--line);border-radius:16px;padding:1rem;background:#fff;min-height:300px}
+svg text{font-family:Arial, Helvetica, sans-serif}
+.activity-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:.9rem}
+.activity-card{border:1px solid var(--line);border-radius:16px;background:#fff;padding:1rem;display:flex;flex-direction:column;gap:.5rem}
+.activity-card h3{margin:0;font-size:1rem}
+.meta{display:flex;gap:.4rem;flex-wrap:wrap;color:var(--muted);font-size:.83rem}
+.generated-plan{border:1px solid var(--line);border-radius:16px;background:#fff;min-height:420px;padding:1.2rem;overflow:auto}
+.generated-plan h1,.generated-plan h2,.generated-plan h3{color:#10284e}
+.generated-plan table{min-width:0;font-size:.88rem}
+.print-only{display:none}
+.validation{color:var(--warn);font-weight:700;font-size:.9rem;margin:.5rem 0}
+.footer{max-width:1440px;margin:1rem auto 2rem;padding:1rem 1.2rem;color:var(--muted);font-size:.9rem}
+.tooltip{border-bottom:1px dotted var(--muted);cursor:help}
+.inline-list{margin:.3rem 0;padding-left:1.1rem;color:var(--muted)}
+.status-dot{display:inline-block;width:.62rem;height:.62rem;border-radius:50%;background:var(--brand);margin-right:.35rem}
+details{border:1px solid var(--line);border-radius:14px;background:#fff;padding:.8rem}
+details summary{font-weight:800;cursor:pointer}
+.file-row{display:flex;gap:.55rem;align-items:center;flex-wrap:wrap}
+@media(max-width:1050px){
+  .layout{grid-template-columns:1fr}
+  .sidebar{position:relative;max-height:none}
+  .nav{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .hero-grid,.two,.three,.four,.kpi-grid,.activity-grid{grid-template-columns:1fr}
+}
+@media(max-width:640px){
+  .hero{padding:1.2rem}
+  .layout{padding:.7rem}
+  .section-header{align-items:flex-start;flex-direction:column}
+  .nav{grid-template-columns:1fr}
+  table{font-size:.88rem}
+}
+@media print{
+  body{background:#fff;color:#000}
+  .hero,.sidebar,.section:not(#plan),.section-header button,.controls,.footer .no-print,.no-print{display:none!important}
+  .layout{display:block;padding:0;margin:0;max-width:none}
+  .main{display:block}
+  .section{box-shadow:none;border:0;border-radius:0}
+  .section-body{padding:0}
+  .generated-plan{border:0;padding:0;min-height:0}
+  .print-only{display:block}
+  a{color:#000;text-decoration:none}
+}
+</style>
+</head>
+<body>
+<a class="skip-link" href="#main">Skip to main content</a>
+<header class="hero" role="banner">
+  <div class="hero-grid">
+    <div>
+      <div class="badge">Research-methods companion tool</div>
+      <h1>Personal Impact Development Plan Builder</h1>
+      <p>Create a practical, evidence-based, personalized plan for increasing scholarly, educational, practical, policy, organizational, and societal impact. Translate broad impact aspirations into competencies, activities, support needs, timelines, and evidence of development.</p>
+      <div class="badges" aria-label="Tool features">
+        <span class="badge">Offline</span><span class="badge">Self-contained</span><span class="badge">Editable</span><span class="badge">Local save</span><span class="badge">Printable</span>
+      </div>
+    </div>
+    <div class="hero-card">
+      <strong>Start with the diagnostic.</strong>
+      <p>Rate six impact competencies, identify development priorities, then generate action items and a polished PIDP.</p>
+      <button onclick="scrollToId('profile')">Start PIDP</button>
+    </div>
+  </div>
+</header>
+<div class="layout">
+  <aside class="sidebar" aria-label="Section navigation">
+    <h2>PIDP progress</h2>
+    <div class="progress-wrap" aria-hidden="true"><div class="progress-bar" id="progressBar"></div></div>
+    <div class="progress-label" id="progressLabel">0% complete</div>
+    <nav class="nav" id="navLinks">
+      <a href="#welcome">1. Welcome</a>
+      <a href="#profile">2. Profile</a>
+      <a href="#purpose">3. Purpose</a>
+      <a href="#diagnostic">4. Diagnostic</a>
+      <a href="#action-plan">5. Action plan</a>
+      <a href="#library">6. Activity library</a>
+      <a href="#readiness">7. Prescriptive readiness</a>
+      <a href="#feedforward">8. Feedforward interview</a>
+      <a href="#support">9. Support</a>
+      <a href="#evidence">10. Evidence</a>
+      <a href="#timeline">11. Dashboard</a>
+      <a href="#plan">12. Generated PIDP</a>
+      <a href="#export">13. Export</a>
+      <a href="#about">About</a>
+    </nav>
+  </aside>
+  <main id="main" class="main">
+    <section class="section" id="welcome">
+      <div class="section-header"><div><div class="section-tag">Orientation</div><h2>Welcome and orientation</h2></div><button class="ghost small" onclick="toggleSection(this)">Collapse</button></div>
+      <div class="section-body grid two">
+        <div class="card">
+          <h3>What is a Personal Impact Development Plan?</h3>
+          <p>A PIDP is a structured plan that helps researchers and educators decide where they want to have impact, which competencies they need to strengthen, which activities they will complete, what support they require, and what evidence will show development.</p>
+          <p>Use this tool as a practical planning workspace: complete the fields that matter now, save your work locally, and revisit it during annual reviews, mentoring meetings, promotion planning, or project launches.</p>
+        </div>
+        <div class="callout good">
+          <h3>How to use this tool</h3>
+          <ol class="inline-list">
+            <li>Complete your researcher profile and impact purpose statement.</li>
+            <li>Rate six impact competencies using capability, importance, and confidence.</li>
+            <li>Generate recommended activities and customize your action plan.</li>
+            <li>Document support needs, evidence of development, and review dates.</li>
+            <li>Generate, edit, print, copy, or download your PIDP.</li>
+          </ol>
+          <button onclick="scrollToId('profile')">Start PIDP</button>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="profile">
+      <div class="section-header"><div><div class="section-tag">Identity and context</div><h2>Researcher profile</h2></div><button class="ghost small" onclick="toggleSection(this)">Collapse</button></div>
+      <div class="section-body">
+        <div class="grid three">
+          <div><label for="name">Name</label><input id="name" data-profile="name" type="text" placeholder="Your name"></div>
+          <div><label for="careerStage">Career stage</label><select id="careerStage" data-profile="careerStage"><option value="">Select</option><option>Doctoral student</option><option>Postdoctoral researcher</option><option>Assistant professor</option><option>Associate professor</option><option>Full professor</option><option>Research scientist</option><option>Academic leader</option><option>Other</option></select></div>
+          <div><label for="discipline">Discipline or field</label><input id="discipline" data-profile="discipline" type="text" placeholder="e.g., management, psychology, economics"></div>
+          <div><label for="institution">Institution or organization</label><input id="institution" data-profile="institution" type="text"></div>
+          <div><label for="topics">Primary research topics</label><textarea id="topics" data-profile="topics" placeholder="List primary topics"></textarea></div>
+          <div><label for="currentAudiences">Current impact audiences</label><textarea id="currentAudiences" data-profile="currentAudiences" placeholder="Researchers, educators, practitioners..."></textarea></div>
+          <div><label for="futureAudiences">Desired future impact audiences</label><textarea id="futureAudiences" data-profile="futureAudiences" placeholder="Policymakers, managers, communities..."></textarea></div>
+          <div><label for="timeHorizon">Time horizon for this plan</label><select id="timeHorizon" data-profile="timeHorizon"><option>3 months</option><option>6 months</option><option selected>12 months</option><option>24 months</option><option>Custom</option></select></div>
+          <div><label for="supporters">Current or potential supporters <span class="hint">Mentor, chair, dean, editor, association leader, practitioner or policy partner</span></label><textarea id="supporters" data-profile="supporters" placeholder="Name roles or individuals"></textarea></div>
+        </div>
+        <div class="validation" id="profileValidation" aria-live="polite"></div>
+      </div>
+    </section>
+
+    <section class="section" id="purpose">
+      <div class="section-header"><div><div class="section-tag">Impact direction</div><h2>Impact purpose builder</h2></div><button class="ghost small" onclick="toggleSection(this)">Collapse</button></div>
+      <div class="section-body">
+        <div class="grid two">
+          <div><label>On whom do I want to have impact and why?</label><textarea data-purpose="audienceWhy"></textarea></div>
+          <div><label>What societal, organizational, policy, educational, or scientific problems do I want my work to address?</label><textarea data-purpose="problems"></textarea></div>
+          <div><label>What forms of impact matter most to me?</label><textarea data-purpose="forms" placeholder="Theory, research methods, practice, policy, education, students, organizations, media, public understanding, professional associations, communities, society..."></textarea></div>
+          <div><label>What values, passions, and motivations guide my desired impact?</label><textarea data-purpose="values"></textarea></div>
+          <div><label>What would meaningful impact look like one year from now?</label><textarea data-purpose="oneYear"></textarea></div>
+          <div><label>What would meaningful impact look like five years from now?</label><textarea data-purpose="fiveYears"></textarea></div>
+        </div>
+        <hr>
+        <h3>Stakeholder mapping</h3>
+        <p class="hint">Add each audience you want to reach, clarify why it matters, and specify evidence that impact has occurred.</p>
+        <div class="controls"><button onclick="addStakeholder()">Add stakeholder group</button><button class="secondary" onclick="addExampleStakeholders()">Add examples</button></div>
+        <div class="table-wrap"><table aria-label="Stakeholder map"><thead><tr><th>Stakeholder group</th><th>Desired impact</th><th>Why this group matters</th><th>Current engagement</th><th>Desired engagement</th><th>Best channels</th><th>Evidence impact occurred</th><th>Actions</th></tr></thead><tbody id="stakeholderRows"></tbody></table></div>
+      </div>
+    </section>
+
+    <section class="section" id="diagnostic">
+      <div class="section-header"><div><div class="section-tag">Self-assessment</div><h2>Six impact competency diagnostic</h2></div><button class="ghost small" onclick="toggleSection(this)">Collapse</button></div>
+      <div class="section-body">
+        <div class="callout"><strong>Transparent formula:</strong> Development priority = importance + (5 − current capability) + (5 − confidence). Higher scores indicate stronger need for development.</div>
+        <div class="table-wrap" style="margin-top:1rem"><table aria-label="Six impact competency diagnostic"><thead><tr><th>Competency</th><th>Core question and focus</th><th>Current capability</th><th>Importance</th><th>Confidence</th><th>Notes</th><th>Priority score</th><th>Priority level</th></tr></thead><tbody id="competencyRows"></tbody></table></div>
+        <div class="grid two" style="margin-top:1rem">
+          <div class="chart-box"><h3>Visual summary</h3><div id="competencyChart" aria-label="Bar chart of competency scores"></div></div>
+          <div class="card"><h3>Ranked development priorities</h3><div id="priorityList"></div><div class="controls"><button onclick="recommendActivities()">Generate recommended activities based on my diagnostic</button></div></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="action-plan">
+      <div class="section-header"><div><div class="section-tag">Execution</div><h2>PIDP action-plan builder</h2></div><button class="ghost small" onclick="toggleSection(this)">Collapse</button></div>
+      <div class="section-body">
+        <div class="controls"><button onclick="addActionRow()">Add row</button><button class="secondary" onclick="recommendActivities()">Generate recommended activities</button><button class="ghost" onclick="resetActionExamples()">Reload six example rows</button></div>
+        <div class="table-wrap"><table aria-label="PIDP action plan"><thead><tr><th>Targeted impact competency</th><th>Question to ask yourself</th><th>Developmental activity</th><th>Resources/support needed</th><th>Time frame</th><th>Evidence of development</th><th>Status</th><th>Notes</th><th>Actions</th></tr></thead><tbody id="actionRows"></tbody></table></div>
+      </div>
+    </section>
+
+    <section class="section" id="library">
+      <div class="section-header"><div><div class="section-tag">Developmental activities</div><h2>Developmental activity library</h2></div><button class="ghost small" onclick="toggleSection(this)">Collapse</button></div>
+      <div class="section-body">
+        <div class="grid three">
+          <div><label for="activitySearch">Search activity library</label><input id="activitySearch" type="text" placeholder="Search descriptions, resources, evidence" oninput="renderActivityLibrary()"></div>
+          <div><label for="activityFilter">Filter by competency</label><select id="activityFilter" onchange="renderActivityLibrary()"><option value="">All competencies</option></select></div>
+          <div><label for="difficultyFilter">Filter by difficulty</label><select id="difficultyFilter" onchange="renderActivityLibrary()"><option value="">All difficulty levels</option><option>Low</option><option>Moderate</option><option>High</option></select></div>
+        </div>
+        <div id="activityCards" class="activity-grid" style="margin-top:1rem"></div>
+      </div>
+    </section>
+
+    <section class="section" id="readiness">
+      <div class="section-header"><div><div class="section-tag">Evidence-to-guidance fit</div><h2>Prescriptive readiness module</h2></div><button class="ghost small" onclick="toggleSection(this)">Collapse</button></div>
+      <div class="section-body">
+        <div class="callout warn"><strong>Do not overstate implications.</strong> Match practical guidance to the strength and maturity of the evidence. Exploratory and preliminary evidence can suggest possibilities, but it should not be presented as a firm guideline or standard.</div>
+        <div class="grid five"></div>
+        <div class="grid two" style="margin-top:1rem">
+          <div class="card"><h3>Readiness levels</h3><div id="readinessGuide"></div></div>
+          <div class="card"><h3>Assess a research project</h3>
+            <div class="grid">
+              <div><label for="projectTitle">Project title</label><input id="projectTitle" type="text"></div>
+              <div><label for="projectLevel">Readiness level</label><select id="projectLevel"></select></div>
+              <div><label for="projectNotes">Notes on appropriate claims and next impact activity</label><textarea id="projectNotes"></textarea></div>
+              <button onclick="addProject()">Add project assessment</button>
+            </div>
+          </div>
+        </div>
+        <div class="table-wrap" style="margin-top:1rem"><table aria-label="Prescriptive readiness project assessments"><thead><tr><th>Project</th><th>Level</th><th>Appropriate claims</th><th>Impact activity fit</th><th>Notes</th><th>Actions</th></tr></thead><tbody id="projectRows"></tbody></table></div>
+      </div>
+    </section>
+
+    <section class="section" id="feedforward">
+      <div class="section-header"><div><div class="section-tag">Mentoring worksheet</div><h2>Feedforward interview module</h2></div><button class="ghost small" onclick="toggleSection(this)">Collapse</button></div>
+      <div class="section-body grid two">
+        <div class="card">
+          <h3>Guided feedforward interview</h3>
+          <p class="hint">Use this worksheet with a mentor, department chair, dean, editor, or professional leader.</p>
+          <label>Step 1: Elicit a success story</label>
+          <p class="hint">Describe an event during which you felt you had a very high degree of impact.</p>
+          <textarea data-ffi="story"></textarea>
+          <label>Step 2: Identify success factors</label>
+          <p class="hint">What did you do, or not do, that made this impact success story possible? What strengths, capabilities, networks, resources, timing, or conditions contributed?</p>
+          <textarea data-ffi="factors"></textarea>
+          <label>Step 3: Extrapolate to the future</label>
+          <p class="hint">How can you replicate these conditions in the next week, month, quarter, or year to achieve similar or greater impact?</p>
+          <textarea data-ffi="future"></textarea>
+          <div class="controls"><button onclick="convertFFI()">Convert answers into draft PIDP action items</button></div>
+        </div>
+        <div class="callout good">
+          <h3>Interview use</h3>
+          <p>The feedforward interview is designed to identify conditions associated with prior impact success and translate them into future actions, support requests, and review milestones.</p>
+          <p><strong>Practical tip:</strong> Ask the interviewer to help you convert success factors into activities, resources, time frames, and evidence of development.</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="support">
+      <div class="section-header"><div><div class="section-tag">Context and accountability</div><h2>Leader, mentor, and institutional support module</h2></div><button class="ghost small" onclick="toggleSection(this)">Collapse</button></div>
+      <div class="section-body">
+        <div class="grid two">
+          <div class="card"><h3>Six leader roles</h3><ol class="inline-list"><li>Explain what is required to reach a desired impact level.</li><li>Refer the individual to appropriate developmental activities.</li><li>Review and suggest improvements to developmental objectives.</li><li>Check progress toward objectives and evidence of development.</li><li>Remove barriers to progress when possible.</li><li>Offer regular check-ins and reinforce positive behaviors.</li></ol></div>
+          <div class="card"><h3>Add support request</h3><div class="grid two"><input id="supportPerson" placeholder="Support person"><select id="supportRole"></select><textarea id="supportRequest" placeholder="Requested support"></textarea><input id="supportDate" type="date"><input id="supportFollow" type="date"><select id="supportStatus"><option>Not requested</option><option>Requested</option><option>In progress</option><option>Completed</option></select><textarea id="supportNotes" placeholder="Notes"></textarea></div><div class="controls"><button onclick="addSupport()">Add support request</button></div></div>
+        </div>
+        <div class="table-wrap" style="margin-top:1rem"><table aria-label="Support requests"><thead><tr><th>Support person</th><th>Role</th><th>Requested support</th><th>Date to request</th><th>Follow-up date</th><th>Status</th><th>Notes</th><th>Actions</th></tr></thead><tbody id="supportRows"></tbody></table></div>
+      </div>
+    </section>
+
+    <section class="section" id="evidence">
+      <div class="section-header"><div><div class="section-tag">Evidence of development</div><h2>Evidence-of-development tracker</h2></div><button class="ghost small" onclick="toggleSection(this)">Collapse</button></div>
+      <div class="section-body">
+        <div class="grid three">
+          <div><label for="evidenceCategory">Evidence category</label><select id="evidenceCategory"></select></div>
+          <div><label for="evidenceDate">Date</label><input id="evidenceDate" type="date"></div>
+          <div><label for="evidenceOutcome">Outcome or artifact title</label><input id="evidenceOutcome" type="text"></div>
+          <div><label for="evidenceUrl">URL or location <span class="hint">Optional; nothing is uploaded</span></label><input id="evidenceUrl" type="text"></div>
+          <div><label for="evidenceReflection">Reflection or notes</label><textarea id="evidenceReflection"></textarea></div>
+          <div><label for="evidenceStakeholder">Stakeholder affected</label><input id="evidenceStakeholder" type="text"></div>
+        </div>
+        <div class="controls"><button onclick="addEvidence()">Add evidence item</button></div>
+        <div class="table-wrap"><table aria-label="Evidence of development tracker"><thead><tr><th>Category</th><th>Date</th><th>Outcome</th><th>URL/location</th><th>Stakeholder</th><th>Reflection</th><th>Actions</th></tr></thead><tbody id="evidenceRows"></tbody></table></div>
+      </div>
+    </section>
+
+    <section class="section" id="timeline">
+      <div class="section-header"><div><div class="section-tag">Monitoring and review</div><h2>Timeline and review dashboard</h2></div><button class="ghost small" onclick="toggleSection(this)">Collapse</button></div>
+      <div class="section-body">
+        <div class="kpi-grid" id="dashboardKpis"></div>
+        <div class="grid two" style="margin-top:1rem">
+          <div class="card"><h3>Next three actions</h3><div id="nextActions"></div></div>
+          <div class="card"><h3>Review schedule</h3><label for="nextReviewDate">Next PIDP review date</label><input id="nextReviewDate" type="date" data-profile="nextReviewDate"><p class="hint">Use this for a quarterly or annual PIDP review reminder. The tool stores the date locally but does not send external notifications.</p></div>
+        </div>
+        <div class="card" style="margin-top:1rem"><h3>Visual timeline</h3><div id="timelineList"></div></div>
+      </div>
+    </section>
+
+    <section class="section" id="plan">
+      <div class="section-header"><div><div class="section-tag">Plan generator</div><h2>Generate My PIDP</h2></div><button class="ghost small" onclick="toggleSection(this)">Collapse</button></div>
+      <div class="section-body">
+        <div class="controls no-print"><button onclick="generatePlan()">Generate My PIDP</button><button class="secondary" onclick="copyPlan()">Copy generated PIDP to clipboard</button><button class="ghost" onclick="window.print()">Print/save as PDF</button></div>
+        <div id="generatedPlan" class="generated-plan" contenteditable="true" aria-label="Editable generated Personal Impact Development Plan"><h2>Your generated PIDP will appear here.</h2><p>Complete the sections above, then click <strong>Generate My PIDP</strong>. You can edit the generated plan directly in this box.</p></div>
+      </div>
+    </section>
+
+    <section class="section" id="export">
+      <div class="section-header"><div><div class="section-tag">Local data management</div><h2>Export, save, and print features</h2></div><button class="ghost small" onclick="toggleSection(this)">Collapse</button></div>
+      <div class="section-body grid two">
+        <div class="card">
+          <h3>Save and restore</h3>
+          <p class="hint">Saved data stays in this browser using localStorage. No information is sent anywhere.</p>
+          <div class="controls"><button onclick="saveLocal()">Save to browser</button><button class="secondary" onclick="loadLocal(true)">Load saved plan</button><button class="danger" onclick="clearPlan()">Clear/reset plan</button></div>
+          <div id="saveStatus" class="hint" aria-live="polite"></div>
+        </div>
+        <div class="card">
+          <h3>Import and export</h3>
+          <div class="controls"><button onclick="exportJSON()">Export JSON</button><button onclick="exportActionCSV()">Export action-plan CSV</button><button onclick="downloadGeneratedHTML()">Download generated PIDP HTML</button><button onclick="downloadGeneratedText()">Download generated PIDP text</button></div>
+          <div class="file-row"><label for="jsonImport">Import from JSON</label><input id="jsonImport" type="file" accept="application/json,.json" onchange="importJSON(event)"></div>
+          <p class="hint">You can also use the browser print function to save the generated PIDP as a PDF.</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="about">
+      <div class="section-header"><div><div class="section-tag">Source and scope</div><h2>About this tool</h2></div><button class="ghost small" onclick="toggleSection(this)">Collapse</button></div>
+      <div class="section-body grid two">
+        <div class="card"><h3>What this tool does</h3><p>This offline tool helps researchers, educators, doctoral students, postdoctoral researchers, faculty members, and academic leaders create a Personal Impact Development Plan by combining reflection, diagnostic scoring, action planning, support mapping, evidence tracking, and review scheduling.</p></div>
+        <div class="card"><h3>Source credit</h3><p><strong>Based on: Aguinis, H. 2025. Research methodology: Best practices for rigorous, credible, and impactful research. SAGE. https://collegepublishing.sagepub.com/products/research-methodology-1-280088</strong></p></div>
+      </div>
+    </section>
+  </main>
+</div>
+<footer class="footer"><p><strong>Based on: Aguinis, H. 2025. Research methodology: Best practices for rigorous, credible, and impactful research. SAGE. https://collegepublishing.sagepub.com/products/research-methodology-1-280088</strong></p><p class="no-print">This file is self-contained and works offline. Data are saved only in the browser localStorage when you click Save.</p></footer>
+<script>
+(function(){
+'use strict';
+const storageKey='pidp_builder_state_v1';
+const competencies=[
+ {id:'motivation',label:'Reflection on motivation for impact',short:'Motivation',category:'Reflective impact competency',question:'On whom do I want to have impact and why?',focus:'Values, passions, motivations, and desired stakeholders.'},
+ {id:'qualities',label:'Reflection on impact qualities',short:'Impact qualities',category:'Reflective impact competency',question:'What are my skills, or lack thereof, regarding my impact?',focus:'Strengths, shortcomings, skills, expertise, and developmental needs.'},
+ {id:'networking',label:'Networking for impact',short:'Networking',category:'Communicative impact competency',question:'Do I interact with the people and groups I want to impact?',focus:'Building and leveraging networks with stakeholders inside and outside academia.'},
+ {id:'circulating',label:'Impact circulating',short:'Circulating',category:'Communicative impact competency',question:'Have I published and disseminated my research in outlets available beyond the academic community?',focus:'Disseminating research through social media, traditional media, practitioner outlets, teaching materials, cases, blogs, reports, podcasts, webinars, executive education, and other nonacademic channels.'},
+ {id:'exploration',label:'Impact exploration',short:'Exploration',category:'Behavioral impact competency',question:'Am I scanning the environment looking for ways to increase my impact?',focus:'Searching for opportunities to increase impact inside and outside academic circles.'},
+ {id:'control',label:'Impact control',short:'Control',category:'Behavioral impact competency',question:'Am I learning new skills that will increase my impact in the future?',focus:'Setting goals, planning, learning new skills, and proactively shaping future impact.'}
+];
+const readinessLevels={
+ 'Exploratory':{claims:'Possibility claims; avoid causal or prescriptive overreach.',fit:'Map stakeholders, ask exploratory questions, identify boundary conditions, and collect feedback.'},
+ 'Preliminary':{claims:'Tentative implications; describe uncertainty and evidence limits.',fit:'Share early insights with expert stakeholders, invite critique, and design stronger tests.'},
+ 'Option':{claims:'Viable option under specified conditions; not yet a universal recommendation.',fit:'Create decision aids, practice notes, prototypes, or pilot guidance.'},
+ 'Guideline':{claims:'Recommended action for defined contexts supported by converging evidence.',fit:'Develop checklists, executive briefings, teaching cases, and implementation toolkits.'},
+ 'Standard':{claims:'Strong prescriptive guidance with mature, replicated, and actionable evidence.',fit:'Develop formal standards, policy templates, training programs, and institutional practices.'}
+};
+const leaderRoles=['Explain what is required to reach a desired impact level','Refer the individual to appropriate developmental activities','Review and suggest improvements to developmental objectives','Check progress toward objectives and evidence of development','Remove barriers to progress when possible','Offer regular check-ins and reinforce positive behaviors'];
+const evidenceCategories=['Publications with practice, policy, or societal implications','Practitioner articles','Policy briefs','Teaching cases','Media mentions','Social media engagement','Conference presentations to nonacademic audiences','Executive education sessions','Practitioner workshops','Citations in policy or practice documents','Stakeholder testimonials','New partnerships','Changes in stakeholder behavior','Adoption of research-based tools','New research questions generated from stakeholder engagement'];
+const activityLibrary=[
+ {competency:'Reflection on motivation for impact',description:'Hold monthly one-on-one meetings with a university leader or mentor to revisit values, passions, motivations, and desired stakeholders.',difficulty:'Moderate',time:'60 minutes monthly',resources:'Mentor, chair, dean, or senior scholar time',evidence:'Updated living document and meeting notes',next:'Schedule the first meeting and draft three questions.'},
+ {competency:'Reflection on motivation for impact',description:'Keep a living document listing values, passions, motivations, and desired stakeholders for impact.',difficulty:'Low',time:'30 minutes weekly for four weeks',resources:'Reflection time and examples of impact statements',evidence:'Living document with revised purpose statement',next:'Write a one-page impact purpose statement.'},
+ {competency:'Reflection on motivation for impact',description:'Meet with highly impactful scholars to understand their motivations, practices, and development routines.',difficulty:'Moderate',time:'One meeting per semester',resources:'Access to impactful scholars and prepared interview protocol',evidence:'Summary of insights and adopted practices',next:'Identify three scholars and send one invitation.'},
+ {competency:'Reflection on impact qualities',description:'Create a table of strengths, shortcomings, and skills regarding impact.',difficulty:'Low',time:'90 minutes',resources:'CV, prior feedback, publication record, media/practice artifacts',evidence:'Completed strengths-development table',next:'Ask a mentor to review the table.'},
+ {competency:'Reflection on impact qualities',description:'Discuss impact qualities and what it takes to have impact on business and society with a mentor.',difficulty:'Moderate',time:'One meeting per semester',resources:'Senior mentor and diagnostic results',evidence:'Revised competency priorities and specific learning goals',next:'Share diagnostic summary before the meeting.'},
+ {competency:'Reflection on impact qualities',description:'Spend a sabbatical or structured period conducting applied research in an organization.',difficulty:'High',time:'One semester or structured project period',resources:'Organizational partner, sabbatical support, research agreement',evidence:'Applied research output and practitioner-facing article or report',next:'Identify one potential host organization.'},
+ {competency:'Networking for impact',description:'Create a stakeholder engagement plan for researchers, practitioners, policymakers, educators, communities, and professional associations.',difficulty:'Moderate',time:'2–3 hours',resources:'Stakeholder list and communication channels',evidence:'Completed stakeholder map and contact cadence',next:'Add five stakeholders to the map.'},
+ {competency:'Networking for impact',description:'Conduct interviews with practitioners, policymakers, or community stakeholders to surface impact-relevant questions.',difficulty:'Moderate',time:'Five 30-minute interviews',resources:'Interview protocol, introductions, recording notes',evidence:'Interview summary and revised research questions',next:'Draft a five-question interview protocol.'},
+ {competency:'Networking for impact',description:'Join professional association committees or impact-oriented working groups.',difficulty:'Moderate',time:'One committee cycle',resources:'Association membership and nomination or volunteer pathway',evidence:'Committee participation and stakeholder contacts',next:'Identify two committees with external-impact missions.'},
+ {competency:'Impact circulating',description:'Share research through LinkedIn, social media, newsletters, blogs, podcasts, practitioner outlets, or traditional media.',difficulty:'Low',time:'30–60 minutes per artifact',resources:'Plain-language summary and dissemination calendar',evidence:'Posts, engagement metrics, responses, or media invitations',next:'Convert one paper into a 200-word public summary.'},
+ {competency:'Impact circulating',description:'Learn how to write stronger implications-for-practice sections.',difficulty:'Moderate',time:'Four hours of self-guided study',resources:'Exemplars, journal articles, videos, reviewer feedback',evidence:'Revised implications section in next manuscript',next:'Collect three exemplary implications sections.'},
+ {competency:'Impact circulating',description:'Write a case for instructional or practitioner use.',difficulty:'High',time:'10–20 hours',resources:'Case-writing guidance, organizational data, peer feedback',evidence:'Case used in teaching or disseminated externally',next:'Select one research project that can become a case.'},
+ {competency:'Impact circulating',description:'Build a media-ready summary of a research project.',difficulty:'Moderate',time:'2 hours',resources:'Press-office guidance or template',evidence:'One-page media summary and key quotes',next:'Draft headline, problem, evidence, and implication.'},
+ {competency:'Impact circulating',description:'Create executive briefings, policy briefs, teaching notes, practitioner checklists, or evidence-based toolkits.',difficulty:'Moderate',time:'3–8 hours',resources:'Target-audience template and stakeholder review',evidence:'Completed briefing, brief, checklist, or toolkit',next:'Choose one audience and one format.'},
+ {competency:'Impact exploration',description:'Attend conferences that include researchers and practitioners.',difficulty:'Moderate',time:'One event',resources:'Travel support, registration, stakeholder meeting plan',evidence:'Written report and brief presentation after the event',next:'Identify two sessions and three people to meet.'},
+ {competency:'Impact exploration',description:'Attend workshops on enhancing scholarly impact.',difficulty:'Low',time:'Half-day to two days',resources:'Workshop sponsorship and protected time',evidence:'Applied workshop skills in a current project',next:'Find one workshop and request support.'},
+ {competency:'Impact exploration',description:'Scan journals, media, policy documents, and practitioner forums for opportunities to increase impact.',difficulty:'Low',time:'30 minutes weekly',resources:'Saved searches and reading list',evidence:'Opportunity log with action decisions',next:'Create a monthly environmental-scan calendar.'},
+ {competency:'Impact exploration',description:'Assess the prescriptive readiness of research before making practical recommendations.',difficulty:'Moderate',time:'60 minutes per project',resources:'Readiness criteria and stakeholder feedback',evidence:'Project classified as exploratory, preliminary, option, guideline, or standard',next:'Classify one current project in the readiness module.'},
+ {competency:'Impact control',description:'Set measurable goals for learning new skills that will increase future impact.',difficulty:'Low',time:'60 minutes',resources:'Diagnostic results and mentor feedback',evidence:'Three measurable development objectives',next:'Convert top priority into one SMART objective.'},
+ {competency:'Impact control',description:'Create a public scholarship dissemination calendar.',difficulty:'Moderate',time:'2 hours to set up, 30 minutes weekly',resources:'Calendar, content themes, target outlets',evidence:'Monthly dissemination record and engagement metrics',next:'Plan the next four dissemination artifacts.'},
+ {competency:'Impact control',description:'Design an impact evidence dashboard to monitor outputs, reach, engagement, adoption, and stakeholder behavior change.',difficulty:'High',time:'4–6 hours',resources:'Spreadsheet or dashboard tool, defined indicators',evidence:'Updated dashboard reviewed quarterly',next:'Select five evidence indicators.'},
+ {competency:'Impact control',description:'Complete on-the-job training with a more experienced and impactful peer.',difficulty:'High',time:'Five hours per week for four weeks',resources:'Experienced peer, mini-training plan, protected time',evidence:'Learning influenced research, dissemination, or stakeholder engagement practices',next:'Ask one peer to design a mini-training sequence.'}
+];
+const blankState=()=>({
+ profile:{name:'',careerStage:'',discipline:'',institution:'',topics:'',currentAudiences:'',futureAudiences:'',timeHorizon:'12 months',supporters:'',nextReviewDate:''},
+ purpose:{audienceWhy:'',problems:'',forms:'',values:'',oneYear:'',fiveYears:''},
+ stakeholders:[],
+ comps:Object.fromEntries(competencies.map(c=>[c.id,{capability:3,importance:4,confidence:3,notes:''}])),
+ actionPlan:defaultActionRows(),
+ projects:[],
+ ffi:{story:'',factors:'',future:''},
+ support:[],
+ evidence:[],
+ generatedPlan:''
+});
+let state=blankState();
+function defaultActionRows(){return competencies.map(c=>({competency:c.label,question:c.question,activity:defaultActivityFor(c.label),resources:'Mentor or leader time; examples; protected development time',timeframe:'Within 3 months',evidence:'Documented progress and reflected learning',status:'Not started',notes:''}));}
+function defaultActivityFor(label){
+ const map={
+ 'Reflection on motivation for impact':'Create a living document listing values, passions, motivations, and desired stakeholders.',
+ 'Reflection on impact qualities':'Create a table of strengths, shortcomings, and skills regarding impact and review it with a mentor.',
+ 'Networking for impact':'Create a stakeholder engagement plan and meet with one new stakeholder group.',
+ 'Impact circulating':'Create a practitioner-facing summary, post, case, policy brief, or executive briefing based on a current project.',
+ 'Impact exploration':'Attend or scan a practitioner-facing event and document opportunities for increasing impact.',
+ 'Impact control':'Set measurable learning goals and assess prescriptive readiness for one current research project.'
+ };
+ return map[label]||'';
+}
+function esc(s){return String(s||'').replace(/[&<>"]/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[m]));}
+function idOf(label){const found=competencies.find(c=>c.label===label);return found?found.id:'motivation';}
+function priorityScore(item){return Number(item.importance||0)+(5-Number(item.capability||0))+(5-Number(item.confidence||0));}
+function priorityLevel(score){if(score>=11)return 'urgent'; if(score>=8)return 'high'; if(score>=5)return 'moderate'; return 'low';}
+function statusClass(status){if(/complete/i.test(status||''))return 'done';return 'open';}
+function todayISO(){return new Date().toISOString().slice(0,10);}
+function scrollToId(id){document.getElementById(id).scrollIntoView({behavior:'smooth',block:'start'});}
+window.scrollToId=scrollToId;
+function toggleSection(btn){const sec=btn.closest('.section');sec.classList.toggle('collapsed');btn.textContent=sec.classList.contains('collapsed')?'Expand':'Collapse';}
+window.toggleSection=toggleSection;
+function bindInputs(){
+ document.querySelectorAll('[data-profile]').forEach(el=>{el.addEventListener('input',()=>{state.profile[el.dataset.profile]=el.value;updateAll(false);});});
+ document.querySelectorAll('[data-purpose]').forEach(el=>{el.addEventListener('input',()=>{state.purpose[el.dataset.purpose]=el.value;updateAll(false);});});
+ document.querySelectorAll('[data-ffi]').forEach(el=>{el.addEventListener('input',()=>{state.ffi[el.dataset.ffi]=el.value;updateAll(false);});});
+ document.getElementById('nextReviewDate').addEventListener('input',()=>{state.profile.nextReviewDate=document.getElementById('nextReviewDate').value;updateAll(false);});
+}
+function hydrateInputs(){
+ document.querySelectorAll('[data-profile]').forEach(el=>{el.value=state.profile[el.dataset.profile]||'';});
+ document.querySelectorAll('[data-purpose]').forEach(el=>{el.value=state.purpose[el.dataset.purpose]||'';});
+ document.querySelectorAll('[data-ffi]').forEach(el=>{el.value=state.ffi[el.dataset.ffi]||'';});
+}
+function populateStaticOptions(){
+ const af=document.getElementById('activityFilter');
+ competencies.forEach(c=>{const o=document.createElement('option');o.value=c.label;o.textContent=c.label;af.appendChild(o);});
+ const pl=document.getElementById('projectLevel');
+ Object.keys(readinessLevels).forEach(k=>{const o=document.createElement('option');o.value=k;o.textContent=k;pl.appendChild(o);});
+ const sr=document.getElementById('supportRole');
+ leaderRoles.forEach(k=>{const o=document.createElement('option');o.value=k;o.textContent=k;sr.appendChild(o);});
+ const ec=document.getElementById('evidenceCategory');
+ evidenceCategories.forEach(k=>{const o=document.createElement('option');o.value=k;o.textContent=k;ec.appendChild(o);});
+}
+function renderCompetencies(){
+ const tbody=document.getElementById('competencyRows');tbody.innerHTML='';
+ competencies.forEach(c=>{
+   const item=state.comps[c.id]||{capability:3,importance:4,confidence:3,notes:''};
+   const score=priorityScore(item); const lvl=priorityLevel(score);
+   const tr=document.createElement('tr');
+   tr.innerHTML=`<td><strong>${esc(c.label)}</strong><br><span class="hint">${esc(c.category)}</span></td><td><strong>${esc(c.question)}</strong><br><span class="hint">${esc(c.focus)}</span></td>${ratingCell(c.id,'capability',item.capability)}${ratingCell(c.id,'importance',item.importance)}${ratingCell(c.id,'confidence',item.confidence)}<td><textarea aria-label="Notes for ${esc(c.label)}" onchange="updateComp('${c.id}','notes',this.value)">${esc(item.notes)}</textarea></td><td><strong>${score}</strong></td><td><span class="pill ${lvl}">${lvl}</span></td>`;
+   tbody.appendChild(tr);
+ });
+ renderChart();renderPriorityList();
+}
+function ratingCell(id,field,val){let html=`<td><select aria-label="${field}" onchange="updateComp('${id}','${field}',this.value)">`; for(let i=1;i<=5;i++){html+=`<option value="${i}" ${Number(val)===i?'selected':''}>${i}</option>`;} return html+'</select></td>';}
+window.updateComp=function(id,field,val){if(!state.comps[id])state.comps[id]={};state.comps[id][field]=field==='notes'?val:Number(val);updateAll(false);};
+function renderChart(){
+ const rows=competencies.map(c=>({label:c.short,item:state.comps[c.id],score:priorityScore(state.comps[c.id])}));
+ const w=640,h=310,left=150,right=40,barH=24,gap=18,max=13;
+ let svg=`<svg viewBox="0 0 ${w} ${h}" role="img" aria-label="Priority score bar chart" width="100%" height="300">`;
+ svg+=`<rect x="0" y="0" width="${w}" height="${h}" rx="14" fill="#ffffff"/>`;
+ svg+=`<line x1="${left}" y1="35" x2="${w-right}" y2="35" stroke="#d8deea"/>`;
+ for(let x=1;x<=13;x+=3){const xx=left+(w-left-right)*(x/max);svg+=`<line x1="${xx}" y1="35" x2="${xx}" y2="285" stroke="#edf1f7"/><text x="${xx}" y="24" text-anchor="middle" font-size="11" fill="#5b677a">${x}</text>`;}
+ rows.forEach((r,i)=>{const y=55+i*(barH+gap);const bw=(w-left-right)*(r.score/max);const lvl=priorityLevel(r.score);svg+=`<text x="12" y="${y+17}" font-size="13" fill="#172033">${esc(r.label)}</text><rect x="${left}" y="${y}" width="${w-left-right}" height="${barH}" rx="8" fill="#edf1f7"/><rect x="${left}" y="${y}" width="${bw}" height="${barH}" rx="8" fill="${lvl==='urgent'?'#b42318':lvl==='high'?'#a15c00':lvl==='moderate'?'#174ea6':'#6b7280'}"/><text x="${left+bw+8}" y="${y+17}" font-size="12" fill="#172033">${r.score}</text>`;});
+ svg+=`<text x="${left}" y="305" font-size="12" fill="#5b677a">Formula: importance + (5 − capability) + (5 − confidence). Maximum = 13.</text></svg>`;
+ document.getElementById('competencyChart').innerHTML=svg;
+}
+function rankedCompetencies(){return competencies.map(c=>({comp:c,item:state.comps[c.id],score:priorityScore(state.comps[c.id])})).sort((a,b)=>b.score-a.score);}
+function renderPriorityList(){
+ const list=rankedCompetencies();
+ document.getElementById('priorityList').innerHTML='<ol>'+list.map(r=>`<li><strong>${esc(r.comp.label)}</strong> — score ${r.score} <span class="pill ${priorityLevel(r.score)}">${priorityLevel(r.score)}</span><br><span class="hint">${esc(r.comp.question)}</span></li>`).join('')+'</ol>';
+}
+function inputCell(obj,idx,key,type='text',rows=1){
+ const value=esc(obj[key]||'');
+ if(type==='textarea')return `<textarea onchange="updateAction(${idx},'${key}',this.value)" rows="${rows}">${value}</textarea>`;
+ if(type==='selectStatus'){return `<select onchange="updateAction(${idx},'${key}',this.value)">${['Not started','In progress','Blocked','Completed','Deferred'].map(s=>`<option ${obj[key]===s?'selected':''}>${s}</option>`).join('')}</select>`;}
+ if(type==='selectComp'){return `<select onchange="updateAction(${idx},'${key}',this.value)">${competencies.map(c=>`<option ${obj[key]===c.label?'selected':''}>${esc(c.label)}</option>`).join('')}</select>`;}
+ return `<input type="text" value="${value}" onchange="updateAction(${idx},'${key}',this.value)">`;
+}
+function renderActions(){
+ const tbody=document.getElementById('actionRows');tbody.innerHTML='';
+ state.actionPlan.forEach((r,i)=>{
+   const tr=document.createElement('tr');
+   tr.innerHTML=`<td>${inputCell(r,i,'competency','selectComp')}</td><td>${inputCell(r,i,'question','textarea')}</td><td>${inputCell(r,i,'activity','textarea')}</td><td>${inputCell(r,i,'resources','textarea')}</td><td>${inputCell(r,i,'timeframe')}</td><td>${inputCell(r,i,'evidence','textarea')}</td><td>${inputCell(r,i,'status','selectStatus')}</td><td>${inputCell(r,i,'notes','textarea')}</td><td class="actions-cell"><button class="small ghost" onclick="moveAction(${i},-1)">↑</button> <button class="small ghost" onclick="moveAction(${i},1)">↓</button> <button class="small secondary" onclick="duplicateAction(${i})">Duplicate</button> <button class="small danger" onclick="deleteAction(${i})">Delete</button></td>`;
+   tbody.appendChild(tr);
+ });
+}
+window.updateAction=function(i,key,val){state.actionPlan[i][key]=val;updateAll(false);};
+window.addActionRow=function(row){state.actionPlan.push(row||{competency:competencies[0].label,question:competencies[0].question,activity:'',resources:'',timeframe:'',evidence:'',status:'Not started',notes:''});updateAll();};
+window.deleteAction=function(i){state.actionPlan.splice(i,1);updateAll();};
+window.duplicateAction=function(i){state.actionPlan.splice(i+1,0,JSON.parse(JSON.stringify(state.actionPlan[i])));updateAll();};
+window.moveAction=function(i,dir){const j=i+dir;if(j<0||j>=state.actionPlan.length)return;[state.actionPlan[i],state.actionPlan[j]]=[state.actionPlan[j],state.actionPlan[i]];updateAll();};
+window.resetActionExamples=function(){if(confirm('Replace the current action plan with six default example rows?')){state.actionPlan=defaultActionRows();updateAll();}};
+window.recommendActivities=function(){
+ const top=rankedCompetencies().slice(0,3).map(r=>r.comp.label);
+ let added=0;
+ top.forEach(label=>{
+   activityLibrary.filter(a=>a.competency===label).slice(0,2).forEach(a=>{state.actionPlan.push({competency:a.competency,question:competencies.find(c=>c.label===a.competency).question,activity:a.description,resources:a.resources,timeframe:a.time,evidence:a.evidence,status:'Not started',notes:'Recommended based on diagnostic priority. Suggested next step: '+a.next});added++;});
+ });
+ updateAll();scrollToId('action-plan');alert(added+' recommended activities added to the action plan.');
+};
+function renderStakeholders(){
+ const tbody=document.getElementById('stakeholderRows');tbody.innerHTML='';
+ state.stakeholders.forEach((r,i)=>{const tr=document.createElement('tr');tr.innerHTML=`${stakeCell(i,'group',r.group)}${stakeCell(i,'desiredImpact',r.desiredImpact,true)}${stakeCell(i,'why',r.why,true)}${stakeCell(i,'current',r.current)}${stakeCell(i,'desired',r.desired)}${stakeCell(i,'channels',r.channels,true)}${stakeCell(i,'evidence',r.evidence,true)}<td><button class="small danger" onclick="deleteStakeholder(${i})">Delete</button></td>`;tbody.appendChild(tr);});
+}
+function stakeCell(i,key,val,ta=false){return `<td>${ta?`<textarea onchange="updateStakeholder(${i},'${key}',this.value)">${esc(val)}</textarea>`:`<input type="text" value="${esc(val)}" onchange="updateStakeholder(${i},'${key}',this.value)">`}</td>`;}
+window.updateStakeholder=function(i,k,v){state.stakeholders[i][k]=v;updateAll(false);};
+window.addStakeholder=function(row){state.stakeholders.push(row||{group:'',desiredImpact:'',why:'',current:'Low',desired:'Moderate',channels:'',evidence:''});updateAll();};
+window.deleteStakeholder=function(i){state.stakeholders.splice(i,1);updateAll();};
+window.addExampleStakeholders=function(){['Researchers','Students','Managers','Policymakers','Journal editors'].forEach(g=>state.stakeholders.push({group:g,desiredImpact:'Clarify how my work can inform decisions and improve outcomes.',why:'This group can use, evaluate, disseminate, or extend my research.',current:'Low',desired:'High',channels:'Articles, briefings, meetings, teaching materials, public summaries',evidence:'Engagement, citations, adoption, invitations, testimonials, behavior change'}));updateAll();};
+function renderActivityLibrary(){
+ const q=(document.getElementById('activitySearch').value||'').toLowerCase();
+ const comp=document.getElementById('activityFilter').value;
+ const diff=document.getElementById('difficultyFilter').value;
+ const cards=document.getElementById('activityCards');
+ const filtered=activityLibrary.filter(a=>(!comp||a.competency===comp)&&(!diff||a.difficulty===diff)&&(!q||Object.values(a).join(' ').toLowerCase().includes(q)));
+ cards.innerHTML=filtered.map((a,i)=>`<article class="activity-card"><h3>${esc(a.description)}</h3><div class="meta"><span class="pill open">${esc(a.competency)}</span><span>${esc(a.difficulty)}</span><span>${esc(a.time)}</span></div><p><strong>Resources:</strong> ${esc(a.resources)}</p><p><strong>Evidence:</strong> ${esc(a.evidence)}</p><p><strong>Suggested next step:</strong> ${esc(a.next)}</p><button class="small" onclick="addActivityByIndex(${activityLibrary.indexOf(a)})">Add to action plan</button></article>`).join('')||'<p>No activities match the current filters.</p>';
+}
+window.addActivityByIndex=function(i){const a=activityLibrary[i];const c=competencies.find(x=>x.label===a.competency);state.actionPlan.push({competency:a.competency,question:c.question,activity:a.description,resources:a.resources,timeframe:a.time,evidence:a.evidence,status:'Not started',notes:'From activity library. Suggested next step: '+a.next});updateAll();};
+function renderReadiness(){
+ const guide=document.getElementById('readinessGuide');
+ guide.innerHTML=Object.entries(readinessLevels).map(([k,v])=>`<details><summary>${esc(k)}</summary><p><strong>Appropriate claims:</strong> ${esc(v.claims)}</p><p><strong>Impact activity fit:</strong> ${esc(v.fit)}</p></details>`).join('');
+ const tbody=document.getElementById('projectRows');tbody.innerHTML='';
+ state.projects.forEach((p,i)=>{const r=readinessLevels[p.level]||readinessLevels.Exploratory;const tr=document.createElement('tr');tr.innerHTML=`<td><input value="${esc(p.title)}" onchange="updateProject(${i},'title',this.value)"></td><td><select onchange="updateProject(${i},'level',this.value)">${Object.keys(readinessLevels).map(k=>`<option ${p.level===k?'selected':''}>${k}</option>`).join('')}</select></td><td>${esc(r.claims)}</td><td>${esc(r.fit)}</td><td><textarea onchange="updateProject(${i},'notes',this.value)">${esc(p.notes)}</textarea></td><td><button class="small danger" onclick="deleteProject(${i})">Delete</button></td>`;tbody.appendChild(tr);});
+}
+window.addProject=function(){const title=document.getElementById('projectTitle').value.trim();const level=document.getElementById('projectLevel').value;const notes=document.getElementById('projectNotes').value; if(!title){alert('Add a project title first.');return;} state.projects.push({title,level,notes});document.getElementById('projectTitle').value='';document.getElementById('projectNotes').value='';updateAll();};
+window.updateProject=function(i,k,v){state.projects[i][k]=v;updateAll(false);};
+window.deleteProject=function(i){state.projects.splice(i,1);updateAll();};
+window.convertFFI=function(){
+ const f=state.ffi;
+ const has=(f.story||f.factors||f.future).trim();
+ if(!has){alert('Complete at least one feedforward interview field first.');return;}
+ state.actionPlan.push({competency:'Reflection on motivation for impact',question:'How can I replicate prior conditions for high impact?',activity:'Translate feedforward interview insights into one repeatable high-impact routine.',resources:'Mentor or leader to review the success story and success factors.',timeframe:'Next month',evidence:'Documented routine and one completed implementation attempt.',status:'Not started',notes:'Success story: '+f.story+' Success factors: '+f.factors});
+ state.actionPlan.push({competency:'Impact control',question:'Am I learning new skills that will increase my impact in the future?',activity:f.future||'Replicate conditions that enabled the prior high-impact episode.',resources:'Protected time, stakeholder access, and accountability check-in.',timeframe:'Next quarter',evidence:'Progress reviewed during follow-up meeting.',status:'Not started',notes:'Generated from feedforward interview.'});
+ updateAll();scrollToId('action-plan');
+};
+function renderSupport(){
+ const tbody=document.getElementById('supportRows');tbody.innerHTML='';
+ state.support.forEach((r,i)=>{const tr=document.createElement('tr');tr.innerHTML=`${genericCell('support',i,'person',r.person)}${genericSelectCell('support',i,'role',r.role,leaderRoles)}${genericCell('support',i,'request',r.request,true)}${genericCell('support',i,'date',r.date,false,'date')}${genericCell('support',i,'follow',r.follow,false,'date')}${genericSelectCell('support',i,'status',r.status,['Not requested','Requested','In progress','Completed'])}${genericCell('support',i,'notes',r.notes,true)}<td><button class="small danger" onclick="deleteSupport(${i})">Delete</button></td>`;tbody.appendChild(tr);});
+}
+function genericCell(arr,i,k,v,ta=false,type='text'){return `<td>${ta?`<textarea onchange="updateArray('${arr}',${i},'${k}',this.value)">${esc(v)}</textarea>`:`<input type="${type}" value="${esc(v)}" onchange="updateArray('${arr}',${i},'${k}',this.value)">`}</td>`;}
+function genericSelectCell(arr,i,k,v,opts){return `<td><select onchange="updateArray('${arr}',${i},'${k}',this.value)">${opts.map(o=>`<option ${v===o?'selected':''}>${esc(o)}</option>`).join('')}</select></td>`;}
+window.updateArray=function(arr,i,k,v){state[arr][i][k]=v;updateAll(false);};
+window.addSupport=function(){state.support.push({person:document.getElementById('supportPerson').value,role:document.getElementById('supportRole').value,request:document.getElementById('supportRequest').value,date:document.getElementById('supportDate').value,follow:document.getElementById('supportFollow').value,status:document.getElementById('supportStatus').value,notes:document.getElementById('supportNotes').value});['supportPerson','supportRequest','supportDate','supportFollow','supportNotes'].forEach(id=>document.getElementById(id).value='');updateAll();};
+window.deleteSupport=function(i){state.support.splice(i,1);updateAll();};
+function renderEvidence(){
+ const tbody=document.getElementById('evidenceRows');tbody.innerHTML='';
+ state.evidence.forEach((r,i)=>{const tr=document.createElement('tr');tr.innerHTML=`${genericSelectCell('evidence',i,'category',r.category,evidenceCategories)}${genericCell('evidence',i,'date',r.date,false,'date')}${genericCell('evidence',i,'outcome',r.outcome)}${genericCell('evidence',i,'url',r.url)}${genericCell('evidence',i,'stakeholder',r.stakeholder)}${genericCell('evidence',i,'reflection',r.reflection,true)}<td><button class="small danger" onclick="deleteEvidence(${i})">Delete</button></td>`;tbody.appendChild(tr);});
+}
+window.addEvidence=function(){state.evidence.push({category:document.getElementById('evidenceCategory').value,date:document.getElementById('evidenceDate').value,outcome:document.getElementById('evidenceOutcome').value,url:document.getElementById('evidenceUrl').value,stakeholder:document.getElementById('evidenceStakeholder').value,reflection:document.getElementById('evidenceReflection').value});['evidenceDate','evidenceOutcome','evidenceUrl','evidenceStakeholder','evidenceReflection'].forEach(id=>document.getElementById(id).value='');updateAll();};
+window.deleteEvidence=function(i){state.evidence.splice(i,1);updateAll();};
+function updateDashboard(){
+ const completed=state.actionPlan.filter(a=>/completed/i.test(a.status)).length;
+ const pct=state.actionPlan.length?Math.round(completed/state.actionPlan.length*100):0;
+ const statusCounts=state.actionPlan.reduce((m,a)=>{m[a.status]=(m[a.status]||0)+1;return m;},{});
+ const top=rankedCompetencies().slice(0,3).map(r=>r.comp.short).join(', ');
+ const nextReview=state.profile.nextReviewDate||suggestReviewDate();
+ document.getElementById('dashboardKpis').innerHTML=[
+   {num:pct+'%',label:'Overall PIDP completion'},
+   {num:state.actionPlan.length,label:'Action-plan activities'},
+   {num:state.stakeholders.length,label:'Stakeholder groups'},
+   {num:state.evidence.length,label:'Evidence items'}
+ ].map(k=>`<div class="kpi"><div class="num">${esc(k.num)}</div><div class="label">${esc(k.label)}</div></div>`).join('');
+ const open=state.actionPlan.filter(a=>!/completed/i.test(a.status)).slice(0,3);
+ document.getElementById('nextActions').innerHTML=open.length?'<ol>'+open.map(a=>`<li><strong>${esc(a.activity||'Untitled activity')}</strong><br><span class="hint">${esc(a.competency)} · ${esc(a.timeframe||'No time frame')}</span></li>`).join('')+'</ol>':'<p>All listed activities are completed or no activities have been added.</p>';
+ const statusText=Object.entries(statusCounts).map(([k,v])=>`${esc(k)}: ${v}`).join(' · ')||'No statuses yet';
+ const timeline=state.actionPlan.map(a=>({date:parseDate(a.timeframe),label:a.activity,kind:'Action',status:a.status,meta:a.competency})).concat(state.evidence.map(e=>({date:e.date,label:e.outcome,kind:'Evidence',status:'Completed',meta:e.category}))).sort((a,b)=>(a.date||'9999')>(b.date||'9999')?1:-1);
+ const today=todayISO();
+ document.getElementById('timelineList').innerHTML=`<p><strong>Top three competency priorities:</strong> ${esc(top)}.</p><p><strong>Activities by status:</strong> ${statusText}.</p><p><strong>Next review date:</strong> ${esc(nextReview)}. Annual PIDP review reminder: update competencies, action plan, evidence, and support needs.</p>`+(timeline.length?'<ol>'+timeline.map(t=>{const overdue=t.date&&t.date<today&&!/completed/i.test(t.status);return `<li><span class="pill ${overdue?'overdue':statusClass(t.status)}">${overdue?'Overdue':esc(t.kind)}</span> <strong>${esc(t.date||'No date')}</strong> — ${esc(t.label||'Untitled')}<br><span class="hint">${esc(t.meta||'')} · ${esc(t.status||'')}</span></li>`;}).join('')+'</ol>':'<p>No dated activities or evidence items yet.</p>');
+}
+function parseDate(s){if(!s)return''; const m=String(s).match(/\d{4}-\d{2}-\d{2}/);return m?m[0]:'';}
+function suggestReviewDate(){const d=new Date();d.setFullYear(d.getFullYear()+1);return d.toISOString().slice(0,10);}
+function completionProgress(){
+ let score=0,total=10;
+ if(state.profile.name&&state.profile.careerStage&&state.profile.discipline)score++;
+ if(Object.values(state.purpose).some(Boolean))score++;
+ if(state.stakeholders.length)score++;
+ if(Object.values(state.comps).some(c=>c.notes||Number(c.capability)!==3||Number(c.confidence)!==3))score++;
+ if(state.actionPlan.length>0)score++;
+ if(state.projects.length)score++;
+ if(Object.values(state.ffi).some(Boolean))score++;
+ if(state.support.length)score++;
+ if(state.evidence.length)score++;
+ if(state.generatedPlan||document.getElementById('generatedPlan').innerText.length>120)score++;
+ return Math.round(score/total*100);
+}
+function validateProfile(){
+ const missing=[]; if(!state.profile.name)missing.push('name'); if(!state.profile.careerStage)missing.push('career stage'); if(!state.profile.discipline)missing.push('discipline or field');
+ document.getElementById('profileValidation').textContent=missing.length?'Suggested fields to complete: '+missing.join(', ')+'. You can still continue.':'';
+}
+function generatePlan(){
+ const top=rankedCompetencies().slice(0,3);
+ const profile=state.profile,p=state.purpose;
+ let html=`<h1>Personal Impact Development Plan</h1><p><strong>Researcher:</strong> ${esc(profile.name||'Not specified')}<br><strong>Career stage:</strong> ${esc(profile.careerStage||'Not specified')}<br><strong>Discipline/field:</strong> ${esc(profile.discipline||'Not specified')}<br><strong>Institution/organization:</strong> ${esc(profile.institution||'Not specified')}<br><strong>Time horizon:</strong> ${esc(profile.timeHorizon||'Not specified')}</p>`;
+ html+=`<h2>Researcher profile</h2><p><strong>Primary research topics:</strong> ${esc(profile.topics||'Not specified')}</p><p><strong>Current impact audiences:</strong> ${esc(profile.currentAudiences||'Not specified')}</p><p><strong>Desired future impact audiences:</strong> ${esc(profile.futureAudiences||'Not specified')}</p><p><strong>Current or potential supporters:</strong> ${esc(profile.supporters||'Not specified')}</p>`;
+ html+=`<h2>Impact purpose statement</h2><p><strong>Desired impact audience and rationale:</strong> ${esc(p.audienceWhy||'Not specified')}</p><p><strong>Problems addressed:</strong> ${esc(p.problems||'Not specified')}</p><p><strong>Forms of impact:</strong> ${esc(p.forms||'Not specified')}</p><p><strong>Values, passions, and motivations:</strong> ${esc(p.values||'Not specified')}</p><p><strong>Meaningful impact in one year:</strong> ${esc(p.oneYear||'Not specified')}</p><p><strong>Meaningful impact in five years:</strong> ${esc(p.fiveYears||'Not specified')}</p>`;
+ html+=`<h2>Target stakeholders</h2>${state.stakeholders.length?tableHTML(['Group','Desired impact','Why this group matters','Current','Desired','Channels','Evidence'],state.stakeholders.map(s=>[s.group,s.desiredImpact,s.why,s.current,s.desired,s.channels,s.evidence])):'<p>No stakeholder groups added yet.</p>'}`;
+ html+=`<h2>Competency diagnostic summary</h2>${tableHTML(['Competency','Capability','Importance','Confidence','Priority score','Level','Notes'],competencies.map(c=>{const x=state.comps[c.id];const sc=priorityScore(x);return [c.label,x.capability,x.importance,x.confidence,sc,priorityLevel(sc),x.notes];}))}`;
+ html+=`<h2>Top development priorities</h2><ol>${top.map(r=>`<li><strong>${esc(r.comp.label)}</strong> — score ${r.score}, ${priorityLevel(r.score)} priority. ${esc(r.comp.question)}</li>`).join('')}</ol>`;
+ html+=`<h2>Action plan table</h2>${state.actionPlan.length?tableHTML(['Competency','Question','Developmental activity','Resources/support','Time frame','Evidence','Status','Notes'],state.actionPlan.map(a=>[a.competency,a.question,a.activity,a.resources,a.timeframe,a.evidence,a.status,a.notes])):'<p>No action-plan rows added yet.</p>'}`;
+ html+=`<h2>Resources and support needed</h2>${state.support.length?tableHTML(['Support person','Role','Requested support','Request date','Follow-up date','Status','Notes'],state.support.map(s=>[s.person,s.role,s.request,s.date,s.follow,s.status,s.notes])):'<p>No support requests added yet.</p>'}`;
+ html+=`<h2>Feedforward interview insights</h2><p><strong>Success story:</strong> ${esc(state.ffi.story||'Not specified')}</p><p><strong>Success factors:</strong> ${esc(state.ffi.factors||'Not specified')}</p><p><strong>Future extrapolation:</strong> ${esc(state.ffi.future||'Not specified')}</p>`;
+ html+=`<h2>Evidence-of-development plan</h2>${state.evidence.length?tableHTML(['Category','Date','Outcome','URL/location','Stakeholder','Reflection'],state.evidence.map(e=>[e.category,e.date,e.outcome,e.url,e.stakeholder,e.reflection])):'<p>No evidence items added yet.</p>'}`;
+ html+=`<h2>Prescriptive readiness and timeline</h2>${state.projects.length?tableHTML(['Project','Level','Appropriate claims','Impact activity fit','Notes'],state.projects.map(proj=>[proj.title,proj.level,readinessLevels[proj.level].claims,readinessLevels[proj.level].fit,proj.notes])):'<p>No project readiness assessments added yet.</p>'}`;
+ html+=`<h2>Review schedule</h2><p><strong>Next review date:</strong> ${esc(profile.nextReviewDate||suggestReviewDate())}. During each review, update competency ratings, evidence, barriers, support needs, and next actions.</p>`;
+ html+=`<h2>Commitment statement</h2><p>I commit to treating impact as a developmental journey. I will use this plan to clarify my intended impact, build the competencies required to achieve it, seek appropriate support, document evidence of development, and revise the plan as my goals, stakeholders, and evidence evolve.</p>`;
+ html+=`<hr><p><strong>Based on: Aguinis, H. 2025. Research methodology: Best practices for rigorous, credible, and impactful research. SAGE. https://collegepublishing.sagepub.com/products/research-methodology-1-280088</strong></p>`;
+ document.getElementById('generatedPlan').innerHTML=html;state.generatedPlan=html;updateAll(false);scrollToId('plan');
+}
+window.generatePlan=generatePlan;
+function tableHTML(headers,rows){return `<div class="table-wrap"><table><thead><tr>${headers.map(h=>`<th>${esc(h)}</th>`).join('')}</tr></thead><tbody>${rows.map(r=>`<tr>${r.map(c=>`<td>${esc(c)}</td>`).join('')}</tr>`).join('')}</tbody></table></div>`;}
+window.copyPlan=function(){const text=document.getElementById('generatedPlan').innerText;navigator.clipboard.writeText(text).then(()=>alert('Generated PIDP copied to clipboard.')).catch(()=>alert('Clipboard copy was not available. Select the plan and copy manually.'));};
+function download(filename,content,type){const blob=new Blob([content],{type});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=filename;document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove();},0);}
+window.exportJSON=function(){state.generatedPlan=document.getElementById('generatedPlan').innerHTML;download('personal-impact-development-plan-data.json',JSON.stringify(state,null,2),'application/json');};
+window.importJSON=function(evt){const f=evt.target.files[0];if(!f)return;const reader=new FileReader();reader.onload=()=>{try{state=Object.assign(blankState(),JSON.parse(reader.result));hydrateInputs();updateAll();alert('JSON plan imported.');}catch(e){alert('Could not import JSON. Check the file format.');}};reader.readAsText(f);};
+window.exportActionCSV=function(){
+ const headers=['Targeted impact competency','Question to ask yourself','Developmental activity','Resources/support needed','Time frame','Evidence of development','Status','Notes'];
+ const rows=state.actionPlan.map(a=>[a.competency,a.question,a.activity,a.resources,a.timeframe,a.evidence,a.status,a.notes]);
+ const csv=[headers].concat(rows).map(r=>r.map(x=>'"'+String(x||'').replace(/"/g,'""')+'"').join(',')).join('\n');
+ download('pidp-action-plan.csv',csv,'text/csv');
+};
+window.downloadGeneratedHTML=function(){const body=document.getElementById('generatedPlan').innerHTML;download('personal-impact-development-plan.html','<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Personal Impact Development Plan</title><style>body{font-family:Arial,Helvetica,sans-serif;line-height:1.5;max-width:1000px;margin:2rem auto;padding:0 1rem}table{border-collapse:collapse;width:100%;margin:1rem 0}th,td{border:1px solid #ccc;padding:.45rem;vertical-align:top}th{background:#f2f2f2}</style></head><body>'+body+'</body></html>','text/html');};
+window.downloadGeneratedText=function(){download('personal-impact-development-plan.txt',document.getElementById('generatedPlan').innerText,'text/plain');};
+function saveLocal(){state.generatedPlan=document.getElementById('generatedPlan').innerHTML;localStorage.setItem(storageKey,JSON.stringify(state));document.getElementById('saveStatus').textContent='Saved locally at '+new Date().toLocaleString()+'.';}
+window.saveLocal=saveLocal;
+function loadLocal(showMsg){const raw=localStorage.getItem(storageKey);if(!raw){if(showMsg)alert('No saved plan found in this browser.');return false;}try{state=Object.assign(blankState(),JSON.parse(raw));hydrateInputs();updateAll();if(state.generatedPlan)document.getElementById('generatedPlan').innerHTML=state.generatedPlan;if(showMsg)alert('Saved plan loaded.');return true;}catch(e){if(showMsg)alert('Saved data could not be loaded.');return false;}}
+window.loadLocal=loadLocal;
+window.clearPlan=function(){if(confirm('Clear all PIDP data in this page and remove the saved local copy?')){localStorage.removeItem(storageKey);state=blankState();hydrateInputs();document.getElementById('generatedPlan').innerHTML='<h2>Your generated PIDP will appear here.</h2><p>Complete the sections above, then click <strong>Generate My PIDP</strong>.</p>';updateAll();}};
+function updateProgress(){const pct=completionProgress();document.getElementById('progressBar').style.width=pct+'%';document.getElementById('progressLabel').textContent=pct+'% complete';}
+function updateAll(full=true){validateProfile();renderCompetencies();renderActions();renderStakeholders();renderReadiness();renderSupport();renderEvidence();updateDashboard();updateProgress(); if(full) renderActivityLibrary();}
+function init(){populateStaticOptions();bindInputs();loadLocal(false);hydrateInputs();if(!state.generatedPlan){document.getElementById('generatedPlan').innerHTML='<h2>Your generated PIDP will appear here.</h2><p>Complete the sections above, then click <strong>Generate My PIDP</strong>. You can edit the generated plan directly in this box.</p>';}else{document.getElementById('generatedPlan').innerHTML=state.generatedPlan;}updateAll();window.addEventListener('beforeunload',()=>{state.generatedPlan=document.getElementById('generatedPlan').innerHTML;localStorage.setItem(storageKey,JSON.stringify(state));});document.addEventListener('scroll',markActiveNav,{passive:true});}
+function markActiveNav(){const sections=[...document.querySelectorAll('main .section')];let active=sections[0].id;for(const s of sections){if(s.getBoundingClientRect().top<160)active=s.id;}document.querySelectorAll('.nav a').forEach(a=>a.classList.toggle('active',a.getAttribute('href')==='#'+active));}
+window.addEventListener('DOMContentLoaded',init);
+})();
+</script>
+<!-- Begin Countercentral code v 7.0 --> 
+<span id="wts2576"></span> 
+<script>var wts=document.createElement('script');wts.async=true; 
+wts.src='https://server2.countercentral.com/log7.js';document.head.appendChild(wts); 
+wts.onload = function(){ wtslog7(2576,1); }; 
+</script><noscript><a href="https://www.countercentral.com"> 
+<img src="https://server2.countercentral.com/7/1/2576.png"  
+alt="Countercentral web traffic analysis"></a></noscript> 
+<!-- End Countercentral code v 7.0 --> 
+</body>
+</html>

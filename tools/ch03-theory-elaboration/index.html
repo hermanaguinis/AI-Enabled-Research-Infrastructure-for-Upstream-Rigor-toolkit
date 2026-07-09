@@ -1,0 +1,1153 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TheoryForge: Interactive Theory Elaboration Navigator</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Segoe UI',Arial,sans-serif;background:#f4f6fb;color:#1a2951;font-size:15px;line-height:1.6}
+/* HEADER */
+header{background:linear-gradient(135deg,#1a2951 0%,#2c4a8c 100%);color:#fff;padding:28px 40px 20px;border-bottom:4px solid #c9a84c}
+header h1{font-size:2rem;font-weight:700;letter-spacing:.5px}
+header h1 span{color:#c9a84c}
+.credit{font-size:.82rem;margin-top:8px;opacity:.9;line-height:1.5}
+.credit a{color:#c9d8ff;text-decoration:none}
+.credit a:hover{text-decoration:underline}
+/* TABS */
+.tab-nav{display:flex;background:#1a2951;overflow-x:auto;border-bottom:3px solid #c9a84c}
+.tab-btn{padding:14px 22px;color:#a8c0f0;background:none;border:none;cursor:pointer;font-size:.88rem;font-weight:600;white-space:nowrap;transition:all .2s;border-bottom:3px solid transparent;margin-bottom:-3px}
+.tab-btn:hover{color:#fff;background:rgba(255,255,255,.08)}
+.tab-btn.active{color:#fff;border-bottom:3px solid #c9a84c;background:rgba(201,168,76,.12)}
+/* CONTENT */
+.tab-content{display:none;padding:32px 40px 48px;max-width:1100px;margin:0 auto}
+.tab-content.active{display:block}
+/* SECTION TITLES */
+h2{font-size:1.45rem;color:#1a2951;margin-bottom:16px;padding-bottom:8px;border-bottom:2px solid #c9a84c}
+h3{font-size:1.1rem;color:#1a2951;margin:20px 0 10px}
+h4{font-size:.97rem;color:#2c4a8c;margin:14px 0 6px;font-weight:700}
+p{margin-bottom:12px}
+/* DEFINITION BOX */
+.def-box{background:#eef2ff;border-left:5px solid #2c4a8c;padding:18px 22px;margin:18px 0;border-radius:4px;font-style:italic;font-size:1.02rem;line-height:1.7}
+.def-box .cite{font-style:normal;font-size:.85rem;color:#555;margin-top:8px}
+/* PLAIN LANG BOX */
+.plain-box{background:#fff8e7;border-left:4px solid #c9a84c;padding:14px 18px;border-radius:4px;margin:14px 0}
+.plain-box .plain-title{font-weight:700;color:#7a5c00;margin-bottom:6px;font-size:.88rem;text-transform:uppercase;letter-spacing:.5px}
+/* GUIDELINE BOX */
+.guideline-box{background:#e8f5e9;border-left:4px solid #388e3c;padding:14px 18px;border-radius:4px;margin:14px 0;font-style:italic}
+/* COMPARISON TABLE */
+.comp-table{width:100%;border-collapse:collapse;margin:18px 0;font-size:.9rem}
+.comp-table th{background:#1a2951;color:#fff;padding:12px 14px;text-align:left;font-weight:600}
+.comp-table td{padding:12px 14px;border:1px solid #d0d8ec;vertical-align:top;cursor:pointer;transition:background .2s;position:relative}
+.comp-table tr:nth-child(even) td{background:#f0f4ff}
+.comp-table td:hover{background:#dce6ff}
+.comp-table .row-header{background:#2c4a8c;color:#fff;font-weight:600;cursor:default}
+.comp-table .row-header:hover{background:#2c4a8c}
+/* TOOLTIP */
+.cell-tooltip{display:none;position:absolute;left:0;top:100%;z-index:100;background:#1a2951;color:#fff;padding:14px 16px;border-radius:6px;font-size:.83rem;min-width:280px;max-width:380px;line-height:1.5;box-shadow:0 4px 18px rgba(0,0,0,.25)}
+.cell-tooltip.show{display:block}
+.cell-tooltip strong{color:#c9a84c}
+/* DISTINCTION BOX */
+.dist-box{background:#fafafa;border:1px solid #d0d8ec;border-radius:6px;padding:18px 20px;margin:18px 0}
+.dist-box h4{color:#1a2951;margin-bottom:8px}
+/* DECISION TREE */
+.progress-bar{display:flex;gap:8px;margin-bottom:24px}
+.prog-step{flex:1;height:6px;background:#d0d8ec;border-radius:3px;transition:background .4s}
+.prog-step.done{background:#c9a84c}
+.prog-step.active{background:#2c4a8c}
+.question-box{background:#fff;border:2px solid #2c4a8c;border-radius:10px;padding:24px 26px;margin:18px 0;animation:fadeIn .3s}
+.question-box h3{color:#1a2951;font-size:1.05rem;margin-bottom:14px}
+.q-label{font-size:.8rem;color:#666;text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px;font-weight:600}
+.btn-row{display:flex;gap:14px;margin-top:16px}
+.btn-yes{background:#2c4a8c;color:#fff;border:none;padding:10px 28px;border-radius:6px;font-size:.95rem;font-weight:700;cursor:pointer;transition:background .2s}
+.btn-yes:hover{background:#1a2951}
+.btn-no{background:#fff;color:#2c4a8c;border:2px solid #2c4a8c;padding:10px 28px;border-radius:6px;font-size:.95rem;font-weight:700;cursor:pointer;transition:all .2s}
+.btn-no:hover{background:#eef2ff}
+.result-box{border-radius:8px;padding:18px 22px;margin:18px 0;animation:fadeIn .3s}
+.result-no{background:#fff3f3;border:2px solid #c0392b;border-radius:8px;padding:18px 22px;margin:18px 0}
+.result-no h4{color:#c0392b;margin-bottom:6px}
+.result-yes{background:#e8f5e9;border:2px solid #27ae60;border-radius:8px;padding:18px 22px;margin:18px 0}
+.result-yes h4{color:#27ae60;margin-bottom:6px}
+.btn-reset{background:none;border:2px solid #c9a84c;color:#7a5c00;padding:9px 22px;border-radius:6px;cursor:pointer;font-weight:700;font-size:.88rem;margin:8px 0}
+.btn-reset:hover{background:#fff8e7}
+/* FLOWCHART */
+.flowchart{margin:28px 0;font-size:.85rem}
+.fc-row{display:flex;align-items:flex-start;gap:0;justify-content:center;margin:4px 0}
+.fc-box{background:#1a2951;color:#fff;padding:10px 16px;border-radius:8px;text-align:center;font-weight:600;min-width:220px;font-size:.83rem;line-height:1.4}
+.fc-box.outcome{background:#2c4a8c;font-size:.78rem;min-width:160px}
+.fc-box.outcome-go{background:#1e7e34;color:#fff}
+.fc-arrow{display:flex;flex-direction:column;align-items:center;margin:2px 0}
+.fc-arrow-line{width:2px;height:28px;background:#666}
+.fc-arrow-head{width:0;height:0;border-left:7px solid transparent;border-right:7px solid transparent;border-top:10px solid #666}
+.fc-branch{display:flex;gap:24px;justify-content:center;align-items:flex-start}
+.fc-branch-side{display:flex;flex-direction:column;align-items:center}
+.fc-label{font-size:.78rem;font-weight:700;color:#1a2951;margin:3px 0;padding:2px 10px;background:#fff3cd;border-radius:10px;border:1px solid #c9a84c}
+.fc-label.no{background:#fde8e8;border-color:#e74c3c;color:#c0392b}
+.fc-label.yes{background:#e8f5e9;border-color:#27ae60;color:#1e7e34}
+.fc-h-line{height:2px;background:#888;min-width:80px}
+/* APPROACH PANELS */
+.approach-card{border:2px solid #d0d8ec;border-radius:10px;margin:18px 0;overflow:hidden;transition:border-color .3s}
+.approach-card.highlighted{border-color:#c9a84c;box-shadow:0 0 0 3px #fff3cd}
+.approach-header{background:#1a2951;color:#fff;padding:14px 20px;cursor:pointer;display:flex;justify-content:space-between;align-items:center;font-weight:700;font-size:1rem;user-select:none}
+.approach-header:hover{background:#2c4a8c}
+.approach-header .toggle{font-size:1.3rem;transition:transform .3s}
+.approach-header.open .toggle{transform:rotate(180deg)}
+.approach-body{display:none;padding:20px 22px;background:#fff}
+.approach-body.open{display:block}
+.tactic-card{background:#f8f9ff;border:1px solid #d0d8ec;border-radius:8px;padding:16px 18px;margin:14px 0}
+.tactic-title{font-weight:700;color:#2c4a8c;font-size:.97rem;margin-bottom:8px}
+.tactic-badge{display:inline-block;background:#2c4a8c;color:#fff;font-size:.72rem;padding:2px 10px;border-radius:12px;margin-left:8px;font-weight:600;vertical-align:middle}
+.example-box{background:#f0f4ff;border-left:3px solid #2c4a8c;padding:10px 14px;margin-top:10px;font-size:.87rem}
+.example-box strong{color:#1a2951}
+/* BACHARACH CARDS */
+.criteria-cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:14px;margin:18px 0}
+.crit-card{border:2px solid #d0d8ec;border-radius:8px;padding:16px;cursor:pointer;transition:all .2s;background:#fff}
+.crit-card:hover{border-color:#2c4a8c;background:#eef2ff}
+.crit-card.selected{border-color:#c9a84c;background:#fff8e7;box-shadow:0 0 0 3px #fff3cd}
+.crit-card h4{color:#1a2951;margin-bottom:8px;font-size:.9rem}
+.crit-card p{font-size:.83rem;color:#444;margin:0}
+.crit-rec{font-size:.83rem;margin-top:10px;color:#27ae60;font-weight:700;display:none}
+.crit-card.selected .crit-rec{display:block}
+/* CHART AREA */
+.chart-container{background:#fff;border:1px solid #d0d8ec;border-radius:8px;padding:20px;margin:24px 0}
+.chart-container h3{text-align:center;margin-bottom:16px}
+/* TACTICS SUMMARY TABLE */
+.tactics-table{width:100%;border-collapse:collapse;font-size:.82rem;margin:18px 0}
+.tactics-table th{background:#1a2951;color:#fff;padding:10px 12px;text-align:left}
+.tactics-table td{padding:9px 12px;border:1px solid #d0d8ec;vertical-align:top}
+.tactics-table tr:nth-child(even) td{background:#f0f4ff}
+/* OPPORTUNITY CARDS */
+.opp-cards{display:flex;flex-direction:column;gap:16px}
+.opp-card{border:2px solid #d0d8ec;border-radius:10px;overflow:hidden}
+.opp-header{background:#2c4a8c;color:#fff;padding:14px 18px;cursor:pointer;display:flex;justify-content:space-between;align-items:center;font-weight:700;font-size:.95rem;user-select:none}
+.opp-header:hover{background:#1a2951}
+.opp-header .otoggle{font-size:1.2rem;transition:transform .3s}
+.opp-header.open .otoggle{transform:rotate(180deg)}
+.opp-body{display:none;padding:18px 20px;background:#fff}
+.opp-body.open{display:block}
+.domain-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin:12px 0}
+.domain-box{background:#f0f4ff;border-radius:6px;padding:12px 14px;font-size:.82rem}
+.domain-box h5{color:#1a2951;font-weight:700;margin-bottom:6px;font-size:.83rem}
+.tactic-tags{display:flex;flex-wrap:wrap;gap:8px;margin:10px 0}
+.tactic-tag{background:#eef2ff;border:1px solid #2c4a8c;color:#1a2951;padding:3px 12px;border-radius:14px;font-size:.78rem;font-weight:600}
+/* SELF ASSESSMENT */
+.self-assess{background:#fff;border:2px solid #d0d8ec;border-radius:8px;padding:20px;margin:24px 0}
+.check-group{display:flex;flex-direction:column;gap:10px;margin:14px 0}
+.check-group label{display:flex;align-items:center;gap:10px;cursor:pointer;font-size:.9rem}
+.check-group input[type=checkbox]{width:18px;height:18px;accent-color:#2c4a8c}
+.assess-rec{background:#e8f5e9;border:2px solid #27ae60;border-radius:8px;padding:16px 18px;margin:14px 0;display:none}
+.assess-rec h4{color:#1e7e34;margin-bottom:8px}
+/* PLANNER */
+.planner-section{background:#fff;border:1px solid #d0d8ec;border-radius:8px;padding:22px 24px;margin:18px 0}
+.form-group{margin:14px 0}
+.form-group label{display:block;font-weight:700;color:#1a2951;margin-bottom:6px;font-size:.88rem}
+.form-group select,.form-group input[type=text],.form-group textarea{width:100%;padding:10px 12px;border:1.5px solid #bbc8e8;border-radius:6px;font-size:.9rem;font-family:inherit;color:#1a2951;background:#fafbff}
+.form-group select:focus,.form-group input[type=text]:focus,.form-group textarea:focus{outline:none;border-color:#2c4a8c;box-shadow:0 0 0 3px #dce6ff}
+.form-group textarea{height:90px;resize:vertical}
+.checkbox-group{display:flex;flex-direction:column;gap:8px;margin-top:6px}
+.checkbox-group label{display:flex;align-items:flex-start;gap:10px;cursor:pointer;font-size:.88rem;font-weight:400}
+.checkbox-group input[type=checkbox]{width:16px;height:16px;accent-color:#2c4a8c;flex-shrink:0;margin-top:2px}
+.rec-highlight{background:#fff8e7;border:2px solid #c9a84c;border-radius:6px;padding:14px 16px;margin:14px 0}
+.rec-highlight h4{color:#7a5c00;margin-bottom:8px}
+.btn-generate{background:linear-gradient(135deg,#1a2951,#2c4a8c);color:#fff;border:none;padding:13px 30px;border-radius:8px;font-size:1rem;font-weight:700;cursor:pointer;margin-top:10px;transition:opacity .2s}
+.btn-generate:hover{opacity:.88}
+.generated-summary{background:#f0f7ff;border:2px solid #2c4a8c;border-radius:8px;padding:20px 22px;margin:18px 0;display:none;position:relative}
+.generated-summary h4{color:#1a2951;margin-bottom:10px}
+.copy-btn{position:absolute;top:14px;right:14px;background:#2c4a8c;color:#fff;border:none;padding:6px 14px;border-radius:5px;font-size:.8rem;cursor:pointer;font-weight:600}
+.copy-btn:hover{background:#1a2951}
+.pre-check{list-style:none;padding:0;margin:14px 0}
+.pre-check li{display:flex;align-items:flex-start;gap:10px;padding:8px 0;border-bottom:1px solid #e8edf8;font-size:.88rem}
+.pre-check li:last-child{border-bottom:none}
+.pre-check input[type=checkbox]{width:16px;height:16px;accent-color:#2c4a8c;flex-shrink:0;margin-top:2px}
+/* LIMITATION CARDS */
+.lim-cards{display:flex;flex-direction:column;gap:16px;margin:18px 0}
+.lim-card{background:#fff;border:1.5px solid #d0d8ec;border-radius:10px;padding:20px 22px}
+.lim-card h4{color:#c0392b;font-size:1rem;margin-bottom:10px;display:flex;align-items:center;gap:10px}
+.lim-card h4 .lim-icon{font-size:1.3rem}
+.lim-label{font-size:.78rem;font-weight:700;text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px;color:#666}
+.safeguard-box{background:#e8f5e9;border-left:3px solid #27ae60;padding:10px 14px;margin-top:12px;border-radius:4px;font-size:.88rem}
+.safeguard-box strong{color:#1e7e34}
+/* SUBMISSION CHECKLIST */
+.sub-check{background:#fff;border:2px solid #2c4a8c;border-radius:8px;padding:22px 24px;margin:24px 0}
+.sub-check h3{margin-bottom:14px}
+.sub-check ul{list-style:none;padding:0}
+.sub-check li{display:flex;align-items:flex-start;gap:12px;padding:9px 0;border-bottom:1px solid #e8edf8;font-size:.88rem}
+.sub-check li:last-child{border-bottom:none}
+.sub-check input[type=checkbox]{width:17px;height:17px;accent-color:#2c4a8c;flex-shrink:0;margin-top:2px}
+/* TOOLTIP GENERIC */
+.tooltip-wrap{position:relative;display:inline-block;cursor:help}
+.tooltip-wrap .tt{display:none;position:absolute;z-index:200;background:#1a2951;color:#fff;padding:10px 14px;border-radius:6px;font-size:.8rem;min-width:200px;max-width:320px;line-height:1.5;bottom:130%;left:50%;transform:translateX(-50%);box-shadow:0 4px 14px rgba(0,0,0,.2)}
+.tooltip-wrap:hover .tt{display:block}
+.tooltip-wrap .tt::after{content:'';position:absolute;top:100%;left:50%;transform:translateX(-50%);border:7px solid transparent;border-top-color:#1a2951}
+/* MISC */
+.tag{display:inline-block;background:#2c4a8c;color:#fff;font-size:.72rem;padding:2px 10px;border-radius:12px;font-weight:600;margin:2px}
+.tag-gold{background:#c9a84c}
+.note{font-size:.83rem;color:#555;font-style:italic;margin:10px 0}
+ul.content-list{padding-left:22px;margin:10px 0}
+ul.content-list li{margin:6px 0;font-size:.9rem}
+.number-badge{display:inline-flex;align-items:center;justify-content:center;width:26px;height:26px;border-radius:50%;background:#2c4a8c;color:#fff;font-weight:700;font-size:.82rem;flex-shrink:0}
+.four-elements{display:grid;grid-template-columns:repeat(2,1fr);gap:14px;margin:18px 0}
+.elem-card{background:#fff;border:1.5px solid #d0d8ec;border-radius:8px;padding:14px 16px;display:flex;gap:12px;align-items:flex-start}
+.elem-card .num{color:#c9a84c;font-size:1.4rem;font-weight:900;line-height:1}
+@keyframes fadeIn{from{opacity:0;transform:translateY(-6px)}to{opacity:1;transform:translateY(0)}}
+@media(max-width:700px){
+  .domain-grid{grid-template-columns:1fr}
+  .four-elements{grid-template-columns:1fr}
+  .criteria-cards{grid-template-columns:1fr 1fr}
+  .tab-content{padding:20px 16px 40px}
+  header{padding:18px 16px 14px}
+  header h1{font-size:1.4rem}
+}
+</style>
+</head>
+<body>
+
+<header>
+  <h1>&#9874; Theory<span>Forge</span>: Interactive Theory Elaboration Navigator</h1>
+  <div class="credit">Based on: Aguinis, H. (2025). <em>Research methodology: Best practices for rigorous, credible, and impactful research.</em> SAGE.<br>
+  <a href="https://collegepublishing.sagepub.com/products/research-methodology-1-280088" target="_blank">https://collegepublishing.sagepub.com/products/research-methodology-1-280088</a><br>
+  &nbsp;&nbsp;&#8250; Fisher, G., &amp; Aguinis, H. (2017). Using theory elaboration to make theoretical advancements. <em>Organizational Research Methods, 20</em>(3), 438–464.
+  </div>
+</header>
+
+<nav class="tab-nav">
+  <button class="tab-btn active" onclick="showTab(0)">1. What Is Theory Elaboration?</button>
+  <button class="tab-btn" onclick="showTab(1)">2. Should I Use It? (Decision Guide)</button>
+  <button class="tab-btn" onclick="showTab(2)">3. Approaches &amp; Tactics</button>
+  <button class="tab-btn" onclick="showTab(3)">4. Research Opportunities</button>
+  <button class="tab-btn" onclick="showTab(4)">5. Plan Your Study</button>
+  <button class="tab-btn" onclick="showTab(5)">6. Limitations &amp; Safeguards</button>
+</nav>
+
+<!-- ══════════════════════════════════════════ TAB 1 ══════════════════════════════════════════ -->
+<div class="tab-content active" id="tab0">
+  <h2>What Is Theory Elaboration?</h2>
+  <p>Theory elaboration is a <em>third path</em> for researchers — distinct from generating brand-new theory or simply testing existing hypotheses. This tab explains what it is, how it differs from related approaches, and why it matters for organizational research.</p>
+
+  <div class="def-box">
+    <strong>Formal Definition:</strong><br>
+    "Theory elaboration is the process of conceptualizing and executing empirical research using preexisting conceptual ideas or a preliminary model as a basis for developing new theoretical insights by contrasting, specifying, or structuring theoretical constructs and relations to account for and explain empirical observations."
+    <div class="cite">— Fisher &amp; Aguinis (2017, p. 441), as extended in Aguinis (2025)</div>
+  </div>
+
+  <h3>The Four Constituent Elements</h3>
+  <p>In plain language, theory elaboration has four defining features:</p>
+  <div class="four-elements">
+    <div class="elem-card"><div class="num">1</div><div><strong>Both conceptual AND empirical:</strong> Theory elaboration is not a purely conceptual exercise (like an AMR theory paper) nor purely a data analysis. It requires both specifying constructs/relations conceptually AND assessing them empirically.</div></div>
+    <div class="elem-card"><div class="num">2</div><div><strong>Starts with an existing theory:</strong> You do not begin from scratch. You use an existing theory or preliminary model as your starting point — even if that theory is incomplete or inadequate.</div></div>
+    <div class="elem-card"><div class="num">3</div><div><strong>Goal = accurate empirical explanation:</strong> The purpose is to refine the existing theory so it more accurately explains what is actually observed in real organizational settings.</div></div>
+    <div class="elem-card"><div class="num">4</div><div><strong>Core tactics = contrasting, specifying, or structuring:</strong> You improve the theory by contrasting it across contexts, specifying its constructs more precisely, or structuring its relationships more accurately.</div></div>
+  </div>
+
+  <h3>The Three Modes of Theorizing — Click Any Cell to Learn More</h3>
+  <p class="note">Click on any cell in the table below to see a plain-language explanation and a published example.</p>
+  <div style="overflow-x:auto">
+  <table class="comp-table" id="compTable">
+    <thead><tr>
+      <th style="min-width:120px">Dimension</th>
+      <th>Theory Generation</th>
+      <th>Theory Testing</th>
+      <th>Theory Elaboration</th>
+    </tr></thead>
+    <tbody>
+      <tr>
+        <td class="row-header">Input</td>
+        <td data-tip="gen-input" style="position:relative">Unexplained phenomenon with little to no existing theory<div class="cell-tooltip" id="tt-gen-input"><strong>Plain language:</strong> You start with something no one has explained yet — there is no existing theory to guide you.<br><br><strong>Example:</strong> Navis &amp; Ozbek (2016) explored the paradox of entrepreneurial entry: why do some people start ventures when the odds of success are objectively low? No existing theory fully explained this.</div></td>
+        <td data-tip="test-input" style="position:relative">Formal hypotheses derived from extant theory<div class="cell-tooltip" id="tt-test-input"><strong>Plain language:</strong> You start with an existing theory and derive specific, testable predictions from it before collecting any data.<br><br><strong>Example:</strong> A researcher derives H1: "Transformational leadership is positively related to team performance" from leadership theory, then collects data to test it.</div></td>
+        <td data-tip="elab-input" style="position:relative">Partially explained phenomenon; existing conceptual model and/or ideas<div class="cell-tooltip" id="tt-elab-input"><strong>Plain language:</strong> You start with an existing theory that partially explains something — but the theory has gaps, inconsistencies, or has never been examined in your specific context.<br><br><strong>Example:</strong> Shane (2000) used existing theory of opportunity recognition as a starting point to examine how eight entrepreneurial teams, all working from the same MIT invention, made drastically different decisions.</div></td>
+      </tr>
+      <tr>
+        <td class="row-header">Process &amp; Tactics</td>
+        <td data-tip="gen-proc" style="position:relative">Induct constructs and relationships from data; develop new concepts using logical argument<div class="cell-tooltip" id="tt-gen-proc"><strong>Plain language:</strong> You let the data speak — looking for patterns and building new concepts from the ground up. This is the classic grounded theory approach.<br><br><strong>Example:</strong> Navis &amp; Ozbek (2016) used inductive reasoning to develop a new framework explaining how identity and cognition combine to produce the paradox of entrepreneurial entry.</div></td>
+        <td data-tip="test-proc" style="position:relative">Collect and analyze data to assess whether they provide evidence supporting hypothesized relationships<div class="cell-tooltip" id="tt-test-proc"><strong>Plain language:</strong> You form your hypotheses first, then collect data specifically to test them. The theory drives your data collection and analysis.<br><br><strong>Example:</strong> A researcher surveys 300 employees to test whether transformational leadership predicts team performance, using confirmatory factor analysis and structural equation modeling.</div></td>
+        <td data-tip="elab-proc" style="position:relative">Use existing concepts and models to collect and organize data; contrast, specify, and structure theoretical constructs and relations to refine existing theory<div class="cell-tooltip" id="tt-elab-proc"><strong>Plain language:</strong> You use both inductive and deductive reasoning simultaneously — the existing theory guides your data collection, and the data guides you to elaborate the theory.<br><br><strong>Example:</strong> Shane (2000) used prior opportunity-recognition theory to guide data collection across the eight teams, then used the data to elaborate which factors (prior knowledge domains) explain why the same opportunity was perceived and exploited so differently.</div></td>
+      </tr>
+      <tr>
+        <td class="row-header">Output</td>
+        <td data-tip="gen-out" style="position:relative">New testable propositions; new constructs<div class="cell-tooltip" id="tt-gen-out"><strong>Plain language:</strong> You end up with a brand-new theory or framework that didn't exist before — with new concepts and new hypotheses that others can test.<br><br><strong>Example:</strong> Navis &amp; Ozbek (2016) produced new theoretical propositions about how identity-based reasoning leads entrepreneurs to enter markets despite poor odds.</div></td>
+        <td data-tip="test-out" style="position:relative">Accept or reject hypotheses derived from extant theory<div class="cell-tooltip" id="tt-test-out"><strong>Plain language:</strong> You either confirm or disconfirm existing theoretical predictions. The theory itself is not changed — you are evaluating it.<br><br><strong>Example:</strong> The study finds support for H1 (transformational leadership → team performance, β=.34, p&lt;.01) and concludes that the theory is supported in this context.</div></td>
+        <td data-tip="elab-out" style="position:relative">Refinement of existing theoretical ideas — refined contextual factors, constructs, and/or relationships<div class="cell-tooltip" id="tt-elab-out"><strong>Plain language:</strong> You end up with an improved version of the existing theory — one that is more precise, more accurate, or more complete than it was before.<br><br><strong>Example:</strong> Shane (2000) elaborated opportunity-recognition theory by specifying that prior knowledge in three domains (customer problems, ways to serve markets, technology) predicts which aspects of an opportunity an entrepreneur will discover.</div></td>
+      </tr>
+    </tbody>
+  </table>
+  </div>
+
+  <div class="dist-box">
+    <h4>How Theory Elaboration Differs from Related Concepts</h4>
+    <p><strong>Theory elaboration vs. grounded theory:</strong> Grounded theory is one method that can be used to conduct a theory elaboration study — but the two are not the same. Grounded theory generates theory from data with no prior theoretical framework. Theory elaboration specifically starts with an existing theory and uses it to guide data collection and elaboration. A theory elaboration study may use grounded theory methods, but it will always include an explicit prior theoretical framework as a starting point.</p>
+    <p style="margin-bottom:0"><strong>Theory elaboration vs. abductive reasoning:</strong> Abductive reasoning (inference to the best explanation) is philosophically related — both involve moving between theory and data iteratively. However, theory elaboration provides more specific, actionable guidelines. It names concrete tactics (horizontal/vertical contrasting, construct specification, structuring relations) and connects each to a specific theory advancement goal (improving construct validity, logical adequacy, explanatory adequacy, etc.).</p>
+  </div>
+
+  <div class="plain-box">
+    <div class="plain-title">Important Nuance</div>
+    Most real studies include elements of all three modes (generation, testing, elaboration). Theory elaboration is not a rigid category — it is a primary focus and orientation. What distinguishes a theory elaboration study is that its <strong>primary contribution</strong> is the <em>refinement</em> of an existing theory through both conceptual specification and empirical assessment. The researcher neither generates theory from scratch nor merely tests existing hypotheses — they start with an existing model and use it inductively to elaborate.
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════ TAB 2 ══════════════════════════════════════════ -->
+<div class="tab-content" id="tab1">
+  <h2>Should I Use Theory Elaboration?</h2>
+  <p>Use this three-question decision guide to determine whether theory elaboration is the right approach for your research. Click <strong>Yes</strong> or <strong>No</strong> at each step. Based on Fisher &amp; Aguinis (2017) Figure 1 and Aguinis (2025).</p>
+
+  <div class="progress-bar">
+    <div class="prog-step active" id="ps0"></div>
+    <div class="prog-step" id="ps1"></div>
+    <div class="prog-step" id="ps2"></div>
+  </div>
+  <p class="note" id="prog-label">Question 1 of 3</p>
+
+  <!-- Q1 -->
+  <div class="question-box" id="q1box">
+    <div class="q-label">Question 1 of 3</div>
+    <h3>Is there an existing theory or preliminary model that may explain or offer insight into your focal phenomenon, <em>AND</em> do you have access to data that can be used to evaluate that phenomenon?</h3>
+    <div class="plain-box" style="margin:10px 0">
+      <div class="plain-title">What this means</div>
+      Theory elaboration requires two prerequisites: (1) an existing theoretical foundation to build on, and (2) access to empirical data. If either is missing, elaboration is not yet possible.
+    </div>
+    <div class="btn-row">
+      <button class="btn-yes" onclick="decide(1,'yes')">Yes</button>
+      <button class="btn-no" onclick="decide(1,'no')">No</button>
+    </div>
+  </div>
+
+  <div id="r1-no" style="display:none">
+    <div class="result-no">
+      <h4>&#10060; Theory Elaboration Is Not Appropriate Here</h4>
+      <p>Consider <strong>deductive theory development</strong> (e.g., an AMR-style conceptual paper): build a new theoretical framework from scratch using logical argumentation, without the need for an existing theory to elaborate on.</p>
+      <p style="margin:0"><em>Why:</em> Theory elaboration requires a starting theoretical base. Without an existing theory or preliminary model, there is nothing to elaborate — and without data access, the empirical grounding that defines theory elaboration is impossible.</p>
+    </div>
+    <button class="btn-reset" onclick="resetTree()">↺ Start Over</button>
+  </div>
+
+  <!-- Q2 -->
+  <div class="question-box" id="q2box" style="display:none">
+    <div class="q-label">Question 2 of 3</div>
+    <h3>Is the explanation provided by the existing theory <strong>controversial, ambiguous, or inadequate</strong> in important ways — meaning there are mixed results, unanswered questions, underspecified constructs, or unexplained phenomena?</h3>
+    <div class="plain-box" style="margin:10px 0">
+      <div class="plain-title">What this means</div>
+      Theory elaboration adds the most value when existing theory is not sufficient. If the theory already explains the phenomenon fully and accurately, there may be no need to elaborate — testing it may be enough.
+    </div>
+    <div class="btn-row">
+      <button class="btn-yes" onclick="decide(2,'yes')">Yes</button>
+      <button class="btn-no" onclick="decide(2,'no')">No</button>
+    </div>
+  </div>
+
+  <div id="r2-no" style="display:none">
+    <div class="result-no">
+      <h4>&#10060; Consider Theory Testing Instead</h4>
+      <p>The existing theory appears adequate for your purposes. Develop formal hypotheses deductively from the existing theory and test them empirically using a theory testing design.</p>
+      <p style="margin:0"><em>Why:</em> Theory elaboration adds the most value when existing theory is insufficient. If the theory is adequate, the elaboration approach is unnecessary — and reviewers may question why you did not simply test existing predictions.</p>
+    </div>
+    <button class="btn-reset" onclick="resetTree()">↺ Start Over</button>
+  </div>
+
+  <!-- Q3 -->
+  <div class="question-box" id="q3box" style="display:none">
+    <div class="q-label">Question 3 of 3</div>
+    <h3>Is there potential to <strong>collect additional empirical data</strong> that, when integrated with existing theory, could help develop, enhance, or extend existing theoretical insights — allowing for both inductive and deductive theorizing?</h3>
+    <div class="plain-box" style="margin:10px 0">
+      <div class="plain-title">What this means</div>
+      Theory elaboration has a dual empirical-conceptual focus. You need data not just to test hypotheses, but to engage in the back-and-forth between theory and data that is the hallmark of elaboration. Can you collect data in a way that will let you both test and discover?
+    </div>
+    <div class="btn-row">
+      <button class="btn-yes" onclick="decide(3,'yes')">Yes</button>
+      <button class="btn-no" onclick="decide(3,'no')">No</button>
+    </div>
+  </div>
+
+  <div id="r3-no" style="display:none">
+    <div class="result-no">
+      <h4>&#10060; Consider Deductive Theory Development</h4>
+      <p>Without the possibility of new data collection, a purely deductive theory development approach (conceptual paper) is more appropriate. Theory elaboration has a dual empirical-conceptual focus and requires data to contrast, specify, or structure theoretical relations.</p>
+    </div>
+    <button class="btn-reset" onclick="resetTree()">↺ Start Over</button>
+  </div>
+
+  <div id="r3-yes" style="display:none">
+    <div class="result-yes">
+      <h4>&#10003; Theory Elaboration Is Right for Your Research</h4>
+      <p>Theory elaboration is a viable and potentially highly beneficial approach. You have an existing theoretical foundation, the theory has meaningful limitations, and you can collect data to both inform and refine it.</p>
+      <p style="margin:0"><strong>Next step:</strong> Proceed to <strong>Tab 3</strong> to identify which specific approach and tactics to employ based on your theory advancement goals.</p>
+    </div>
+    <button class="btn-reset" onclick="resetTree()">↺ Start Over</button>
+  </div>
+
+  <!-- FLOWCHART -->
+  <div style="margin-top:36px">
+    <h3>Full Decision Flowchart Overview</h3>
+    <p class="note">The complete three-step decision process from Fisher &amp; Aguinis (2017), Figure 1. Use the interactive questions above to walk through it step by step.</p>
+    <div class="flowchart">
+      <div style="display:flex;flex-direction:column;align-items:center">
+        <div class="fc-box">Q1: Existing theory + data access?</div>
+        <div style="display:flex;width:100%;max-width:700px;justify-content:center;gap:0">
+          <div style="display:flex;flex-direction:column;align-items:center;flex:1">
+            <div class="fc-label no" style="margin:8px 0">NO</div>
+            <div class="fc-box outcome" style="background:#c0392b">Adopt Theory Development<br><span style="font-size:.72rem;font-weight:400">(AMR-style conceptual paper)</span></div>
+          </div>
+          <div style="display:flex;flex-direction:column;align-items:center;flex:1">
+            <div class="fc-label yes" style="margin:8px 0">YES</div>
+            <div class="fc-box">Q2: Theory controversial, ambiguous, or inadequate?</div>
+            <div style="display:flex;width:100%;justify-content:center;gap:0">
+              <div style="display:flex;flex-direction:column;align-items:center;flex:1">
+                <div class="fc-label no" style="margin:8px 0">NO</div>
+                <div class="fc-box outcome" style="background:#c0392b">Adopt Theory Testing<br><span style="font-size:.72rem;font-weight:400">(hypothesis-deductive design)</span></div>
+              </div>
+              <div style="display:flex;flex-direction:column;align-items:center;flex:1">
+                <div class="fc-label yes" style="margin:8px 0">YES</div>
+                <div class="fc-box">Q3: Potential to collect additional data?</div>
+                <div style="display:flex;width:100%;justify-content:center;gap:0">
+                  <div style="display:flex;flex-direction:column;align-items:center;flex:1">
+                    <div class="fc-label no" style="margin:8px 0">NO</div>
+                    <div class="fc-box outcome" style="background:#c0392b">Adopt Deductive Theory Development</div>
+                  </div>
+                  <div style="display:flex;flex-direction:column;align-items:center;flex:1">
+                    <div class="fc-label yes" style="margin:8px 0">YES</div>
+                    <div class="fc-box outcome-go" style="border-radius:8px;padding:12px 14px;text-align:center;font-size:.78rem;min-width:160px">
+                      &#10003; THEORY ELABORATION<br>
+                      <span style="font-weight:400;display:block;margin-top:6px">IG1: Contrasting<br>IG2: Construct Specification<br>IG3: Structuring</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <p class="note" style="margin-top:12px">IG = Implementation Guideline. See Tab 3 for details on each guideline and its associated tactics.</p>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════ TAB 3 ══════════════════════════════════════════ -->
+<div class="tab-content" id="tab2">
+  <h2>Choose Your Approach &amp; Tactics</h2>
+  <p>Theory elaboration offers three broad approaches and seven specific tactics. Start by identifying the primary limitation in the existing theory you are building on, then expand the relevant approach panel below.</p>
+
+  <!-- 3A -->
+  <h3>Section 3A: Identify Your Theory Advancement Goal</h3>
+  <p>What is the primary limitation or gap in the existing theory you are starting with? Select the criterion that best describes it. Based on Bacharach's (1989) five criteria for theory evaluation.</p>
+  <div class="criteria-cards" id="critCards">
+    <div class="crit-card" onclick="selectCrit(this,'contrasting')" data-approach="contrasting">
+      <h4>&#9679; Construct Validity</h4>
+      <p>The key constructs are not clearly defined or are hard to distinguish from similar constructs.</p>
+      <div class="crit-rec">&#10132; Recommended: <strong>Construct Specification</strong> (New Specification or Construct Splitting)</div>
+    </div>
+    <div class="crit-card" onclick="selectCrit(this,'spec')" data-approach="spec">
+      <h4>&#9679; Construct Scope</h4>
+      <p>The constructs do not adequately capture the full scope of the phenomenon.</p>
+      <div class="crit-rec">&#10132; Recommended: <strong>Construct Specification</strong> (New Specification or Construct Splitting)</div>
+    </div>
+    <div class="crit-card" onclick="selectCrit(this,'contrasting')" data-approach="contrasting">
+      <h4>&#9679; Logical Adequacy</h4>
+      <p>The logic of the key relationships is unclear, underspecified, or not well-reasoned.</p>
+      <div class="crit-rec">&#10132; Recommended: <strong>Contrasting</strong> (Horizontal or Vertical)</div>
+    </div>
+    <div class="crit-card" onclick="selectCrit(this,'contrasting')" data-approach="contrasting">
+      <h4>&#9679; Empirical Adequacy</h4>
+      <p>The theory has not been examined across enough contexts, settings, or levels of analysis.</p>
+      <div class="crit-rec">&#10132; Recommended: <strong>Contrasting</strong> (Horizontal or Vertical)</div>
+    </div>
+    <div class="crit-card" onclick="selectCrit(this,'structuring')" data-approach="structuring">
+      <h4>&#9679; Explanatory &amp; Predictive Adequacy</h4>
+      <p>The theory does not fully explain how or why key relationships operate, or cannot adequately predict outcomes.</p>
+      <div class="crit-rec">&#10132; Recommended: <strong>Structuring</strong> (Specific, Sequence, or Recursive Relations)</div>
+    </div>
+  </div>
+
+  <!-- CHART -->
+  <div class="chart-container">
+    <h3>Tactic–Criterion Alignment Map</h3>
+    <p class="note" style="text-align:center">Shows which Bacharach (1989) theory-quality criteria each of the seven tactics is designed to improve. Higher bar = stronger contribution to that criterion.</p>
+    <canvas id="tacticChart" height="300"></canvas>
+  </div>
+
+  <!-- 3B -->
+  <h3 id="section3b">Section 3B: The Three Approaches and Seven Tactics</h3>
+  <p>Expand each approach panel to see the specific tactics, when to use them, and published examples.</p>
+
+  <!-- CONTRASTING -->
+  <div class="approach-card" id="card-contrasting">
+    <div class="approach-header" onclick="togglePanel('contrasting')">
+      <span>&#9632; Approach 1: Contrasting</span>
+      <span class="toggle">&#9660;</span>
+    </div>
+    <div class="approach-body" id="body-contrasting">
+      <p><strong>Plain-language introduction:</strong> Contrasting involves comparing how a theory applies in a different setting from the one it was originally developed in. It helps you discover what is truly generalizable about a theory and what varies by context or level of analysis.</p>
+      <p><strong>Primary theory advancement purpose:</strong> Improving <em>logical</em> and <em>empirical adequacy</em>.</p>
+      <div class="guideline-box"><strong>Implementation Guideline 1:</strong> "If the primary research focus is to improve logical and/or empirical validity of an existing theory, then a contrasting approach and tactics can be employed as part of a theory elaboration study." (Fisher &amp; Aguinis, 2017)</div>
+
+      <div class="tactic-card">
+        <div class="tactic-title">Tactic 1A — Horizontal Contrasting <span class="tactic-badge">Same Level, New Context</span></div>
+        <p>Examining how an existing theoretical insight fits in a context <strong>different from that for which it was developed</strong>, while keeping the <strong>level of analysis constant</strong>. The context varies (e.g., different industry, geographic setting, organizational type) but the level (e.g., individual, team, organization) remains the same.</p>
+        <p><strong>Key output:</strong> Generalization of the theory to a new context; deeper understanding of which theoretical elements vary across contexts.</p>
+        <p><strong>When to use:</strong> When a theory was developed in one specific organizational, industry, or geographic context and you want to examine whether it holds in a different context at the same level. Most useful in <em>new context</em> research opportunity situations (see Tab 4).</p>
+        <div class="example-box">
+          <strong>Published Example 1:</strong> Maguire, Hardy, &amp; Lawrence (2004) compared institutional change initiated by central actors in a mature field (prior theory) with institutional change initiated by peripheral actors in an emerging field (their data context). Same level (organizational field), different context.<br><br>
+          <strong>Published Example 2:</strong> Greenwood &amp; Suddaby (2006) examined institutional entrepreneurship in the context of mature professional fields, contrasting with prior theory developed in other contexts.
+        </div>
+      </div>
+
+      <div class="tactic-card">
+        <div class="tactic-title">Tactic 1B — Vertical Contrasting <span class="tactic-badge">Same Constructs, New Level</span></div>
+        <p>Comparing a theory developed to explain constructs and relations <strong>at one level of analysis</strong> with data describing constructs and relations <strong>at a different level</strong>. Examples include adapting individual-level concepts (cognition, learning, identity) to explain organizational-level phenomena. The level of analysis changes while examining the same theoretical constructs.</p>
+        <p><strong>When to use:</strong> When a theory developed at one level (e.g., individual cognition) could shed light on phenomena at another level (e.g., organizational behavior). Most useful in <em>theory borrowing</em> and <em>cross-level effects</em> situations (see Tab 4). Carefully assess which aspects of the theory function similarly across levels and which aspects change.</p>
+        <div class="example-box">
+          <strong>Published Example:</strong> Tripsas &amp; Gavetti (2000) applied individual-level cognition theory to examine how top management teams' <em>collective</em> cognitive representations directed organizational search processes and influenced capability accumulation at Polaroid. Same theoretical constructs (cognition, mental models), different level (individual → organizational).
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- CONSTRUCT SPECIFICATION -->
+  <div class="approach-card" id="card-spec">
+    <div class="approach-header" onclick="togglePanel('spec')">
+      <span>&#9632; Approach 2: Construct Specification</span>
+      <span class="toggle">&#9660;</span>
+    </div>
+    <div class="approach-body" id="body-spec">
+      <p><strong>Plain-language introduction:</strong> Construct specification involves identifying and defining constructs more precisely so they accurately reflect empirical realities. You either discover a new construct that the existing theory missed, or recognize that a single broad construct actually comprises multiple distinct dimensions.</p>
+      <p><strong>Primary theory advancement purpose:</strong> Improving <em>construct validity</em> and <em>construct scope</em>.</p>
+      <div class="guideline-box"><strong>Implementation Guideline 2:</strong> "If the primary focus is to improve the validity and/or scope of a construct, then the construct specification approach and tactics can be employed as part of a theory elaboration study." (Fisher &amp; Aguinis, 2017)</div>
+
+      <div class="tactic-card">
+        <div class="tactic-title">Tactic 2A — New Construct Specification <span class="tactic-badge">Discover a Missing Construct</span></div>
+        <p>Identifying and defining a <strong>construct that has not previously been considered</strong> in existing theory. Through empirical work, a researcher recognizes a new theoretical unit that is necessary to accurately depict reality. The new construct often emerges from a grounded theory or inductive approach and creates opportunities to recognize new theoretical relations.</p>
+        <p><strong>When to use:</strong> When you notice a concept in your empirical data that cannot be captured by existing constructs and that would significantly improve the theory's ability to explain the phenomenon. Most useful in <em>emergent theory</em> and <em>new context</em> situations (see Tab 4).</p>
+        <div class="example-box">
+          <strong>Published Example:</strong> Gioia &amp; Chittipeddi (1991) identified the construct of <em>sensegiving</em> — "the process of attempting to influence the sensemaking and meaning construction of others toward a preferred redefinition of organizational reality" — as a necessary complement to the existing sensemaking construct. Without the application of existing sensemaking theory, the recognition of sensegiving might never have occurred. The new construct dramatically improved the theory's explanatory power.
+        </div>
+      </div>
+
+      <div class="tactic-card">
+        <div class="tactic-title">Tactic 2B — Construct Splitting <span class="tactic-badge">Divide a Broad Construct</span></div>
+        <p>Recognizing that a <strong>single existing construct actually comprises multiple distinct dimensions</strong> and partitioning it into two or more constructs. This improves discriminant validity, resolves contradictions in prior research, and provides more accurate theoretical linkages.</p>
+        <p><strong>When to use:</strong> When prior research on a construct shows mixed or contradictory results and you suspect the inconsistency stems from the fact that the construct is actually multidimensional. When examining how a construct behaves in reality reveals multiple distinct forms or perspectives.</p>
+        <div class="example-box">
+          <strong>Published Example 1:</strong> Ely &amp; Thomas (2001) split the broad construct of "workforce diversity" into three distinct perspectives — integration-and-learning, access-and-legitimacy, and discrimination-and-fairness — each with different implications for workgroup functioning. This resolved prior contradictions in the diversity literature that had produced mixed results.<br><br>
+          <strong>Published Example 2:</strong> Maitlis (2005) identified four distinct forms of organizational sensemaking, splitting what had been treated as a single construct.
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- STRUCTURING -->
+  <div class="approach-card" id="card-structuring">
+    <div class="approach-header" onclick="togglePanel('structuring')">
+      <span>&#9632; Approach 3: Structuring</span>
+      <span class="toggle">&#9660;</span>
+    </div>
+    <div class="approach-body" id="body-structuring">
+      <p><strong>Plain-language introduction:</strong> Structuring involves elaborating on theoretical <em>relations</em> so they accurately describe and explain what is observed empirically. This approach either identifies relations not previously described or explains complex sequential or recursive interactions not fully captured in prior theory.</p>
+      <p><strong>Primary theory advancement purpose:</strong> Improving <em>explanatory</em> and <em>predictive adequacy</em>.</p>
+      <div class="guideline-box"><strong>Implementation Guideline 3:</strong> "If the primary focus is to improve the explanatory and predictive adequacy of an existing theory, then the structuring approach and tactics can be employed as part of a theory elaboration study." (Fisher &amp; Aguinis, 2017)</div>
+
+      <div class="tactic-card">
+        <div class="tactic-title">Tactic 3A — Specific Relation Structures <span class="tactic-badge">Clarify HOW &amp; WHY</span></div>
+        <p>Identifying and describing <strong>specific relations between constructs</strong> that have not previously been described, or identifying the mechanisms that underlie known relations. This may involve moving from a direct linear relationship to moderation, mediation (through a new construct), or nonlinear relationships — specifying previously unknown connections or unpacking the mechanisms driving known relations.</p>
+        <p><strong>When to use:</strong> When the mechanism connecting two constructs is poorly understood even though the relation itself is known; when you want to specify boundary conditions (moderators) or mediating processes; when prior theory identifies that X and Y are related but does not explain HOW or WHY.</p>
+        <div class="example-box">
+          <strong>Published Example 1:</strong> Greenwood &amp; Suddaby (2006) elaborated institutional entrepreneurship theory by specifying WHICH central actors are more likely to institute change and isolating the MECHANISMS driving such change.<br><br>
+          <strong>Published Example 2:</strong> Shane (2000) specified three knowledge domains (customer problems, ways to serve markets, and technology) that enable entrepreneurs to discover different aspects of opportunities.<br><br>
+          <strong>Published Example 3:</strong> Weick (1993) identified four sources of resilience in organizations facing collapse.
+        </div>
+      </div>
+
+      <div class="tactic-card">
+        <div class="tactic-title">Tactic 3B — Sequence Relation Structures <span class="tactic-badge">Temporal Ordering of Events</span></div>
+        <p>Providing an explanation of <strong>a sequence of events or relations over time</strong>. Theory elaboration allows examination of temporal ordering and probabilistic interaction between variables — moving from variance theories ("more X produces more Y") to process theories ("do A, then B, to get C"). Uses existing theoretical constructs to organize data and gain new insights into temporal processes.</p>
+        <p><strong>When to use:</strong> When organizational phenomena need to be understood by considering the temporal ordering of events; when the question is not just WHETHER something happens but WHEN and IN WHAT ORDER; when comparing successful and unsuccessful sequences can reveal critical process differences.</p>
+        <div class="example-box">
+          <strong>Published Example 1:</strong> Edmondson, Bohmer, &amp; Pisano (2001) identified four sequential process steps underlying successful technology adoption in hospitals — comparing learning sequences in hospitals that successfully vs. unsuccessfully implemented new cardiac surgery technology.<br><br>
+          <strong>Published Example 2:</strong> Gioia &amp; Chittipeddi (1991) identified four phases of strategic change (envisioning → signaling → re-visioning → energizing), each with different sensemaking and sensegiving dynamics.
+        </div>
+      </div>
+
+      <div class="tactic-card">
+        <div class="tactic-title">Tactic 3C — Recursive Relation Structures <span class="tactic-badge">Feedback Loops Over Time</span></div>
+        <p>Accounting for and describing <strong>recursive interactions</strong> — what happens when two or more constructs interact <em>repeatedly</em> over time. Rather than a one-time relationship (X → Y), recursive structures capture bidirectional, feedback-driven relationships that evolve through repeated interactions (X ↔ Y). Two types: (1) dyadic interactions between actors or entities, and (2) multilevel interactions between constructs at different levels of analysis.</p>
+        <p><strong>When to use:</strong> When a theory identifies a relationship between two constructs but the recursive, feedback nature of that relationship over time is poorly understood; when examining how a relationship develops and evolves through repeated interactions; particularly valuable in <em>theory reversal</em> situations (see Tab 4).</p>
+        <div class="example-box">
+          <strong>Published Example:</strong> Tripsas &amp; Gavetti (2000) identified that managerial cognitive representations → direct organizational search → which influences capability accumulation → which in turn shapes managerial cognitive representations (loop back). This recursive relationship between cognitions, capabilities, and firm inertia explained Polaroid's failure to respond effectively to digital photography.
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SUMMARY TABLE -->
+  <h3 style="margin-top:32px">All Seven Tactics at a Glance</h3>
+  <div style="overflow-x:auto">
+  <table class="tactics-table">
+    <thead><tr>
+      <th>Tactic</th><th>Broad Approach</th><th>What It Does</th><th>Primary Advancement Goal</th><th>Best Research Opportunity</th><th>Key Example</th>
+    </tr></thead>
+    <tbody>
+      <tr><td><strong>Horizontal Contrasting</strong></td><td>Contrasting</td><td>Tests theory in new context, same level</td><td>Logical &amp; Empirical Adequacy</td><td>New Contexts</td><td>Maguire et al. (2004)</td></tr>
+      <tr><td><strong>Vertical Contrasting</strong></td><td>Contrasting</td><td>Tests theory across levels of analysis</td><td>Logical &amp; Empirical Adequacy</td><td>Theory Borrowing; Cross-Level</td><td>Tripsas &amp; Gavetti (2000)</td></tr>
+      <tr><td><strong>New Construct Specification</strong></td><td>Construct Specification</td><td>Discovers a missing construct</td><td>Construct Validity &amp; Scope</td><td>Emergent Theory; New Contexts</td><td>Gioia &amp; Chittipeddi (1991)</td></tr>
+      <tr><td><strong>Construct Splitting</strong></td><td>Construct Specification</td><td>Splits broad construct into dimensions</td><td>Construct Validity &amp; Scope</td><td>Theory Contradictions</td><td>Ely &amp; Thomas (2001)</td></tr>
+      <tr><td><strong>Specific Relations</strong></td><td>Structuring</td><td>Specifies mechanisms and linkages</td><td>Explanatory &amp; Predictive Adequacy</td><td>Theory Contradictions</td><td>Greenwood &amp; Suddaby (2006)</td></tr>
+      <tr><td><strong>Sequence Relations</strong></td><td>Structuring</td><td>Maps temporal ordering of events</td><td>Explanatory &amp; Predictive Adequacy</td><td>Emergent Theory; Cross-Level</td><td>Edmondson et al. (2001)</td></tr>
+      <tr><td><strong>Recursive Relations</strong></td><td>Structuring</td><td>Models feedback loops over time</td><td>Explanatory &amp; Predictive Adequacy</td><td>Theory Reversals; Cross-Level</td><td>Tripsas &amp; Gavetti (2000)</td></tr>
+    </tbody>
+  </table>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════ TAB 4 ══════════════════════════════════════════ -->
+<div class="tab-content" id="tab3">
+  <h2>Identify Your Research Opportunity</h2>
+  <p>Theory elaboration is most effective under certain conditions. Use this tab to identify which of six research opportunity types matches your situation. Each type suggests specific tactics that are most likely to be productive. Based on Fisher &amp; Aguinis (2017), Table 4, and Aguinis (2025).</p>
+
+  <div class="opp-cards">
+
+    <div class="opp-card">
+      <div class="opp-header" onclick="toggleOpp(this)"><span>🌱 Opportunity 1: Emergent Theory</span><span class="otoggle">&#9660;</span></div>
+      <div class="opp-body">
+        <p><strong>Situation:</strong> A theoretical perspective is newly introduced, underspecified, or still developing. Some aspects are conceptually unclear or have not yet been examined empirically.</p>
+        <p><strong>Why it fits theory elaboration:</strong> Existing theory provides a foundation, but empirical application reveals gaps that need to be filled before the theory can be fully useful. The theory exists but is incomplete enough that elaboration can significantly advance it.</p>
+        <div><strong>Most relevant tactics:</strong>
+          <div class="tactic-tags"><span class="tactic-tag">Horizontal Contrasting</span><span class="tactic-tag">Specific Relations</span><span class="tactic-tag">Sequence Relations</span><span class="tactic-tag">New Construct Specification</span></div>
+        </div>
+        <div class="domain-grid">
+          <div class="domain-box"><h5>OB/HRM</h5>Theory of purposeful work behavior (Barrick, Mount, &amp; Li, 2013) — links personality traits with goals and job characteristics to predict meaningfulness — is underspecified and could benefit from elaboration to specify mediating mechanisms.</div>
+          <div class="domain-box"><h5>Strategic Management</h5>Resource orchestration theory (Sirmon, Hitt, Ireland, &amp; Gilbert, 2011) — elaboration could examine how resource orchestration activities differ across organizational life cycle stages and create path dependencies.</div>
+          <div class="domain-box"><h5>Entrepreneurship</h5>Creation theory (Alvarez &amp; Barney, 2007) — how entrepreneurs create opportunities rather than discover them could be elaborated across different venture types, contexts, and founder backgrounds.</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="opp-card">
+      <div class="opp-header" onclick="toggleOpp(this)"><span>🌐 Opportunity 2: New Contexts</span><span class="otoggle">&#9660;</span></div>
+      <div class="opp-body">
+        <p><strong>Situation:</strong> A new research context has emerged (e.g., digital platforms, AI-enabled work, remote/hybrid work, gig economy, new industries) or an existing context has been substantially transformed.</p>
+        <p><strong>Why it fits theory elaboration:</strong> Existing theories that explain behavior in prior contexts may or may not apply in the new context. Theory elaboration allows systematic examination of what holds, what changes, and what needs to be added.</p>
+        <div><strong>Most relevant tactics:</strong>
+          <div class="tactic-tags"><span class="tactic-tag">Horizontal Contrasting</span><span class="tactic-tag">New Construct Specification</span><span class="tactic-tag">Specific Relations</span></div>
+        </div>
+        <div class="domain-grid">
+          <div class="domain-box"><h5>OB/HRM</h5>Individual interactions in online social networks (Ollier-Malaterre, Rothbard, &amp; Berg, 2013) — theories of workplace identity and boundary management need elaboration for digital and hybrid work settings.</div>
+          <div class="domain-box"><h5>Strategic Management</h5>Crowdsourcing as a mechanism for organizational search (Afuah &amp; Tucci, 2012) — how existing theories of organizational search apply when the "crowd" is the search mechanism rather than internal R&amp;D.</div>
+          <div class="domain-box"><h5>Entrepreneurship</h5>Online marketplaces (e.g., gig economy platforms) as new settings for entrepreneurial activity (Aguinis &amp; Lawal, 2012) — existing venture creation theories may need elaboration for platform-based ventures.</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="opp-card">
+      <div class="opp-header" onclick="toggleOpp(this)"><span>🔄 Opportunity 3: Theory Borrowing</span><span class="otoggle">&#9660;</span></div>
+      <div class="opp-body">
+        <p><strong>Situation:</strong> A theory is borrowed from another discipline (horizontal borrowing) or from another level of analysis (vertical borrowing) and applied to a new domain. The borrowed theory was not originally developed for this context.</p>
+        <p><strong>Why it fits theory elaboration:</strong> The applicability and validity of a borrowed theory in its new context is uncertain. Researchers must carefully assess what changes and what transfers intact when they take a theory out of its original context.</p>
+        <div><strong>Most relevant tactics:</strong>
+          <div class="tactic-tags"><span class="tactic-tag">Vertical Contrasting</span><span class="tactic-tag">Horizontal Contrasting</span><span class="tactic-tag">Construct Splitting</span><span class="tactic-tag">New Construct Specification</span></div>
+        </div>
+        <div class="domain-grid">
+          <div class="domain-box"><h5>OB/HRM</h5>Application of "retooling" concepts from operations management to how individuals confront cultural change (Molinsky, 2013) — constructs must be redefined for an individual-level behavioral context.</div>
+          <div class="domain-box"><h5>Strategic Management</h5>Application of individual problem-formulation frameworks to organizational strategic challenge framing (Baer, Dirks, &amp; Nickerson, 2013) — vertical borrowing from cognitive psychology to organizational strategy.</div>
+          <div class="domain-box"><h5>Entrepreneurship</h5>Application of individual and organizational identity concepts to new ventures (Fauchart &amp; Gruber, 2011; Navis &amp; Glynn, 2011) — identity theories developed for established firms and individuals must be adapted for nascent ventures.</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="opp-card">
+      <div class="opp-header" onclick="toggleOpp(this)"><span>&#8597; Opportunity 4: Cross-Level Effects</span><span class="otoggle">&#9660;</span></div>
+      <div class="opp-body">
+        <p><strong>Situation:</strong> Important mechanisms appear to operate <em>across</em> levels of analysis (e.g., individual → team → organizational → industry) in ways that are complex and not yet well understood.</p>
+        <p><strong>Why it fits theory elaboration:</strong> Theory elaboration's flexibility allows examination of both variables <em>at</em> various levels AND interactions <em>across</em> those levels, including bidirectional and recursive effects that traditional within-level theories cannot capture.</p>
+        <div><strong>Most relevant tactics:</strong>
+          <div class="tactic-tags"><span class="tactic-tag">Specific Relations</span><span class="tactic-tag">Recursive Relations</span><span class="tactic-tag">Vertical Contrasting</span><span class="tactic-tag">Construct Splitting</span></div>
+        </div>
+        <div class="domain-grid">
+          <div class="domain-box"><h5>OB/HRM</h5>How leadership humility at the individual level translates into team-level psychological safety and organization-level learning (Owens &amp; Hekman, 2012) — cross-level mechanisms poorly specified in existing theory.</div>
+          <div class="domain-box"><h5>Strategic Management</h5>How CEOs and top management teams respond to organizational crisis events — examining interactions across individual cognition, team dynamics, and organizational response levels (Pfarrer et al., 2008).</div>
+          <div class="domain-box"><h5>Entrepreneurship</h5>Interactions between venture founders (individual level) and boards of directors (group level) in determining the strategic direction of new firms (Garg, 2013) — how individual-level founder identity shapes group-level governance decisions.</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="opp-card">
+      <div class="opp-header" onclick="toggleOpp(this)"><span>&#9889; Opportunity 5: Theory Contradictions</span><span class="otoggle">&#9660;</span></div>
+      <div class="opp-body">
+        <p><strong>Situation:</strong> Conflicting or contradictory conclusions exist in the literature — either the same theory yields different results across studies, or different theoretical mechanisms are both argued to account for the same outcome.</p>
+        <p><strong>Why it fits theory elaboration:</strong> By getting "close" to the phenomenon through in-depth data collection and analysis, a researcher can use existing theory to uncover WHY contradictions exist — often revealing an unobserved construct or a poorly understood boundary condition.</p>
+        <div><strong>Most relevant tactics:</strong>
+          <div class="tactic-tags"><span class="tactic-tag">Construct Splitting</span><span class="tactic-tag">New Construct Specification</span><span class="tactic-tag">Specific Relations</span></div>
+        </div>
+        <div class="domain-grid">
+          <div class="domain-box"><h5>OB/HRM</h5>Mixed results on test validity in HR recruitment and selection (Aguinis &amp; Smith, 2007) — understanding when validity holds and when it does not by elaborating boundary conditions and mediating factors.</div>
+          <div class="domain-box"><h5>Strategic Management</h5>Contradictory findings on how and when executives respond to secondary stakeholder demands (Eesley &amp; Lenox, 2006; Waldron, Navis, &amp; Fisher, 2013) — a new construct or boundary condition may explain the inconsistency.</div>
+          <div class="domain-box"><h5>Entrepreneurship</h5>Conflicting findings about whether entrepreneurial passion helps or hurts funding decisions (Cardon et al., 2009; Chen, Yao, &amp; Kotha, 2009) — construct splitting (type/domain of passion) may resolve the contradiction.</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="opp-card">
+      <div class="opp-header" onclick="toggleOpp(this)"><span>&#8646; Opportunity 6: Theory Reversals</span><span class="otoggle">&#9660;</span></div>
+      <div class="opp-body">
+        <p><strong>Situation:</strong> Phenomena operate in the <em>opposite direction</em> from what is typically predicted or assumed by existing theory — a pattern is broken or reversed. The "flipside" of a theory presents an opportunity.</p>
+        <p><strong>Why it fits theory elaboration:</strong> Starting from existing theory and examining where it breaks down or reverses can produce particularly "interesting" theoretical developments (Davis, 1971) — propositions that deny the prevailing assumptions of the field, making for highly impactful publications.</p>
+        <div><strong>Most relevant tactics:</strong>
+          <div class="tactic-tags"><span class="tactic-tag">Recursive Relations</span><span class="tactic-tag">Sequence Relations</span><span class="tactic-tag">Specific Relations</span></div>
+        </div>
+        <div class="domain-grid">
+          <div class="domain-box"><h5>OB/HRM</h5>Professional identity LOSS and recovery — rather than studying identity formation (the standard direction), examining what happens when professional identity is taken away and how people recover (Conroy &amp; O'Leary-Kelly, 2014).</div>
+          <div class="domain-box"><h5>Strategic Management</h5>ERADICATING a firm's organizational identity rather than building it (Anteby &amp; Molnár, 2012). Also: reversal of a planned strategic change and the unexpectedly complex consequences (Mantere, Schildt, &amp; Sillince, 2012).</div>
+          <div class="domain-box"><h5>Entrepreneurship</h5>The demise of SUCCESSFUL new ventures — why do ventures that appear to be doing everything right fail? (Fisher &amp; Kotha, 2014). Existing theory explains failure of struggling ventures but not successful ones.</div>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- end opp-cards -->
+
+  <!-- SELF ASSESSMENT -->
+  <div class="self-assess" style="margin-top:32px">
+    <h3>Which Opportunity Type Fits Your Research? (Self-Assessment)</h3>
+    <p>Select all opportunity types that describe your research situation. The tool will recommend the most relevant tactics.</p>
+    <div class="check-group" id="oppCheckGroup">
+      <label><input type="checkbox" value="emergent" onchange="updateOppRec()"> Emergent Theory</label>
+      <label><input type="checkbox" value="newctx" onchange="updateOppRec()"> New Contexts</label>
+      <label><input type="checkbox" value="borrowing" onchange="updateOppRec()"> Theory Borrowing</label>
+      <label><input type="checkbox" value="crosslevel" onchange="updateOppRec()"> Cross-Level Effects</label>
+      <label><input type="checkbox" value="contradiction" onchange="updateOppRec()"> Theory Contradictions</label>
+      <label><input type="checkbox" value="reversal" onchange="updateOppRec()"> Theory Reversals</label>
+    </div>
+    <div class="assess-rec" id="oppRec">
+      <h4>&#10003; Recommended Tactics for Your Situation</h4>
+      <div id="oppRecContent"></div>
+      <p style="margin-top:10px;font-size:.85rem">See <strong>Tab 3</strong> for full descriptions, examples, and implementation guidelines for each tactic.</p>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════ TAB 5 ══════════════════════════════════════════ -->
+<div class="tab-content" id="tab4">
+  <h2>Plan Your Theory Elaboration Study</h2>
+  <p>Complete the planner below to generate a personalized research plan. Your responses will produce a summary paragraph suitable for a manuscript methods section or research proposal, following the framework in Aguinis (2025) and Fisher &amp; Aguinis (2017).</p>
+
+  <!-- 5A -->
+  <div class="planner-section">
+    <h3>Section 5A: Research Situation</h3>
+    <div class="form-group">
+      <label for="p-domain">1. Research domain</label>
+      <select id="p-domain" onchange="updateRecs()">
+        <option value="">— Select —</option>
+        <option>Organizational Behavior / HRM</option>
+        <option>Strategic Management</option>
+        <option>Entrepreneurship</option>
+        <option>Other</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label for="p-theory">2. Existing theory or model you are building on</label>
+      <input type="text" id="p-theory" placeholder="e.g., Institutional Theory, Resource-Based View, Self-Determination Theory…" oninput="updateRecs()">
+    </div>
+    <div class="form-group">
+      <label>3. Which opportunity type(s) describe your situation? (select all that apply)</label>
+      <div class="checkbox-group">
+        <label><input type="checkbox" class="p-opp" value="Emergent Theory" onchange="updateRecs()"> Emergent Theory</label>
+        <label><input type="checkbox" class="p-opp" value="New Contexts" onchange="updateRecs()"> New Contexts</label>
+        <label><input type="checkbox" class="p-opp" value="Theory Borrowing" onchange="updateRecs()"> Theory Borrowing</label>
+        <label><input type="checkbox" class="p-opp" value="Cross-Level Effects" onchange="updateRecs()"> Cross-Level Effects</label>
+        <label><input type="checkbox" class="p-opp" value="Theory Contradictions" onchange="updateRecs()"> Theory Contradictions</label>
+        <label><input type="checkbox" class="p-opp" value="Theory Reversals" onchange="updateRecs()"> Theory Reversals</label>
+      </div>
+    </div>
+    <div class="form-group">
+      <label>4. Primary limitation(s) of the existing theory (Bacharach, 1989 criteria)</label>
+      <div class="checkbox-group">
+        <label><input type="checkbox" class="p-lim" value="construct validity" onchange="updateRecs()"> Construct validity — key constructs are not clearly defined</label>
+        <label><input type="checkbox" class="p-lim" value="construct scope" onchange="updateRecs()"> Construct scope — constructs don't capture the full phenomenon</label>
+        <label><input type="checkbox" class="p-lim" value="logical adequacy" onchange="updateRecs()"> Logical adequacy — logic of relationships is unclear or underspecified</label>
+        <label><input type="checkbox" class="p-lim" value="empirical adequacy" onchange="updateRecs()"> Empirical adequacy — theory not examined across enough contexts or levels</label>
+        <label><input type="checkbox" class="p-lim" value="explanatory and predictive adequacy" onchange="updateRecs()"> Explanatory &amp; predictive adequacy — theory doesn't explain HOW or WHY</label>
+      </div>
+    </div>
+  </div>
+
+  <!-- 5B -->
+  <div class="planner-section">
+    <h3>Section 5B: Approach &amp; Tactics</h3>
+    <div class="rec-highlight" id="recBox" style="display:none">
+      <h4>&#10024; Recommended Based on Your Inputs</h4>
+      <div id="recContent"></div>
+    </div>
+    <p class="note">You can and should use multiple tactics in a single study. The seven tactics are not mutually exclusive — they accomplish different yet complementary goals.</p>
+    <div class="form-group">
+      <label>Which broad approach(es) will you use?</label>
+      <div class="checkbox-group">
+        <label><input type="checkbox" class="p-approach" value="Contrasting"> Contrasting</label>
+        <label><input type="checkbox" class="p-approach" value="Construct Specification"> Construct Specification</label>
+        <label><input type="checkbox" class="p-approach" value="Structuring"> Structuring</label>
+      </div>
+    </div>
+    <div class="form-group">
+      <label>Which specific tactic(s) will you use?</label>
+      <div class="checkbox-group">
+        <label><input type="checkbox" class="p-tactic" value="Horizontal Contrasting"> Horizontal Contrasting — same level, new context</label>
+        <label><input type="checkbox" class="p-tactic" value="Vertical Contrasting"> Vertical Contrasting — same constructs, different level</label>
+        <label><input type="checkbox" class="p-tactic" value="New Construct Specification"> New Construct Specification — discover a missing construct</label>
+        <label><input type="checkbox" class="p-tactic" value="Construct Splitting"> Construct Splitting — partition a broad construct into dimensions</label>
+        <label><input type="checkbox" class="p-tactic" value="Specific Relation Structures"> Specific Relation Structures — clarify mechanisms and linkages</label>
+        <label><input type="checkbox" class="p-tactic" value="Sequence Relation Structures"> Sequence Relation Structures — map temporal ordering of events</label>
+        <label><input type="checkbox" class="p-tactic" value="Recursive Relation Structures"> Recursive Relation Structures — model feedback loops over time</label>
+      </div>
+    </div>
+  </div>
+
+  <!-- 5C -->
+  <div class="planner-section">
+    <h3>Section 5C: Research Design Elements</h3>
+    <div class="form-group">
+      <label>1. Type of data you will collect (select all that apply)</label>
+      <div class="checkbox-group">
+        <label><input type="checkbox" class="p-data" value="qualitative interviews"> Qualitative interviews</label>
+        <label><input type="checkbox" class="p-data" value="ethnographic/observational data"> Ethnographic/observational data</label>
+        <label><input type="checkbox" class="p-data" value="archival/secondary data"> Archival/secondary data</label>
+        <label><input type="checkbox" class="p-data" value="quantitative survey data"> Quantitative survey data</label>
+        <label><input type="checkbox" class="p-data" value="mixed methods"> Mixed methods</label>
+        <label><input type="checkbox" class="p-data" value="other data sources"> Other</label>
+      </div>
+    </div>
+    <div class="form-group">
+      <label for="p-sites">2. Number of sites/cases/organizations</label>
+      <input type="text" id="p-sites" placeholder="e.g., 3 organizations, 12 cases, 1 longitudinal multi-site study…">
+    </div>
+    <div class="form-group">
+      <label for="p-setting">3. Why is your setting well-suited for theory elaboration?</label>
+      <textarea id="p-setting" placeholder="e.g., This setting provides a unique opportunity to observe [phenomenon] in a context where existing theory was not developed. The contrast with the theory's original context allows us to examine…"></textarea>
+    </div>
+  </div>
+
+  <!-- 5D -->
+  <div class="planner-section">
+    <h3>Section 5D: Generate Your Research Plan</h3>
+    <button class="btn-generate" onclick="generatePlan()">&#9881; Generate My Theory Elaboration Plan</button>
+
+    <div class="generated-summary" id="genSummary">
+      <h4>Your Theory Elaboration Research Plan</h4>
+      <button class="copy-btn" onclick="copyPlan()">&#9998; Copy</button>
+      <div id="planText"></div>
+    </div>
+
+    <div style="margin-top:24px">
+      <h3>Pre-Readiness Checklist</h3>
+      <p>Before proceeding to data collection, confirm you can check all of the following:</p>
+      <ul class="pre-check">
+        <li><input type="checkbox"> I have conducted a comprehensive literature review to identify the existing theory and its limitations</li>
+        <li><input type="checkbox"> I can articulate specifically how the existing theory is controversial, ambiguous, or inadequate</li>
+        <li><input type="checkbox"> I have identified a data collection context that will allow both inductive and deductive theorizing</li>
+        <li><input type="checkbox"> I have selected tactics congruent with my theory advancement goals (the tactic matches the limitation I am addressing)</li>
+        <li><input type="checkbox"> I am prepared to explicitly connect my empirical observations back to the existing theoretical framework</li>
+        <li><input type="checkbox"> I understand that my output will be a REFINEMENT of existing theory, not a new theory or a simple test of an existing one</li>
+        <li><input type="checkbox"> I have considered whether I am using one or multiple tactics and whether the combination is coherent</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════ TAB 6 ══════════════════════════════════════════ -->
+<div class="tab-content" id="tab5">
+  <h2>Limitations &amp; Safeguards</h2>
+  <p>Theory elaboration is a powerful but not unlimited approach. Being aware of its limitations and taking active steps to mitigate them will strengthen your study and your manuscript. Based on Fisher &amp; Aguinis (2017) and Aguinis (2025).</p>
+
+  <div class="lim-cards">
+
+    <div class="lim-card">
+      <h4><span class="lim-icon">⚠️</span> Limitation 1: Risk of Overly Complex Theory</h4>
+      <div class="lim-label">The Limitation</div>
+      <p>Theory elaboration can result in theories that are too complex to be understood, remembered, or applied broadly. Researchers walk a fine line between adding needed nuance and making the theory unwieldy or inaccessible to practitioners and future researchers.</p>
+      <div class="lim-label">Why It Occurs</div>
+      <p>Each elaboration (new construct, new relation, new boundary condition) adds complexity. As researchers engage deeply with rich empirical data, the temptation is to capture every nuance — but theories that try to explain everything often explain nothing well.</p>
+      <div class="safeguard-box"><strong>Safeguard:</strong> Aim for parsimony alongside accuracy. After elaboration, evaluate whether each addition genuinely improves explanatory power independently. Cut constructs or relations that do not carry independent explanatory weight. Ask yourself: "Is this complexity truly necessary to account for the empirical observations I made, or is it adding detail for detail's sake?"</div>
+    </div>
+
+    <div class="lim-card">
+      <h4><span class="lim-icon">⚠️</span> Limitation 2: Risk of Limited Generalizability</h4>
+      <div class="lim-label">The Limitation</div>
+      <p>Over-elaborating a theory to account for context-specific factors can produce a theory so tailored to one setting that it loses external validity. The more a theory is refined to fit one context, the less it may apply to others.</p>
+      <div class="lim-label">Why It Occurs</div>
+      <p>Theory elaboration typically involves deep engagement with specific empirical contexts — a single industry, a specific cultural setting, a particular time period. Context-specific findings, while rich, may not generalize.</p>
+      <div class="safeguard-box"><strong>Safeguard:</strong> Clearly delineate which aspects of your elaborated theory are context-specific and which are generalizable. Include explicit boundary conditions in your propositions. Discuss the scope conditions of your elaboration in the discussion section. Collect data from multiple contexts if possible to build confidence in generalizability.</div>
+    </div>
+
+    <div class="lim-card">
+      <h4><span class="lim-icon">⚠️</span> Limitation 3: Dependence on Starting Theory Quality</h4>
+      <div class="lim-label">The Limitation</div>
+      <p>If the underlying theory you choose to elaborate is weak or flawed, the elaboration may perpetuate and amplify those weaknesses. A theory elaboration study is only as strong as the theoretical foundation it builds on.</p>
+      <div class="lim-label">Why It Occurs</div>
+      <p>Theory elaboration starts from an existing model and uses it to guide data collection. If the model has fundamental problems (poor construct validity, logical inconsistencies, lack of empirical support), those problems will be imported into the elaboration.</p>
+      <div class="safeguard-box"><strong>Safeguard:</strong> Before beginning, critically and thoroughly assess the strength of the theory you are using as a foundation. Review meta-analyses and systematic reviews of the theory's empirical support. If the theory has fundamental logical or empirical problems, address those explicitly in your paper, or consider whether theory building (starting fresh) is more appropriate for your research question.</div>
+    </div>
+
+    <div class="lim-card">
+      <h4><span class="lim-icon">⚠️</span> Limitation 4: Perspective Dependence</h4>
+      <div class="lim-label">The Limitation</div>
+      <p>Any theoretical advancement from theory elaboration is inherently bounded by the perspective and assumptions of the starting theory. You can elaborate a theory, but you cannot fundamentally escape its core assumptions, ontology, or worldview while remaining within theory elaboration.</p>
+      <div class="lim-label">Why It Occurs</div>
+      <p>Theory elaboration works <em>within</em> an existing theoretical tradition — it refines and extends, rather than replaces. Alternative theoretical perspectives that start from different assumptions may produce very different insights from the same empirical observations.</p>
+      <div class="safeguard-box"><strong>Safeguard:</strong> Acknowledge explicitly which theoretical perspective your elaboration is grounded in and what alternative perspectives might yield different insights. Discuss these alternatives in your limitations section. If the goal of your research is to fundamentally challenge a theoretical tradition rather than to refine it, theory building (or theory replacement) may be more appropriate.</div>
+    </div>
+
+    <div class="lim-card">
+      <h4><span class="lim-icon">⚠️</span> Limitation 5: Subjectivity Concerns</h4>
+      <div class="lim-label">The Limitation</div>
+      <p>Because theory elaboration often includes qualitative elements and an iterative back-and-forth between theory and data, conclusions are not always based on formal statistical tests. Some readers and reviewers may perceive qualitative insights as less rigorous than quantitative hypothesis testing.</p>
+      <div class="lim-label">Why It Occurs</div>
+      <p>The inductive-deductive interplay that defines theory elaboration means that the researcher's judgment plays a significant role in identifying patterns, connecting observations to theory, and choosing which refinements to make. This is inherently more subjective than running a regression.</p>
+      <div class="safeguard-box"><strong>Safeguard:</strong> Be explicit about your reasoning and evidence at every step of the elaboration process. Connect each elaborated theoretical insight tightly to specific, concrete empirical observations (with direct quotes, data excerpts, or figures where possible). Use multiple data sources and types to triangulate. Describe your analytic process transparently — including how you moved between theory and data — so readers can evaluate the basis for your theoretical claims.</div>
+    </div>
+
+  </div>
+
+  <!-- PRE-SUBMISSION CHECKLIST -->
+  <div class="sub-check">
+    <h3>&#9989; Pre-Submission Checklist</h3>
+    <p>Verify each item before submitting your theory elaboration manuscript:</p>
+    <ul>
+      <li><input type="checkbox"> I have explicitly stated that I am adopting a <em>theory elaboration</em> approach (rather than labeling the study as theory generation or theory testing)</li>
+      <li><input type="checkbox"> I have clearly described the existing theory or model I used as a starting point</li>
+      <li><input type="checkbox"> I have justified why the existing theory was insufficient — specifically, how it is controversial, ambiguous, or inadequate</li>
+      <li><input type="checkbox"> I have explained how my data collection allowed for both inductive and deductive theorizing simultaneously</li>
+      <li><input type="checkbox"> I have named the specific tactic(s) I used: horizontal contrasting, vertical contrasting, new construct specification, construct splitting, specific relation structures, sequence relation structures, and/or recursive relation structures</li>
+      <li><input type="checkbox"> I have connected each empirical observation explicitly to a refinement of the theoretical model — showing not just what I found but how each finding changes the theory</li>
+      <li><input type="checkbox"> I have articulated what the elaborated theory adds that the original theory could not explain</li>
+      <li><input type="checkbox"> I have addressed generalizability and boundary conditions — specifying what is context-specific and what is broadly applicable</li>
+      <li><input type="checkbox"> I have cited Aguinis (2025) and Fisher &amp; Aguinis (2017) as the methodological framework for my theory elaboration approach</li>
+    </ul>
+  </div>
+
+  <div class="plain-box" style="margin-top:20px">
+    <div class="plain-title">Reference</div>
+    Fisher, G., &amp; Aguinis, H. (2017). Using theory elaboration to make theoretical advancements. <em>Organizational Research Methods, 20</em>(3), 438–464.<br><br>
+    Aguinis, H. (2025). <em>Research methodology: Best practices for rigorous, credible, and impactful research.</em> SAGE. <a href="https://collegepublishing.sagepub.com/products/research-methodology-1-280088" target="_blank" style="color:#2c4a8c">https://collegepublishing.sagepub.com/products/research-methodology-1-280088</a>
+  </div>
+</div>
+
+<!-- ════════════════════════ JAVASCRIPT ════════════════════════ -->
+<script>
+// TAB NAVIGATION
+function showTab(n){
+  document.querySelectorAll('.tab-content').forEach((t,i)=>{
+    t.classList.toggle('active',i===n)
+  });
+  document.querySelectorAll('.tab-btn').forEach((b,i)=>{
+    b.classList.toggle('active',i===n)
+  });
+  if(n===2 && !window.chartBuilt) buildChart();
+}
+
+// CELL TOOLTIPS
+document.querySelectorAll('#compTable td[data-tip]').forEach(td=>{
+  td.addEventListener('click', function(e){
+    const tip = this.querySelector('.cell-tooltip');
+    const allTips = document.querySelectorAll('.cell-tooltip');
+    allTips.forEach(t=>{ if(t!==tip) t.classList.remove('show'); });
+    tip.classList.toggle('show');
+    e.stopPropagation();
+  });
+});
+document.addEventListener('click',()=>document.querySelectorAll('.cell-tooltip').forEach(t=>t.classList.remove('show')));
+
+// DECISION TREE
+let dtState = {q1:null,q2:null,q3:null,step:1};
+function decide(q,ans){
+  dtState['q'+q] = ans;
+  if(q===1){
+    if(ans==='no'){
+      show('r1-no'); hide('q1box');
+      setProgress(1,'done'); setLabel('Decision made');
+    } else {
+      hide('q1box'); show('q2box');
+      setProgress(1,'done'); setProgress(2,'active'); setLabel('Question 2 of 3');
+    }
+  } else if(q===2){
+    if(ans==='no'){
+      show('r2-no'); hide('q2box');
+      setProgress(2,'done'); setLabel('Decision made');
+    } else {
+      hide('q2box'); show('q3box');
+      setProgress(2,'done'); setProgress(3,'active'); setLabel('Question 3 of 3');
+    }
+  } else if(q===3){
+    hide('q3box');
+    setProgress(3,'done'); setLabel('Decision complete ✓');
+    if(ans==='no') show('r3-no');
+    else show('r3-yes');
+  }
+}
+function resetTree(){
+  ['r1-no','r2-no','r3-no','r3-yes','q2box','q3box'].forEach(hide);
+  show('q1box');
+  [0,1,2].forEach(i=>{ const s=document.getElementById('ps'+i); s.className='prog-step'; if(i===0) s.classList.add('active'); });
+  setLabel('Question 1 of 3');
+}
+function show(id){document.getElementById(id).style.display='block'}
+function hide(id){document.getElementById(id).style.display='none'}
+function setProgress(n,cls){document.getElementById('ps'+(n-1)).className='prog-step '+cls}
+function setLabel(txt){document.getElementById('prog-label').textContent=txt}
+
+// APPROACH PANELS
+function togglePanel(id){
+  const body=document.getElementById('body-'+id);
+  const header=body.previousElementSibling;
+  const isOpen=body.classList.contains('open');
+  body.classList.toggle('open',!isOpen);
+  header.classList.toggle('open',!isOpen);
+}
+
+// CRITERIA CARDS
+function selectCrit(card, approach){
+  document.querySelectorAll('.crit-card').forEach(c=>c.classList.remove('selected'));
+  card.classList.add('selected');
+  // expand relevant panel
+  const ids = approach==='spec' ? ['spec'] : approach==='contrasting' ? ['contrasting'] : ['structuring'];
+  ['contrasting','spec','structuring'].forEach(id=>{
+    const body=document.getElementById('body-'+id);
+    const header=body.previousElementSibling;
+    const shouldOpen = ids.includes(id);
+    body.classList.toggle('open',shouldOpen);
+    header.classList.toggle('open',shouldOpen);
+    document.getElementById('card-'+id).classList.toggle('highlighted',shouldOpen);
+  });
+  setTimeout(()=>document.getElementById('section3b').scrollIntoView({behavior:'smooth',block:'start'}),100);
+}
+
+// OPPORTUNITY CARDS
+function toggleOpp(header){
+  const body=header.nextElementSibling;
+  const isOpen=body.classList.contains('open');
+  body.classList.toggle('open',!isOpen);
+  header.classList.toggle('open',!isOpen);
+}
+
+// OPPORTUNITY SELF-ASSESSMENT
+const oppTactics = {
+  emergent: ['Horizontal Contrasting','New Construct Specification','Specific Relation Structures','Sequence Relation Structures'],
+  newctx: ['Horizontal Contrasting','New Construct Specification','Specific Relation Structures'],
+  borrowing: ['Vertical Contrasting','Horizontal Contrasting','Construct Splitting','New Construct Specification'],
+  crosslevel: ['Vertical Contrasting','Specific Relation Structures','Recursive Relation Structures','Construct Splitting'],
+  contradiction: ['Construct Splitting','New Construct Specification','Specific Relation Structures'],
+  reversal: ['Recursive Relation Structures','Sequence Relation Structures','Specific Relation Structures']
+};
+function updateOppRec(){
+  const checked = [...document.querySelectorAll('#oppCheckGroup input:checked')].map(c=>c.value);
+  const rec = document.getElementById('oppRec');
+  if(checked.length===0){ rec.style.display='none'; return; }
+  const allTactics = [...new Set(checked.flatMap(v=>oppTactics[v]||[]))];
+  document.getElementById('oppRecContent').innerHTML =
+    '<p style="margin-bottom:6px">Based on your selected opportunity type(s), the following tactics are most likely to be productive:</p>' +
+    allTactics.map(t=>`<span class="tactic-tag" style="display:inline-block;margin:3px;padding:4px 14px;border-radius:14px;font-size:.82rem;font-weight:600;background:#eef2ff;border:1px solid #2c4a8c">${t}</span>`).join('');
+  rec.style.display='block';
+}
+
+// CHART.JS — TACTIC × CRITERION HEATMAP (grouped bar)
+window.chartBuilt = false;
+function buildChart(){
+  window.chartBuilt = true;
+  const ctx = document.getElementById('tacticChart').getContext('2d');
+  // Scores: [Construct Validity, Construct Scope, Logical Adequacy, Empirical Adequacy, Explanatory/Predictive]
+  const tactics = [
+    {label:'Horiz. Contrasting', data:[1,1,3,3,2], color:'rgba(44,74,140,0.75)'},
+    {label:'Vert. Contrasting',  data:[1,1,3,2,2], color:'rgba(44,74,140,0.5)'},
+    {label:'New Construct Spec', data:[3,3,1,1,2], color:'rgba(201,168,76,0.85)'},
+    {label:'Construct Splitting',data:[3,3,1,1,2], color:'rgba(201,168,76,0.55)'},
+    {label:'Specific Relations', data:[1,1,2,1,3], color:'rgba(39,174,96,0.8)'},
+    {label:'Sequence Relations', data:[1,1,2,1,3], color:'rgba(39,174,96,0.55)'},
+    {label:'Recursive Relations',data:[1,1,2,1,3], color:'rgba(39,174,96,0.35)'},
+  ];
+  const labels = ['Construct Validity','Construct Scope','Logical Adequacy','Empirical Adequacy','Explanatory &\nPredictive Adequacy'];
+  new Chart(ctx,{
+    type:'bar',
+    data:{
+      labels: labels,
+      datasets: tactics.map(t=>({
+        label: t.label,
+        data: t.data,
+        backgroundColor: t.color,
+        borderColor: t.color.replace(/[\d.]+\)$/,'1)'),
+        borderWidth:1,
+        borderRadius:3
+      }))
+    },
+    options:{
+      responsive:true,
+      scales:{
+        x:{grid:{display:false}},
+        y:{min:0,max:3,ticks:{stepSize:1,callback:v=>['','Low','Medium','High'][v]||''},title:{display:true,text:'Contribution Level'}}
+      },
+      plugins:{
+        legend:{position:'bottom',labels:{font:{size:11},boxWidth:14,padding:10}},
+        tooltip:{callbacks:{label:ctx=>{const lbl=['','Low','Medium','High'];return `${ctx.dataset.label}: ${lbl[ctx.raw]||''}`;}}},
+        title:{display:false}
+      }
+    }
+  });
+}
+
+// STUDY PLANNER
+const limToApproach = {
+  'construct validity': {approaches:['Construct Specification'], tactics:['New Construct Specification','Construct Splitting']},
+  'construct scope': {approaches:['Construct Specification'], tactics:['New Construct Specification','Construct Splitting']},
+  'logical adequacy': {approaches:['Contrasting'], tactics:['Horizontal Contrasting','Vertical Contrasting']},
+  'empirical adequacy': {approaches:['Contrasting'], tactics:['Horizontal Contrasting','Vertical Contrasting']},
+  'explanatory and predictive adequacy': {approaches:['Structuring'], tactics:['Specific Relation Structures','Sequence Relation Structures','Recursive Relation Structures']}
+};
+function updateRecs(){
+  const lims = [...document.querySelectorAll('.p-lim:checked')].map(c=>c.value);
+  const box = document.getElementById('recBox');
+  if(lims.length===0){ box.style.display='none'; return; }
+  const allApproaches = [...new Set(lims.flatMap(l=>limToApproach[l]?.approaches||[]))];
+  const allTactics = [...new Set(lims.flatMap(l=>limToApproach[l]?.tactics||[]))];
+  document.getElementById('recContent').innerHTML =
+    `<p><strong>Recommended approaches:</strong> ${allApproaches.join(', ')}</p>` +
+    `<p style="margin:0"><strong>Recommended tactics:</strong> ${allTactics.join(', ')}</p>`;
+  box.style.display='block';
+}
+function generatePlan(){
+  const domain = document.getElementById('p-domain').value || '[research domain]';
+  const theory = document.getElementById('p-theory').value.trim() || '[existing theory]';
+  const opps = [...document.querySelectorAll('.p-opp:checked')].map(c=>c.value);
+  const lims = [...document.querySelectorAll('.p-lim:checked')].map(c=>c.value);
+  const approaches = [...document.querySelectorAll('.p-approach:checked')].map(c=>c.value);
+  const tactics = [...document.querySelectorAll('.p-tactic:checked')].map(c=>c.value);
+  const dataTypes = [...document.querySelectorAll('.p-data:checked')].map(c=>c.value);
+  const sites = document.getElementById('p-sites').value.trim() || '[number of sites/cases]';
+  const setting = document.getElementById('p-setting').value.trim() || '[describe setting rationale]';
+
+  let txt = `<p>This study adopts a theory elaboration approach (Fisher &amp; Aguinis, 2017; Aguinis, 2025) within the domain of ${domain}. `;
+  txt += `The theoretical starting point is ${theory}, which provides a preliminary explanation of the focal phenomenon. `;
+  if(lims.length>0) txt += `However, the existing theory exhibits important limitations with respect to ${lims.join(' and ')}, creating an opportunity for meaningful theoretical advancement. `;
+  if(opps.length>0) txt += `This study is particularly well-positioned for theory elaboration because it falls within the following research opportunity context(s): ${opps.join(', ')}. `;
+  if(approaches.length>0){
+    txt += `Consistent with the theory elaboration framework of Aguinis (2025) and Fisher &amp; Aguinis (2017), this study employs a ${approaches.join(' and ')} approach`;
+    if(tactics.length>0) txt += `, specifically using the following tactic(s): ${tactics.join(', ')}`;
+    txt += `. `;
+  }
+  if(dataTypes.length>0) txt += `Data will be collected using ${dataTypes.join(', ')} from ${sites}. `;
+  txt += `${setting} `;
+  txt += `The goal of this theory elaboration study is to refine and extend ${theory} by developing more precise theoretical insights that better account for empirical observations in this context, producing an elaborated theoretical model with enhanced ${lims.length>0?lims.join(' and '):'explanatory power'}.`;
+  txt += `</p><p style="margin-top:12px;font-size:.83rem;color:#555"><strong>References:</strong> Fisher, G., &amp; Aguinis, H. (2017). Using theory elaboration to make theoretical advancements. <em>Organizational Research Methods, 20</em>(3), 438–464. | Aguinis, H. (2025). <em>Research methodology: Best practices for rigorous, credible, and impactful research.</em> SAGE.</p>`;
+  document.getElementById('planText').innerHTML = txt;
+  document.getElementById('genSummary').style.display='block';
+  setTimeout(()=>document.getElementById('genSummary').scrollIntoView({behavior:'smooth',block:'start'}),100);
+}
+function copyPlan(){
+  const txt = document.getElementById('planText').innerText;
+  navigator.clipboard.writeText(txt).then(()=>{
+    const btn=document.querySelector('.copy-btn');btn.textContent='✓ Copied!';
+    setTimeout(()=>btn.textContent='✎ Copy',2000);
+  });
+}
+</script>
+<!-- Begin Countercentral code v 7.0 --> 
+<span id="wts2576"></span> 
+<script>var wts=document.createElement('script');wts.async=true; 
+wts.src='https://server2.countercentral.com/log7.js';document.head.appendChild(wts); 
+wts.onload = function(){ wtslog7(2576,1); }; 
+</script><noscript><a href="https://www.countercentral.com"> 
+<img src="https://server2.countercentral.com/7/1/2576.png"  
+alt="Countercentral web traffic analysis"></a></noscript> 
+<!-- End Countercentral code v 7.0 --> 
+</body>
+</html>

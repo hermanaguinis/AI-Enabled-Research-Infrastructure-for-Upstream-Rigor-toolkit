@@ -1,0 +1,990 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Interaction Effect Reporting Tool — Murphy &amp; Aguinis (2022)</title>
+<style>
+  :root{
+    --bg:#f4f6f8; --panel:#ffffff; --ink:#1d2530; --muted:#5b6675; --line:#dbe1e8;
+    --accent:#1f5fa8; --accent2:#0b3d70; --good:#1a8a4a; --goodbg:#e6f5ec;
+    --warn:#b8400c; --warnbg:#fdeee6; --bad:#c0392b; --badbg:#fbeae8;
+    /* Okabe-Ito colorblind-safe palette */
+    --c1:#0072B2; --c2:#E69F00; --c3:#009E73; --c4:#CC79A7; --c5:#D55E00; --c6:#56B4E9;
+    --focus:#ff8c00;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    background:var(--bg);color:var(--ink);line-height:1.5;font-size:15px}
+  header.app{background:linear-gradient(135deg,var(--accent2),var(--accent));color:#fff;padding:18px 22px}
+  header.app h1{margin:0 0 4px;font-size:20px;letter-spacing:.2px}
+  header.app .sub{font-size:12.5px;opacity:.92;max-width:900px}
+  .wrap{max-width:1180px;margin:0 auto;padding:18px}
+  .panel{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:16px 18px;margin-bottom:16px;
+    box-shadow:0 1px 2px rgba(0,0,0,.03)}
+  .panel h2{font-size:15px;margin:0 0 10px;color:var(--accent2);display:flex;align-items:center;gap:8px}
+  .panel h2 .num{background:var(--accent);color:#fff;border-radius:50%;width:22px;height:22px;display:inline-flex;
+    align-items:center;justify-content:center;font-size:12px;flex:none}
+  .grid{display:grid;gap:18px}
+  @media(min-width:900px){.cols{grid-template-columns:1.35fr 1fr}}
+  label{display:block;font-size:12.5px;color:var(--muted);margin:8px 0 3px;font-weight:600}
+  input[type=number],input[type=text],textarea,select{width:100%;padding:7px 9px;border:1px solid var(--line);
+    border-radius:6px;font-size:14px;font-family:inherit;background:#fff;color:var(--ink)}
+  textarea{resize:vertical}
+  input:focus,textarea:focus,select:focus,button:focus,.tab:focus{outline:3px solid var(--focus);outline-offset:1px}
+  .row{display:grid;gap:10px}
+  .r2{grid-template-columns:1fr 1fr}.r3{grid-template-columns:1fr 1fr 1fr}.r4{grid-template-columns:1fr 1fr 1fr 1fr}
+  @media(max-width:680px){.r3,.r4{grid-template-columns:1fr 1fr}}
+  button{cursor:pointer;border:1px solid var(--accent);background:var(--accent);color:#fff;border-radius:6px;
+    padding:8px 13px;font-size:13.5px;font-weight:600}
+  button.ghost{background:#fff;color:var(--accent)}
+  button.sm{padding:5px 9px;font-size:12px}
+  button.gray{background:#eef1f5;color:var(--ink);border-color:var(--line)}
+  .tabs{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:4px}
+  .tab{background:#eef1f5;border:1px solid var(--line);color:var(--muted);padding:9px 14px;border-radius:8px 8px 0 0;
+    font-weight:600;font-size:13.5px;cursor:pointer}
+  .tab[aria-selected=true]{background:var(--panel);color:var(--accent2);border-bottom-color:var(--panel)}
+  .tabpanel{display:none}.tabpanel.active{display:block}
+  .hint{font-size:11.5px;color:var(--muted);margin-top:2px}
+  .tip{position:relative;display:inline-flex;align-items:center;justify-content:center;width:15px;height:15px;
+    border-radius:50%;background:var(--muted);color:#fff;font-size:10px;font-weight:700;cursor:help;margin-left:5px;flex:none}
+  .tip:hover .tipbox,.tip:focus .tipbox{display:block}
+  .tipbox{display:none;position:absolute;z-index:30;bottom:140%;left:50%;transform:translateX(-50%);
+    background:#222b38;color:#fff;padding:8px 10px;border-radius:6px;width:240px;font-size:11.5px;font-weight:400;
+    line-height:1.4;box-shadow:0 4px 14px rgba(0,0,0,.25)}
+  .warnbox{background:var(--warnbg);border:1px solid #f0c4ae;color:var(--warn);padding:10px 12px;border-radius:8px;
+    font-size:13px;margin:10px 0;font-weight:600}
+  .okbox{background:var(--goodbg);border:1px solid #bfe6cd;color:var(--good);padding:10px 12px;border-radius:8px;
+    font-size:13px;margin:10px 0}
+  .errbox{background:var(--badbg);border:1px solid #f0c0ba;color:var(--bad);padding:9px 11px;border-radius:8px;
+    font-size:12.5px;margin:8px 0;font-weight:600}
+  .why{background:#eef4fb;border:1px solid #cfe0f2;border-radius:8px;padding:10px 12px;font-size:12.8px;margin-bottom:14px}
+  .why b{color:var(--accent2)}
+  table.es{width:100%;border-collapse:collapse;font-size:13px;margin-top:6px}
+  table.es th,table.es td{border:1px solid var(--line);padding:6px 8px;text-align:left}
+  table.es th{background:#f0f3f7;font-size:12px}
+  .big{font-size:30px;font-weight:800;color:var(--accent2);line-height:1}
+  .kpis{display:flex;gap:14px;flex-wrap:wrap;margin-bottom:8px}
+  .kpi{background:#f7f9fc;border:1px solid var(--line);border-radius:8px;padding:10px 14px;min-width:120px}
+  .kpi .lab{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px}
+  .badge{display:inline-block;padding:3px 9px;border-radius:20px;font-size:12px;font-weight:700}
+  .b-str{background:#e8f1fb;color:var(--c1)} .b-weak{background:#fff2e0;color:#9a6500} .b-rev{background:#fbe7f1;color:var(--c4)}
+  .chartbox{background:#fff;border:1px solid var(--line);border-radius:8px;padding:6px}
+  .controls{display:flex;gap:14px;flex-wrap:wrap;align-items:flex-end;margin-top:10px}
+  .controls .fld{min-width:120px}
+  .legend{display:flex;gap:12px;flex-wrap:wrap;font-size:12px;margin-top:6px}
+  .legend span{display:inline-flex;align-items:center;gap:5px}
+  .legend i{width:16px;height:3px;border-radius:2px;display:inline-block}
+  ul.check{list-style:none;padding:0;margin:0}
+  ul.check li{display:flex;gap:10px;align-items:flex-start;padding:8px 10px;border:1px solid var(--line);
+    border-radius:8px;margin-bottom:7px;font-size:13px;background:#fff}
+  ul.check li .mk{width:20px;height:20px;border-radius:50%;flex:none;display:inline-flex;align-items:center;
+    justify-content:center;font-size:12px;font-weight:800;color:#fff;background:#c2cad4}
+  ul.check li.done .mk{background:var(--good)}
+  ul.check li.done{background:var(--goodbg);border-color:#bfe6cd}
+  .draft{font-family:Georgia,"Times New Roman",serif;font-size:13.5px;background:#fbfbf7;border:1px solid var(--line);
+    border-radius:8px;padding:12px 14px;white-space:pre-wrap;line-height:1.6}
+  .small{font-size:11.5px;color:var(--muted)}
+  footer.app{font-size:12px;color:var(--muted);padding:18px 22px;border-top:1px solid var(--line);background:#fff}
+  footer.app b{color:var(--ink)}
+  .req{color:var(--bad)}
+  .slider-wrap{display:flex;align-items:center;gap:8px}
+  input[type=range]{accent-color:var(--accent)}
+  .pillbtns{display:flex;gap:6px;flex-wrap:wrap}
+  @media print{
+    header.app,.tabs,.controls button,.no-print,footer.appnote{display:none!important}
+    .panel{break-inside:avoid;box-shadow:none}
+    body{background:#fff}
+  }
+</style>
+</head>
+<body>
+<header class="app">
+  <h1>Interaction Effect Reporting Tool</h1>
+  <div class="sub">Report, visualize, and interpret two-way interaction (moderation) effects correctly —
+  operationalizing the three recommendations in Murphy &amp; Aguinis (2022), <i>Journal of Management</i>.
+  Full y-axis by default, an interpretable effect size (ΔR²), interaction type read from slopes (not signs),
+  a region-of-significance “for whom” analysis, and a written statement of meaning.</div>
+</header>
+
+<div class="wrap">
+
+  <div class="why">
+    <b>Why this matters.</b> Murphy &amp; Aguinis reviewed 96 papers across four top journals and found that two-thirds of
+    interaction figures truncated the y-axis (making weak interactions look strong), ~70% reported no interpretable effect
+    size, interaction <i>type</i> was inferred from coefficient signs (which is ambiguous), and <b>no</b> study stated what
+    the interaction means for theory and practice. Interaction effects are typically small in management and related
+    fields — so <b>statistical significance ≠ practical importance</b>. This tool makes the correct report the default.
+  </div>
+
+  <!-- ============ INPUT ============ -->
+  <div class="panel">
+    <h2><span class="num">0</span> Data input</h2>
+    <div class="tabs" role="tablist" aria-label="Input method">
+      <button class="tab" role="tab" id="tab-ex" aria-selected="true" aria-controls="p-ex" onclick="selTab('ex')">Worked example</button>
+      <button class="tab" role="tab" id="tab-coef" aria-selected="false" aria-controls="p-coef" onclick="selTab('coef')">Enter regression output</button>
+      <button class="tab" role="tab" id="tab-raw" aria-selected="false" aria-controls="p-raw" onclick="selTab('raw')">Paste raw data</button>
+    </div>
+
+    <!-- worked example -->
+    <div class="tabpanel active" id="p-ex" role="tabpanel" aria-labelledby="tab-ex">
+      <p style="font-size:13px">Preloaded: <b>Sherf &amp; Morrison (2020)</b> self-efficacy (x) × perspective-taking (z) →
+      feedback-seeking (y), on a 7-point scale, as used in the article. A synthetic dataset of N=220 that reproduces the
+      article’s described pattern (a weakening interaction whose prediction error grows at high z) is loaded so every
+      statistic below is internally consistent and recomputed by this tool’s own OLS engine.
+      <span class="tip" tabindex="0">i<span class="tipbox">Exact published coefficients were not reported numerically in the
+      article; these illustrative data reproduce the qualitative pattern of Figures 1–2 so the full workflow is demonstrable.</span></span></p>
+      <button onclick="loadWorked()">Reload worked example</button>
+    </div>
+
+    <!-- coefficients -->
+    <div class="tabpanel" id="p-coef" role="tabpanel" aria-labelledby="tab-coef">
+      <p style="font-size:13px">Enter the unstandardized moderated-regression output: <b>y = b0 + b1·x + b2·z + b3·(x×z)</b>.</p>
+      <div class="row r4">
+        <div><label>b0 (intercept)</label><input type="number" id="c_b0" step="any" value="2.39"></div>
+        <div><label>b1 (x)</label><input type="number" id="c_b1" step="any" value="1.148"></div>
+        <div><label>b2 (z)</label><input type="number" id="c_b2" step="any" value="-0.036"></div>
+        <div><label>b3 (x×z)</label><input type="number" id="c_b3" step="any" value="-0.192"></div>
+      </div>
+      <div class="row r3">
+        <div><label>Mean of x</label><input type="number" id="c_mx" step="any" value="5.01"></div>
+        <div><label>SD of x</label><input type="number" id="c_sx" step="any" value="1.05"></div>
+        <div><label>x range (min,max) <span class="tip" tabindex="0">i<span class="tipbox">Range over which to plot x. Defaults to mean ± relevant SDs if left blank.</span></span></label>
+          <input type="text" id="c_xr" value="2,7"></div>
+      </div>
+      <div class="row r3">
+        <div><label>Mean of z</label><input type="number" id="c_mz" step="any" value="5.07"></div>
+        <div><label>SD of z</label><input type="number" id="c_sz" step="any" value="0.98"></div>
+        <div><label>z range (min,max)</label><input type="text" id="c_zr" value="2,7"></div>
+      </div>
+      <div class="row r4">
+        <div><label>Mean of y</label><input type="number" id="c_my" step="any" value="3.07"></div>
+        <div><label>SD of y</label><input type="number" id="c_sy" step="any" value="1.20"></div>
+        <div><label>y possible MIN <span class="req">*</span></label><input type="number" id="c_ymin" step="any" value="1"></div>
+        <div><label>y possible MAX <span class="req">*</span></label><input type="number" id="c_ymax" step="any" value="7"></div>
+      </div>
+      <div class="row r4">
+        <div><label>N (sample size)</label><input type="number" id="c_n" step="1" value="220"></div>
+        <div><label>SE of b3 <span class="tip" tabindex="0">i<span class="tipbox">Standard error of the interaction coefficient. Needed (with model R² and N) to estimate ΔR² and the region of significance when raw data are not supplied.</span></span></label><input type="number" id="c_se3" step="any" value="0.040"></div>
+        <div><label>SE of b1 <span class="tip" tabindex="0">i<span class="tipbox">SE of the x coefficient. Used for an approximate region of significance in this mode (assumes cov(b1,b3)≈0 — paste raw data for the exact Johnson–Neyman bounds).</span></span></label><input type="number" id="c_se1" step="any" value="0.205"></div>
+        <div><label>Model R² (full) <span class="tip" tabindex="0">i<span class="tipbox">R² of the full model including the interaction. With SE(b3) and N this yields ΔR².</span></span></label><input type="number" id="c_r2" step="any" value="0.714"></div>
+      </div>
+      <div style="margin-top:10px"><button onclick="runCoef()">Compute &amp; plot</button>
+      <span class="hint">Fields marked <span class="req">*</span> set the full y-axis and are required to prevent silent truncation.</span></div>
+    </div>
+
+    <!-- raw -->
+    <div class="tabpanel" id="p-raw" role="tabpanel" aria-labelledby="tab-raw">
+      <p style="font-size:13px">Paste three columns <b>x, z, y</b> (comma or tab separated, one case per line; an optional
+      header row is auto-detected). This tool runs the OLS regression of y on x, z, and x×z and fills in everything.</p>
+      <div class="row r2">
+        <div><label>y possible MIN <span class="req">*</span></label><input type="number" id="r_ymin" step="any" value="1"></div>
+        <div><label>y possible MAX <span class="req">*</span></label><input type="number" id="r_ymax" step="any" value="7"></div>
+      </div>
+      <label>Data</label>
+      <textarea id="r_data" rows="7" placeholder="x,z,y&#10;5.2,4.8,3.1&#10;4.6,5.5,2.4&#10;..."></textarea>
+      <div style="margin-top:10px"><button onclick="runRaw()">Run regression &amp; plot</button>
+      <button class="ghost sm" onclick="fillRawFromWorked()">Fill with worked-example data</button></div>
+      <div id="rawErr"></div>
+    </div>
+  </div>
+
+  <div id="results" style="display:none">
+
+  <div class="grid cols">
+    <!-- ============ REC 1: VISUALIZATION ============ -->
+    <div class="panel">
+      <h2><span class="num">1</span> Visualization — full y-axis by default</h2>
+      <div id="truncWarn"></div>
+      <div class="chartbox"><div id="chart"></div></div>
+      <div class="legend" id="legend"></div>
+
+      <div class="controls">
+        <div class="fld">
+          <label>Chart type</label>
+          <select id="ctype" onchange="render()">
+            <option value="line">Line (simple slopes)</option>
+            <option value="bar">Bar graph (categorical / few values)</option>
+          </select>
+        </div>
+        <div class="fld">
+          <label>z lines (SD units from mean) <span class="tip" tabindex="0">i<span class="tipbox">Plot the x–y slope at multiple values of z, not just ±1 SD. Default reproduces the article’s five-line display.</span></span></label>
+          <input type="text" id="zmults" value="-1,-0.5,0,0.5,1" onchange="render()">
+        </div>
+        <div class="fld" style="min-width:60px">
+          <label><input type="checkbox" id="showErr" checked onchange="render()" style="width:auto"> Error bands</label>
+          <label><input type="checkbox" id="showPct" checked onchange="render()" style="width:auto"> Percentiles</label>
+        </div>
+      </div>
+
+      <div style="margin-top:12px;border-top:1px dashed var(--line);padding-top:10px">
+        <label style="color:var(--warn)">⚠ Truncation trap (teaching control) — shrink the y-axis and watch the same
+        interaction look stronger <span class="tip" tabindex="0">i<span class="tipbox">This replicates Figure 1. Truncating the y-axis exaggerates the apparent size of an interaction. Full range is the correct default.</span></span></label>
+        <div class="controls" style="margin-top:4px">
+          <div class="fld"><label>Display y min</label><input type="number" id="dymin" step="any" onchange="render()"></div>
+          <div class="fld"><label>Display y max</label><input type="number" id="dymax" step="any" onchange="render()"></div>
+          <div class="fld pillbtns" style="align-self:flex-end">
+            <button class="sm gray" onclick="presetY('full')">Full range</button>
+            <button class="sm gray" onclick="presetY(1.5,4.5)">1.5–4.5</button>
+            <button class="sm gray" onclick="presetY(1.8,3.8)">1.8–3.8</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="controls no-print" style="margin-top:10px">
+        <button class="ghost sm" onclick="downloadSVG()">⬇ Download SVG</button>
+        <button class="ghost sm" onclick="downloadPNG()">⬇ Download PNG</button>
+      </div>
+    </div>
+
+    <!-- ============ REC 2 + 3 summary ============ -->
+    <div>
+      <!-- REC 2 -->
+      <div class="panel">
+        <h2><span class="num">2</span> Effect size — interpretable &amp; comparable</h2>
+        <div class="kpis">
+          <div class="kpi"><div class="lab">ΔR² (interaction)</div><div class="big" id="k_dr2">—</div><div class="small" id="k_dr2note"></div></div>
+          <div class="kpi"><div class="lab">Model R²</div><div class="big" id="k_r2" style="font-size:22px">—</div></div>
+          <div class="kpi"><div class="lab">First-order R²</div><div class="big" id="k_r2r" style="font-size:22px">—</div></div>
+        </div>
+        <table class="es">
+          <tr><th>Index</th><th>Value</th><th>Plain-language meaning</th></tr>
+          <tr><td><b>ΔR²</b></td><td id="t_dr2">—</td><td>Proportion of variance in y explained by x×z <i>beyond</i> the first-order effects of x and z. The article’s foregrounded measure.</td></tr>
+          <tr><td>f² (interaction)</td><td id="t_f2">—</td><td>ΔR²/(1−R²<sub>full</sub>). Cohen benchmarks: .02 small, .15 medium, .35 large.</td></tr>
+          <tr><td>p (interaction)</td><td id="t_p">—</td><td>Significance of b3. Report it, but never as the sole evidence.</td></tr>
+          <tr><td>Liu &amp; Yuan (2021)</td><td id="t_ly">—</td><td>Variance-of-y-due-to-moderation index; an alternative R²-family measure. Which index you pick matters less than reporting one.</td></tr>
+        </table>
+        <div id="esInterp" class="okbox" style="margin-top:10px"></div>
+      </div>
+
+      <!-- REC 3a classification -->
+      <div class="panel">
+        <h2><span class="num">3</span> Nature of the interaction — read from slopes</h2>
+        <div style="margin-bottom:6px">Type: <span id="ktype" class="badge">—</span></div>
+        <div id="typeExpl" style="font-size:13px"></div>
+        <div class="warnbox" style="margin-top:8px">Do <b>not</b> infer type from the signs of b1/b2/b3. The same type
+        (e.g., strengthening) can arise from many sign combinations (Gardner et al., 2017). This classification is read
+        from the plotted x–y slopes across the range of z.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- REC 3b region of significance -->
+  <div class="panel">
+    <h2><span class="num">3</span> Region of significance — “for whom / over what range”</h2>
+    <div id="jnText" style="font-size:13.5px"></div>
+    <div class="chartbox" style="margin-top:8px"><div id="jnChart"></div></div>
+    <div class="small" style="margin-top:6px">Johnson–Neyman analysis: the range of the moderator z over which the
+    simple x–y slope is significantly different from zero (α=.05, two-tailed). When effects are small, practical
+    significance is often felt only by cases at or near extreme moderator values.</div>
+  </div>
+
+  <!-- REC 3c meaning -->
+  <div class="panel">
+    <h2><span class="num">3</span> Theoretical &amp; practical meaning <span class="req" style="font-size:13px">(required)</span></h2>
+    <p style="font-size:13px;margin-top:0">No study in the review did this. Articulate the substantive meaning —
+    <i>for whom</i> and <i>under what conditions</i> the interaction matters, and what decisions it informs (Aguinis et al., 2010).</p>
+    <label>For whom / over what range does this interaction matter? <span class="hint">(e.g., only for cases below ~−0.5 SD on z)</span></label>
+    <textarea id="m_whom" rows="2" oninput="updateChecklist();buildDraft()"></textarea>
+    <label>What does it mean for theory?</label>
+    <textarea id="m_theory" rows="2" oninput="updateChecklist();buildDraft()"></textarea>
+    <label>What does it mean for practice / what decision does it inform?</label>
+    <textarea id="m_prac" rows="2" oninput="updateChecklist();buildDraft()"></textarea>
+  </div>
+
+  <!-- CHECKLIST -->
+  <div class="panel">
+    <h2>✓ Reporting-readiness checklist</h2>
+    <ul class="check" id="checklist">
+      <li id="ck_a"><span class="mk">○</span><span><b>Full-range visualization.</b> y-axis spans the entire range of possible y values.</span></li>
+      <li id="ck_b"><span class="mk">○</span><span><b>Multi-value-of-z plot</b> with percentile and prediction-error information (not only ±1 SD).</span></li>
+      <li id="ck_c"><span class="mk">○</span><span><b>Interpretable effect size (ΔR²)</b> reported.</span></li>
+      <li id="ck_d"><span class="mk">○</span><span><b>Coefficient-free classification</b> of interaction type (strengthening / weakening / reversing).</span></li>
+      <li id="ck_e"><span class="mk">○</span><span><b>Region-of-significance / “for whom”</b> analysis completed.</span></li>
+      <li id="ck_f"><span class="mk">○</span><span><b>Written statement</b> of theoretical &amp; practical meaning.</span></li>
+    </ul>
+    <div id="ckMsg"></div>
+  </div>
+
+  <!-- DRAFT -->
+  <div class="panel">
+    <h2>📝 Copy-paste draft text</h2>
+    <label>Draft results paragraph</label>
+    <div class="draft" id="draftResults">—</div>
+    <button class="ghost sm no-print" style="margin-top:6px" onclick="copy('draftResults')">Copy results text</button>
+    <label style="margin-top:12px">Figure caption</label>
+    <div class="draft" id="draftCaption">—</div>
+    <button class="ghost sm no-print" style="margin-top:6px" onclick="copy('draftCaption')">Copy caption</button>
+    <div class="controls no-print" style="margin-top:14px">
+      <button onclick="window.print()">🖨 Print / Save as PDF (figure + checklist + text)</button>
+      <button class="ghost" onclick="downloadReport()">⬇ Download report (.html)</button>
+    </div>
+  </div>
+
+  </div><!-- /results -->
+
+</div>
+
+<footer class="app">
+  <div><b>Source &amp; credit.</b> Based on Murphy, K. R., &amp; Aguinis, H. (2022). Reporting interaction effects:
+  Visualization, effect size, and interpretation. <i>Journal of Management, 48</i>(8), 2159–2166. Methodological guidance
+  draws on Aguinis, H. (2025). <i>Research methodology: Best practices for rigorous, credible, and impactful research.</i>
+  SAGE. https://collegepublishing.sagepub.com/products/research-methodology-1-280088</div>
+  <div class="small appnote" style="margin-top:6px">Single self-contained offline file. All computation (OLS, ΔR²,
+  Johnson–Neyman, classification) runs locally in your browser. Other references: McCabe, Kim &amp; King (2018);
+  Gardner et al. (2017); Liu &amp; Yuan (2021); Aguinis et al. (2010).</div>
+</footer>
+
+<script>
+"use strict";
+/* ============================================================
+   Worked-example dataset (synthetic, reproduces the article's pattern)
+   ============================================================ */
+const WORKED=[[6.45,6.04,1.93],[4.02,4.05,3.73],[4.05,6.63,1.16],[4.36,4.41,4.09],[6.42,5.84,3.15],[6.51,6.38,2.16],[3.82,5.09,2.2],[5.11,4.34,4.55],[5.47,6.03,1.3],[5.7,6.82,1.0],[3.69,5.5,2.04],[6.43,5.44,3.19],[5.88,5.24,2.14],[2.49,4.22,3.81],[5.53,5.63,1.0],[5.36,5.49,2.55],[5.47,3.3,5.32],[4.1,6.06,1.97],[6.82,3.85,4.96],[7.0,4.77,3.48],[5.08,5.22,3.14],[4.69,5.42,1.36],[2.58,4.37,3.66],[5.3,5.46,3.09],[6.14,6.03,1.31],[5.98,4.06,5.36],[4.56,5.16,1.86],[6.55,5.04,3.1],[4.63,6.69,1.0],[5.31,4.41,2.98],[5.69,3.25,4.41],[5.91,4.4,3.33],[5.33,5.02,3.39],[5.2,3.27,4.88],[5.83,3.77,4.68],[4.12,4.86,3.23],[4.29,6.16,3.47],[2.8,5.17,3.92],[3.85,4.75,2.72],[6.27,6.31,3.34],[4.84,4.87,3.04],[4.99,5.91,1.42],[2.75,5.5,2.56],[4.99,5.84,2.22],[5.23,3.7,5.07],[5.71,4.15,3.43],[6.62,6.25,2.4],[4.76,4.92,3.1],[4.64,5.32,2.48],[4.25,4.15,3.76],[4.58,5.76,1.22],[4.61,5.74,2.91],[3.59,3.39,4.38],[6.43,5.72,2.08],[3.67,3.57,3.77],[6.3,4.97,2.52],[2.51,4.04,2.52],[2.76,5.14,2.11],[5.78,5.21,3.12],[7.0,6.07,2.16],[5.83,6.52,1.46],[4.95,3.92,4.2],[3.36,5.17,2.23],[4.35,6.84,1.88],[4.75,4.91,2.72],[4.97,6.32,2.24],[4.71,5.51,2.52],[4.23,3.74,5.5],[6.59,4.83,4.38],[4.11,5.93,1.19],[5.3,4.23,4.96],[5.23,5.99,1.0],[4.29,2.59,5.15],[3.89,4.31,2.55],[4.95,6.24,1.05],[6.34,4.3,4.62],[5.87,6.89,1.0],[4.68,4.68,3.24],[6.05,5.12,2.75],[5.31,6.23,3.42],[7.0,4.84,3.56],[5.76,3.48,5.14],[4.28,3.97,3.87],[5.58,6.93,1.0],[5.56,3.96,4.12],[4.58,4.56,3.73],[5.86,4.73,3.57],[3.95,5.29,3.5],[4.84,4.89,2.5],[3.97,4.32,3.02],[5.66,3.33,5.82],[4.0,5.32,2.92],[6.38,3.83,4.22],[4.33,3.34,4.48],[5.28,4.55,4.03],[5.56,4.76,2.55],[4.43,4.1,4.74],[6.45,5.21,3.01],[4.37,5.98,3.4],[6.27,4.82,4.33],[4.43,5.32,2.65],[3.69,5.35,2.64],[5.68,3.4,5.03],[7.0,5.62,3.4],[3.12,3.96,3.83],[4.5,5.94,1.75],[6.72,4.48,4.41],[3.28,5.01,2.32],[4.87,4.84,2.21],[5.95,5.39,3.22],[5.44,2.69,6.38],[6.4,5.32,2.21],[4.76,7.0,1.75],[6.41,4.15,4.85],[5.91,4.07,4.6],[3.41,5.17,2.54],[4.04,4.7,2.71],[4.46,5.22,2.09],[4.37,6.77,1.0],[5.87,6.07,1.28],[3.48,6.06,2.36],[3.37,4.41,2.98],[5.12,4.88,4.02],[6.33,6.44,2.18],[4.42,4.91,4.22],[3.77,3.89,3.34],[7.0,7.0,1.0],[5.27,4.4,3.83],[4.76,4.52,4.17],[3.57,5.42,3.11],[7.0,4.14,5.14],[4.77,5.01,2.96],[6.13,5.31,4.05],[2.92,6.74,2.81],[4.19,4.69,2.88],[5.67,4.51,3.44],[6.2,3.53,5.67],[4.89,3.83,4.51],[3.76,5.06,4.15],[3.78,5.0,2.81],[4.6,4.55,3.03],[3.06,4.5,3.88],[3.04,4.66,3.36],[4.49,5.56,2.56],[6.51,6.7,1.0],[5.43,6.1,2.05],[6.33,5.87,1.0],[5.14,4.81,4.05],[5.79,4.78,2.97],[3.7,6.77,1.0],[5.42,5.83,3.49],[4.53,5.77,1.5],[7.0,7.0,1.0],[4.76,4.1,3.93],[5.47,5.29,2.62],[4.86,5.26,3.18],[4.98,3.98,4.84],[5.11,5.36,2.11],[5.34,5.2,2.56],[4.8,5.59,1.58],[5.69,2.8,5.73],[5.72,5.79,3.14],[4.6,5.99,2.14],[5.41,4.29,3.39],[5.91,6.58,1.0],[7.0,3.69,5.19],[5.69,6.18,1.0],[5.68,3.99,4.52],[5.17,6.37,2.64],[5.38,5.62,3.13],[4.77,3.77,4.05],[5.41,4.94,2.96],[2.61,2.95,3.86],[6.34,5.47,3.74],[6.12,4.0,3.82],[2.63,2.74,3.32],[4.29,4.8,3.09],[5.46,5.3,1.85],[6.66,5.31,3.7],[4.69,5.84,2.82],[3.41,4.69,3.78],[4.98,4.28,3.13],[4.89,5.36,3.79],[5.24,3.06,5.99],[4.98,6.8,2.26],[4.53,4.78,1.83],[4.4,5.96,1.79],[4.24,4.72,2.87],[5.62,4.84,3.35],[5.91,4.32,3.63],[5.5,5.19,2.18],[5.77,5.22,3.23],[5.76,6.28,2.34],[4.81,5.85,2.66],[3.89,4.74,2.79],[5.11,5.48,1.86],[4.47,3.57,4.3],[4.6,4.94,3.5],[3.41,5.87,2.7],[4.09,5.86,1.25],[4.78,6.74,1.0],[5.42,7.0,1.0],[5.45,4.35,3.7],[3.5,5.76,2.69],[4.42,5.39,2.42],[5.48,5.12,3.6],[6.34,6.43,1.52],[6.16,6.18,2.79],[5.36,4.44,4.32],[5.02,4.83,3.4],[4.58,4.6,3.52],[3.49,6.24,3.43],[5.03,5.14,4.1],[6.5,5.25,3.95],[4.42,4.56,2.86],[5.53,4.04,4.93],[4.44,4.62,2.92],[4.63,6.12,1.7],[5.21,5.67,3.35],[4.86,5.07,3.39]];
+
+/* ============================================================
+   Statistics helpers
+   ============================================================ */
+function mean(a){let s=0;for(const v of a)s+=v;return s/a.length;}
+function sd(a){const m=mean(a);let s=0;for(const v of a)s+=(v-m)*(v-m);return Math.sqrt(s/(a.length-1));}
+
+// Gaussian elimination solve A x = b  (A is n x n)
+function solve(A,b){
+  const n=b.length, M=A.map((r,i)=>r.concat(b[i]));
+  for(let c=0;c<n;c++){
+    let p=c;for(let r=c+1;r<n;r++) if(Math.abs(M[r][c])>Math.abs(M[p][c]))p=r;
+    [M[c],M[p]]=[M[p],M[c]];
+    const pv=M[c][c]; if(Math.abs(pv)<1e-12) throw new Error("Singular system (predictors collinear).");
+    for(let j=c;j<=n;j++)M[c][j]/=pv;
+    for(let r=0;r<n;r++){if(r===c)continue;const f=M[r][c];for(let j=c;j<=n;j++)M[r][j]-=f*M[c][j];}
+  }
+  return M.map(r=>r[n]);
+}
+// invert n x n
+function invert(A){
+  const n=A.length, M=A.map((r,i)=>r.concat(Array.from({length:n},(_,j)=>i===j?1:0)));
+  for(let c=0;c<n;c++){
+    let p=c;for(let r=c+1;r<n;r++) if(Math.abs(M[r][c])>Math.abs(M[p][c]))p=r;
+    [M[c],M[p]]=[M[p],M[c]];
+    const pv=M[c][c]; if(Math.abs(pv)<1e-12) throw new Error("Singular");
+    for(let j=0;j<2*n;j++)M[c][j]/=pv;
+    for(let r=0;r<n;r++){if(r===c)continue;const f=M[r][c];for(let j=0;j<2*n;j++)M[r][j]-=f*M[c][j];}
+  }
+  return M.map(r=>r.slice(n));
+}
+// Normal CDF / quantile
+function erf(x){const t=1/(1+0.3275911*Math.abs(x));
+  const y=1-(((((1.061405429*t-1.453152027)*t)+1.421413741)*t-0.284496736)*t+0.254829592)*t*Math.exp(-x*x);
+  return x>=0?y:-y;}
+function normCDF(x){return 0.5*(1+erf(x/Math.SQRT2));}
+function normInv(p){ // Acklam
+  const a=[-3.969683028665376e1,2.209460984245205e2,-2.759285104469687e2,1.383577518672690e2,-3.066479806614716e1,2.506628277459239e0];
+  const b=[-5.447609879822406e1,1.615858368580409e2,-1.556989798598866e2,6.680131188771972e1,-1.328068155288572e1];
+  const c=[-7.784894002430293e-3,-3.223964580411365e-1,-2.400758277161838e0,-2.549732539343734e0,4.374664141464968e0,2.938163982698783e0];
+  const d=[7.784695709041462e-3,3.224671290700398e-1,2.445134137142996e0,3.754408661907416e0];
+  const pl=0.02425;let q,r;
+  if(p<pl){q=Math.sqrt(-2*Math.log(p));return (((((c[0]*q+c[1])*q+c[2])*q+c[3])*q+c[4])*q+c[5])/((((d[0]*q+d[1])*q+d[2])*q+d[3])*q+1);}
+  if(p<=1-pl){q=p-0.5;r=q*q;return (((((a[0]*r+a[1])*r+a[2])*r+a[3])*r+a[4])*r+a[5])*q/(((((b[0]*r+b[1])*r+b[2])*r+b[3])*r+b[4])*r+1);}
+  q=Math.sqrt(-2*Math.log(1-p));return -(((((c[0]*q+c[1])*q+c[2])*q+c[3])*q+c[4])*q+c[5])/((((d[0]*q+d[1])*q+d[2])*q+d[3])*q+1);
+}
+// t critical (two-sided alpha=.05 -> p=.975), Cornish-Fisher from normal
+function tCrit(df,p){p=p||0.975; if(df>1e6) return normInv(p);
+  const z=normInv(p),z2=z*z,z3=z2*z,z4=z2*z2,z5=z4*z,z6=z4*z2,z7=z6*z,n=df;
+  return z + (z3+z)/(4*n) + (5*z5+16*z3+3*z)/(96*n*n) + (3*z7+19*z5+17*z3-15*z)/(384*n*n*n)
+         + (79*z*z6*z2+776*z7+1482*z5-1920*z3-945*z)/(92160*n*n*n*n);
+}
+// Student-t two-sided p-value via incomplete beta
+function betacf(a,b,x){const MAXIT=200,EPS=3e-12,FPMIN=1e-300;
+  let qab=a+b,qap=a+1,qam=a-1,c=1,d=1-qab*x/qap;if(Math.abs(d)<FPMIN)d=FPMIN;d=1/d;let h=d;
+  for(let m=1;m<=MAXIT;m++){let m2=2*m;
+    let aa=m*(b-m)*x/((qam+m2)*(a+m2));d=1+aa*d;if(Math.abs(d)<FPMIN)d=FPMIN;c=1+aa/c;if(Math.abs(c)<FPMIN)c=FPMIN;d=1/d;h*=d*c;
+    aa=-(a+m)*(qab+m)*x/((a+m2)*(qap+m2));d=1+aa*d;if(Math.abs(d)<FPMIN)d=FPMIN;c=1+aa/c;if(Math.abs(c)<FPMIN)c=FPMIN;d=1/d;
+    let del=d*c;h*=del;if(Math.abs(del-1)<EPS)break;}
+  return h;}
+function gammaln(x){const g=[76.18009172947146,-86.50532032941677,24.01409824083091,-1.231739572450155,0.1208650973866179e-2,-0.5395239384953e-5];
+  let xx=x,y=x,tmp=x+5.5;tmp-=(x+0.5)*Math.log(tmp);let ser=1.000000000190015;for(let j=0;j<6;j++){y++;ser+=g[j]/y;}
+  return -tmp+Math.log(2.5066282746310005*ser/xx);}
+function betai(a,b,x){if(x<=0)return 0;if(x>=1)return 1;
+  const bt=Math.exp(gammaln(a+b)-gammaln(a)-gammaln(b)+a*Math.log(x)+b*Math.log(1-x));
+  if(x<(a+1)/(a+b+2))return bt*betacf(a,b,x)/a;return 1-bt*betacf(b,a,1-x)/b;}
+function tPval(t,df){const x=df/(df+t*t);return betai(df/2,0.5,x);} // two-sided
+
+/* ============================================================
+   OLS for y ~ x + z + x*z
+   ============================================================ */
+function olsFull(rows){
+  const n=rows.length;
+  const X=rows.map(r=>[1,r[0],r[1],r[0]*r[1]]);
+  const y=rows.map(r=>r[2]);
+  const p=4;
+  // XtX, Xty
+  const XtX=Array.from({length:p},()=>Array(p).fill(0));
+  const Xty=Array(p).fill(0);
+  for(let i=0;i<n;i++){for(let a=0;a<p;a++){Xty[a]+=X[i][a]*y[i];for(let b=0;b<p;b++)XtX[a][b]+=X[i][a]*X[i][b];}}
+  const beta=solve(XtX.map(r=>r.slice()),Xty.slice());
+  let sse=0;const my=mean(y);let sst=0;
+  for(let i=0;i<n;i++){let pred=0;for(let a=0;a<p;a++)pred+=X[i][a]*beta[a];const e=y[i]-pred;sse+=e*e;sst+=(y[i]-my)*(y[i]-my);}
+  const df=n-p, sigma2=sse/df, r2=1-sse/sst;
+  const XtXinv=invert(XtX.map(r=>r.slice()));
+  const cov=XtXinv.map(r=>r.map(v=>v*sigma2));
+  const se=cov.map((r,i)=>Math.sqrt(r[i]));
+  // reduced model y~x+z
+  const Xr=rows.map(r=>[1,r[0],r[1]]);
+  const XtXr=Array.from({length:3},()=>Array(3).fill(0));const Xtyr=Array(3).fill(0);
+  for(let i=0;i<n;i++){for(let a=0;a<3;a++){Xtyr[a]+=Xr[i][a]*y[i];for(let b=0;b<3;b++)XtXr[a][b]+=Xr[i][a]*Xr[i][b];}}
+  const br=solve(XtXr,Xtyr);let sser=0;
+  for(let i=0;i<n;i++){let pr=0;for(let a=0;a<3;a++)pr+=Xr[i][a]*br[a];sser+=(y[i]-pr)*(y[i]-pr);}
+  const r2r=1-sser/sst, dr2=r2-r2r;
+  return {beta,se,cov,sigma2,resSD:Math.sqrt(sigma2),df,n,r2,r2r,dr2,sst,sse,
+    mx:mean(rows.map(r=>r[0])),sx:sd(rows.map(r=>r[0])),
+    mz:mean(rows.map(r=>r[1])),sz:sd(rows.map(r=>r[1])),
+    my,sy:sd(y),
+    xmin:Math.min(...rows.map(r=>r[0])),xmax:Math.max(...rows.map(r=>r[0])),
+    zmin:Math.min(...rows.map(r=>r[1])),zmax:Math.max(...rows.map(r=>r[1])),
+    yobsmin:Math.min(...y),yobsmax:Math.max(...y),
+    xvals:[...new Set(rows.map(r=>r[0]))],zvals:[...new Set(rows.map(r=>r[1]))],
+    hasCov:true};
+}
+
+/* ============================================================
+   Global model state
+   ============================================================ */
+let M=null;       // model object
+let yPossMin=1,yPossMax=7;
+
+function setYrange(){
+  document.getElementById('dymin').value=yPossMin;
+  document.getElementById('dymax').value=yPossMax;
+}
+
+/* ----- input drivers ----- */
+function loadWorked(){
+  M=olsFull(WORKED);
+  M.label={x:"self-efficacy",z:"perspective-taking",y:"feedback-seeking"};
+  yPossMin=1;yPossMax=7;
+  document.getElementById('zmults').value="-1,-0.5,0,0.5,1";
+  document.getElementById('ctype').value="line";
+  afterModel();
+  // prefill suggested meaning to demonstrate (user can edit/replace)
+  document.getElementById('m_whom').value="";
+  document.getElementById('m_theory').value="";
+  document.getElementById('m_prac').value="";
+  updateChecklist();buildDraft();
+}
+function fillRawFromWorked(){
+  document.getElementById('r_data').value="x,z,y\n"+WORKED.map(r=>r.join(",")).join("\n");
+  document.getElementById('r_ymin').value=1;document.getElementById('r_ymax').value=7;
+}
+function runRaw(){
+  const el=document.getElementById('rawErr');el.innerHTML="";
+  let txt=document.getElementById('r_data').value.trim();
+  if(!txt){el.innerHTML='<div class="errbox">Please paste data (x, z, y).</div>';return;}
+  let lines=txt.split(/\r?\n/).filter(l=>l.trim());
+  // header?
+  const first=lines[0].split(/[,\t]+/);
+  if(isNaN(parseFloat(first[0]))) lines=lines.slice(1);
+  const rows=[];
+  for(const ln of lines){const p=ln.split(/[,\t]+/).map(Number);
+    if(p.length<3||p.some(isNaN)){el.innerHTML='<div class="errbox">Each row needs three numbers: x, z, y. Check: '+ln+'</div>';return;}
+    rows.push([p[0],p[1],p[2]]);}
+  if(rows.length<10){el.innerHTML='<div class="errbox">Need at least 10 cases for a meaningful regression.</div>';return;}
+  const ymn=parseFloat(document.getElementById('r_ymin').value),ymx=parseFloat(document.getElementById('r_ymax').value);
+  if(isNaN(ymn)||isNaN(ymx)||ymx<=ymn){el.innerHTML='<div class="errbox">Set a valid y possible MIN and MAX (the full scale range).</div>';return;}
+  try{M=olsFull(rows);}catch(e){el.innerHTML='<div class="errbox">'+e.message+'</div>';return;}
+  M.label={x:"x",z:"z",y:"y"};
+  yPossMin=Math.min(ymn,M.yobsmin);yPossMax=Math.max(ymx,M.yobsmax);
+  afterModel();updateChecklist();buildDraft();
+}
+function num(id){return parseFloat(document.getElementById(id).value);}
+function runCoef(){
+  const b0=num('c_b0'),b1=num('c_b1'),b2=num('c_b2'),b3=num('c_b3');
+  const mx=num('c_mx'),sx=num('c_sx'),mz=num('c_mz'),sz=num('c_sz'),my=num('c_my'),sy=num('c_sy');
+  const ymin=num('c_ymin'),ymax=num('c_ymax'),N=num('c_n');
+  const se3=num('c_se3'),se1=num('c_se1'),r2=num('c_r2');
+  if([b0,b1,b2,b3,mx,sx,mz,sz,ymin,ymax].some(isNaN)||ymax<=ymin){
+    alert("Please complete the coefficients, means/SDs, and a valid y possible MIN/MAX.");return;}
+  const xr=(document.getElementById('c_xr').value.split(',').map(Number));
+  const zr=(document.getElementById('c_zr').value.split(',').map(Number));
+  const xmin=isNaN(xr[0])?mx-3*sx:xr[0], xmax=isNaN(xr[1])?mx+3*sx:xr[1];
+  const zmin=isNaN(zr[0])?mz-3*sz:zr[0], zmax=isNaN(zr[1])?mz+3*sz:zr[1];
+  // ΔR² from t and model R²: dr2 = t^2 (1-R2)/(N-4)
+  let dr2=NaN,r2r=NaN,f2=NaN,sigma2=NaN,resSD=NaN;
+  if(!isNaN(se3)&&!isNaN(r2)&&!isNaN(N)){
+    const t=b3/se3; dr2=t*t*(1-r2)/(N-4); r2r=r2-dr2; f2=dr2/(1-r2);
+    sigma2=(1-r2)*sy*sy*(N-1)/(N-4); resSD=Math.sqrt(sigma2);
+  }
+  M={beta:[b0,b1,b2,b3],se:[NaN,se1,NaN,se3],cov:null,sigma2,resSD,df:isNaN(N)?null:N-4,n:N,
+     r2,r2r,dr2,my,sy,mx,sx,mz,sz,xmin,xmax,zmin,zmax,
+     yobsmin:ymin,yobsmax:ymax,xvals:[],zvals:[],hasCov:false,
+     label:{x:"x",z:"z",y:"y"},approx:true,se1,se3};
+  yPossMin=ymin;yPossMax=ymax;
+  afterModel();updateChecklist();buildDraft();
+}
+
+function afterModel(){
+  document.getElementById('results').style.display='block';
+  setYrange();
+  render();
+  renderEffectSize();
+  renderClassification();
+  renderJN();
+}
+
+/* ============================================================
+   z-line construction
+   ============================================================ */
+function zLines(){
+  const mults=document.getElementById('zmults').value.split(',').map(s=>parseFloat(s.trim())).filter(v=>!isNaN(v));
+  const arr=mults.length?mults:[-1,-0.5,0,0.5,1];
+  return arr.sort((a,b)=>a-b).map(m=>{
+    const zv=M.mz+m*M.sz;
+    const pct=Math.round(normCDF(m)*100);
+    return {m,z:zv,pct,slope:M.beta[1]+M.beta[3]*zv,
+      label:(m===0?"mean":(m>0?"+":"")+m+" SD")};
+  });
+}
+function predict(x,z){const b=M.beta;return b[0]+b[1]*x+b[2]*z+b[3]*x*z;}
+// SE of fitted value at (x,z)
+function seFit(x,z){if(!M.hasCov)return (isNaN(M.resSD)?null:M.resSD); // fallback constant band
+  const g=[1,x,z,x*z];let v=0;for(let a=0;a<4;a++)for(let b=0;b<4;b++)v+=g[a]*M.cov[a][b]*g[b];return Math.sqrt(Math.max(v,0));}
+
+const PAL=['var(--c1)','var(--c2)','var(--c3)','var(--c5)','var(--c4)','var(--c6)'];
+const PALHEX=['#0072B2','#E69F00','#009E73','#D55E00','#CC79A7','#56B4E9'];
+
+/* ============================================================
+   Chart rendering (hand-coded SVG)
+   ============================================================ */
+function currentSVG(){
+  const type=document.getElementById('ctype').value;
+  return type==='bar'?barSVG():lineSVG();
+}
+function axisCommon(){
+  const W=560,H=380,mL=58,mR=18,mT=18,mB=46;
+  const dymin=parseFloat(document.getElementById('dymin').value),dymax=parseFloat(document.getElementById('dymax').value);
+  return {W,H,mL,mR,mT,mB,dymin,dymax,
+    px:x=>mL+(x-M.xmin)/(M.xmax-M.xmin)*(W-mL-mR),
+    py:y=>H-mB-(y-dymin)/(dymax-dymin)*(H-mT-mB)};
+}
+function svgHead(W,H){return '<svg id="theSVG" width="100%" viewBox="0 0 '+W+' '+H+'" xmlns="http://www.w3.org/2000/svg" font-family="sans-serif" role="img" aria-label="Interaction plot, full y-axis">';}
+function gridAndAxes(A,xlab){
+  let s='';const{W,H,mL,mR,mT,mB,dymin,dymax,px,py}=A;
+  s+='<rect x="0" y="0" width="'+W+'" height="'+H+'" fill="#ffffff"/>';
+  // y ticks
+  const ny=6;for(let i=0;i<=ny;i++){const yv=dymin+(dymax-dymin)*i/ny;const Y=py(yv);
+    s+='<line x1="'+mL+'" y1="'+Y+'" x2="'+(W-mR)+'" y2="'+Y+'" stroke="#eef1f5"/>';
+    s+='<text x="'+(mL-8)+'" y="'+(Y+4)+'" text-anchor="end" font-size="11" fill="#5b6675">'+yv.toFixed(1)+'</text>';}
+  // x ticks
+  const nx=5;for(let i=0;i<=nx;i++){const xv=M.xmin+(M.xmax-M.xmin)*i/nx;const X=px(xv);
+    s+='<line x1="'+X+'" y1="'+(H-mB)+'" x2="'+X+'" y2="'+(H-mB+4)+'" stroke="#5b6675"/>';
+    s+='<text x="'+X+'" y="'+(H-mB+18)+'" text-anchor="middle" font-size="11" fill="#5b6675">'+xv.toFixed(1)+'</text>';}
+  s+='<line x1="'+mL+'" y1="'+mT+'" x2="'+mL+'" y2="'+(H-mB)+'" stroke="#1d2530"/>';
+  s+='<line x1="'+mL+'" y1="'+(H-mB)+'" x2="'+(W-mR)+'" y2="'+(H-mB)+'" stroke="#1d2530"/>';
+  s+='<text x="'+(W/2+10)+'" y="'+(H-6)+'" text-anchor="middle" font-size="12" fill="#1d2530">'+xlab+' (x)</text>';
+  s+='<text transform="translate(14,'+(H/2)+') rotate(-90)" text-anchor="middle" font-size="12" fill="#1d2530">'+M.label.y+' (y)</text>';
+  return s;
+}
+function lineSVG(){
+  const A=axisCommon();const{W,H,mL,mR,mT,mB,dymin,dymax,px,py}=A;
+  const showErr=document.getElementById('showErr').checked;
+  const showPct=document.getElementById('showPct').checked;
+  let s=svgHead(W,H)+gridAndAxes(A,cap(M.label.x));
+  const lines=zLines();
+  const xs=[M.xmin,M.xmax];
+  lines.forEach((L,i)=>{
+    const col=PALHEX[i%PALHEX.length];
+    // error band
+    if(showErr){const sf0=seFit(xs[0],L.z),sf1=seFit(xs[1],L.z);
+      if(sf0!=null&&sf1!=null){const tc=M.df?tCrit(M.df):1.96;
+        const x0=px(xs[0]),x1=px(xs[1]);
+        const y0u=py(clampY(predict(xs[0],L.z)+tc*sf0)),y0l=py(clampY(predict(xs[0],L.z)-tc*sf0));
+        const y1u=py(clampY(predict(xs[1],L.z)+tc*sf1)),y1l=py(clampY(predict(xs[1],L.z)-tc*sf1));
+        s+='<polygon points="'+x0+','+y0u+' '+x1+','+y1u+' '+x1+','+y1l+' '+x0+','+y0l+'" fill="'+col+'" opacity="0.12"/>';}}
+    // line
+    const X0=px(xs[0]),Y0=py(clampY(predict(xs[0],L.z))),X1=px(xs[1]),Y1=py(clampY(predict(xs[1],L.z)));
+    s+='<line x1="'+X0+'" y1="'+Y0+'" x2="'+X1+'" y2="'+Y1+'" stroke="'+col+'" stroke-width="2.5"/>';
+    // end label
+    const lab='z '+L.label+(showPct?' ('+L.pct+'th)':'');
+    s+='<text x="'+(X1-4)+'" y="'+(Y1-5)+'" text-anchor="end" font-size="10" fill="'+col+'">'+lab+'</text>';
+  });
+  s+='</svg>';
+  // legend
+  let lg='';lines.forEach((L,i)=>{lg+='<span><i style="background:'+PALHEX[i%PALHEX.length]+'"></i>z '+L.label+(showPct?' · '+L.pct+'th pctl':'')+' · slope '+L.slope.toFixed(2)+'</span>';});
+  document.getElementById('legend').innerHTML=lg;
+  return s;
+}
+function clampY(y){return Math.max(yPossMin-(yPossMax-yPossMin),Math.min(yPossMax+(yPossMax-yPossMin),y));}
+function barSVG(){
+  const A=axisCommon();const{W,H,mL,mR,mT,mB,dymin,dymax,px,py}=A;
+  let s=svgHead(W,H);
+  s+='<rect x="0" y="0" width="'+W+'" height="'+H+'" fill="#ffffff"/>';
+  const ny=6;for(let i=0;i<=ny;i++){const yv=dymin+(dymax-dymin)*i/ny;const Y=py(yv);
+    s+='<line x1="'+mL+'" y1="'+Y+'" x2="'+(W-mR)+'" y2="'+Y+'" stroke="#eef1f5"/>';
+    s+='<text x="'+(mL-8)+'" y="'+(Y+4)+'" text-anchor="end" font-size="11" fill="#5b6675">'+yv.toFixed(1)+'</text>';}
+  s+='<line x1="'+mL+'" y1="'+mT+'" x2="'+mL+'" y2="'+(H-mB)+'" stroke="#1d2530"/>';
+  s+='<line x1="'+mL+'" y1="'+(H-mB)+'" x2="'+(W-mR)+'" y2="'+(H-mB)+'" stroke="#1d2530"/>';
+  s+='<text transform="translate(14,'+(H/2)+') rotate(-90)" text-anchor="middle" font-size="12" fill="#1d2530">'+M.label.y+' (y)</text>';
+  const lines=zLines();
+  const groups=[{x:M.xmin,lab:cap(M.label.x)+" low"},{x:M.xmax,lab:cap(M.label.x)+" high"}];
+  const plot=W-mL-mR, gw=plot/groups.length, bw=gw/(lines.length+1);
+  groups.forEach((g,gi)=>{
+    lines.forEach((L,li)=>{
+      const val=clampY(predict(g.x,L.z));
+      const X=mL+gi*gw+ (li+0.5)*bw;
+      const Y=py(val),Y0=py(dymin);
+      s+='<rect x="'+(X-bw*0.4)+'" y="'+Math.min(Y,Y0)+'" width="'+(bw*0.8)+'" height="'+Math.abs(Y0-Y)+'" fill="'+PALHEX[li%PALHEX.length]+'"/>';
+    });
+    s+='<text x="'+(mL+gi*gw+gw/2)+'" y="'+(H-mB+18)+'" text-anchor="middle" font-size="11" fill="#1d2530">'+g.lab+'</text>';
+  });
+  s+='</svg>';
+  let lg='';lines.forEach((L,i)=>{lg+='<span><i style="background:'+PALHEX[i%PALHEX.length];lg+=';height:11px;width:11px;border-radius:2px"></i>z '+L.label+'</span>';});
+  document.getElementById('legend').innerHTML=lg;
+  return s;
+}
+function cap(s){return s.charAt(0).toUpperCase()+s.slice(1);}
+
+function render(){
+  if(!M)return;
+  document.getElementById('chart').innerHTML=currentSVG();
+  // truncation warning
+  const dymin=parseFloat(document.getElementById('dymin').value),dymax=parseFloat(document.getElementById('dymax').value);
+  const full=yPossMax-yPossMin, shown=dymax-dymin;
+  const pct=Math.round(shown/full*100);
+  const tw=document.getElementById('truncWarn');
+  if(shown<full-1e-9){
+    tw.innerHTML='<div class="warnbox">⚠ Truncated y-axis: showing only '+pct+'% of the full possible range of y ('+
+      yPossMin+'–'+yPossMax+'). Truncation exaggerates the apparent size of the interaction. '+
+      '<button class="sm" style="margin-left:6px" onclick="presetY(\'full\')">Restore full range</button></div>';
+  }else if(shown>full+1e-9){
+    tw.innerHTML='<div class="warnbox">Display range exceeds the stated possible range of y. Check your y MIN/MAX.</div>';
+  }else{
+    tw.innerHTML='<div class="okbox">✓ y-axis spans the full possible range ('+yPossMin+'–'+yPossMax+'). This is the correct default and will not exaggerate the effect.</div>';
+  }
+  updateChecklist();buildDraft();
+}
+function presetY(a,b){
+  if(a==='full'){document.getElementById('dymin').value=yPossMin;document.getElementById('dymax').value=yPossMax;}
+  else{document.getElementById('dymin').value=a;document.getElementById('dymax').value=b;}
+  render();
+}
+
+/* ============================================================
+   Effect size panel
+   ============================================================ */
+function renderEffectSize(){
+  const dr2=M.dr2, r2=M.r2, r2r=M.r2r;
+  const f2=(!isNaN(dr2)&&!isNaN(r2))?dr2/(1-r2):NaN;
+  // Liu & Yuan style index: proportion of y variance attributable to moderation ~ dr2 (R2-family); report dr2-based
+  const ly=isNaN(dr2)?NaN:dr2; // same R2-family interpretation
+  const fmt=(v,d)=>isNaN(v)||v==null?'—':v.toFixed(d);
+  document.getElementById('k_dr2').textContent=isNaN(dr2)?'—':fmt(dr2,3);
+  document.getElementById('k_r2').textContent=fmt(r2,3);
+  document.getElementById('k_r2r').textContent=fmt(r2r,3);
+  document.getElementById('t_dr2').textContent=fmt(dr2,4);
+  document.getElementById('t_f2').textContent=fmt(f2,3);
+  document.getElementById('t_ly').textContent=fmt(ly,4);
+  // p of interaction
+  let pstr='—';
+  if(M.hasCov){const t=M.beta[3]/M.se[3];const p=tPval(t,M.df);pstr=p<0.001?'< .001':p.toFixed(3)+' (t='+t.toFixed(2)+')';}
+  else if(!isNaN(M.se3)&&M.df){const t=M.beta[3]/M.se3;const p=tPval(t,M.df);pstr=p<0.001?'< .001':p.toFixed(3)+' (t='+t.toFixed(2)+')';}
+  document.getElementById('t_p').textContent=pstr;
+  document.getElementById('k_dr2note').textContent=M.approx?'estimated':'';
+  // interpretation
+  let msg='';
+  if(isNaN(dr2)){msg='No effect size yet. In “Enter regression output” mode, provide SE(b3), model R², and N — or paste raw data — so ΔR² can be computed. A report is not complete without an interpretable effect size.';}
+  else{
+    const pctv=(dr2*100).toFixed(1);
+    let mag = dr2<0.01?'very small':dr2<0.04?'small':dr2<0.09?'modest':'sizable';
+    msg='The interaction explains <b>'+pctv+'%</b> of the variance in '+M.label.y+' beyond the first-order effects of '+
+      M.label.x+' and '+M.label.z+' (ΔR² = '+dr2.toFixed(3)+', f² = '+(isNaN(f2)?'—':f2.toFixed(3))+'). '+
+      'This is a <b>'+mag+'</b> interaction. Interaction effects are typically small in management and related fields, '+
+      'so statistical significance does not imply practical importance — see the region-of-significance analysis for who is actually affected.';
+  }
+  document.getElementById('esInterp').innerHTML=msg;
+}
+
+/* ============================================================
+   Classification (from slopes, not signs)
+   ============================================================ */
+function renderClassification(){
+  // Read type from the simple slopes across the plotted z range (NOT from coefficient signs).
+  const zlo=M.mz-1*M.sz, zhi=M.mz+1*M.sz;
+  const sLo=M.beta[1]+M.beta[3]*zlo, sHi=M.beta[1]+M.beta[3]*zhi;
+  // Determine whether each end slope is meaningfully (ideally significantly) different from zero,
+  // so a trivial near-zero crossing is NOT mislabeled "reversing".
+  const tc=M.df?tCrit(M.df):1.96;
+  let sigLo=null,sigHi=null;
+  let v11,v33,v13;
+  if(M.hasCov){v11=M.cov[1][1];v33=M.cov[3][3];v13=M.cov[1][3];}
+  else if(!isNaN(M.se1)&&!isNaN(M.se3)){v11=M.se1*M.se1;v33=M.se3*M.se3;v13=0;}
+  const slopeSig=z=>{if(v11==null)return null;const w=M.beta[1]+M.beta[3]*z;
+    const v=v11+z*z*v33+2*z*v13;return Math.abs(w)/Math.sqrt(Math.max(v,1e-12))>tc;};
+  sigLo=slopeSig(zlo);sigHi=slopeSig(zhi);
+  const signFlip=(sLo>0&&sHi<0)||(sLo<0&&sHi>0);
+  // "Real" reversal: signs differ AND both ends carry a non-trivial slope.
+  let bothReal;
+  if(sigLo!=null) bothReal = sigLo && sigHi;                       // significance-based when SEs available
+  else bothReal = Math.min(Math.abs(sLo),Math.abs(sHi)) > 0.10*Math.max(Math.abs(sLo),Math.abs(sHi)); // magnitude fallback
+  let type,cls,expl;
+  const sigNote = (sigLo!=null)
+    ? ' (slope at −1 SD '+(sigLo?'is':'is not')+' significant; slope at +1 SD '+(sigHi?'is':'is not')+' significant)'
+    : '';
+  if(signFlip && bothReal){type='Reversing';cls='b-rev';
+    expl='The '+M.label.x+'–'+M.label.y+' slope <b>changes sign</b> across the range of '+M.label.z+
+      ' (from '+sLo.toFixed(2)+' at −1 SD to '+sHi.toFixed(2)+' at +1 SD), and both ends are non-trivial'+sigNote+
+      ': the direction of the relation reverses as '+M.label.z+' increases.';}
+  else if(Math.abs(sHi)>Math.abs(sLo)+1e-9){type='Strengthening';cls='b-str';
+    expl='The '+M.label.x+'–'+M.label.y+' slope gets <b>steeper</b> as '+M.label.z+' increases (|slope| rises from '+
+      Math.abs(sLo).toFixed(2)+' at −1 SD to '+Math.abs(sHi).toFixed(2)+' at +1 SD)'+sigNote+
+      ': the relation becomes stronger at higher '+M.label.z+'.';}
+  else{type='Weakening';cls='b-weak';
+    const flatNote=(signFlip&&!bothReal)?' The slope does cross zero, but the high-'+M.label.z+' end is essentially flat / non-significant, so this is weakening rather than a genuine reversal.':'';
+    expl='The '+M.label.x+'–'+M.label.y+' slope <b>flattens</b> as '+M.label.z+' increases (|slope| falls from '+
+      Math.abs(sLo).toFixed(2)+' at −1 SD to '+Math.abs(sHi).toFixed(2)+' at +1 SD)'+sigNote+
+      ': the relation gets weaker at higher '+M.label.z+'.'+flatNote;}
+  const b=document.getElementById('ktype');b.textContent=type;b.className='badge '+cls;
+  document.getElementById('typeExpl').innerHTML=expl;
+  M._type=type;M._sLo=sLo;M._sHi=sHi;
+}
+
+/* ============================================================
+   Johnson–Neyman region of significance
+   ============================================================ */
+function computeJN(){
+  // simple slope of x: w(z)=b1+b3 z ; Var=v11+z^2 v33+2 z v13
+  const tc=M.df?tCrit(M.df):1.96;
+  let v11,v33,v13;
+  if(M.hasCov){v11=M.cov[1][1];v33=M.cov[3][3];v13=M.cov[1][3];}
+  else if(!isNaN(M.se1)&&!isNaN(M.se3)){v11=M.se1*M.se1;v33=M.se3*M.se3;v13=0;} // approx
+  else return null;
+  const b1=M.beta[1],b3=M.beta[3];
+  const A=b3*b3 - tc*tc*v33, B=2*b1*b3 - 2*tc*tc*v13, C=b1*b1 - tc*tc*v11;
+  const disc=B*B-4*A*C;
+  let roots=null;
+  if(disc>0&&Math.abs(A)>1e-12){let r1=(-B-Math.sqrt(disc))/(2*A),r2=(-B+Math.sqrt(disc))/(2*A);roots=[Math.min(r1,r2),Math.max(r1,r2)].map(r=>r);}
+  // determine significance inside/outside: test at a sample z (mean)
+  const wAt=z=>{const w=b1+b3*z;const v=v11+z*z*v33+2*z*v13;return Math.abs(w)/Math.sqrt(Math.max(v,1e-12));};
+  return {tc,roots,A,B,C,disc,v13approx:!M.hasCov,wAt,b1,b3,v11,v33,v13};
+}
+function renderJN(){
+  const jn=computeJN();
+  const el=document.getElementById('jnText');
+  if(!jn){el.innerHTML='<div class="warnbox">Region of significance needs the coefficient covariance (paste raw data) — or, in coefficient mode, SE(b1) and SE(b3).</div>';
+    document.getElementById('jnChart').innerHTML='';return;}
+  const zToSD=z=>((z-M.mz)/M.sz);
+  const zToPct=z=>Math.round(normCDF(zToSD(z))*100);
+  let txt='';
+  const note=jn.v13approx?' <span class="small">(approximate: assumes cov(b1,b3)≈0; paste raw data for exact bounds)</span>':'';
+  if(jn.roots){
+    const[a,b]=jn.roots;
+    // is region of significance inside [a,b] or outside?
+    const mid=(a+b)/2, sigInside=jn.wAt(mid)>jn.tc;
+    const zlo=M.zmin,zhi=M.zmax;
+    if(sigInside){
+      txt='The simple slope of '+M.label.x+' on '+M.label.y+' is statistically significant for '+M.label.z+
+        ' between <b>'+a.toFixed(2)+'</b> ('+zToSD(a).toFixed(2)+' SD, ~'+zToPct(a)+'th pctl) and <b>'+b.toFixed(2)+
+        '</b> ('+zToSD(b).toFixed(2)+' SD, ~'+zToPct(b)+'th pctl), and non-significant outside that band.'+note;
+    }else{
+      txt='The simple slope of '+M.label.x+' on '+M.label.y+' is statistically significant when '+M.label.z+
+        ' is <b>below '+a.toFixed(2)+'</b> ('+zToSD(a).toFixed(2)+' SD, ~'+zToPct(a)+'th pctl) <b>or above '+b.toFixed(2)+
+        '</b> ('+zToSD(b).toFixed(2)+' SD, ~'+zToPct(b)+'th pctl); it is non-significant for '+M.label.z+' between those values.'+note;
+    }
+    // proportion affected (normal approx)
+    let frac;
+    if(sigInside){frac=normCDF(zToSD(b))-normCDF(zToSD(a));}
+    else{frac=normCDF(zToSD(a))+(1-normCDF(zToSD(b)));}
+    txt+=' Under approximate normality of '+M.label.z+', this corresponds to about <b>'+Math.round(frac*100)+
+      '%</b> of cases — a concrete answer to “for whom” the interaction matters.';
+    M._jn={a,b,sigInside,frac};
+  }else{
+    const sigEverywhere=jn.wAt(M.mz)>jn.tc;
+    txt = sigEverywhere
+      ? 'The simple slope of '+M.label.x+' is significant across the entire observed range of '+M.label.z+'.'+note
+      : 'The simple slope of '+M.label.x+' is not significant anywhere in the observed range of '+M.label.z+'.'+note;
+    M._jn={a:null,b:null,sigEverywhere};
+  }
+  el.innerHTML='<div style="font-size:13.5px">'+txt+'</div>';
+  drawJNchart(jn);
+}
+function drawJNchart(jn){
+  const W=560,H=210,mL=58,mR=18,mT=14,mB=40;
+  const zlo=Math.min(M.zmin,M.mz-2*M.sz),zhi=Math.max(M.zmax,M.mz+2*M.sz);
+  const tc=jn.tc;
+  // slope curve and CI
+  const npts=60;let sl=[],hi=[],lo=[];
+  for(let i=0;i<=npts;i++){const z=zlo+(zhi-zlo)*i/npts;const w=jn.b1+jn.b3*z;
+    const v=jn.v11+z*z*jn.v33+2*z*jn.v13;const se=Math.sqrt(Math.max(v,1e-12));
+    sl.push([z,w]);hi.push([z,w+tc*se]);lo.push([z,w-tc*se]);}
+  let allv=sl.concat(hi,lo).map(p=>p[1]);
+  let ymn=Math.min(...allv,0),ymx=Math.max(...allv,0);const pad=(ymx-ymn)*0.1||0.1;ymn-=pad;ymx+=pad;
+  const px=z=>mL+(z-zlo)/(zhi-zlo)*(W-mL-mR);
+  const py=w=>H-mB-(w-ymn)/(ymx-ymn)*(H-mT-mB);
+  let s='<svg width="100%" viewBox="0 0 '+W+' '+H+'" xmlns="http://www.w3.org/2000/svg" font-family="sans-serif" role="img" aria-label="Johnson-Neyman plot of simple slope across z">';
+  s+='<rect width="'+W+'" height="'+H+'" fill="#fff"/>';
+  // significant region shading
+  if(jn._and){}
+  if(M._jn&&M._jn.a!=null){
+    const a=M._jn.a,b=M._jn.b;
+    if(M._jn.sigInside){s+='<rect x="'+px(a)+'" y="'+mT+'" width="'+(px(b)-px(a))+'" height="'+(H-mT-mB)+'" fill="#009E73" opacity="0.10"/>';}
+    else{s+='<rect x="'+px(zlo)+'" y="'+mT+'" width="'+(px(a)-px(zlo))+'" height="'+(H-mT-mB)+'" fill="#009E73" opacity="0.10"/>';
+         s+='<rect x="'+px(b)+'" y="'+mT+'" width="'+(px(zhi)-px(b))+'" height="'+(H-mT-mB)+'" fill="#009E73" opacity="0.10"/>';}
+    [a,b].forEach(v=>{if(v>zlo&&v<zhi)s+='<line x1="'+px(v)+'" y1="'+mT+'" x2="'+px(v)+'" y2="'+(H-mB)+'" stroke="#1a8a4a" stroke-dasharray="4 3"/>';});
+  }
+  // zero line
+  s+='<line x1="'+mL+'" y1="'+py(0)+'" x2="'+(W-mR)+'" y2="'+py(0)+'" stroke="#c0392b" stroke-width="1"/>';
+  s+='<text x="'+(W-mR-2)+'" y="'+(py(0)-3)+'" text-anchor="end" font-size="10" fill="#c0392b">slope = 0</text>';
+  // CI band
+  let band='M';for(const p of hi)band+=' '+px(p[0])+','+py(p[1]);for(let i=lo.length-1;i>=0;i--)band+=' '+px(lo[i][0])+','+py(lo[i][1]);band+=' Z';
+  s+='<path d="'+band+'" fill="#0072B2" opacity="0.12"/>';
+  // slope line
+  let ln='';sl.forEach((p,i)=>ln+=(i?'L':'M')+px(p[0])+','+py(p[1]));
+  s+='<path d="'+ln+'" fill="none" stroke="#0072B2" stroke-width="2.2"/>';
+  // axes
+  s+='<line x1="'+mL+'" y1="'+mT+'" x2="'+mL+'" y2="'+(H-mB)+'" stroke="#1d2530"/>';
+  s+='<line x1="'+mL+'" y1="'+(H-mB)+'" x2="'+(W-mR)+'" y2="'+(H-mB)+'" stroke="#1d2530"/>';
+  const nx=5;for(let i=0;i<=nx;i++){const zv=zlo+(zhi-zlo)*i/nx;const X=px(zv);
+    s+='<text x="'+X+'" y="'+(H-mB+16)+'" text-anchor="middle" font-size="10" fill="#5b6675">'+zv.toFixed(1)+'</text>';}
+  const ny=4;for(let i=0;i<=ny;i++){const wv=ymn+(ymx-ymn)*i/ny;const Y=py(wv);
+    s+='<text x="'+(mL-6)+'" y="'+(Y+3)+'" text-anchor="end" font-size="10" fill="#5b6675">'+wv.toFixed(2)+'</text>';}
+  s+='<text x="'+(W/2)+'" y="'+(H-4)+'" text-anchor="middle" font-size="11" fill="#1d2530">'+cap(M.label.z)+' (z)</text>';
+  s+='<text transform="translate(13,'+(H/2)+') rotate(-90)" text-anchor="middle" font-size="11" fill="#1d2530">simple slope of '+M.label.x+'</text>';
+  s+='</svg>';
+  document.getElementById('jnChart').innerHTML=s;
+}
+
+/* ============================================================
+   Checklist + draft
+   ============================================================ */
+function setCk(id,done){const li=document.getElementById(id);li.classList.toggle('done',done);
+  li.querySelector('.mk').textContent=done?'✓':'○';}
+function updateChecklist(){
+  if(!M)return;
+  const dymin=parseFloat(document.getElementById('dymin').value),dymax=parseFloat(document.getElementById('dymax').value);
+  const full=Math.abs((dymax-dymin)-(yPossMax-yPossMin))<1e-9 && dymax>=yPossMax-1e-9 && dymin<=yPossMin+1e-9;
+  const a=full;
+  const mults=document.getElementById('zmults').value.split(',').filter(s=>s.trim()!=='');
+  const b=mults.length>=3 && document.getElementById('showPct').checked;
+  const c=!isNaN(M.dr2)&&M.dr2!=null;
+  const d=!!M._type;
+  const e=!!(M._jn);
+  const whom=document.getElementById('m_whom').value.trim();
+  const theory=document.getElementById('m_theory').value.trim();
+  const prac=document.getElementById('m_prac').value.trim();
+  const f=whom.length>15 && theory.length>15 && prac.length>15;
+  setCk('ck_a',a);setCk('ck_b',b);setCk('ck_c',c);setCk('ck_d',d);setCk('ck_e',e);setCk('ck_f',f);
+  const all=a&&b&&c&&d&&e&&f;
+  const msg=document.getElementById('ckMsg');
+  if(all)msg.innerHTML='<div class="okbox">✓ Reporting-ready. Your interaction is reported following all three Murphy &amp; Aguinis (2022) recommendations. Copy the draft text below.</div>';
+  else{
+    let need=[];if(!a)need.push('restore the full y-axis');if(!b)need.push('plot ≥3 z values with percentiles');
+    if(!c)need.push('supply an effect size (ΔR²)');if(!d)need.push('classify the interaction');
+    if(!e)need.push('run the region-of-significance');if(!f)need.push('write the meaning (all three boxes, >15 chars each)');
+    msg.innerHTML='<div class="warnbox">Not yet reporting-ready — still to do: '+need.join('; ')+'.</div>';
+  }
+}
+function buildDraft(){
+  if(!M)return;
+  const L=M.label;
+  const dr2=M.dr2;
+  const pPart=(()=>{
+    let t=NaN,df=M.df;
+    if(M.hasCov){t=M.beta[3]/M.se[3];}else if(!isNaN(M.se3)){t=M.beta[3]/M.se3;}
+    if(isNaN(t)||!df)return '';
+    const p=tPval(t,df);return ', b = '+M.beta[3].toFixed(3)+', t('+df+') = '+t.toFixed(2)+', '+(p<0.001?'p < .001':'p = '+p.toFixed(3));
+  })();
+  const type=M._type?M._type.toLowerCase():'';
+  let jnSent='';
+  if(M._jn&&M._jn.a!=null){
+    const a=M._jn.a,b=M._jn.b;
+    jnSent=' A Johnson–Neyman analysis showed the simple slope of '+L.x+' was significant '+
+      (M._jn.sigInside?('for '+L.z+' between '+a.toFixed(2)+' and '+b.toFixed(2)):
+       ('for '+L.z+' below '+a.toFixed(2)+' or above '+b.toFixed(2)))+
+      ' (≈ '+Math.round(M._jn.frac*100)+'% of cases), and non-significant elsewhere.';
+  }
+  const whom=document.getElementById('m_whom').value.trim();
+  const theory=document.getElementById('m_theory').value.trim();
+  const prac=document.getElementById('m_prac').value.trim();
+  let dr2txt=isNaN(dr2)?'[ΔR² not yet computed]':'ΔR² = '+dr2.toFixed(3)+' ('+(dr2*100).toFixed(1)+'% of variance in '+L.y+' beyond the first-order effects)';
+  let body='The interaction between '+L.x+' and '+L.z+' on '+L.y+' was '+(type?'a '+type+' interaction':'examined')+
+    pPart+'. The interaction accounted for '+dr2txt+'. We classify it as '+(type||'[type]')+
+    ' based on how the '+L.x+'–'+L.y+' slope changes across the range of '+L.z+' (from '+
+    (M._sLo!=null?M._sLo.toFixed(2):'—')+' at −1 SD to '+(M._sHi!=null?M._sHi.toFixed(2):'—')+
+    ' at +1 SD), rather than on the signs of the regression coefficients.'+jnSent+
+    ' Figure 1 plots the '+L.x+'–'+L.y+' relation at five values of '+L.z+' (−1, −0.5, 0, +0.5, +1 SD; percentiles shown) '+
+    'across the full possible range of '+L.y+'.';
+  if(whom||theory||prac){
+    body+='\n\nMeaning. '+(whom?('This interaction is practically relevant '+whom+'. '):'')+
+      (theory?('For theory, '+theory+'. '):'')+(prac?('For practice, '+prac+'.'):'');
+  }else{
+    body+='\n\n[Add the substantive meaning: for whom/under what conditions it matters, and what it means for theory and practice.]';
+  }
+  document.getElementById('draftResults').textContent=body;
+  // caption
+  const cap1='Figure 1. The '+L.x+'–'+L.y+' relation at five levels of '+L.z+' (−1, −0.5, 0, +0.5, +1 SD; '+
+    'corresponding percentiles labeled), with shaded ±'+(M.df?'95% prediction':'')+' error regions. '+
+    'The y-axis spans the full possible range of '+L.y+' ('+yPossMin+'–'+yPossMax+') to avoid exaggerating the effect. '+
+    (isNaN(dr2)?'':'Interaction ΔR² = '+dr2.toFixed(3)+'.');
+  document.getElementById('draftCaption').textContent=cap1;
+}
+
+/* ============================================================
+   Export
+   ============================================================ */
+function copy(id){const t=document.getElementById(id).textContent;navigator.clipboard&&navigator.clipboard.writeText(t);
+  const b=event.target;const o=b.textContent;b.textContent='Copied ✓';setTimeout(()=>b.textContent=o,1200);}
+function downloadSVG(){const svg=document.getElementById('chart').innerHTML;
+  const blob=new Blob([svg],{type:'image/svg+xml'});dl(blob,'interaction-figure.svg');}
+function downloadPNG(){
+  const svg=document.getElementById('chart').querySelector('svg');
+  const xml=new XMLSerializer().serializeToString(svg);
+  const img=new Image();const scale=2;
+  const vb=svg.getAttribute('viewBox').split(' ').map(Number);
+  const c=document.createElement('canvas');c.width=vb[2]*scale;c.height=vb[3]*scale;
+  const ctx=c.getContext('2d');ctx.fillStyle='#fff';ctx.fillRect(0,0,c.width,c.height);
+  img.onload=function(){ctx.drawImage(img,0,0,c.width,c.height);
+    c.toBlob(b=>dl(b,'interaction-figure.png'));};
+  img.src='data:image/svg+xml;base64,'+btoa(unescape(encodeURIComponent(xml)));
+}
+function dl(blob,name){const u=URL.createObjectURL(blob);const a=document.createElement('a');a.href=u;a.download=name;a.click();
+  setTimeout(()=>URL.revokeObjectURL(u),1500);}
+function downloadReport(){
+  const credit='Based on Murphy, K. R., & Aguinis, H. (2022). Reporting interaction effects: Visualization, effect size, and interpretation. Journal of Management, 48(8), 2159-2166. Methodological guidance draws on Aguinis, H. (2025). Research methodology: Best practices for rigorous, credible, and impactful research. SAGE. https://collegepublishing.sagepub.com/products/research-methodology-1-280088';
+  const html='<!DOCTYPE html><html><head><meta charset="utf-8"><title>Interaction report</title>'+
+    '<style>body{font-family:Georgia,serif;max-width:760px;margin:30px auto;padding:0 16px;color:#1d2530}'+
+    'h1{font-size:18px}h2{font-size:14px;color:#0b3d70}.fig{border:1px solid #ddd;padding:8px;margin:12px 0}'+
+    'pre{white-space:pre-wrap;font-family:Georgia,serif;font-size:13px}li{margin:3px 0}.foot{font-size:11px;color:#666;margin-top:24px;border-top:1px solid #ccc;padding-top:8px}</style></head><body>'+
+    '<h1>Interaction Effect — Reporting Summary</h1>'+
+    '<div class="fig">'+document.getElementById('chart').innerHTML+'</div>'+
+    '<h2>Figure caption</h2><pre>'+esc(document.getElementById('draftCaption').textContent)+'</pre>'+
+    '<h2>Effect size</h2><p>ΔR² = '+(isNaN(M.dr2)?'—':M.dr2.toFixed(3))+' · Model R² = '+(isNaN(M.r2)?'—':M.r2.toFixed(3))+
+    ' · First-order R² = '+(isNaN(M.r2r)?'—':M.r2r.toFixed(3))+'</p>'+
+    '<h2>Type</h2><p>'+(M._type||'—')+'</p>'+
+    '<h2>Region of significance</h2><p>'+document.getElementById('jnText').textContent+'</p>'+
+    '<div class="fig">'+document.getElementById('jnChart').innerHTML+'</div>'+
+    '<h2>Draft results text</h2><pre>'+esc(document.getElementById('draftResults').textContent)+'</pre>'+
+    '<h2>Checklist</h2>'+document.getElementById('checklist').outerHTML+
+    '<div class="foot">'+credit+'</div></body></html>';
+  dl(new Blob([html],{type:'text/html'}),'interaction-report.html');
+}
+function esc(s){return s.replace(/&/g,'&amp;').replace(/</g,'&lt;');}
+
+/* tab switching */
+function selTab(id){
+  ['ex','coef','raw'].forEach(t=>{
+    document.getElementById('tab-'+t).setAttribute('aria-selected',t===id);
+    document.getElementById('p-'+t).classList.toggle('active',t===id);
+  });
+}
+/* boot */
+loadWorked();
+</script>
+<!-- Begin Countercentral code v 7.0 --> 
+<span id="wts2576"></span> 
+<script>var wts=document.createElement('script');wts.async=true; 
+wts.src='https://server2.countercentral.com/log7.js';document.head.appendChild(wts); 
+wts.onload = function(){ wtslog7(2576,1); }; 
+</script><noscript><a href="https://www.countercentral.com"> 
+<img src="https://server2.countercentral.com/7/1/2576.png"  
+alt="Countercentral web traffic analysis"></a></noscript> 
+<!-- End Countercentral code v 7.0 --> 
+</body>
+</html>

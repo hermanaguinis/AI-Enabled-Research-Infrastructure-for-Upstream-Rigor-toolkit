@@ -1,0 +1,664 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Limitations &amp; Future Directions Builder</title>
+<style>
+  :root{
+    --bg:#f4f6f9; --panel:#ffffff; --ink:#1f2733; --muted:#5b6776;
+    --line:#e2e7ee; --brand:#1f5fa6; --brand-d:#16487f; --brand-l:#e8f1fb;
+    --good:#1d8a4e; --good-l:#e6f5ed; --warn:#b4690e; --warn-l:#fdf2e2;
+    --bad:#c0392b; --bad-l:#fae9e7; --shadow:0 1px 3px rgba(20,40,70,.08),0 6px 18px rgba(20,40,70,.06);
+    --radius:10px;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    line-height:1.55;font-size:15px}
+  a{color:var(--brand)}
+  header.top{background:linear-gradient(135deg,var(--brand) 0%,var(--brand-d) 100%);color:#fff;padding:22px 20px}
+  header.top .wrap{max-width:1180px;margin:0 auto}
+  header.top h1{margin:0 0 4px;font-size:22px;letter-spacing:.2px}
+  header.top p{margin:0;opacity:.92;font-size:14px;max-width:760px}
+  .layout{max-width:1180px;margin:18px auto;padding:0 16px;display:grid;
+    grid-template-columns:1fr 340px;gap:18px;align-items:start}
+  @media(max-width:920px){.layout{grid-template-columns:1fr}}
+  .panel{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow)}
+  .panel .hd{padding:14px 18px;border-bottom:1px solid var(--line);display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+  .panel .hd h2{margin:0;font-size:16px}
+  .panel .bd{padding:18px}
+  .step-badge{background:var(--brand-l);color:var(--brand-d);font-weight:700;font-size:12px;
+    border-radius:20px;padding:3px 11px}
+  .tabs{display:flex;gap:6px;flex-wrap:wrap;margin:0 0 4px}
+  .tab{border:1px solid var(--line);background:#fff;border-radius:8px 8px 0 0;padding:9px 14px;cursor:pointer;
+    font-size:14px;font-weight:600;color:var(--muted)}
+  .tab[aria-selected="true"]{background:var(--brand);color:#fff;border-color:var(--brand)}
+  .tab:focus-visible{outline:3px solid var(--brand-l);outline-offset:2px}
+  label{display:block;font-weight:600;margin:14px 0 5px;font-size:14px}
+  .hint{font-weight:400;color:var(--muted);font-size:13px;margin:2px 0 6px}
+  input[type=text],textarea,select{width:100%;border:1px solid #ccd4de;border-radius:8px;
+    padding:10px 12px;font-family:inherit;font-size:14px;background:#fff;color:var(--ink)}
+  textarea{min-height:74px;resize:vertical}
+  input:focus,textarea:focus,select:focus{outline:none;border-color:var(--brand);box-shadow:0 0 0 3px var(--brand-l)}
+  .row{display:flex;gap:12px;flex-wrap:wrap}
+  .row>div{flex:1;min-width:160px}
+  .btn{border:0;border-radius:8px;padding:10px 16px;font-size:14px;font-weight:700;cursor:pointer;
+    background:var(--brand);color:#fff}
+  .btn:hover{background:var(--brand-d)}
+  .btn.sec{background:#eef2f7;color:var(--ink);border:1px solid var(--line)}
+  .btn.sec:hover{background:#e2e8f0}
+  .btn.ghost{background:transparent;color:var(--brand);padding:6px 10px}
+  .btn.sm{padding:6px 11px;font-size:13px}
+  .btn:disabled{opacity:.5;cursor:not-allowed}
+  .btn:focus-visible{outline:3px solid var(--brand-l);outline-offset:2px}
+  .chip{display:inline-block;font-size:12px;font-weight:700;border-radius:20px;padding:2px 10px}
+  .chip.v{background:var(--brand-l);color:var(--brand-d)}
+  .chip.hi{background:var(--bad-l);color:var(--bad)}
+  .chip.med{background:var(--warn-l);color:var(--warn)}
+  .chip.src{background:#eef2f7;color:var(--muted)}
+  .alert{border-radius:8px;padding:10px 12px;font-size:13.5px;margin-top:10px;border:1px solid}
+  .alert.warn{background:var(--warn-l);border-color:#f0cd9b;color:#7a4708}
+  .alert.bad{background:var(--bad-l);border-color:#e7b4ad;color:#7c241a}
+  .alert.good{background:var(--good-l);border-color:#aedcc1;color:#10623a}
+  .alert b{display:block;margin-bottom:2px}
+  .item{border:1px solid var(--line);border-radius:10px;padding:14px;margin-top:12px;background:#fcfdff}
+  .item h4{margin:0 0 6px;font-size:14px;display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+  .item .meta{font-size:13px;color:var(--muted)}
+  .item .what{margin:8px 0 2px}
+  .item .lab{font-weight:700;font-size:12px;text-transform:uppercase;letter-spacing:.4px;color:var(--muted)}
+  .item-actions{display:flex;gap:6px;margin-top:10px;flex-wrap:wrap}
+  details.def{border:1px solid var(--line);border-radius:8px;padding:0;margin-top:8px;background:#fbfcfe}
+  details.def>summary{cursor:pointer;padding:9px 12px;font-weight:600;font-size:13.5px;list-style:none}
+  details.def>summary::-webkit-details-marker{display:none}
+  details.def>summary:before{content:"▸ ";color:var(--brand)}
+  details.def[open]>summary:before{content:"▾ "}
+  details.def .dbody{padding:0 12px 12px;font-size:13.5px}
+  .ex{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:8px}
+  @media(max-width:680px){.ex{grid-template-columns:1fr}}
+  .ex .cell{border-radius:8px;padding:10px;font-size:13px}
+  .ex .weak{background:var(--bad-l);border:1px solid #e7b4ad}
+  .ex .strong{background:var(--good-l);border:1px solid #aedcc1}
+  .ex .cell .tg{font-weight:700;font-size:11px;text-transform:uppercase;letter-spacing:.4px;margin-bottom:4px}
+  .side{position:sticky;top:14px;display:flex;flex-direction:column;gap:16px}
+  .meter{height:10px;border-radius:6px;background:#e7ecf2;overflow:hidden}
+  .meter>span{display:block;height:100%;background:linear-gradient(90deg,var(--good),#2bb673);width:0;transition:width .3s}
+  .check{display:flex;gap:9px;align-items:flex-start;font-size:13.5px;padding:7px 0;border-bottom:1px dashed var(--line)}
+  .check:last-child{border-bottom:0}
+  .check .ic{flex:0 0 18px;font-weight:800;text-align:center}
+  .ic.ok{color:var(--good)} .ic.no{color:var(--muted)} .ic.wn{color:var(--warn)}
+  .check small{display:block;color:var(--muted);font-weight:400}
+  .preview{white-space:pre-wrap;font-size:13.5px;background:#fbfcfe;border:1px solid var(--line);
+    border-radius:8px;padding:14px;max-height:420px;overflow:auto;font-family:"SF Mono",Menlo,Consolas,monospace}
+  .preview h3{font-family:inherit}
+  footer.credits{max-width:1180px;margin:10px auto 40px;padding:16px;color:var(--muted);font-size:13px}
+  footer.credits .panel{padding:16px 18px}
+  .sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
+  .pill-grp{display:flex;gap:8px;flex-wrap:wrap}
+  .pill{border:1px solid #ccd4de;border-radius:20px;padding:6px 13px;cursor:pointer;font-size:13px;background:#fff}
+  .pill[aria-pressed="true"]{background:var(--brand);color:#fff;border-color:var(--brand)}
+  .pill:focus-visible{outline:3px solid var(--brand-l);outline-offset:2px}
+  .empty{color:var(--muted);font-style:italic;padding:10px 0}
+  .score-big{font-size:30px;font-weight:800}
+  .gl-list{margin:8px 0 0;padding:0;list-style:none}
+  .gl-list li{padding:6px 0;border-bottom:1px dashed var(--line);font-size:13.5px;display:flex;gap:9px;align-items:flex-start}
+  .gl-list li:last-child{border-bottom:0}
+  .tag-mini{font-size:11px;background:#eef2f7;color:var(--muted);border-radius:5px;padding:1px 6px;font-weight:700}
+  .toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:var(--ink);color:#fff;
+    padding:11px 18px;border-radius:8px;font-size:14px;opacity:0;pointer-events:none;transition:opacity .25s;z-index:50}
+  .toast.show{opacity:1}
+</style>
+</head>
+<body>
+<header class="top">
+  <div class="wrap">
+    <h1>Limitations &amp; Future Directions Builder</h1>
+    <p>A guided tool for writing publication-ready Limitations and Directions for Future Research sections, based on the eight evidence-based guidelines of Brutus, Aguinis &amp; Wassmer (2013).</p>
+  </div>
+</header>
+
+<div class="layout">
+  <!-- MAIN COLUMN -->
+  <main>
+    <div class="panel">
+      <div class="hd">
+        <span class="step-badge">Workspace</span>
+        <div class="tabs" role="tablist" aria-label="Sections">
+          <button class="tab" id="tab-lim" role="tab" aria-selected="true" aria-controls="pane-lim" onclick="switchTab('lim')">1 · Limitations</button>
+          <button class="tab" id="tab-fut" role="tab" aria-selected="false" aria-controls="pane-fut" onclick="switchTab('fut')">2 · Future Directions</button>
+          <button class="tab" id="tab-out" role="tab" aria-selected="false" aria-controls="pane-out" onclick="switchTab('out')">3 · Output &amp; Review</button>
+        </div>
+      </div>
+
+      <!-- ===== LIMITATIONS PANE ===== -->
+      <div class="bd" id="pane-lim" role="tabpanel" aria-labelledby="tab-lim">
+        <p class="hint" style="margin-top:0">Add the limitations that <b>matter most</b> — the ones that genuinely affect how a reader should interpret your results. This is not an exhaustive inventory of every imperfection. <i>(Guideline 4)</i></p>
+
+        <div class="item" style="background:#fff">
+          <h4>Add a limitation</h4>
+
+          <label for="lv">Step 1 · Which type of validity does it threaten? <span class="hint" style="display:inline">(classifies the concern)</span></label>
+          <select id="lv" aria-describedby="lvdef">
+            <option value="">— Select a validity type —</option>
+            <option value="internal">Internal validity</option>
+            <option value="external">External validity</option>
+            <option value="construct">Construct validity</option>
+            <option value="statistical">Statistical conclusion validity</option>
+            <option value="theory">Theory</option>
+          </select>
+          <div id="lvdef"></div>
+
+          <label for="lwhat">Step 2 · The "What" — describe the shortcoming</label>
+          <div class="hint">State the methodological or design weakness plainly. Example: "Our design is cross-sectional."</div>
+          <textarea id="lwhat" placeholder="e.g., We measured firm performance using abnormal stock-market return following merger announcements."></textarea>
+
+          <label for="lso">Step 3 · The "So what" — its consequence for interpretation <span class="hint" style="display:inline">(required — Guideline 5)</span></label>
+          <div class="hint">Explain the <i>mechanism</i> and how it changes what a reader can conclude — from the results and for the area. Don't just name the flaw; explain why it matters.</div>
+          <textarea id="lso" placeholder="e.g., Because post-merger integration is complex and slow, this measure cannot speak to long-term performance, so our conclusions are limited to short-term market reaction."></textarea>
+          <div id="lcheck"></div>
+
+          <div class="row" style="margin-top:14px">
+            <div>
+              <label for="limp" style="margin-top:0">Step 4 · How much does it matter?</label>
+              <div class="pill-grp" id="limp" role="group" aria-label="Importance">
+                <button type="button" class="pill" aria-pressed="true" data-imp="high" onclick="pickImp(this)">High — changes interpretation</button>
+                <button type="button" class="pill" aria-pressed="false" data-imp="medium" onclick="pickImp(this)">Medium — worth noting</button>
+              </div>
+            </div>
+            <div>
+              <label for="lsrc" style="margin-top:0">Who raised it? <span class="hint" style="display:inline">(Guideline 3)</span></label>
+              <select id="lsrc">
+                <option value="author">Author (self-identified)</option>
+                <option value="reviewer">Reviewer</option>
+                <option value="editor">Editor</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="item-actions">
+            <button class="btn" id="addLimBtn" onclick="addLimitation()">Add limitation</button>
+            <button class="btn sec sm" onclick="loadLimExample()">Fill with an example</button>
+            <button class="btn ghost sm" onclick="clearLimForm()">Clear</button>
+          </div>
+        </div>
+
+        <details class="def">
+          <summary>See worked before / after examples (from Table 9 of the article)</summary>
+          <div class="dbody" id="examplesBox"></div>
+        </details>
+
+        <h3 style="margin:18px 0 0;font-size:15px">Your limitations <span class="hint" style="display:inline">(drag-free list — edit or remove any time)</span></h3>
+        <div id="limList"><div class="empty">No limitations added yet. Every empirical study has at least one — add the ones that matter. (Guideline 1)</div></div>
+      </div>
+
+      <!-- ===== FUTURE PANE ===== -->
+      <div class="bd" id="pane-fut" role="tabpanel" aria-labelledby="tab-fut" hidden>
+        <p class="hint" style="margin-top:0">Frame directions as <b>immediate, incremental, actionable</b> next steps — not distant wish-lists, and not your limitations simply turned inside out. At least one should advance <b>theory</b>. <i>(Guidelines 7 &amp; 8)</i></p>
+
+        <div class="item" style="background:#fff">
+          <h4>Add a future direction</h4>
+
+          <label for="fwhat">The direction — what should be done next?</label>
+          <div class="hint">Be concrete and proximal. Constructive replications and near-term extensions count and are valued.</div>
+          <textarea id="fwhat" placeholder="e.g., Future studies could replicate this design with a longitudinal panel to test whether the effect persists once fatigue is controlled."></textarea>
+          <div id="fimmcheck"></div>
+
+          <label for="ftheory">How does it advance theory? <span class="hint" style="display:inline">(Guideline 8 — at least one direction should answer this)</span></label>
+          <div class="hint">Connect it to a theoretical question, mechanism, or competing explanation — not only a methodological fix.</div>
+          <textarea id="ftheory" placeholder="e.g., This would help adjudicate between social-exchange and self-determination accounts of the mediating mechanism."></textarea>
+
+          <div>
+            <label for="fdup" style="margin-top:6px">Is this just a limitation restated? <span class="hint" style="display:inline">(Guideline 7)</span></label>
+            <div class="pill-grp" id="fdup" role="group" aria-label="Redundancy check">
+              <button type="button" class="pill" aria-pressed="true" data-dup="no" onclick="pickDup(this)">No — it adds a new, actionable idea</button>
+              <button type="button" class="pill" aria-pressed="false" data-dup="yes" onclick="pickDup(this)">Yes — mirrors a limitation</button>
+            </div>
+            <div id="fdupwarn"></div>
+          </div>
+
+          <div class="item-actions">
+            <button class="btn" id="addFutBtn" onclick="addFuture()">Add direction</button>
+            <button class="btn sec sm" onclick="loadFutExample()">Fill with an example</button>
+            <button class="btn ghost sm" onclick="clearFutForm()">Clear</button>
+          </div>
+        </div>
+
+        <h3 style="margin:18px 0 0;font-size:15px">Your future directions</h3>
+        <div id="futList"><div class="empty">No directions added yet. Aim for at least one immediate, incremental idea — and one that advances theory.</div></div>
+      </div>
+
+      <!-- ===== OUTPUT PANE ===== -->
+      <div class="bd" id="pane-out" role="tabpanel" aria-labelledby="tab-out" hidden>
+        <div id="selfAssess"></div>
+        <div class="item-actions" style="margin:14px 0">
+          <button class="btn" onclick="copyOut()">Copy to clipboard</button>
+          <button class="btn sec" onclick="downloadOut('md')">Download .md</button>
+          <button class="btn sec" onclick="downloadOut('txt')">Download .txt</button>
+        </div>
+        <label style="margin-top:6px">Live preview of your two sections</label>
+        <div class="preview" id="previewBox"></div>
+      </div>
+    </div>
+  </main>
+
+  <!-- SIDEBAR -->
+  <aside class="side">
+    <div class="panel">
+      <div class="hd"><h2>Quality checklist</h2></div>
+      <div class="bd">
+        <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:6px">
+          <span class="hint" style="margin:0">Guidelines satisfied</span>
+          <b id="scoreTxt">0 / 8</b>
+        </div>
+        <div class="meter"><span id="meterFill"></span></div>
+        <div id="checklist" style="margin-top:10px"></div>
+      </div>
+    </div>
+    <div class="panel">
+      <div class="hd"><h2>The 8 guidelines</h2></div>
+      <div class="bd">
+        <ul class="gl-list">
+          <li><span class="tag-mini">1</span><div>Make it a priority — report at least one limitation.</div></li>
+          <li><span class="tag-mini">2</span><div>Use a separate, labeled section.</div></li>
+          <li><span class="tag-mini">3</span><div>Note that reviewers/editors share responsibility.</div></li>
+          <li><span class="tag-mini">4</span><div>Focus on weaknesses that matter; prioritize.</div></li>
+          <li><span class="tag-mini">5</span><div>Highlight the "so what," not just the "what."</div></li>
+          <li><span class="tag-mini">6</span><div>Describe each limitation — do not justify it away.</div></li>
+          <li><span class="tag-mini">7</span><div>Future research: immediate &amp; incremental.</div></li>
+          <li><span class="tag-mini">8</span><div>Use future research to advance theory.</div></li>
+        </ul>
+      </div>
+    </div>
+  </aside>
+</div>
+
+<footer class="credits">
+  <div class="panel"><div class="bd" style="padding:16px 18px">
+    <b>Sources &amp; credits</b>
+    <p style="margin:8px 0 0">Substantive guidance is based on: Brutus, S., Aguinis, H., &amp; Wassmer, U. (2013). Self-reported limitations and future directions in scholarly reports: Analysis and recommendations. <i>Journal of Management, 39</i>(1), 48–75.</p>
+    <p style="margin:8px 0 0">Further reading: Aguinis, H. (2025). <i>Research methodology: Best practices for rigorous, credible, and impactful research.</i> SAGE. <a href="https://collegepublishing.sagepub.com/products/research-methodology-1-280088" target="_blank" rel="noopener">collegepublishing.sagepub.com/products/research-methodology-1-280088</a></p>
+    <p style="margin:8px 0 0;font-size:12px">This tool runs entirely in your browser. Nothing you type is sent anywhere or stored — closing the page clears all data.</p>
+  </div></div>
+</footer>
+
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script>
+"use strict";
+
+/* ---------- Reference content from the article ---------- */
+var VALIDITY = {
+  internal:{name:"Internal validity",def:"The degree to which we can infer that the relationship between two variables is causal — that the independent variable, not something else, produced the effect.",
+    ex:"Cross-sectional or passive-observation designs make causal direction hard to establish."},
+  external:{name:"External validity",def:"The degree to which results generalize across people, settings, treatments, times, and measures beyond the specific study.",
+    ex:"A single industry, country, or sample type may limit generalization — but only when it actually interacts with the phenomenon."},
+  construct:{name:"Construct validity",def:"The fit between the measures used and the underlying constructs they claim to represent.",
+    ex:"A proxy (e.g., stock return for 'performance') may capture only part of the intended construct."},
+  statistical:{name:"Statistical conclusion validity",def:"The degree to which conclusions about covariation between variables are reasonable given the data and analyses — power, measurement error, assumptions.",
+    ex:"Measurement error attenuates observed coefficients relative to true population values."},
+  theory:{name:"Theory",def:"Limitations or opportunities concerning the theoretical framework itself — its scope, assumptions, boundary conditions, or competing explanations.",
+    ex:"The model may omit a mechanism that a rival theory would predict."}
+};
+
+/* Table 9 — currently reported vs. reported following the guidelines */
+var EXAMPLES = [
+  {type:"Internal validity",
+   weak:"The cross-sectional nature of our design makes it difficult to infer a causal relationship between job characteristics and employee well-being.",
+   strong:"One limitation is that we cannot rule out reversed causality. The influence of mental and physical fatigue on psychological states is pervasive and well established, so it is possible that fatigue led to the emergence of some reported job characteristics — meaning the causal direction we hypothesize may be partly reversed."},
+  {type:"External validity",
+   weak:"One limitation is that we focus only on one interfirm collaboration type, namely, collaborations in which firms share physical assets such as plants or distribution networks.",
+   strong:"Because our study examines only collaborations focused on sharing physical assets (e.g., plants, distribution networks), our findings are likely to generalize poorly to collaborations centered on learning or the exchange of skills and knowledge, where the underlying coordination dynamics differ."},
+  {type:"Construct validity",
+   weak:"One limitation is that we proxied firm performance through the abnormal stock-market return following merger announcements.",
+   strong:"The interpretation of our results is constrained by our performance measure (abnormal stock-market return). Because post-merger integration is complex and unfolds over time, this measure does not support any conclusion about the long-term performance impact of these events — only the market's short-term reaction."},
+  {type:"Statistical conclusion validity",
+   weak:"The regression analyses were sensitive to measurement error. However, the coefficients were statistically significant, thereby providing support for the hypothesized relationships.",
+   strong:"The regression analyses were sensitive to measurement error, which attenuates observed coefficients relative to their true population values. Because our coefficients were nonetheless statistically significant, the population effects are likely even larger than those we report — a consequence readers should weigh when gauging effect size."}
+];
+
+/* Guideline 6 — justification / minimization phrases */
+var JUSTIFY_PATTERNS = [
+  "does not really matter","doesn't really matter","does not matter","doesn't matter",
+  "not a serious","not serious","minor issue","is minor","relatively minor","only a minor",
+  "unlikely to","is unlikely","we believe this is minor","not a major","no major",
+  "should not affect","does not threaten","doesn't threaten","not a concern","of little concern",
+  "however, the","nonetheless significant","still significant","were still","was still significant",
+  "we do not think","we don't think","nevertheless","despite this","not problematic","poses no",
+  "negligible","trivial","has little effect","little impact","not affect our conclusions"
+];
+
+/* Guideline 7 — distal / speculative future-research phrases */
+var DISTAL_PATTERNS = ["in the distant future","one day","eventually","ultimately","grand","sweeping",
+  "entirely new paradigm","revolutionize","someday","far-reaching","long-term agenda","decades"];
+
+/* ---------- State ---------- */
+var limitations = []; // {id,type,what,so,imp,src}
+var futures = [];     // {id,what,theory,dup}
+var uid = 1;
+var curImp = "high", curDup = "no";
+
+/* ---------- Helpers ---------- */
+function $(id){return document.getElementById(id);}
+function esc(s){return (s||"").replace(/[&<>"]/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c];});}
+function toast(msg){var t=$("toast");t.textContent=msg;t.classList.add("show");setTimeout(function(){t.classList.remove("show");},1900);}
+
+function findJustify(text){
+  var low=" "+(text||"").toLowerCase()+" ";var hits=[];
+  JUSTIFY_PATTERNS.forEach(function(p){if(low.indexOf(p)>-1)hits.push(p);});
+  return hits;
+}
+function findDistal(text){
+  var low=" "+(text||"").toLowerCase()+" ";var hits=[];
+  DISTAL_PATTERNS.forEach(function(p){if(low.indexOf(p)>-1)hits.push(p);});
+  return hits;
+}
+
+/* ---------- Tabs ---------- */
+function switchTab(which){
+  ["lim","fut","out"].forEach(function(k){
+    var sel=k===which;
+    $("tab-"+k).setAttribute("aria-selected",sel?"true":"false");
+    $("pane-"+k).hidden=!sel;
+  });
+  if(which==="out"){renderPreview();renderSelfAssess();}
+}
+
+/* ---------- Validity definition panel ---------- */
+$("lv").addEventListener("change",function(){
+  var v=this.value, box=$("lvdef"); box.innerHTML="";
+  if(!v)return;
+  var d=VALIDITY[v];
+  box.innerHTML='<div class="alert good" style="margin-top:8px"><b>'+esc(d.name)+'</b>'+
+    esc(d.def)+'<br><span style="color:var(--muted)"><i>Typical example:</i> '+esc(d.ex)+'</span></div>';
+});
+
+/* ---------- live so-what / justify check on limitation form ---------- */
+function liveLimCheck(){
+  var so=$("lso").value.trim(), what=$("lwhat").value.trim(), box=$("lcheck"); box.innerHTML="";
+  var msgs="";
+  var jh=findJustify(so).concat(findJustify(what));
+  if(jh.length){
+    msgs+='<div class="alert bad"><b>⚠ Possible justification language (Guideline 6)</b>'+
+      'Found: "'+esc(jh.join('", "'))+'". Describe how the limitation affects interpretation — don\'t explain it away or reassure the reader it doesn\'t matter.</div>';
+  }
+  if(so && so.length<25){
+    msgs+='<div class="alert warn"><b>Thin "so what"</b>Add the consequence: what can a reader <i>not</i> conclude because of this?</div>';
+  }
+  box.innerHTML=msgs;
+}
+$("lso").addEventListener("input",liveLimCheck);
+$("lwhat").addEventListener("input",liveLimCheck);
+
+/* ---------- future immediacy / dup live check ---------- */
+function liveFutCheck(){
+  var t=$("fwhat").value.trim(), box=$("fimmcheck"); box.innerHTML="";
+  var dh=findDistal(t);
+  if(dh.length){
+    box.innerHTML='<div class="alert warn"><b>Sounds distal (Guideline 7)</b>Phrasing like "'+esc(dh.join('", "'))+
+      '" points far downstream. Reframe as an immediate, incremental, actionable next step.</div>';
+  }
+}
+$("fwhat").addEventListener("input",liveFutCheck);
+
+/* ---------- pill pickers ---------- */
+function pickImp(btn){
+  document.querySelectorAll('#limp .pill').forEach(function(p){p.setAttribute("aria-pressed","false");});
+  btn.setAttribute("aria-pressed","true"); curImp=btn.dataset.imp;
+}
+function pickDup(btn){
+  document.querySelectorAll('#fdup .pill').forEach(function(p){p.setAttribute("aria-pressed","false");});
+  btn.setAttribute("aria-pressed","true"); curDup=btn.dataset.dup;
+  $("fdupwarn").innerHTML = curDup==="yes"
+    ? '<div class="alert warn"><b>Avoid redundancy (Guideline 7)</b>Replicating a limitation as "future research" wastes space. Either add a genuinely new, actionable extension or remove it.</div>'
+    : "";
+}
+
+/* ---------- add / edit limitations ---------- */
+function addLimitation(){
+  var type=$("lv").value, what=$("lwhat").value.trim(), so=$("lso").value.trim();
+  if(!type){toast("Select a validity type first.");$("lv").focus();return;}
+  if(!what){toast("Describe the 'what'.");$("lwhat").focus();return;}
+  if(!so){toast("The 'so what' is required (Guideline 5).");$("lso").focus();return;}
+  limitations.push({id:uid++,type:type,what:what,so:so,imp:curImp,src:$("lsrc").value});
+  clearLimForm();
+  renderLimList();updateAll();
+  toast("Limitation added.");
+}
+function clearLimForm(){
+  $("lv").value="";$("lvdef").innerHTML="";$("lwhat").value="";$("lso").value="";
+  $("lcheck").innerHTML="";$("lsrc").value="author";
+  pickImp(document.querySelector('#limp .pill[data-imp="high"]'));
+}
+function removeLim(id){limitations=limitations.filter(function(x){return x.id!==id;});renderLimList();updateAll();}
+function editLim(id){
+  var l=limitations.find(function(x){return x.id===id;});if(!l)return;
+  $("lv").value=l.type;$("lv").dispatchEvent(new Event("change"));
+  $("lwhat").value=l.what;$("lso").value=l.so;$("lsrc").value=l.src;
+  pickImp(document.querySelector('#limp .pill[data-imp="'+l.imp+'"]'));
+  removeLim(id);liveLimCheck();
+  $("lwhat").scrollIntoView({behavior:"smooth",block:"center"});
+  toast("Loaded into the editor — make changes and re-add.");
+}
+function renderLimList(){
+  var box=$("limList");
+  if(!limitations.length){box.innerHTML='<div class="empty">No limitations added yet. Every empirical study has at least one — add the ones that matter. (Guideline 1)</div>';return;}
+  box.innerHTML=limitations.map(function(l){
+    var jh=findJustify(l.so).concat(findJustify(l.what));
+    var flag=jh.length?'<div class="alert bad" style="margin-top:8px"><b>⚠ Justification language</b>Reword to describe impact, not dismiss it: "'+esc(jh.join('", "'))+'".</div>':"";
+    var thin=(l.so.length<25)?'<div class="alert warn" style="margin-top:8px">"So what" looks thin — strengthen the consequence.</div>':"";
+    return '<div class="item"><h4>'+
+      '<span class="chip v">'+esc(VALIDITY[l.type].name)+'</span>'+
+      '<span class="chip '+(l.imp==="high"?"hi":"med")+'">'+(l.imp==="high"?"High":"Medium")+'</span>'+
+      '<span class="chip src">'+esc(l.src)+'</span></h4>'+
+      '<div class="what"><span class="lab">What</span><div>'+esc(l.what)+'</div></div>'+
+      '<div class="what"><span class="lab">So what</span><div>'+esc(l.so)+'</div></div>'+
+      flag+thin+
+      '<div class="item-actions"><button class="btn sec sm" onclick="editLim('+l.id+')">Edit</button>'+
+      '<button class="btn ghost sm" onclick="removeLim('+l.id+')">Remove</button></div></div>';
+  }).join("");
+}
+
+/* ---------- add / edit futures ---------- */
+function addFuture(){
+  var what=$("fwhat").value.trim(), theory=$("ftheory").value.trim();
+  if(!what){toast("Describe the direction first.");$("fwhat").focus();return;}
+  futures.push({id:uid++,what:what,theory:theory,dup:curDup});
+  clearFutForm();renderFutList();updateAll();
+  toast("Direction added.");
+}
+function clearFutForm(){
+  $("fwhat").value="";$("ftheory").value="";$("fimmcheck").innerHTML="";$("fdupwarn").innerHTML="";
+  pickDup(document.querySelector('#fdup .pill[data-dup="no"]'));
+}
+function removeFut(id){futures=futures.filter(function(x){return x.id!==id;});renderFutList();updateAll();}
+function editFut(id){
+  var f=futures.find(function(x){return x.id===id;});if(!f)return;
+  $("fwhat").value=f.what;$("ftheory").value=f.theory;
+  pickDup(document.querySelector('#fdup .pill[data-dup="'+f.dup+'"]'));
+  removeFut(id);liveFutCheck();
+  $("fwhat").scrollIntoView({behavior:"smooth",block:"center"});
+}
+function renderFutList(){
+  var box=$("futList");
+  if(!futures.length){box.innerHTML='<div class="empty">No directions added yet. Aim for at least one immediate, incremental idea — and one that advances theory.</div>';return;}
+  box.innerHTML=futures.map(function(f){
+    var dh=findDistal(f.what);
+    var distal=dh.length?'<div class="alert warn" style="margin-top:8px">Sounds distal — reframe as a proximal, actionable step.</div>':"";
+    var dup=f.dup==="yes"?'<div class="alert warn" style="margin-top:8px">Flagged as mirroring a limitation — make it genuinely new or remove.</div>':"";
+    var th=f.theory?'<div class="what"><span class="lab">Advances theory</span><div>'+esc(f.theory)+'</div></div>':'<div class="alert warn" style="margin-top:8px">No theory link yet (Guideline 8).</div>';
+    return '<div class="item"><div class="what"><span class="lab">Direction</span><div>'+esc(f.what)+'</div></div>'+
+      th+distal+dup+
+      '<div class="item-actions"><button class="btn sec sm" onclick="editFut('+f.id+')">Edit</button>'+
+      '<button class="btn ghost sm" onclick="removeFut('+f.id+')">Remove</button></div></div>';
+  }).join("");
+}
+
+/* ---------- examples (Table 9) ---------- */
+function renderExamples(){
+  $("examplesBox").innerHTML=EXAMPLES.map(function(e){
+    return '<div style="margin-top:10px"><b>'+esc(e.type)+'</b><div class="ex">'+
+      '<div class="cell weak"><div class="tg">✗ Currently reported (weak)</div>'+esc(e.weak)+'</div>'+
+      '<div class="cell strong"><div class="tg">✓ Following the guidelines</div>'+esc(e.strong)+'</div></div></div>';
+  }).join("");
+}
+function loadLimExample(){
+  var map={internal:0,external:1,construct:2,statistical:3};
+  var keys=["internal","external","construct","statistical"];
+  var picked=keys[Math.floor(Math.random()*keys.length)];
+  var e=EXAMPLES[map[picked]];
+  $("lv").value=picked;$("lv").dispatchEvent(new Event("change"));
+  $("lwhat").value=e.weak;
+  $("lso").value=e.strong;
+  liveLimCheck();toast("Example loaded — note the strong 'so what'.");
+}
+function loadFutExample(){
+  $("fwhat").value="Replicate this cross-sectional design with a longitudinal panel that measures the proposed mediator at multiple waves.";
+  $("ftheory").value="A longitudinal test would help adjudicate between social-exchange and self-determination explanations of the mediating mechanism, advancing the theory beyond a single-wave correlation.";
+  liveFutCheck();toast("Example loaded.");
+}
+
+/* ---------- checklist / score ---------- */
+function evalGuidelines(){
+  var hasLim=limitations.length>0;
+  var allHaveSo=hasLim && limitations.every(function(l){return l.so.trim().length>=25;});
+  var noJustify=hasLim && limitations.every(function(l){return findJustify(l.so).length===0 && findJustify(l.what).length===0;});
+  var prioritized=hasLim && limitations.some(function(l){return l.imp==="high";}) &&
+                  !(limitations.length>=4 && limitations.every(function(l){return l.imp==="high";}));
+  var reviewerNoted=limitations.some(function(l){return l.src==="reviewer"||l.src==="editor";});
+  var hasFut=futures.length>0;
+  var immediate=hasFut && futures.some(function(f){return f.dup!=="yes" && findDistal(f.what).length===0;});
+  var theoryLink=futures.some(function(f){return f.theory.trim().length>0;});
+
+  return [
+    {g:1,name:"Make it a priority",ok:hasLim,
+      okmsg:limitations.length+" limitation"+(limitations.length===1?"":"s")+" reported.",
+      nomsg:"Add at least one limitation — every empirical study has one."},
+    {g:2,name:"Separate, labeled section",ok:hasLim,
+      okmsg:"Output renders a standalone, labeled Limitations section.",
+      nomsg:"Add a limitation to generate the labeled section."},
+    {g:3,name:"Reviewers/editors share responsibility",ok:reviewerNoted,partial:hasLim,
+      okmsg:"A limitation is attributed to a reviewer or editor.",
+      nomsg:"Reviewers and editors should help surface limitations — flag at least one via 'Who raised it?'."},
+    {g:4,name:"Focus on what matters",ok:prioritized,partial:hasLim,
+      okmsg:"Limitations are prioritized rather than an undifferentiated list.",
+      nomsg:hasLim?"Mark the ones that truly change interpretation as High — and don't mark everything High.":"Add and prioritize limitations."},
+    {g:5,name:'Highlight the "so what"',ok:allHaveSo,partial:hasLim,
+      okmsg:"Every limitation explains its consequence for interpretation.",
+      nomsg:"Give each limitation a substantive 'so what'."},
+    {g:6,name:"Describe, do not justify",ok:noJustify,partial:hasLim,
+      okmsg:"No justification/minimization language detected.",
+      nomsg:"Remove language that explains a limitation away (see flags)."},
+    {g:7,name:"Immediate & incremental directions",ok:immediate,partial:hasFut,
+      okmsg:"At least one proximal, actionable, non-redundant direction.",
+      nomsg:hasFut?"Add an immediate, incremental direction that isn't a limitation restated.":"Add a future direction."},
+    {g:8,name:"Advance theory",ok:theoryLink,partial:hasFut,
+      okmsg:"At least one direction connects to theoretical development.",
+      nomsg:"Add a theory link to at least one future direction."}
+  ];
+}
+function renderChecklist(){
+  var items=evalGuidelines();
+  var done=items.filter(function(i){return i.ok;}).length;
+  $("scoreTxt").textContent=done+" / 8";
+  $("meterFill").style.width=(done/8*100)+"%";
+  $("checklist").innerHTML=items.map(function(i){
+    var ic = i.ok?'<span class="ic ok">✓</span>' : (i.partial?'<span class="ic wn">!</span>':'<span class="ic no">○</span>');
+    return '<div class="check">'+ic+'<div><b>G'+i.g+'. '+esc(i.name)+'</b><small>'+esc(i.ok?i.okmsg:i.nomsg)+'</small></div></div>';
+  }).join("");
+  return {items:items,done:done};
+}
+
+/* ---------- preview ---------- */
+function buildText(fmt){
+  var H1 = fmt==="md" ? "## " : "";
+  var rule = fmt==="md" ? "" : "";
+  var out="";
+  // sort: High importance first
+  var lims=limitations.slice().sort(function(a,b){return (a.imp==="high"?0:1)-(b.imp==="high"?0:1);});
+  out += H1+"Limitations\n\n";
+  if(!lims.length){
+    out+="(No limitations added yet.)\n";
+  } else {
+    lims.forEach(function(l,i){
+      var sentence=l.what.trim();
+      if(!/[.!?]$/.test(sentence))sentence+=".";
+      var so=l.so.trim();
+      if(!/[.!?]$/.test(so))so+=".";
+      out += (i+1)+". "+sentence+" "+so+"\n\n";
+    });
+  }
+  out += "\n"+H1+"Directions for Future Research\n\n";
+  if(!futures.length){
+    out+="(No future directions added yet.)\n";
+  } else {
+    futures.forEach(function(f,i){
+      var s=f.what.trim(); if(!/[.!?]$/.test(s))s+=".";
+      var line=(i+1)+". "+s;
+      if(f.theory.trim()){var t=f.theory.trim();if(!/[.!?]$/.test(t))t+=".";line+=" "+t;}
+      out+=line+"\n\n";
+    });
+  }
+  return out.trim()+"\n";
+}
+function renderPreview(){ $("previewBox").textContent=buildText("txt"); }
+
+/* ---------- self assessment ---------- */
+function renderSelfAssess(){
+  var r=renderChecklist();
+  var pct=Math.round(r.done/8*100);
+  var tone = r.done===8?"good":(r.done>=5?"warn":"bad");
+  var head = r.done===8 ? "Ready to submit — all eight guidelines satisfied."
+           : r.done>=5 ? "Almost there — a few guidelines still need attention."
+           : "Early draft — several guidelines still unmet.";
+  var todo=r.items.filter(function(i){return !i.ok;}).map(function(i){
+    return '<li><span class="tag-mini">G'+i.g+'</span><div>'+esc(i.nomsg)+'</div></li>';
+  }).join("");
+  $("selfAssess").innerHTML =
+    '<div class="alert '+tone+'"><b>Self-assessment</b>'+
+    '<span class="score-big">'+r.done+'/8</span> &nbsp;guidelines satisfied ('+pct+'%). '+esc(head)+'</div>'+
+    (todo? '<p style="margin:12px 0 4px;font-weight:700">Still to address:</p><ul class="gl-list">'+todo+'</ul>'
+         : '<p style="margin:12px 0 0;color:var(--good)"><b>Nothing outstanding.</b> Your two sections are below.</p>');
+}
+
+/* ---------- export ---------- */
+function copyOut(){
+  var txt=buildText("txt");
+  if(navigator.clipboard && navigator.clipboard.writeText){
+    navigator.clipboard.writeText(txt).then(function(){toast("Copied to clipboard.");},function(){fallbackCopy(txt);});
+  } else { fallbackCopy(txt); }
+}
+function fallbackCopy(txt){
+  var ta=document.createElement("textarea");ta.value=txt;document.body.appendChild(ta);ta.select();
+  try{document.execCommand("copy");toast("Copied to clipboard.");}catch(e){toast("Copy failed — select the preview text.");}
+  document.body.removeChild(ta);
+}
+function downloadOut(fmt){
+  var txt=buildText(fmt);
+  var blob=new Blob([txt],{type:"text/"+(fmt==="md"?"markdown":"plain")+";charset=utf-8"});
+  var a=document.createElement("a");a.href=URL.createObjectURL(blob);
+  a.download="limitations-and-future-directions."+fmt;
+  document.body.appendChild(a);a.click();document.body.removeChild(a);
+  setTimeout(function(){URL.revokeObjectURL(a.href);},1000);
+  toast("Downloaded ."+fmt);
+}
+
+/* ---------- master update ---------- */
+function updateAll(){
+  renderChecklist();
+  if(!$("pane-out").hidden){renderPreview();renderSelfAssess();}
+}
+
+/* ---------- init ---------- */
+renderExamples();renderLimList();renderFutList();renderChecklist();
+</script>
+<!-- Begin Countercentral code v 7.0 --> 
+<span id="wts2576"></span> 
+<script>var wts=document.createElement('script');wts.async=true; 
+wts.src='https://server2.countercentral.com/log7.js';document.head.appendChild(wts); 
+wts.onload = function(){ wtslog7(2576,1); }; 
+</script><noscript><a href="https://www.countercentral.com"> 
+<img src="https://server2.countercentral.com/7/1/2576.png"  
+alt="Countercentral web traffic analysis"></a></noscript> 
+<!-- End Countercentral code v 7.0 --> 
+</body>
+</html>

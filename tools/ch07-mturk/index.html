@@ -1,0 +1,369 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>MTurkGuard: Interactive Navigator for Valid and Trustworthy MTurk Research</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
+  <style>
+    :root{
+      --teal:#0f766e;
+      --teal-dark:#064e3b;
+      --teal-mid:#0d9488;
+      --teal-light:#ccfbf1;
+      --mint:#ecfdf5;
+      --ink:#16302b;
+      --muted:#5b6b68;
+      --line:#cfe3de;
+      --bg:#f6fbfa;
+      --white:#fff;
+      --red:#b91c1c;
+      --orange:#c2410c;
+      --blue:#1d4ed8;
+      --green:#15803d;
+      --amber:#92400e;
+      --shadow:0 10px 30px rgba(6,78,59,.12);
+      --radius:16px;
+    }
+    *{box-sizing:border-box}
+    html{scroll-behavior:smooth}
+    body{
+      margin:0;
+      font-family:Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+      color:var(--ink);
+      background:linear-gradient(180deg,#effaf7 0%,#f9fdfc 30%,#fff 100%);
+      line-height:1.48;
+    }
+    header{
+      background:linear-gradient(135deg,var(--teal-dark),var(--teal));
+      color:white;
+      padding:34px 22px 28px;
+      box-shadow:var(--shadow);
+    }
+    .wrap{max-width:1240px;margin:0 auto;padding:0 18px}
+    .hero{display:grid;grid-template-columns:1fr;gap:8px;align-items:center}
+    h1{font-size:clamp(28px,4vw,48px);line-height:1.05;margin:0;font-weight:850;letter-spacing:-.035em}
+    .credit{font-size:14px;max-width:1100px;opacity:.94;margin:6px 0 0}
+    .top-summary{display:flex;gap:12px;flex-wrap:wrap;margin-top:18px}
+    .summary-pill{border:1px solid rgba(255,255,255,.28);background:rgba(255,255,255,.12);border-radius:999px;padding:8px 12px;font-weight:700;font-size:13px}
+    nav{
+      position:sticky;top:0;z-index:20;background:rgba(255,255,255,.94);backdrop-filter:blur(12px);border-bottom:1px solid var(--line);
+    }
+    .tabs{display:grid;grid-template-columns:repeat(6,1fr);gap:8px;padding:12px 0}
+    .tabbtn{
+      border:1px solid var(--line);background:#fff;color:var(--teal-dark);border-radius:12px;padding:11px 8px;font-weight:800;cursor:pointer;box-shadow:0 2px 10px rgba(6,78,59,.05);font-size:13px;text-align:center;
+    }
+    .tabbtn:hover{background:var(--mint)}
+    .tabbtn.active{background:var(--teal);color:white;border-color:var(--teal)}
+    main{padding:26px 0 70px}
+    section.tab{display:none;animation:fade .18s ease-in}
+    section.tab.active{display:block}
+    @keyframes fade{from{opacity:.5;transform:translateY(4px)}to{opacity:1;transform:translateY(0)}}
+    h2{font-size:32px;margin:0 0 10px;letter-spacing:-.025em;color:var(--teal-dark)}
+    h3{font-size:23px;margin:26px 0 12px;color:var(--teal-dark)}
+    h4{font-size:18px;margin:16px 0 8px;color:#0b4a42}
+    p{margin:8px 0;color:#27433e}
+    .intro,.note,.warning,.success,.danger,.callout{
+      border-radius:var(--radius);padding:16px 18px;margin:14px 0;border:1px solid var(--line);background:#fff;box-shadow:0 4px 16px rgba(6,78,59,.06);
+    }
+    .intro{background:linear-gradient(180deg,#ffffff,#effdf9)}
+    .note{background:#f8fffd;border-left:5px solid var(--teal)}
+    .warning{background:#fff7ed;border-color:#fed7aa;border-left:5px solid var(--orange)}
+    .danger{background:#fef2f2;border-color:#fecaca;border-left:5px solid var(--red)}
+    .success{background:#f0fdf4;border-color:#bbf7d0;border-left:5px solid var(--green)}
+    .grid{display:grid;gap:16px}
+    .grid.two{grid-template-columns:repeat(2,minmax(0,1fr))}
+    .grid.three{grid-template-columns:repeat(3,minmax(0,1fr))}
+    .grid.four{grid-template-columns:repeat(4,minmax(0,1fr))}
+    .card{
+      background:var(--white);border:1px solid var(--line);border-radius:var(--radius);padding:17px;box-shadow:0 7px 22px rgba(6,78,59,.08);
+    }
+    .card h4{margin-top:0}
+    .mini{font-size:13px;color:var(--muted)}
+    .badge{display:inline-flex;align-items:center;border-radius:999px;padding:4px 8px;font-size:12px;font-weight:800;margin:2px 4px 2px 0;color:white;white-space:nowrap}
+    .badge.internal{background:var(--red)}
+    .badge.external{background:var(--orange)}
+    .badge.construct{background:var(--blue)}
+    .badge.statistical{background:var(--green)}
+    .stage{background:var(--teal-light);color:var(--teal-dark);border:1px solid #99f6e4}
+    .muted{color:var(--muted)}
+    .challenge-card,.rec-panel,.accordion{
+      background:#fff;border:1px solid var(--line);border-radius:var(--radius);margin:12px 0;box-shadow:0 5px 18px rgba(6,78,59,.06);overflow:hidden;
+    }
+    .challenge-head,.rec-head,.accordion-head{
+      width:100%;display:flex;justify-content:space-between;gap:12px;align-items:center;text-align:left;background:#fff;padding:15px 17px;border:0;border-bottom:1px solid transparent;cursor:pointer;color:var(--teal-dark);font-weight:850;font-size:16px;
+    }
+    .challenge-head:hover,.rec-head:hover,.accordion-head:hover{background:var(--mint)}
+    .challenge-body,.rec-body,.accordion-body{display:none;padding:0 17px 17px;background:#fff}
+    .challenge-card.open .challenge-body,.rec-panel.open .rec-body,.accordion.open .accordion-body{display:block}
+    .challenge-card.open .challenge-head,.rec-panel.open .rec-head,.accordion.open .accordion-head{border-bottom-color:var(--line);background:#fafffe}
+    .chev{font-size:20px;line-height:1;color:var(--teal)}
+    label{display:block;font-weight:750;margin:12px 0 5px;color:#173c36}
+    input[type="number"],input[type="text"],textarea,select{
+      width:100%;padding:11px 12px;border:1px solid #b9d8d2;border-radius:12px;background:#fff;font:inherit;color:var(--ink);
+    }
+    textarea{min-height:120px;resize:vertical}
+    .inline{display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+    .radio-row,.check-row{display:flex;gap:8px;align-items:flex-start;margin:8px 0;font-weight:600;color:#24423d}
+    .radio-row input,.check-row input{margin-top:5px;accent-color:var(--teal)}
+    button.action{
+      background:var(--teal);color:white;border:0;border-radius:12px;padding:10px 14px;font-weight:850;cursor:pointer;box-shadow:0 5px 16px rgba(15,118,110,.2);margin:8px 8px 8px 0;
+    }
+    button.action:hover{background:var(--teal-dark)}
+    button.secondary{background:#fff;color:var(--teal-dark);border:1px solid var(--line);box-shadow:none}
+    .result{
+      background:#f0fdfa;border:1px dashed var(--teal);border-radius:14px;padding:13px 14px;margin:12px 0;white-space:pre-wrap;
+    }
+    .generated{min-height:150px;background:#fbfffe;font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:13px;line-height:1.5}
+    .table-wrap{background:#fff;border:1px solid var(--line);border-radius:var(--radius);padding:8px;box-shadow:0 5px 18px rgba(6,78,59,.06);overflow-x:auto}
+    table{width:100%;border-collapse:collapse;font-size:14px}
+    th,td{border-bottom:1px solid #e1f0ec;padding:9px 8px;text-align:left;vertical-align:top}
+    th{background:#e9fbf7;color:var(--teal-dark);font-weight:850;position:sticky;top:0;z-index:1}
+    tr:last-child td{border-bottom:0}
+    .matrix td,.matrix th{text-align:center;font-size:12px;padding:7px 5px}
+    .matrix td:first-child,.matrix th:first-child{text-align:left;min-width:180px}
+    .check{font-weight:900;color:var(--teal)}
+    .x{color:#b4c4c0}
+    .progress-shell{height:14px;background:#e0f2f1;border-radius:999px;overflow:hidden;border:1px solid #b2dfdb}
+    .progress-bar{height:100%;width:0;background:linear-gradient(90deg,var(--teal-mid),var(--teal-dark));transition:width .25s ease}
+    .scoreline{display:grid;grid-template-columns:130px 1fr 72px;gap:10px;align-items:center;margin:8px 0}
+    .term{border-bottom:1px dotted var(--teal);font-weight:800;color:var(--teal-dark);cursor:help}
+    .copy-status{font-size:13px;color:var(--green);font-weight:800;margin-left:6px}
+    .smallcaps{text-transform:uppercase;letter-spacing:.05em;font-size:12px;font-weight:900;color:var(--teal)}
+    .chartbox{height:520px;background:#fff;border:1px solid var(--line);border-radius:var(--radius);padding:16px;box-shadow:0 5px 18px rgba(6,78,59,.06)}
+    .sticky-actions{position:sticky;bottom:0;background:rgba(255,255,255,.94);backdrop-filter:blur(10px);border-top:1px solid var(--line);padding:10px 0;margin-top:20px;z-index:10}
+    footer{padding:30px 0;border-top:1px solid var(--line);background:#fafffe;color:var(--muted);font-size:13px}
+    @media(max-width:900px){
+      .tabs{grid-template-columns:repeat(2,1fr)}
+      .grid.two,.grid.three,.grid.four{grid-template-columns:1fr}
+      .scoreline{grid-template-columns:1fr}
+      .chartbox{height:430px}
+    }
+    @media print{
+      nav,.sticky-actions,button.action{display:none!important}
+      section.tab{display:block!important;page-break-before:always}
+      body{background:white}
+      .card,.intro,.note,.challenge-card,.rec-panel,.accordion{box-shadow:none}
+    }
+  </style>
+</head>
+<body>
+<header>
+  <div class="wrap hero">
+    <h1>MTurkGuard: Interactive Navigator for Valid and Trustworthy MTurk Research</h1>
+<p class="credit" style="color: white;">Based on: Aguinis, H. (2025). <em>Research methodology: Best practices for rigorous, credible, and impactful research</em>. SAGE. https://collegepublishing.sagepub.com/products/research-methodology-1-280088<br>Aguinis, H., Villamor, I., &amp; Ramani, R. M. (2021). MTurk research: Review and recommendations. <em>Journal of Management, 47</em>(4), 823–837.</p>
+    <div class="top-summary">
+      <span class="summary-pill">10 MTurk challenges</span>
+      <span class="summary-pill">10 lifecycle recommendations</span>
+      <span class="summary-pill">Planning → Implementation → Reporting</span>
+      <span class="summary-pill">Calculators, templates, checklists, and reviewer text</span>
+    </div>
+  </div>
+</header>
+<nav>
+  <div class="wrap tabs" id="tabs"></div>
+</nav>
+<main class="wrap">
+  <section class="tab active" id="tab1"></section>
+  <section class="tab" id="tab2"></section>
+  <section class="tab" id="tab3"></section>
+  <section class="tab" id="tab4"></section>
+  <section class="tab" id="tab5"></section>
+  <section class="tab" id="tab6"></section>
+</main>
+<footer>
+  <div class="wrap">MTurkGuard is a teaching and planning aid. It does not replace IRB review, journal-specific reporting requirements, or researcher judgment.</div>
+</footer>
+<script>
+const TABS=[
+  ['tab1','MTurk: Benefits & Challenges'],
+  ['tab2','Planning R1–R6'],
+  ['tab3','Implementation R7–R9'],
+  ['tab4','Reporting R10'],
+  ['tab5','Master Checklist'],
+  ['tab6','Quick Reference']
+];
+const validity={
+  internal:'Internal validity', external:'External validity', construct:'Construct validity', statistical:'Statistical conclusion validity'
+};
+const benefits=[
+  {t:'Large and Diverse Participant Pool',d:'MTurk provides access to a larger and more demographically diverse participant pool than traditional student samples and, in some respects, the U.S. population. MTurkers tend to be older than students, have more relevant work experience, and report greater computer and internet knowledge. Compared with the general U.S. population, MTurkers are younger and more educated.',f:'Demographic and political-affiliation differences can be addressed by controlling for age, gender, race, ethnicity, income, education, marital status, religion, ideology, and political partisanship.'},
+  {t:'Ease of Access and Speed',d:'MTurk greatly reduces recruitment effort and makes it easier to conduct, extend, reproduce, replicate, or modify a study. This is especially valuable when researchers need rapid access to a large participant pool.',f:'Approximately 7,300 MTurkers are available for a study at any given time, and most assignments are completed within 12 hours or less.'},
+  {t:'Reasonable Cost',d:'Researchers can gather data at lower cost than with many student samples, working-adult samples, or other online panel providers. MTurk also reduces administrative burden by integrating participant payment.',f:'The platform provides a relatively constant fee structure and built-in payment infrastructure.'},
+  {t:'Flexibility Regarding Research Design',d:'MTurk can support experiments, passive observation, quasi-experimental studies, longitudinal designs, content analysis, and cross-cultural or international research when the pool is restricted by country or cultural background.',f:'This flexibility can help researchers test hypotheses across diverse samples and different effect types, including upward/downward relations, dyadic designs, and effects over time.'}
+];
+const challenges=[
+  {id:'C1',short:'Inattention',t:'MTurker Inattention',v:['internal','construct','statistical'],d:'MTurkers often complete HITs in distracting environments and at rapid speed to maximize monetary returns. About 15% fail attention and compliance checks. MTurkers are less likely to attend carefully to instructions or manipulations and more likely to engage in insufficient effort or careless responding than college student samples.',why:'Inattention can weaken manipulations, contaminate measures, increase error variance, and bias estimates. It threatens internal validity when participants do not experience the intended manipulation, construct validity when responses do not reflect intended constructs, and statistical conclusion validity when random or careless responses alter estimates and standard errors.'},
+  {id:'C2',short:'Misrepresentation',t:'Self-Misrepresentation',v:['external'],d:'MTurkers may misrepresent demographic, personality, or other characteristics to meet eligibility criteria. Estimates range from 10%–13% to 24%–83%. Commonly misrepresented characteristics include income, education, age, family status, and gender.',why:'When participants misstate eligibility, the realized sample no longer corresponds to the target population. This directly compromises external validity and makes generalization to the intended population questionable.'},
+  {id:'C3',short:'Self-selection',t:'Self-Selection Bias',v:['external'],d:'The decision to become an MTurker is influenced by personal and demographic characteristics such as monetary incentives, boredom, employment status, or country location. These characteristics may become confounds.',why:'Self-selection makes the participant pool different from the theoretical population. If these characteristics relate to key variables, the sample can produce findings that do not transport to the intended population.'},
+  {id:'C4',short:'Attrition',t:'High Attrition Rates',v:['internal','external'],d:'Attrition rates in MTurk studies often exceed 30%, with reported ranges of 31.9%–51%. Online studies can create higher attrition than laboratory or field research and may produce differential attrition.',why:'Attrition threatens internal validity when dropout differs by condition and external validity when completers differ systematically from non-completers.'},
+  {id:'C5',short:'English fluency',t:'Inconsistent English Language Fluency',v:['internal','construct','statistical'],d:'English fluency affects how participants interpret instructions, manipulations, and measures. Data from MTurkers in countries where English is not the primary language may display only configural invariance relative to native-English-speaking groups.',why:'Language differences can cause participants to understand items differently, weaken manipulations, and create non-equivalent measurement. These problems threaten construct validity and can distort statistical comparisons.'},
+  {id:'C6',short:'Non-naivete',t:'MTurker Non-Naivete',v:['internal','construct'],d:'MTurk prevents repeat payment for the same study but does not track prior exposure to similar topics, stimuli, manipulations, or measures. A small number of MTurkers account for a large share of completed studies, and many specialize in certain research areas.',why:'Experienced participants may guess hypotheses, recognize manipulations, or answer strategically. This can reduce effect sizes by up to 40% on average and can change what measures and manipulations actually capture.'},
+  {id:'C7',short:'Communities',t:'Growth of MTurker Communities',v:['internal','construct'],d:'Many MTurkers interact with other participants about study experiences. Approximately 61% report such interactions, which means information about study purpose or manipulations can spread before others participate.',why:'Community discussion can reveal hypotheses, manipulation details, or attention-check answers, undermining experimental control and contaminating construct measurement.'},
+  {id:'C8',short:'Bots',t:'Vulnerability to Web Robots (Bots)',v:['internal','construct','statistical'],d:'Bots are malicious software programs designed to participate in online studies to receive compensation. They can generate random or partially random data, making them difficult to distinguish from inattentive human participants.',why:'Bot responses are not human responses to the research materials. They can invalidate manipulations, contaminate constructs, and distort statistical estimates.'},
+  {id:'C9',short:'Social desirability',t:'Social Desirability Bias',v:['internal','construct'],d:'Because compensation is a major participation motive, MTurkers may provide socially desirable responses. This tendency varies by country and study context.',why:'Socially desirable responding changes the meaning of participants’ answers, especially for sensitive constructs, and can create demand-characteristic problems in experiments.'},
+  {id:'C10',short:'Unfairness',t:'Perceived Researcher Unfairness',v:['external'],d:'MTurkers may perceive unfairness when compensation procedures are unclear, communication channels are missing, accessibility is poor, or time requirements are inaccurate. Participants may share negative experiences and boycott later studies.',why:'Researcher unfairness can alter who participates in future studies, distort reputation effects, and reduce access to the intended pool, creating external-validity problems.'}
+];
+const recs=[
+  {id:'R1',stage:'Planning',t:'Evaluate Whether MTurk Is Appropriate for Your Study',ch:['C3'],plain:'Before using MTurk, verify that the MTurk participant pool aligns with the population your theory requires. Do not assume earlier MTurk samples represent the current pool.',items:['Evaluated alignment between target population and MTurk participant pool','Will collect and report detailed sample characteristics rather than assume the sample matches earlier MTurk studies','Identified demographic or professional MTurker characteristics that may serve as confounds and planned statistical handling']},
+  {id:'R2',stage:'Planning',t:'Decide Qualifications Used to Screen MTurkers',ch:['C2','C5','C6'],plain:'Screening decisions address self-misrepresentation, English-language fluency, and non-naivete. The goal is to admit the right participants without motivating deception.',items:['Identified all qualifications relevant to the target sample','Decided whether to use a screener study or public qualification listing','Made an a priori decision about native vs. non-native English speakers','Decided how to address MTurker non-naivete with Master Workers or screening questions']},
+  {id:'R3',stage:'Planning',t:'Establish Required Sample Size',ch:['C1','C4','C10'],plain:'Many responses will be unusable because of attrition or attention-check failure. Inflate recruitment targets from the start.',items:['Completed a formal power analysis to determine minimum usable N','Inflated recruitment target above power-analysis N','Used attrition and attention-check assumptions to calculate final recruitment target']},
+  {id:'R4',stage:'Planning',t:'Formulate Compensation Rules',ch:['C1','C4','C8','C2','C10'],plain:'Fair compensation is ethical and affects data quality. Clear a priori rules reduce perceived unfairness and participant resentment.',items:['Calculated compensation based on study time and applicable minimum wage','Formulated a priori rules for approving and denying compensation','Included codes of conduct, monitoring procedures, and consequences in the consent form','Specified when payment will be released']},
+  {id:'R5',stage:'Planning',t:'Design Your Data Collection Tool',ch:['C1','C2','C8','C10'],plain:'Survey and experiment design can detect and deter inattentive responding, bots, duplicate responses, misrepresentation, and social desirability.',items:['CAPTCHA and IP capture are implemented','MTurk Worker ID collection is included','At least two attention checks are included, with at least one open-ended qualitative check','Study is designed to take approximately five minutes or less when feasible','All scale points are labeled','Social desirability check is included when appropriate','Quit study and contact researcher options appear on each page']},
+  {id:'R6',stage:'Planning',t:'Craft Your HIT Posting',ch:['C2','C9'],plain:'The HIT is the public job advertisement. It should be clear and complete without revealing hypotheses, manipulations, or eligibility cues that motivate self-misrepresentation.',items:['HIT includes accurate estimated time commitment','HIT specifies what MTurkers will be asked to do','HIT specifies compensation rules clearly','HIT does not contain cues that signal study aims','HIT does not list eligibility criteria in a way that motivates self-misrepresentation']},
+  {id:'R7',stage:'Implementation',t:'Launch the Study, Monitor Responses, and Respond to Concerns',ch:['C7','C10'],plain:'Pilot before launching the full study. Then monitor MTurker communities and respond promptly to participant concerns.',items:['Ran a pilot test with 10–30 participants including open-ended feedback','Reviewed pilot responses before full launch','Monitored relevant MTurker communities for discussion of the study','Had a plan for responding promptly to questions and concerns']},
+  {id:'R8',stage:'Implementation',t:'Screen Your Data',ch:['C1','C4','C8'],plain:'After collection, systematically screen for careless responding, insufficient effort, fraud, duplicates, and bots before analysis.',items:['Used at least two recommended screening tools for careless/IER responding','Applied response-time thresholds to exclude implausibly fast responders','Checked for duplicate IP addresses while noting VPS limitations','Cross-referenced MTurk Worker IDs against a reference database','Reviewed open-ended responses for evidence of bots or careless responding','Applied all screening criteria a priori and consistently','Adjusted participant pool size as needed to achieve usable N']},
+  {id:'R9',stage:'Implementation',t:'Approve or Deny Compensation',ch:['C10'],plain:'Compensation decisions affect fairness perceptions, participant behavior, and researcher reputation in MTurker communities.',items:['Approved or denied compensation within 24–48 hours of HIT completion','Applied a priori compensation rules consistently','Specified the reason for any denied compensation','Made compensation decisions consistent with the consent form']},
+  {id:'R10',stage:'Reporting',t:'Report Details to Ensure Transparency',ch:['C1','C4','C5','C6','C10'],plain:'MTurk studies require transparent reporting because participants are anonymous and often cannot be contacted later. Readers must be able to evaluate trustworthiness.',items:['Reported HIT posting and data collection details','Reported sample characteristics','Reported attention checks and screening results','Reported country, language, and non-naivete decisions','Reported ethical and compensation information']}
+];
+const termDefs={
+  HIT:'Human Intelligence Task: the MTurk job posting participants see before deciding whether to accept a study.',
+  IER:'Insufficient effort responding: answers produced with low attention, low motivation, or careless engagement.',
+  CAPTCHA:'Completely Automated Public Turing test to tell Computers and Humans Apart; a verification step designed to block bots.',
+  'Master Workers':'MTurkers designated by Amazon as experienced or high-quality, but they may also be especially familiar with common research tasks.',
+  'long-string index':'A data-quality indicator that flags runs of identical responses across many consecutive items.',
+  'within-session response consistency':'A screening method that repeats selected items and checks whether the respondent answers similarly within the same survey.',
+  'configural invariance':'The weakest form of measurement equivalence, meaning groups share the same general factor pattern but not necessarily equivalent loadings or intercepts.'
+};
+const recChallengeMap={
+ R1:['C3'], R2:['C2','C5','C6'], R3:['C1','C4','C10'], R4:['C1','C2','C4','C8','C10'], R5:['C1','C2','C8','C10'], R6:['C2','C9'], R7:['C7','C10'], R8:['C1','C4','C8'], R9:['C10'], R10:['C1','C4','C5','C6','C10']
+};
+function badge(k){return `<span class="badge ${k}">${validity[k]}</span>`}
+function esc(s){return String(s||'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));}
+function term(t){return `<span class="term" title="${esc(termDefs[t]||'')}">${t}</span>`}
+function renderTabs(){document.getElementById('tabs').innerHTML=TABS.map(([id,name],i)=>`<button class="tabbtn ${i===0?'active':''}" data-tab="${id}">${name}</button>`).join('');}
+function showTab(id){
+ document.querySelectorAll('.tabbtn').forEach(b=>b.classList.toggle('active',b.dataset.tab===id));
+ document.querySelectorAll('.tab').forEach(s=>s.classList.toggle('active',s.id===id));
+ window.scrollTo({top:0,behavior:'smooth'});
+ if(id==='tab1') setTimeout(drawMatrixChart,30);
+ updateChecklistScores();
+}
+function accordionClick(e){const head=e.target.closest('.challenge-head,.rec-head,.accordion-head'); if(!head) return; head.parentElement.classList.toggle('open');}
+function copyText(id, statusId){const el=document.getElementById(id); const text=el.value||el.textContent||''; navigator.clipboard.writeText(text).then(()=>{if(statusId){const s=document.getElementById(statusId);s.textContent='Copied';setTimeout(()=>s.textContent='',1500)}}).catch(()=>alert('Copy failed. Select the text and copy manually.'));}
+function renderTab1(){
+ document.getElementById('tab1').innerHTML=`
+ <h2>MTurk: Benefits and Challenges</h2>
+ <div class="intro"><p>MTurk is the most frequently used online data collection method in management research, growing over <strong>2,117%</strong> from 6 papers in 2012 to 133 in 2019. However, despite its popularity, there are serious validity concerns. This tab gives you a complete picture of both sides so you can make an informed decision about using MTurk.</p></div>
+ <h3>Section 1A: Four Benefits of MTurk</h3>
+ <div class="grid two">${benefits.map(b=>`<div class="card"><h4>${b.t}</h4><p>${b.d}</p><p class="note"><strong>Key fact:</strong> ${b.f}</p></div>`).join('')}</div>
+ <h3>Section 1B: Ten Challenges of MTurk Research</h3>
+ <p class="muted">Click each challenge to see why it threatens validity.</p>
+ <div>${challenges.map(c=>`<div class="challenge-card"><button class="challenge-head"><span>${c.id}. ${c.t}<br><span>${c.v.map(badge).join('')}</span></span><span class="chev">+</span></button><div class="challenge-body"><p>${c.d}</p><p><strong>Why this threatens validity:</strong> ${c.why}</p></div></div>`).join('')}</div>
+ <h3>Section 1C: Challenge-to-Recommendation Matrix</h3>
+ <div class="note"><p>The chart below maps the 10 recommendations onto the 10 MTurk validity challenges. Each teal point indicates that the recommendation directly mitigates the challenge.</p></div>
+ <div class="chartbox"><canvas id="matrixChart"></canvas></div>
+ `;
+}
+let matrixChart;
+function drawMatrixChart(){
+ const canvas=document.getElementById('matrixChart'); if(!canvas || typeof Chart==='undefined') return;
+ if(matrixChart) matrixChart.destroy();
+ const points=[];
+ recs.forEach((r,ri)=>{(recChallengeMap[r.id]||[]).forEach(cid=>{points.push({x:challenges.findIndex(c=>c.id===cid),y:recs.length-1-ri,rid:r.id,cid});});});
+ matrixChart=new Chart(canvas,{type:'scatter',data:{datasets:[{label:'Recommendation addresses challenge',data:points,pointRadius:10,pointHoverRadius:13,backgroundColor:'#0f766e',borderColor:'#064e3b',borderWidth:2}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label(ctx){const p=ctx.raw; const r=recs.find(x=>x.id===p.rid); const c=challenges.find(x=>x.id===p.cid); return `${r.id}: ${r.t} → ${c.t}`;}}}},scales:{x:{min:-.5,max:9.5,ticks:{stepSize:1,callback:v=>challenges[v]?.short||''},grid:{color:'#e1f0ec'},title:{display:true,text:'MTurk Challenges'}},y:{min:-.5,max:9.5,ticks:{stepSize:1,callback:v=>{const idx=recs.length-1-v; return recs[idx]?`${recs[idx].id} ${recs[idx].stage}`:''}},grid:{color:'#e1f0ec'},title:{display:true,text:'Recommendations'}}}}
+ });
+}
+function recPanel(r,body){return `<div class="rec-panel open"><button class="rec-head"><span><span class="badge stage">${r.stage}</span> ${r.id}. ${r.t}</span><span class="chev">+</span></button><div class="rec-body"><p>${r.plain}</p><p><strong>Challenges addressed:</strong> ${(r.ch||[]).map(cid=>challenges.find(c=>c.id===cid).t).join('; ')}</p>${body}</div></div>`}
+function renderTab2(){
+ const r1=recs[0], r2=recs[1], r3=recs[2], r4=recs[3], r5=recs[4], r6=recs[5];
+ document.getElementById('tab2').innerHTML=`
+ <h2>Planning Stage: Recommendations 1–6</h2>
+ <div class="intro"><p>The planning stage is the most critical for MTurk research quality. Decisions made before data collection largely determine the validity of your results. Work through all six planning recommendations below.</p></div>
+ ${recPanel(r1,`<h4>Interactive self-assessment</h4><div class="grid three">${['Is there meaningful alignment between MTurkers and the population your theory addresses?','Does your theory require specific participants who may not be well represented in the general MTurk pool?','Have you reviewed recent literature on MTurk pool composition?'].map((q,i)=>`<div class="card"><p><strong>Q${i+1}.</strong> ${q}</p><select id="r1q${i}"><option value="">Select</option><option value="yes">Yes</option><option value="no">No</option></select></div>`).join('')}</div><button class="action" onclick="assessR1()">Assess MTurk fit</button><div id="r1out" class="result"></div>${checklistHTML(r1)}`)}
+ ${recPanel(r2,`<h4>Sub-section A — Addressing Self-Misrepresentation</h4><label>What qualifications are relevant to your study?</label><textarea id="quals" placeholder="Example: age, years of work experience, employment status, race, supervisory experience"></textarea><div class="note"><p><strong>Screener study method:</strong> Run a brief pre-study that pays all participants, collect qualification data, eliminate those who do not match criteria, and invite only qualified participants to the focal study. This is especially useful for unique populations.</p></div><label class="check-row"><input type="checkbox"> I will use a screener study rather than listing qualifications publicly in my HIT.</label><h4>Sub-section B — Addressing English Language Fluency</h4><select id="englishChoice" onchange="choiceGuide('englishChoice','englishOut',{native:'Restrict to MTurkers from native-English-speaking countries, implemented through country/IP restrictions. Report the restriction and rationale.',equiv:'Include non-native English speakers only if you will test measurement equivalence across native and non-native groups. At minimum, evaluate configural, metric, and scalar equivalence where group comparisons are made.'})"><option value="">Choose an approach</option><option value="native">Restrict to native-English-speaking countries</option><option value="equiv">Include non-native speakers and test equivalence</option></select><div id="englishOut" class="result"></div><h4>Sub-section C — Addressing MTurker Non-Naivete</h4><select id="naiveChoice" onchange="choiceGuide('naiveChoice','naiveOut',{masters:'Use Master Workers only if experience is more benefit than threat. Remember that Master Workers may be more familiar with common manipulations and attention checks.',screen:'Use screening questions to gauge familiarity with the research topic, stimuli, measures, or manipulations before allowing participation.'})"><option value="">Choose an approach</option><option value="masters">Restrict to Master Workers</option><option value="screen">Use familiarity screening questions</option></select><div id="naiveOut" class="result"></div><div class="warning">Non-naivete can reduce effect-size estimates by up to 40% on average. Do not ignore this challenge.</div>${checklistHTML(r2)}`)}
+ ${recPanel(r3,`<h4>Sample-size calculator</h4><div class="grid three"><div><label>Minimum usable N required</label><input type="number" id="usableN" value="300"></div><div><label>Estimated attrition rate (%)</label><input type="number" id="attrition" value="40"></div><div><label>Attention-check failure rate (%)</label><input type="number" id="failRate" value="15"></div></div><button class="action" onclick="calcRecruitN()">Calculate Required Recruitment N</button><div id="sampleOut" class="result"></div><p class="mini">Formula: Required N = Usable N ÷ (1 - attrition rate) ÷ (1 - attention-check failure rate). As a rule of thumb, recruit at least 15%–30% more than the power-analysis target, but use the calculator for study-specific planning.</p>${checklistHTML(r3)}`)}
+ ${recPanel(r4,`<h4>Compensation calculator</h4><div class="grid three"><div><label>Estimated study completion time (minutes)</label><input type="number" id="studyMins" value="10"></div><div><label>Target country</label><select id="countryPay"><option>United States</option><option>India</option><option>United Kingdom</option><option>Canada</option><option>Other</option></select></div><div><label>Hourly floor (USD)</label><input type="number" id="hourlyFloor" value="7.25" step="0.01"></div></div><button class="action" onclick="calcPay()">Calculate compensation</button><div id="payOut" class="result"></div><h4>Compensation rules decision form</h4><label>Criteria for refusing payment</label><textarea id="denyCriteria" placeholder="Example: duplicate submission, bot evidence, failure of pre-specified attention checks, response time below threshold"></textarea><label>Payment release timing</label><select><option>Within 24 hours</option><option>Within 48 hours</option><option>As soon as data are screened</option></select><div class="warning">Economic penalties for deceitful behavior can affect MTurkers’ honesty. Make rules explicit and enforceable.</div><h4>Copyable consent form template</h4><textarea id="consentTemplate" class="generated">${esc(consentTemplate())}</textarea><button class="action secondary" onclick="copyText('consentTemplate','copyConsent')">Copy consent template</button><span id="copyConsent" class="copy-status"></span>${checklistHTML(r4)}`)}
+ ${recPanel(r5,`<h4>5A — Bot and Duplicate Prevention</h4>${ul(['Include CAPTCHA verification at study entry','Capture IP addresses and use features preventing multiple completions','Require MTurk Worker ID at the start','Maintain and check a reference database of past participants'])}<h4>5B — Attention Checks</h4><p>Use a minimum of <strong>two</strong> attention checks; at least <strong>one</strong> should be open-ended and qualitative.</p><div class="grid two"><div class="card"><strong>Instructed item</strong><p>Please select “Strongly Agree” for this item.</p></div><div class="card"><strong>Bogus item</strong><p>How many days are in a week?</p></div><div class="card"><strong>Self-report of effort</strong><p>How carefully did you complete this survey?</p></div><div class="card"><strong>Open-ended qualitative check</strong><p>In one or two sentences, describe what this study is about in your own words.</p></div></div><h4>5C — Study Length and Scale Design</h4>${ul(['Design the study to be completable in approximately five minutes or less when feasible','Avoid end-only scale labels; label all response options to reduce satisficing'])}<h4>5D — Social Desirability Detection</h4><p>Repeat pertinent questions later with the desired response made explicit, then compare responses.</p><h4>5E — Participant Experience</h4>${ul(['Include Quit study on each page','Include Contact researcher on each page'])}${checklistHTML(r5)}`)}
+ ${recPanel(r6,`<h4>Interactive HIT builder</h4><div class="grid two"><div><label>Study title</label><input id="hitTitle" type="text" placeholder="Decision-making study"></div><div><label>Estimated time</label><input id="hitTime" type="number" value="10"></div><div><label>Compensation</label><input id="hitPay" type="number" step="0.01" value="1.50"></div><div><label>Eligibility criteria to display</label><input id="hitElig" type="text" placeholder="Use sparingly; screener preferred"></div></div><label>Brief description without revealing hypotheses</label><textarea id="hitDesc"></textarea><label>Compensation rules summary</label><textarea id="hitRules"></textarea><button class="action" onclick="generateHIT()">Generate HIT Template</button><textarea id="hitOut" class="generated"></textarea><button class="action secondary" onclick="copyText('hitOut','copyHit')">Copy HIT template</button><span id="copyHit" class="copy-status"></span><div class="warning">Avoid language that signals the study’s hypothesis, independent variables, or expected results. Do not mention specific traits, behaviors, or constructs by name if doing so motivates self-selection or strategic responding.</div>${checklistHTML(r6)}`)}
+ `;
+}
+function checklistHTML(r){return `<h4>Implementation checklist</h4><div>${r.items.map((it,i)=>`<label class="check-row"><input type="checkbox" class="master-item" data-stage="${r.stage}" data-rec="${r.id}" data-id="${r.id}-${i}"> ${it}</label>`).join('')}</div>`}
+function ul(items){return `<ul>${items.map(i=>`<li>${i}</li>`).join('')}</ul>`}
+function assessR1(){const vals=[0,1,2].map(i=>document.getElementById('r1q'+i).value); let out=''; if(vals.includes('')) out='Complete all three questions.'; else if(vals[0]==='yes'&&vals[1]==='no'&&vals[2]==='yes') out='MTurk appears appropriate for your study. Proceed, but still report sample characteristics and potential confounds.'; else out='Proceed cautiously. Resolve population-fit concerns, consider a screener study, or use a different data source better aligned with your target population.'; document.getElementById('r1out').textContent=out;}
+function choiceGuide(sel,out,map){const v=document.getElementById(sel).value; document.getElementById(out).textContent=map[v]||'';}
+function calcRecruitN(){let n=+document.getElementById('usableN').value||0, a=(+document.getElementById('attrition').value||0)/100, f=(+document.getElementById('failRate').value||0)/100; const req=Math.ceil(n/(1-a)/(1-f)); document.getElementById('sampleOut').textContent=`Recommended total recruitment N: ${req}\nFormula: ${n} ÷ (1 - ${Math.round(a*100)}%) ÷ (1 - ${Math.round(f*100)}%) = ${req}`;}
+function calcPay(){let m=+document.getElementById('studyMins').value||0, h=+document.getElementById('hourlyFloor').value||7.25, c=document.getElementById('countryPay').value; let pay=(m/60*h).toFixed(2); document.getElementById('payOut').textContent=c==='United States'?`Recommended compensation floor: $${pay}\nCalculation: ${m} minutes ÷ 60 × $${h.toFixed(2)}/hour. Use $7.25/hour only as a federal floor; pay more if state, institutional, or ethical standards require it.`:`Recommended compensation floor: $${pay} using the entered hourly floor. For ${c}, use the local minimum wage as a floor and consider local purchasing power and fairness norms.`;}
+function consentTemplate(){return `CONSENT FORM TEMPLATE\n\nStudy description: You are invited to participate in a research study about [general topic without revealing hypotheses]. You will complete survey questions and/or short tasks.\n\nTime commitment: The study is expected to take approximately [X] minutes.\n\nCompensation: You will receive $[amount] for completing the study. Payment will be approved within [24/48] hours after completion, after applying the data-quality rules described below.\n\nEligibility: You must be [eligibility criteria]. Please answer eligibility questions honestly.\n\nData use and confidentiality: Your responses will be used for research purposes. Data will be stored securely and reported only in aggregate form.\n\nCode of conduct: By participating, you agree to answer honestly, not misrepresent your eligibility, not use automated bots or scripts, and not complete the study more than once.\n\nMonitoring and verification: We may use attention checks, response-time checks, IP-address checks, MTurk Worker ID verification, and review of open-ended responses to evaluate data quality.\n\nConsequences for fraudulent reporting: Payment may be denied if responses violate the stated rules, including duplicate participation, bot activity, misrepresentation, or failure of pre-specified data-quality checks. Fraudulent activity may be reported to MTurk.\n\nContact information: If you have questions, contact [researcher name/email].\n\nQuit study: You may stop participating at any time by selecting the Quit Study option or closing the survey.`;}
+function generateHIT(){const title=val('hitTitle'), time=val('hitTime'), pay=val('hitPay'), elig=val('hitElig'), desc=val('hitDesc'), rules=val('hitRules'); document.getElementById('hitOut').value=`Title: ${title||'[Study title]'}\n\nDescription: ${desc||'[Brief neutral description of what participants will do, without revealing hypotheses or manipulations.]'}\n\nEstimated time: ${time||'[X]'} minutes\nCompensation: $${pay||'[amount]'}\n\nEligibility: ${elig||'[Use a screener study when possible; avoid public criteria that encourage misrepresentation.]'}\n\nCompensation rules: ${rules||'[Briefly describe payment timing and pre-specified rules for approving or denying compensation.]'}\n\nImportant: Please read all instructions carefully, complete the study only once, and provide honest responses. Automated responses, duplicate submissions, and responses that fail pre-specified data-quality checks may be rejected as described in the consent form.`;}
+function val(id){return document.getElementById(id)?.value?.trim()||'';}
+function renderTab3(){
+ const r7=recs[6], r8=recs[7], r9=recs[8];
+ document.getElementById('tab3').innerHTML=`
+ <h2>Implementation Stage: Recommendations 7–9</h2>
+ <div class="intro"><p>Once your study is designed and ready to launch, the implementation stage begins. How you launch, monitor, screen, and compensate participants has major implications for data quality and researcher-participant relations.</p></div>
+ ${recPanel(r7,`<h4>Pilot testing guide</h4><p><strong>How large?</strong> Minimum 10–30 participants.</p>${ul(['Include all study materials exactly as intended for full launch','Add an open-ended feedback question at the end: “Please describe any problems, confusion, or concerns you had while completing this study”','Collect timing data to verify the actual completion time matches the HIT estimate'])}<h4>MTurker community monitoring guide</h4><p>Monitor study title, HIT ID, and researcher username in MTurker communities. If manipulations or hypotheses are revealed, consider pausing or pulling the study.</p><h4>Response protocol</h4>${ul(['Unable to access study → provide technical support or HIT ID correction','Confused about instructions → clarify without revealing aims','Reports unfair treatment → address promptly and professionally','Compensation dispute → resolve using a priori rules'])}${checklistHTML(r7)}`)}
+ ${recPanel(r8,`<h4>Part A — Screening for Careless or Insufficient Effort Responding (${term('IER')})</h4>${ul(['Self-reports of effort: ask how carefully the participant completed the survey; flag very low scores','Attention checks: apply pre-specified rules for one or multiple failures','Response times: exclude participants completing the task in less than 1–2 seconds per item','Long-string index: flag long runs of the same response across consecutive items','Within-session response consistency: repeat selected items and flag similarity below .25'])}<h4>Response-time threshold calculator</h4><div class="grid three"><div><label>Number of items</label><input type="number" id="numItems" value="80"></div><div><label>Seconds per item</label><select id="secPerItem"><option value="1">1 second</option><option value="2">2 seconds</option></select></div><div><label>&nbsp;</label><button class="action" onclick="calcResponseTime()">Calculate threshold</button></div></div><div id="rtOut" class="result"></div><h4>Part B — Fraudulent or Duplicate Responses</h4>${ul(['IP-address screening: check duplicates, but do not rely on this alone because VPSs and shared devices complicate interpretation','MTurk Worker ID check: compare against reference database and prior participant lists','Open-ended response screening: flag blank, minimal, off-topic, copied, or nonsensical responses'])}<h4>Data screening summary generator</h4><div class="grid three"><div><label>Total responses received</label><input type="number" id="totalResp" value="400"></div><div><label>Attrition/non-completion exclusions</label><input type="number" id="exAttr" value="30"></div><div><label>Attention-check exclusions</label><input type="number" id="exAtt" value="25"></div><div><label>Response-time exclusions</label><input type="number" id="exRt" value="10"></div><div><label>Duplicate/bot exclusions</label><input type="number" id="exBot" value="5"></div><div><label>&nbsp;</label><button class="action" onclick="screenSummary()">Generate summary</button></div></div><textarea id="screenOut" class="generated"></textarea><button class="action secondary" onclick="copyText('screenOut','copyScreen')">Copy screening paragraph</button><span id="copyScreen" class="copy-status"></span>${checklistHTML(r8)}`)}
+ ${recPanel(r9,`<h4>Compensation decision guide</h4><p><strong>Timeline reminder:</strong> Approve or deny compensation within 24–48 hours of HIT completion. Delays beyond 48 hours can increase perceived researcher unfairness and negative community discussion.</p><label>When will you approve/deny compensation?</label><select><option>Within 24 hours</option><option>Within 48 hours</option><option>As soon as data are screened</option></select><label>Pre-specified denial criteria</label><textarea placeholder="Should match the consent form"></textarea><div class="note"><strong>Sample rejection notice:</strong> Your responses did not meet our data-quality requirements as specified in the study consent form. Specifically, [reason]. Per our a priori rules stated in the consent form, we are unable to approve compensation for this submission.</div>${checklistHTML(r9)}`)}
+ `;
+}
+function calcResponseTime(){const n=+val('numItems')||0, s=+val('secPerItem')||1; const total=n*s; document.getElementById('rtOut').textContent=`Recommended minimum completion-time threshold: ${total} seconds (${(total/60).toFixed(1)} minutes) for ${n} items at ${s} second(s) per item.`;}
+function screenSummary(){const total=+val('totalResp')||0, a=+val('exAttr')||0, ac=+val('exAtt')||0, rt=+val('exRt')||0, bot=+val('exBot')||0; const usable=total-a-ac-rt-bot; document.getElementById('screenOut').value=`We received ${total} MTurk responses. Before analysis, we applied pre-specified data-screening procedures to identify unusable observations. We excluded ${a} responses for attrition or non-completion, ${ac} for failing attention checks, ${rt} for completing the study below the response-time threshold, and ${bot} for duplicate participation or suspected bot activity. The final usable sample was ${usable}. All exclusion criteria were applied consistently before hypothesis testing.`;}
+function renderTab4(){
+ const r10=recs[9];
+ const lists={
+ 'Reporting Checklist A — HIT Posting and Data Collection Details':['Data collected in one batch or multiple batches','Whether the HIT was reposted and why','Qualifications used to restrict access','Time period of data collection'],
+ 'Reporting Checklist B — Sample Characteristics':['Gender distribution','Race/ethnicity distribution','Employment status distribution','Work experience','Educational qualifications','Country of residence','MTurker status'],
+ 'Reporting Checklist C — Attention Checks and Screening':['Describe each attention check used','Report number and percentage excluded for each check','Report criteria defining failure','Report total sample, exclusions, and final usable N','Report all screening techniques used','Report number excluded by each screening technique'],
+ 'Reporting Checklist D — Special Population and Language Decisions':['Report country-of-residence and English-language decisions','If non-native speakers included, report measurement equivalence testing','If restricted to native-English-speaking countries, report included countries and implementation','Report non-naivete decisions'],
+ 'Reporting Checklist E — Ethical and Compensation Information':['Compensation amount and basis','Estimated vs. actual completion time','A priori approval/denial criteria','Number denied compensation and reasons','Timing of approval/denial']
+ };
+ document.getElementById('tab4').innerHTML=`
+ <h2>Reporting Stage: Recommendation 10</h2>
+ <div class="intro"><p>MTurk studies require more extensive and transparent reporting than most other types of studies, because participants are anonymous and often cannot be contacted for clarification after the fact. Complete reporting allows readers to evaluate the trustworthiness of your results.</p></div>
+ ${recPanel(r10,`${Object.entries(lists).map(([k,arr])=>`<h4>${k}</h4>${arr.map((i,n)=>`<label class="check-row"><input type="checkbox" class="master-item" data-stage="Reporting" data-rec="R10" data-id="R10-extra-${esc(k)}-${n}"> ${i}</label>`).join('')}`).join('')}<h4>Methods Paragraph Generator</h4><div class="grid three"><div><label>Total participants recruited</label><input id="mTotal" type="number"></div><div><label>Attrition/non-completion excluded</label><input id="mAttr" type="number"></div><div><label>Attention-check excluded</label><input id="mAtt" type="number"></div><div><label>Response-time excluded</label><input id="mRt" type="number"></div><div><label>IP duplicate/bot excluded</label><input id="mBot" type="number"></div><div><label>Final usable N</label><input id="mFinal" type="number"></div><div><label>Compensation amount</label><input id="mPay" type="text" placeholder="$1.50"></div><div><label>Study length</label><input id="mLen" type="text" placeholder="10 minutes"></div><div><label>Gender distribution</label><input id="mGender" type="text" placeholder="52% female, 48% male"></div><div><label>Mean age</label><input id="mAge" type="text" placeholder="35.4"></div><div><label>Sample country</label><select id="mCountry"><option>United States</option><option>India</option><option>United Kingdom</option><option>Canada</option><option>Mixed/Other</option></select></div><div><label>English restriction</label><select id="mEnglish"><option>Yes</option><option>No</option></select></div><div><label>Master Workers used</label><select id="mMaster"><option>No</option><option>Yes</option></select></div></div><button class="action" onclick="genMethods()">Generate Methods Paragraph</button><textarea id="methodsOut" class="generated"></textarea><button class="action secondary" onclick="copyText('methodsOut','copyMethods')">Copy methods paragraph</button><span id="copyMethods" class="copy-status"></span><div class="note">Complete reporting is not just a best practice; it is increasingly required by journals and reviewers. Studies that do not fully report MTurk procedures are increasingly vulnerable to rejection regardless of substantive contribution.</div>`)}
+ `;
+}
+function genMethods(){const total=val('mTotal')||'[total]', attr=val('mAttr')||'[attrition exclusions]', att=val('mAtt')||'[attention-check exclusions]', rt=val('mRt')||'[response-time exclusions]', bot=val('mBot')||'[duplicate/bot exclusions]', finalN=val('mFinal')||'[final N]'; document.getElementById('methodsOut').value=`Following the MTurk research recommendations of Aguinis et al. (2021) and Aguinis (2025), we implemented a priori procedures for participant recruitment, data-quality screening, and transparent reporting. We recruited ${total} MTurk participants from ${val('mCountry')||'[country]'}. Participants received ${val('mPay')||'[compensation]'} for a study advertised as requiring approximately ${val('mLen')||'[length]'}. We restricted participation based on English-language criteria: ${val('mEnglish')||'[yes/no]'}, and used Master Workers: ${val('mMaster')||'[yes/no]'}. Before analysis, we excluded ${attr} responses for attrition or non-completion, ${att} for failing pre-specified attention checks, ${rt} for falling below the response-time threshold, and ${bot} for duplicate participation or suspected bot activity. The final usable sample was ${finalN}. The final sample had a gender distribution of ${val('mGender')||'[gender distribution]'} and a mean age of ${val('mAge')||'[mean age]'} years.`;}
+function renderTab5(){
+ document.getElementById('tab5').innerHTML=`
+ <h2>Master Checklist and Study Evaluator</h2>
+ <div class="intro"><p>Use this tab as your single-page checklist to track all 10 recommendations across the lifecycle of an MTurk study. You can also use it to evaluate a published or submitted MTurk study for methodological quality.</p></div>
+ <div class="grid three"><div class="card"><h4>Planning Stage</h4><div id="planningList"></div></div><div class="card"><h4>Implementation Stage</h4><div id="implementationList"></div></div><div class="card"><h4>Reporting Stage</h4><div id="reportingList"></div></div></div>
+ <h3>Progress</h3><div id="progressArea" class="card"></div>
+ <h3>Study Quality Assessment</h3><div id="qualityArea" class="card"></div>
+ <button class="action" onclick="genReviewerExcerpt()">Generate Reviewer Response Letter Excerpt</button>
+ <textarea id="reviewerOut" class="generated"></textarea><button class="action secondary" onclick="copyText('reviewerOut','copyReviewer')">Copy reviewer excerpt</button><span id="copyReviewer" class="copy-status"></span>
+ <div class="sticky-actions"><button class="action secondary" onclick="resetChecklist()">Reset checklist</button><button class="action" onclick="updateChecklistScores()">Refresh assessment</button></div>
+ `;
+ const stageIds={Planning:'planningList',Implementation:'implementationList',Reporting:'reportingList'};
+ Object.entries(stageIds).forEach(([stage,id])=>{
+  document.getElementById(id).innerHTML=recs.filter(r=>r.stage===stage).map(r=>`<h4>${r.id}. ${r.t}</h4>${r.items.map((it,i)=>`<label class="check-row"><input type="checkbox" class="master-item" data-stage="${r.stage}" data-rec="${r.id}" data-id="${r.id}-${i}" title="${esc(r.plain)}"> ${it}</label>`).join('')}`).join('');
+ });
+ restoreChecks(); updateChecklistScores();
+}
+function renderTab6(){
+ const valRows=['Internal validity: results attributable to the independent variable rather than other factors. Threatened by inattention, attrition, non-naivete, communities, bots, social desirability, and language fluency.','External validity: results generalize to the target population. Threatened by misrepresentation, self-selection, attrition, language fluency, and unfairness.','Construct validity: measures capture intended constructs. Threatened by inattention, language fluency, non-naivete, communities, bots, and social desirability.','Statistical conclusion validity: statistical conclusions are accurate. Threatened by inattention, language fluency, and bots.'];
+ document.getElementById('tab6').innerHTML=`
+ <h2>Quick Reference and Key Facts</h2>
+ <div class="grid two"><div class="card"><h3>Section A — Key MTurk Statistics</h3>${ul(['MTurk usage growth: 2,117% from 2012 to 2019 (6 papers → 133 papers)','Approximately 7,300 MTurkers available at any given time','Most assignments completed within 12 hours','~15% of MTurkers fail attention checks','Attrition rates: 31.9%–51%','Non-naivete reduces effect sizes by up to 40% on average','61% of MTurkers interact with communities about study experiences','10% of MTurkers account for 40%+ of completed studies','Self-misrepresentation estimates: 10%–13% to 24%–83%','Most common misrepresentations: income, education, age'])}</div><div class="card"><h3>Section B — Minimum Requirements at a Glance</h3>${ul(['Recruit at least 15%–30% above power-analysis N, or use the sample-size calculator','Attention checks: minimum of two; at least one open-ended qualitative','Response-time exclusion threshold: less than 1–2 seconds per item','Compensation: local minimum wage floor; U.S. federal floor $7.25/hour','Compensation approval timing: within 24–48 hours','Pilot test: minimum 10–30 participants with open-ended feedback','Data screening: use at least two screening tools'])}</div></div>
+ <h3>Section C — Four Validity Types</h3><div class="grid four">${valRows.map(x=>`<div class="card"><p>${x}</p></div>`).join('')}</div>
+ <h3>Section D — Complete Challenge-to-Recommendation Cross-Reference</h3>${crossRefTable()}
+ <h3>Glossary</h3><div class="grid three">${Object.entries(termDefs).map(([k,v])=>`<div class="card"><h4>${k}</h4><p>${v}</p></div>`).join('')}</div>
+ `;
+}
+function crossRefTable(){return `<div class="table-wrap"><table class="matrix"><thead><tr><th>Challenge</th>${recs.map(r=>`<th>${r.id}</th>`).join('')}</tr></thead><tbody>${challenges.map(c=>`<tr><td><strong>${c.id}.</strong> ${c.t}</td>${recs.map(r=>`<td>${(recChallengeMap[r.id]||[]).includes(c.id)?'<span class="check">✓</span>':'<span class="x">—</span>'}</td>`).join('')}</tr>`).join('')}</tbody></table></div>`}
+function bind(){
+ document.addEventListener('click',e=>{if(e.target.closest('.tabbtn')) showTab(e.target.closest('.tabbtn').dataset.tab); accordionClick(e);});
+ document.addEventListener('change',e=>{if(e.target.classList.contains('master-item')){saveCheck(e.target.dataset.id,e.target.checked); syncDuplicates(e.target.dataset.id,e.target.checked); updateChecklistScores();}});
+}
+function saveCheck(id,val){const s=JSON.parse(localStorage.getItem('mturkguardChecks')||'{}'); s[id]=val; localStorage.setItem('mturkguardChecks',JSON.stringify(s));}
+function restoreChecks(){const s=JSON.parse(localStorage.getItem('mturkguardChecks')||'{}'); document.querySelectorAll('.master-item').forEach(cb=>{cb.checked=!!s[cb.dataset.id];});}
+function syncDuplicates(id,val){document.querySelectorAll(`.master-item[data-id="${CSS.escape(id)}"]`).forEach(cb=>cb.checked=val);}
+function resetChecklist(){if(confirm('Reset all checklist items?')){localStorage.removeItem('mturkguardChecks'); document.querySelectorAll('.master-item').forEach(cb=>cb.checked=false); updateChecklistScores();}}
+function updateChecklistScores(){restoreChecks(); const stages=['Planning','Implementation','Reporting']; let html='', total=0, done=0; stages.forEach(stage=>{const boxes=[...document.querySelectorAll(`.master-item[data-stage="${stage}"]`)]; const unique={}; boxes.forEach(b=>unique[b.dataset.id]=b.checked); const ids=Object.keys(unique); const d=ids.filter(id=>unique[id]).length, t=ids.length; total+=t; done+=d; const pct=t?Math.round(d/t*100):0; html+=`<div class="scoreline"><strong>${stage}</strong><div class="progress-shell"><div class="progress-bar" style="width:${pct}%"></div></div><span>${d}/${t} ${pct===100?'✅':''}</span></div>`;}); const pct=total?Math.round(done/total*100):0; const pa=document.getElementById('progressArea'); if(pa) pa.innerHTML=`<h4>Total compliance: ${done}/${total} (${pct}%)</h4>${html}`; const qa=document.getElementById('qualityArea'); if(qa){const checkedRecs=new Set([...document.querySelectorAll('.master-item:checked')].map(x=>x.dataset.rec)); const addressed=[...new Set([...checkedRecs].flatMap(r=>recChallengeMap[r]||[]))]; const remaining=challenges.filter(c=>!addressed.includes(c.id)); qa.innerHTML=`<p><strong>Challenges at least partially addressed:</strong> ${addressed.length?addressed.map(cid=>challenges.find(c=>c.id===cid).t).join('; '):'None yet'}.</p><p><strong>Remaining risks:</strong> ${remaining.length?remaining.map(c=>c.t).join('; '):'All ten challenges have at least one relevant recommendation checked.'}</p><p><strong>Interpretation:</strong> ${pct>=85?'Strong implementation of MTurk best practices.':pct>=60?'Moderate implementation; strengthen remaining stages before launch or submission.':'Substantial validity risk remains. Complete more planning, implementation, and reporting items.'}</p>`;}}
+function genReviewerExcerpt(){const s=JSON.parse(localStorage.getItem('mturkguardChecks')||'{}'); const checked=Object.values(s).filter(Boolean).length; const total=[...new Set([...document.querySelectorAll('.master-item')].map(b=>b.dataset.id))].length; const pct=total?Math.round(checked/total*100):0; document.getElementById('reviewerOut').value=`We revised the MTurk procedures to align with the recommendations of Aguinis et al. (2021) and Aguinis (2025). Specifically, we evaluated the fit between the MTurk pool and the study’s target population, used pre-specified screening and eligibility criteria, planned recruitment to account for attrition and attention-check failure, specified compensation and data-quality rules before data collection, included safeguards against careless responding and fraudulent participation, monitored data quality during implementation, applied screening criteria consistently before analysis, and expanded reporting of HIT procedures, sample characteristics, exclusion rules, language decisions, and compensation practices. In total, the revised procedures implement approximately ${pct}% of the MTurkGuard best-practice checklist, with remaining limitations reported transparently in the manuscript.`;}
+function init(){renderTabs();renderTab1();renderTab2();renderTab3();renderTab4();renderTab5();renderTab6();bind();restoreChecks();drawMatrixChart();}
+init();
+</script>
+<!-- Begin Countercentral code v 7.0 --> 
+<span id="wts2576"></span> 
+<script>var wts=document.createElement('script');wts.async=true; 
+wts.src='https://server2.countercentral.com/log7.js';document.head.appendChild(wts); 
+wts.onload = function(){ wtslog7(2576,1); }; 
+</script><noscript><a href="https://www.countercentral.com"> 
+<img src="https://server2.countercentral.com/7/1/2576.png"  
+alt="Countercentral web traffic analysis"></a></noscript> 
+<!-- End Countercentral code v 7.0 --> 
+</body>
+</html>

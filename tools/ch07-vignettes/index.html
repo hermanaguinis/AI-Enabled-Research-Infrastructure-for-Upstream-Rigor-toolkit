@@ -1,0 +1,1374 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>EVM Study Designer — Experimental Vignette Methodology</title>
+<style>
+  :root{
+    --bg:#f4f6f9; --panel:#ffffff; --ink:#1a2433; --ink-soft:#46566b;
+    --line:#d8dee8; --brand:#1f4e79; --brand-d:#163a5c; --brand-l:#e8f0f8;
+    --accent:#2e8b6f; --accent-l:#e6f4ef; --warn:#b5560c; --warn-l:#fdf0e3;
+    --danger:#b3261e; --danger-l:#fbe9e7; --good:#1f7a4d; --good-l:#e6f4ec;
+    --shadow:0 1px 3px rgba(20,40,70,.08),0 6px 22px rgba(20,40,70,.06);
+    --radius:12px;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0}
+  body{
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    background:var(--bg); color:var(--ink); line-height:1.55; font-size:16px;
+    -webkit-font-smoothing:antialiased;
+  }
+  a{color:var(--brand)}
+  .wrap{max-width:1080px;margin:0 auto;padding:0 18px}
+
+  /* Header */
+  header.top{background:linear-gradient(135deg,var(--brand-d),var(--brand));color:#fff;padding:22px 0 18px}
+  header.top h1{margin:0;font-size:22px;letter-spacing:.2px}
+  header.top p{margin:6px 0 0;opacity:.92;font-size:14px;max-width:760px}
+  .hdr-row{display:flex;justify-content:space-between;align-items:flex-start;gap:18px;flex-wrap:wrap}
+  .hdr-actions{display:flex;gap:8px;flex-wrap:wrap}
+  .hdr-actions button{font-size:13px}
+
+  /* Progress */
+  .progress-shell{position:sticky;top:0;z-index:40;background:var(--panel);border-bottom:1px solid var(--line);box-shadow:var(--shadow)}
+  .pbar-track{height:6px;background:var(--brand-l)}
+  .pbar-fill{height:6px;background:linear-gradient(90deg,var(--accent),var(--brand));width:0;transition:width .35s ease}
+  .steps-nav{display:flex;gap:6px;overflow-x:auto;padding:10px 4px;scrollbar-width:thin}
+  .stepbtn{flex:0 0 auto;border:1px solid var(--line);background:#fff;border-radius:999px;padding:6px 13px;font-size:12.5px;cursor:pointer;color:var(--ink-soft);display:flex;align-items:center;gap:7px;white-space:nowrap;transition:.15s}
+  .stepbtn:hover{border-color:var(--brand);color:var(--brand)}
+  .stepbtn .dot{width:18px;height:18px;border-radius:50%;background:var(--brand-l);color:var(--brand);font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;flex:0 0 auto}
+  .stepbtn.active{background:var(--brand);border-color:var(--brand);color:#fff;font-weight:600}
+  .stepbtn.active .dot{background:#fff;color:var(--brand)}
+  .stepbtn.done .dot{background:var(--accent);color:#fff}
+  .stepbtn.done.active .dot{background:#fff;color:var(--accent)}
+  .stage-tag{font-size:10.5px;letter-spacing:.8px;text-transform:uppercase;color:#fff;background:rgba(255,255,255,.18);padding:1px 6px;border-radius:4px;margin-left:2px}
+
+  /* Cards / panels */
+  main{padding:26px 0 70px}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow);padding:26px 28px;margin-bottom:20px}
+  .step{display:none}
+  .step.active{display:block;animation:fade .25s ease}
+  @keyframes fade{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+  .eyebrow{font-size:12px;letter-spacing:1px;text-transform:uppercase;color:var(--accent);font-weight:700;margin-bottom:4px}
+  .step h2{margin:0 0 4px;font-size:23px}
+  .lead{color:var(--ink-soft);font-size:15.5px;margin:0 0 18px;max-width:760px}
+  h3.sub{font-size:15px;margin:22px 0 8px;color:var(--brand-d)}
+
+  /* form bits */
+  label.fld{display:block;font-weight:600;font-size:14px;margin:14px 0 5px}
+  .hint{font-size:13px;color:var(--ink-soft);margin:2px 0 6px}
+  input[type=text],input[type=number],select,textarea{
+    width:100%;padding:9px 11px;border:1px solid var(--line);border-radius:8px;font-size:14.5px;font-family:inherit;background:#fff;color:var(--ink)
+  }
+  input:focus,select:focus,textarea:focus{outline:2px solid var(--brand);outline-offset:0;border-color:var(--brand)}
+  textarea{min-height:70px;resize:vertical}
+
+  .opt-grid{display:grid;gap:10px;margin-top:6px}
+  .opt{border:1.5px solid var(--line);border-radius:10px;padding:13px 15px;cursor:pointer;display:flex;gap:12px;align-items:flex-start;transition:.15s;background:#fff}
+  .opt:hover{border-color:var(--brand);background:var(--brand-l)}
+  .opt.sel{border-color:var(--brand);background:var(--brand-l);box-shadow:inset 0 0 0 1px var(--brand)}
+  .opt input{margin-top:3px;flex:0 0 auto}
+  .opt .ot{font-weight:600;font-size:14.5px}
+  .opt .od{font-size:13px;color:var(--ink-soft);margin-top:2px}
+
+  .scale-row{display:flex;align-items:center;gap:12px;margin:10px 0;flex-wrap:wrap}
+  .scale-row .q{flex:1 1 320px;font-size:14.5px}
+  .scale{display:flex;gap:4px}
+  .scale button{width:34px;height:34px;border:1px solid var(--line);background:#fff;border-radius:7px;cursor:pointer;font-weight:600;font-size:13px;color:var(--ink-soft)}
+  .scale button:hover{border-color:var(--brand)}
+  .scale button.on{background:var(--brand);color:#fff;border-color:var(--brand)}
+  .scale-ends{font-size:11.5px;color:var(--ink-soft);min-width:64px;text-align:center}
+
+  /* callouts */
+  .callout{border-radius:10px;padding:13px 16px;margin:14px 0;font-size:14px;border:1px solid}
+  .c-rec{background:var(--accent-l);border-color:#bfe3d6}
+  .c-rec b{color:var(--good)}
+  .c-warn{background:var(--warn-l);border-color:#f1d6b3}
+  .c-warn b{color:var(--warn)}
+  .c-danger{background:var(--danger-l);border-color:#f3c9c4}
+  .c-danger b{color:var(--danger)}
+  .c-info{background:var(--brand-l);border-color:#c6dbef}
+  .callout .ctitle{font-weight:700;display:block;margin-bottom:3px}
+
+  /* tradeoff panel */
+  .tradeoff{display:grid;grid-template-columns:1fr 1fr;gap:0;border:1px solid var(--line);border-radius:10px;overflow:hidden;margin:14px 0}
+  .tradeoff>div{padding:12px 15px}
+  .tradeoff .pros{background:var(--good-l)}
+  .tradeoff .cons{background:var(--danger-l)}
+  .tradeoff h4{margin:0 0 6px;font-size:13px;text-transform:uppercase;letter-spacing:.5px}
+  .tradeoff .pros h4{color:var(--good)} .tradeoff .cons h4{color:var(--danger)}
+  .tradeoff ul{margin:0;padding-left:18px;font-size:13.5px}
+  .tradeoff li{margin:3px 0}
+  @media(max-width:640px){.tradeoff{grid-template-columns:1fr}}
+
+  /* learn more */
+  details.learn{margin:12px 0;border:1px solid var(--line);border-radius:9px;background:#fbfcfe}
+  details.learn>summary{cursor:pointer;padding:10px 14px;font-weight:600;font-size:13.5px;color:var(--brand);list-style:none}
+  details.learn>summary::-webkit-details-marker{display:none}
+  details.learn>summary::before{content:"▸ ";color:var(--accent)}
+  details.learn[open]>summary::before{content:"▾ "}
+  details.learn .lm-body{padding:2px 16px 14px;font-size:13.5px;color:var(--ink-soft)}
+
+  .example-box{border-left:4px solid var(--accent);background:#f7fbfa;padding:11px 15px;margin:12px 0;font-size:13.5px;border-radius:0 8px 8px 0}
+  .example-box b{color:var(--accent)}
+
+  /* buttons */
+  button.btn{border:1px solid var(--brand);background:var(--brand);color:#fff;padding:10px 18px;border-radius:9px;font-size:14.5px;font-weight:600;cursor:pointer;transition:.15s}
+  button.btn:hover{background:var(--brand-d)}
+  button.btn.ghost{background:#fff;color:var(--brand)}
+  button.btn.ghost:hover{background:var(--brand-l)}
+  button.btn.soft{background:#fff;color:var(--ink);border-color:var(--line)}
+  button.btn.soft:hover{border-color:var(--brand);color:var(--brand)}
+  button.btn:disabled{opacity:.45;cursor:not-allowed}
+  .navrow{display:flex;justify-content:space-between;gap:10px;margin-top:24px}
+
+  /* calculator */
+  .factor-table{width:100%;border-collapse:collapse;margin:10px 0}
+  .factor-table th,.factor-table td{border:1px solid var(--line);padding:7px 9px;font-size:13.5px;text-align:left}
+  .factor-table th{background:var(--brand-l);color:var(--brand-d);font-size:12px;text-transform:uppercase;letter-spacing:.4px}
+  .factor-table input{padding:6px 8px;font-size:13.5px}
+  .factor-table .lv{width:90px}
+  .rm-factor{border:none;background:var(--danger-l);color:var(--danger);border-radius:6px;width:28px;height:28px;cursor:pointer;font-size:16px;font-weight:700}
+  .calc-cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin:14px 0}
+  .calc-card{background:var(--brand-l);border:1px solid #c6dbef;border-radius:10px;padding:13px 15px;text-align:center}
+  .calc-card .num{font-size:28px;font-weight:800;color:var(--brand-d);line-height:1.1}
+  .calc-card .lbl{font-size:12px;color:var(--ink-soft);margin-top:3px}
+
+  /* checklist / summary */
+  .checklist{list-style:none;padding:0;margin:0}
+  .checklist li{display:flex;gap:11px;align-items:flex-start;padding:9px 0;border-bottom:1px solid var(--line);font-size:14px}
+  .checklist li:last-child{border-bottom:none}
+  .chk-mark{width:22px;height:22px;border-radius:6px;border:2px solid var(--line);flex:0 0 auto;display:flex;align-items:center;justify-content:center;font-size:13px;color:#fff;background:#fff;cursor:pointer}
+  .chk-mark.on{background:var(--accent);border-color:var(--accent)}
+
+  .completion-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:10px;margin:14px 0}
+  .comp-item{display:flex;align-items:center;gap:9px;padding:9px 12px;border:1px solid var(--line);border-radius:9px;font-size:13.5px;background:#fff}
+  .comp-item .cd{width:20px;height:20px;border-radius:50%;flex:0 0 auto;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;background:var(--brand-l);color:var(--brand)}
+  .comp-item.ok .cd{background:var(--accent);color:#fff}
+  .comp-item.ok{border-color:#bfe3d6}
+
+  /* plan output */
+  #planOutput{background:#fff;border:1px solid var(--line);border-radius:10px;padding:24px 28px;margin-top:16px}
+  #planOutput h2{font-size:20px;border-bottom:2px solid var(--brand);padding-bottom:6px;margin-top:0}
+  #planOutput h3{font-size:15px;color:var(--brand-d);margin:20px 0 4px}
+  #planOutput .pp{font-size:14px;margin:3px 0}
+  #planOutput .meta{font-size:12.5px;color:var(--ink-soft)}
+  #planOutput table{border-collapse:collapse;width:100%;margin:8px 0;font-size:13.5px}
+  #planOutput th,#planOutput td{border:1px solid var(--line);padding:6px 9px;text-align:left}
+  #planOutput th{background:var(--brand-l)}
+  .pill{display:inline-block;font-size:11px;font-weight:700;padding:2px 9px;border-radius:999px;margin-left:6px}
+  .pill.good{background:var(--good-l);color:var(--good)}
+  .pill.warn{background:var(--warn-l);color:var(--warn)}
+  .pill.bad{background:var(--danger-l);color:var(--danger)}
+
+  footer.site{background:var(--brand-d);color:#dce8f3;font-size:13px;padding:22px 0;margin-top:30px}
+  footer.site a{color:#fff;text-decoration:underline}
+  .cite{font-style:italic}
+
+  .toast{position:fixed;bottom:22px;left:50%;transform:translateX(-50%) translateY(20px);background:var(--ink);color:#fff;padding:11px 20px;border-radius:9px;font-size:14px;opacity:0;pointer-events:none;transition:.3s;z-index:100}
+  .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+
+  .req-flag{font-size:12px;color:var(--warn);font-weight:600;margin-top:4px;display:none}
+  .verdict-big{font-size:17px;font-weight:700;padding:15px 18px;border-radius:10px;margin:14px 0}
+
+  @media print{
+    .progress-shell,.navrow,.hdr-actions,header.top p,.no-print{display:none!important}
+    .step{display:block!important;page-break-inside:avoid}
+    .card{box-shadow:none;border:1px solid #ccc}
+    body{background:#fff;font-size:12px}
+  }
+</style>
+</head>
+<body>
+
+<header class="top">
+  <div class="wrap hdr-row">
+    <div>
+      <h1>EVM Study Designer</h1>
+      <p>An interactive workbench for designing, conducting, and analyzing <strong>Experimental Vignette Methodology</strong> studies. Walk through all three stages and ten decision points — from research question to a defensible, validity-maximizing study design plus an analysis and reporting plan.</p>
+    </div>
+    <div class="hdr-actions no-print">
+      <button class="btn ghost" onclick="go(11)">About</button>
+      <button class="btn ghost" onclick="resetAll()">Reset</button>
+    </div>
+  </div>
+</header>
+
+<div class="progress-shell no-print">
+  <div class="pbar-track"><div class="pbar-fill" id="pbar"></div></div>
+  <div class="wrap"><div class="steps-nav" id="stepsNav"></div></div>
+</div>
+
+<main>
+<div class="wrap">
+
+  <!-- STEP 0 — INTRO -->
+  <section class="step card" data-step="0">
+    <div class="eyebrow">Start here</div>
+    <h2>Welcome — let's design your EVM study</h2>
+    <p class="lead">Experimental Vignette Methodology (EVM) presents participants with carefully constructed, realistic scenarios to assess outcomes such as intentions, attitudes, and behaviors. Done well, it resolves the classic dilemma between <strong>internal validity</strong> (experimental control over causes) and <strong>external validity</strong> (realism and generalizability). This tool guides you through every choice the method requires.</p>
+
+    <div class="callout c-info">
+      <span class="ctitle">How this works</span>
+      You'll move through <strong>3 stages</strong> and <strong>10 decision points</strong>. Each gives you a plain-language explanation, captures your choice, lays out the trade-offs, and returns a recommendation that adapts to what you've already entered. A live calculator sizes your vignette set, and a recommendation engine keeps your analysis plan and design cautions in sync. At the end, generate a printable, copy-ready study plan.
+    </div>
+
+    <label class="fld" for="projTitle">Project / study title <span style="font-weight:400;color:var(--ink-soft)">(optional)</span></label>
+    <input type="text" id="projTitle" placeholder="e.g., Causal effects of leadership status and style on perceived effectiveness">
+
+    <label class="fld" for="projRQ">Your research question</label>
+    <div class="hint">State what causal relationship or decision process you want to understand. This anchors several recommendations.</div>
+    <textarea id="projRQ" placeholder="e.g., Does a new leader's status interact with leadership style to affect perceptions of effectiveness?"></textarea>
+
+    <div class="callout c-rec" style="margin-top:18px">
+      <span class="ctitle">The three stages ahead</span>
+      <strong>Stage 1 — Planning</strong> (Decision Points 1–6): is EVM right, what type, what design, immersion, factors &amp; levels, number of vignettes.<br>
+      <strong>Stage 2 — Implementation</strong> (Decision Points 7–9): sample, setting &amp; timing, analysis method.<br>
+      <strong>Stage 3 — Reporting</strong> (Decision Point 10): transparency &amp; replicability.
+    </div>
+
+    <div class="navrow">
+      <span></span>
+      <button class="btn" onclick="go(1)">Begin · Decision Point 1 →</button>
+    </div>
+  </section>
+
+  <!-- ============ STAGE 1 ============ -->
+
+  <!-- DP1 -->
+  <section class="step card" data-step="1">
+    <div class="eyebrow">Stage 1 · Planning — Decision Point 1</div>
+    <h2>Is EVM a suitable approach?</h2>
+    <p class="lead">EVM is powerful but not universal. It shines when you need experimental control to establish causation, when variables are known to correlate but causal direction is unclear, or when the topic is sensitive or impractical to manipulate in the field. It struggles when hypothetical scenarios cannot reproduce a genuinely high-stakes context. Answer the diagnostic below for a tailored verdict.</p>
+
+    <h3 class="sub">Branching screen</h3>
+    <div class="opt-grid" id="dp1tree"></div>
+
+    <h3 class="sub">Fit indicators <span style="font-weight:400;font-size:13px;color:var(--ink-soft)">(rate 1 = not at all, 5 = strongly)</span></h3>
+    <div id="dp1scales"></div>
+
+    <div id="dp1verdict"></div>
+
+    <details class="learn"><summary>Learn more — when EVM fits, and when it doesn't</summary>
+      <div class="lm-body">
+        EVM is <em>particularly useful</em> when researchers need control over independent variables to gather causal evidence, letting you include factors relevant to the question while excluding confounds (Cavanaugh &amp; Fritzsche, 1985). It is well suited to domains where variables are known to correlate but the nature and direction of causality are unclear, and to <strong>sensitive topics</strong> that cannot be ethically manipulated in the field — e.g., it would be unethical to manipulate workplace romances, yet Pierce, Aguinis, &amp; Adams (2000) used vignettes to study attributions of blame when a romance becomes a harassment allegation.<br><br>
+        The key caution: because participants respond to <em>hypothetical</em> scenarios, those scenarios may not recreate real-life pressures. In high-stakes decisions such as mergers and acquisitions, hypothetical presentation is unlikely to elicit the same responses as the real situation (Lohrke, Holloway, &amp; Woolley, 2010).
+      </div>
+    </details>
+    <div class="example-box"><b>Exemplar.</b> Sauer (2011) used EVM to establish causal effects of leadership status and style — variables that correlate in the field but whose causal direction is hard to isolate without experimental control.</div>
+
+    <div class="navrow">
+      <button class="btn soft" onclick="go(0)">← Back</button>
+      <button class="btn" onclick="go(2)">Next · Type of EVM →</button>
+    </div>
+  </section>
+
+  <!-- DP2 -->
+  <section class="step card" data-step="2">
+    <div class="eyebrow">Stage 1 · Planning — Decision Point 2</div>
+    <h2>Choose the type of EVM</h2>
+    <p class="lead">There are two major types. <strong>Paper people</strong> studies assess <em>explicit</em> responses — decisions, judgments, attitudes participants are aware of and can report. <strong>Policy capturing / conjoint analysis</strong> captures <em>implicit</em>, real-time decision processes by having participants rank or choose among vignettes; it assumes the relevant factors are known <em>a priori</em> from theory. (Policy capturing and conjoint analysis are treated as a single type.)</p>
+
+    <div class="opt-grid" id="dp2opts"></div>
+    <h3 class="sub">Two quick questions to guide the choice</h3>
+    <div id="dp2scales"></div>
+    <div id="dp2rec"></div>
+    <div class="tradeoff" id="dp2trade" style="display:none"></div>
+
+    <details class="learn"><summary>Learn more — explicit vs. implicit</summary>
+      <div class="lm-body">
+        <strong>Paper people</strong> present scenarios (typically written) and ask participants to make explicit decisions, judgments, choices, or state behavioral preferences. Widely used in leadership, executive behavior, entrepreneurship, OCB, and ethics. Best when the goal is to assess processes and outcomes participants are aware of and can report on.<br><br>
+        <strong>Policy capturing / conjoint</strong> present scenarios with manipulated variables, then ask participants to make decisions <em>between</em> scenarios — capturing implicit, real-time processes often made without full awareness. Both assume the important decision factors are known a priori from theory, so they fit best in areas where theory clearly specifies relevant factors. They can extract a great deal of information from relatively few participants — valuable when the population is small or inaccessible.
+      </div>
+    </details>
+    <div class="example-box"><b>Exemplars.</b> <em>Paper people:</em> Raaijmakers et al. — managers read a new-law vignette manipulating two IVs, then reported compliance timing. <em>Policy capturing:</em> Skarlicki &amp; Turner (2014) — participants rated 32 applicant profiles (5 IVs × 2 levels) to surface implicit fairness judgments. <em>Conjoint:</em> Shepherd, Patzelt, &amp; Baron (2013) — 25 profiles probing moral disengagement in entrepreneurs' decisions.</div>
+
+    <div class="navrow">
+      <button class="btn soft" onclick="go(1)">← Back</button>
+      <button class="btn" onclick="go(3)">Next · Research design →</button>
+    </div>
+  </section>
+
+  <!-- DP3 -->
+  <section class="step card" data-step="3">
+    <div class="eyebrow">Stage 1 · Planning — Decision Point 3</div>
+    <h2>Choose the research design</h2>
+    <p class="lead">In a <strong>between-person</strong> design each participant reads only one vignette and comparisons are made across people. In a <strong>within-person</strong> design each participant sees the same set of vignettes and comparisons are made within the person. In a <strong>mixed</strong> design different groups see different sets, but everyone within a group sees the same vignettes. The article's guidance: within-person or mixed are generally preferred; true between-person designs are uncommon and risk ungrounded judgments.</p>
+
+    <div class="opt-grid" id="dp3opts"></div>
+    <div id="dp3rec"></div>
+    <div class="tradeoff" id="dp3trade" style="display:none"></div>
+
+    <div id="dp3baseline" style="display:none">
+      <label class="fld">If you use a between-person design, what shared baseline / contextual information will all participants receive first?</label>
+      <div class="hint">Required to ground judgments. Raaijmakers et al. gave every participant a general description of the issues before the manipulated vignette.</div>
+      <textarea id="dp3baselineText" placeholder="e.g., All participants first read a one-page description of the new childcare regulation and the agency context…"></textarea>
+      <div class="req-flag" id="dp3baselineFlag">⚠ A between-person design without shared baseline context risks ungrounded, unreliable judgments.</div>
+    </div>
+
+    <details class="learn"><summary>Learn more — why between-person is risky</summary>
+      <div class="lm-body">
+        Because between-person participants see only a single vignette, they lose the comparison that helps ground responses contextually. Without other vignettes as referent points, responses may not reflect respondents' true judgments — true between-person designs are uncommon, especially when judgments are the dependent variable. If you must use one, provide participants with sufficient shared information to supply context. Within-person reveals manipulation effects inside one individual; mixed adds cross-respondent comparison because multiple people respond to the same vignettes.
+      </div>
+    </details>
+
+    <div class="navrow">
+      <button class="btn soft" onclick="go(2)">← Back</button>
+      <button class="btn" onclick="go(4)">Next · Level of immersion →</button>
+    </div>
+  </section>
+
+  <!-- DP4 -->
+  <section class="step card" data-step="4">
+    <div class="eyebrow">Stage 1 · Planning — Decision Point 4</div>
+    <h2>Choose the level of immersion</h2>
+    <p class="lead">Immersion is the subjective experience of being personally inside the scenario. Moving up the ladder — text → pictures → audio → video → virtual reality — increases realism, engagement, recall, and external validity, and lets you control "natural noise" so scenarios feel lifelike without compromising internal validity. The cost: more time, money, and logistics (e.g., hiring actors). Pick a medium, then weigh realism against budget.</p>
+
+    <label class="fld">Presentation medium</label>
+    <input type="range" id="dp4range" min="0" max="4" value="0" step="1" style="width:100%" oninput="dp4changed()">
+    <div style="display:flex;justify-content:space-between;font-size:12px;color:var(--ink-soft);margin-top:4px">
+      <span>Text</span><span>Pictures</span><span>Audio</span><span>Video</span><span>Virtual reality</span>
+    </div>
+    <div id="dp4label" style="margin-top:14px"></div>
+
+    <label class="fld">Budget &amp; logistics capacity for production</label>
+    <div class="opt-grid" id="dp4budget"></div>
+
+    <div id="dp4rec"></div>
+    <div class="tradeoff" id="dp4trade" style="display:none"></div>
+
+    <details class="learn"><summary>Learn more — realism, "natural noise," and cost</summary>
+      <div class="lm-body">
+        Higher immersion engages participants' senses more fully, improving recall and approximating real-world experience — much as transfer of training improves when training resembles the job. Crucially, more lifelike scenarios carry more "natural noise"; when the researcher <em>controls</em> that noise, scenarios become realistic without sacrificing internal validity (e.g., Whiting et al. used equally attractive actors to rule out attractiveness effects). VR lets participants see, hear, and experience information impossible to convey in writing. The trade-off is cost and effort: a written vignette needs only a researcher's time, whereas Taggar &amp; Neubert hired five professional actors for video. Fewer than 6% of reviewed studies used video.
+      </div>
+    </details>
+    <div class="example-box"><b>Exemplar.</b> Sauer (2011) used <b>video</b> vignettes completed online from participants' own environments — raising realism while preserving experimental control.</div>
+
+    <div class="navrow">
+      <button class="btn soft" onclick="go(3)">← Back</button>
+      <button class="btn" onclick="go(5)">Next · Factors &amp; levels →</button>
+    </div>
+  </section>
+
+  <!-- DP5 -->
+  <section class="step card" data-step="5">
+    <div class="eyebrow">Stage 1 · Planning — Decision Point 5</div>
+    <h2>Specify the number and levels of manipulated factors</h2>
+    <p class="lead">Theory drives which independent variables (factors) you manipulate and how many levels each has. The big risk is <strong>model misspecification</strong> — omitting a factor critical to the decision. List each factor and its levels below; the full factorial population of vignettes updates live. Then choose how you'll set the levels.</p>
+
+    <table class="factor-table">
+      <thead><tr><th>Factor (independent variable)</th><th class="lv">Levels</th><th></th></tr></thead>
+      <tbody id="factorBody"></tbody>
+    </table>
+    <button class="btn soft" onclick="addFactor()">+ Add factor</button>
+
+    <div class="calc-cards">
+      <div class="calc-card"><div class="num" id="calcFactors">0</div><div class="lbl">Factors</div></div>
+      <div class="calc-card"><div class="num" id="calcFull">0</div><div class="lbl">Full factorial population<br>(product of levels)</div></div>
+    </div>
+    <div id="dp5warn"></div>
+
+    <h3 class="sub">How will you set factor levels?</h3>
+    <div class="opt-grid" id="dp5approach"></div>
+    <div class="tradeoff" id="dp5trade" style="display:none"></div>
+
+    <details class="learn"><summary>Learn more — orthogonal vs. actual derived cases</summary>
+      <div class="lm-body">
+        <strong>Attribute-driven (orthogonal) design:</strong> factors are set orthogonal to one another so you can cleanly assess each factor's independent effect. Limitation: some orthogonal combinations produce unrealistic scenarios — replace those with realistic ones to keep representation balanced.<br><br>
+        <strong>Actual derived cases:</strong> levels are chosen to represent concrete values found in real settings, producing more lifelike scenarios and stronger generalizability. Recommendation: ask people similar to your target sample to supply realistic factor levels.<br><br>
+        Either way, theory must justify factor selection — "the key is to identify what information is critical to the decision being studied" (Shepherd &amp; Zacharakis, 1999).
+      </div>
+    </details>
+
+    <div class="navrow">
+      <button class="btn soft" onclick="go(4)">← Back</button>
+      <button class="btn" onclick="go(6)">Next · Number of vignettes →</button>
+    </div>
+  </section>
+
+  <!-- DP6 -->
+  <section class="step card" data-step="6">
+    <div class="eyebrow">Stage 1 · Planning — Decision Point 6</div>
+    <h2>Choose the number of vignettes</h2>
+    <p class="lead">Too many vignettes cause information overload and fatigue; too few bias responses and limit your ability to manipulate critical variables. The number is dictated by your purpose, but the factors and levels from Decision Point 5 set the math. Below, your full factorial population, the policy-capturing minimum, and the reliability duplicates combine into a recommended count.</p>
+
+    <div class="calc-cards" id="dp6cards"></div>
+    <div id="dp6math"></div>
+
+    <label class="fld" for="dp6final">Your planned number of vignettes per respondent</label>
+    <div class="hint">Includes any duplicated/repeated vignettes. We'll flag overload or underload.</div>
+    <input type="number" id="dp6final" min="1" oninput="dp6changed()" placeholder="e.g., 25">
+    <div id="dp6warn"></div>
+
+    <details class="learn"><summary>Learn more — the rules behind the recommendation</summary>
+      <div class="lm-body">
+        First build the <strong>full population</strong> of vignettes (product of levels across factors). You need not use them all. For <strong>policy capturing / conjoint</strong>, use a <strong>minimum of 5 scenarios per manipulated attribute</strong>, and err toward <em>more</em> vignettes per respondent rather than fewer. To assess reliability, include <strong>4–5 duplicated (repeated) vignettes</strong> so you can check whether respondents judge identical scenarios consistently. Balance these against Weber's (1992) warning that too many vignettes cause overload and fatigue while too few bias responses.
+      </div>
+    </details>
+
+    <div class="navrow">
+      <button class="btn soft" onclick="go(5)">← Back</button>
+      <button class="btn" onclick="go(7)">Next · Stage 2: Sample →</button>
+    </div>
+  </section>
+
+  <!-- ============ STAGE 2 ============ -->
+
+  <!-- DP7 -->
+  <section class="step card" data-step="7">
+    <div class="eyebrow">Stage 2 · Implementation — Decision Point 7</div>
+    <h2>Specify the sample and number of participants</h2>
+    <p class="lead">The quality of EVM data depends on the respondent. Match your sample to the population you want to generalize to, and make sure the scenarios are <em>familiar</em> to participants, or responses become artificial. Student samples are convenient but debated — they're especially problematic when the target is high-ranking or hard-to-reach (CEOs, board members, top management teams, early-stage entrepreneurs).</p>
+
+    <label class="fld">Target population you want to generalize to</label>
+    <input type="text" id="dp7pop" placeholder="e.g., experienced people managers in regulated industries">
+
+    <label class="fld">Planned sample source</label>
+    <div class="opt-grid" id="dp7source"></div>
+    <div id="dp7rec"></div>
+
+    <label class="fld" for="dp7n">Planned number of participants</label>
+    <div class="hint" id="dp7nhint">Enter the number of respondents you plan to recruit.</div>
+    <input type="number" id="dp7n" min="1" oninput="dp7changed()" placeholder="e.g., 200">
+    <div id="dp7nout"></div>
+
+    <details class="learn"><summary>Learn more — samples, familiarity &amp; eLancing</summary>
+      <div class="lm-body">
+        The more your respondents approximate the generalized population, the higher your external validity. Familiarity matters: if the situation is unfamiliar, responses are artificial — if you can't reach a suitable sample, you may need to adapt the vignettes to the sample's knowledge. An advantage of EVM is that it works outside the on-campus lab. <strong>eLancing</strong> (Internet freelancing marketplaces such as crowdsourcing platforms) gives access to large, diverse, global samples of <em>working</em> individuals at low cost — working samples can now be collected almost as easily as student samples, easing external-validity concerns. Within-person and mixed designs yield <em>multiple observations per participant</em>, so the number of data points exceeds the headcount.
+      </div>
+    </details>
+    <div class="example-box"><b>Exemplar.</b> Sauer (2011) recruited through a university's <b>alumni</b> database — over 80% non-students — a working sample far closer to the target population than undergraduates.</div>
+
+    <div class="navrow">
+      <button class="btn soft" onclick="go(6)">← Back</button>
+      <button class="btn" onclick="go(8)">Next · Setting &amp; timing →</button>
+    </div>
+  </section>
+
+  <!-- DP8 -->
+  <section class="step card" data-step="8">
+    <div class="eyebrow">Stage 2 · Implementation — Decision Point 8</div>
+    <h2>Choose the setting and timing for administration</h2>
+    <p class="lead">Let participants respond in their <strong>natural setting</strong> (e.g., remotely from their own work environment) to boost realism and address the criticism that EVM lacks it. And complete the study in a <strong>single session</strong> when possible — multiple sessions are more vulnerable to history and other threats to validity.</p>
+
+    <label class="fld">Where will participants respond?</label>
+    <div class="opt-grid" id="dp8setting"></div>
+
+    <label class="fld">Timing of completion</label>
+    <div class="opt-grid" id="dp8timing"></div>
+
+    <div id="dp8rec"></div>
+
+    <details class="learn"><summary>Learn more — natural setting &amp; single session</summary>
+      <div class="lm-body">
+        Allowing remote participation from a natural setting addresses the realism criticism, as in Sauer (2011), where participants responded from their own work environments rather than university facilities. On timing, a single session is best; some formats (e.g., long video vignettes) may require multiple sessions, but those are more likely to be affected by history and other validity threats — so minimize session count.
+      </div>
+    </details>
+
+    <div class="navrow">
+      <button class="btn soft" onclick="go(7)">← Back</button>
+      <button class="btn" onclick="go(9)">Next · Analysis method →</button>
+    </div>
+  </section>
+
+  <!-- DP9 -->
+  <section class="step card" data-step="9">
+    <div class="eyebrow">Stage 2 · Implementation — Decision Point 9</div>
+    <h2>Choose the best method for analyzing the data</h2>
+    <p class="lead">The right analysis follows directly from your design (Decision Point 3). The recommendation below updates automatically. Between-person designs use MANOVA / ANOVA / ANCOVA. Within-person and mixed designs have a two-level structure — vignettes nested within respondents — and call for <strong>multilevel modeling</strong>.</p>
+
+    <div id="dp9rec"></div>
+
+    <details class="learn"><summary>Learn more — why multilevel for within/mixed</summary>
+      <div class="lm-body">
+        Between-person designs are discouraged, but if used, MANOVA, ANOVA, and ANCOVA are appropriate. The preferred within-person and mixed designs produce a two-level data structure: the vignette level nested within the respondent level. Because the data are multilevel, analyses must address both levels simultaneously — hence the recommendation to use multilevel modeling (Aguinis, Gottfredson, &amp; Culpepper, 2013; Hox et al., 1991), which correctly handles the non-independence of multiple vignette responses from the same person.
+      </div>
+    </details>
+
+    <div class="navrow">
+      <button class="btn soft" onclick="go(8)">← Back</button>
+      <button class="btn" onclick="go(10)">Next · Stage 3: Transparency →</button>
+    </div>
+  </section>
+
+  <!-- ============ STAGE 3 ============ -->
+
+  <!-- DP10 -->
+  <section class="step card" data-step="10">
+    <div class="eyebrow">Stage 3 · Reporting — Decision Point 10</div>
+    <h2>Choose how transparent to be in reporting</h2>
+    <p class="lead">In the interest of replicability, describe the vignette creation and administration as transparently as possible, and disclose everything a reader needs to reproduce the study. Work through the checklist — it feeds directly into your final plan.</p>
+
+    <ul class="checklist" id="dp10list"></ul>
+
+    <div class="callout c-rec" style="margin-top:16px">
+      <span class="ctitle">Recommendation</span>
+      Include text or picture vignettes directly in the manuscript. Make video/VR materials available on request or via the journal website. Report the vignette creation and pilot-testing process, and disclose factors, levels, number of vignettes, duplicates, sample, setting, and analysis. Wherever possible, make your vignettes openly available — shared materials accelerate cumulative science.
+    </div>
+
+    <details class="learn"><summary>Learn more — transparency as replicability</summary>
+      <div class="lm-body">
+        Management research is susceptible to credibility issues when procedures and results are withheld or inaccurately reported. Disclose as much as possible about the vignettes used: text/picture vignettes belong in the manuscript; video/VR materials should be available on request or via the journal site. Raaijmakers et al. included an appendix with both the vignettes and the process used to create and pilot-test them — giving future research a validated source to build on. The article recommends researchers make their vignettes openly available, much as the International Personality Item Pool freed personality items for cumulative use.
+      </div>
+    </details>
+
+    <div class="navrow">
+      <button class="btn soft" onclick="go(9)">← Back</button>
+      <button class="btn" onclick="go(12)">Review completion →</button>
+    </div>
+  </section>
+
+  <!-- ABOUT -->
+  <section class="step card" data-step="11">
+    <div class="eyebrow">Reference</div>
+    <h2>About this tool</h2>
+    <p class="lead">Every feature in this workbench is based on the best-practice recommendations and the ten decision points in:</p>
+    <div class="callout c-info">
+      Aguinis, H., &amp; Bradley, K. J. 2014. Best practice recommendations for designing and implementing experimental vignette methodology studies. <em>Organizational Research Methods</em>, 17(4): 351–371.
+    </div>
+    <div class="callout c-rec">
+      <span class="ctitle">Built on recommendations from</span>
+      Aguinis, H. 2025. <em>Research methodology: Best practices for rigorous, credible, and impactful research.</em> SAGE. <a href="https://collegepublishing.sagepub.com/products/research-methodology-1-280088" target="_blank" rel="noopener">https://collegepublishing.sagepub.com/products/research-methodology-1-280088</a>
+    </div>
+    <h3 class="sub">The framework at a glance</h3>
+    <p style="font-size:14.5px">EVM resolves the trade-off between internal validity (experimental control to establish causation) and external validity (realism and generalizability) by presenting carefully constructed, realistic scenarios. The method spans three stages — <strong>Planning</strong> (DP 1–6), <strong>Implementation</strong> (DP 7–9), and <strong>Reporting</strong> (DP 10) — each with explicit trade-offs.</p>
+    <p style="font-size:14.5px">This is a planning aid, not a substitute for the source articles or for methodological judgment. Recommendations adapt to your inputs but should be weighed against your study's specific goals and constraints.</p>
+    <div class="navrow">
+      <button class="btn soft" onclick="go(0)">← Back to start</button>
+      <button class="btn" onclick="go(12)">Go to plan →</button>
+    </div>
+  </section>
+
+  <!-- COMPLETION / PLAN -->
+  <section class="step card" data-step="12">
+    <div class="eyebrow">Finish</div>
+    <h2>Completion &amp; your EVM study plan</h2>
+    <p class="lead">Track your progress across all ten decision points, then generate a clean, printable, copy-ready plan covering every decision, the recommended vignette count, the recommended analysis, and the transparency checklist.</p>
+
+    <h3 class="sub">Decision-point completion</h3>
+    <div class="completion-grid" id="compGrid"></div>
+
+    <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:18px" class="no-print">
+      <button class="btn" onclick="generatePlan()">⚙ Generate my EVM study plan</button>
+      <button class="btn ghost" onclick="copyPlan()">⧉ Copy plan to clipboard</button>
+      <button class="btn ghost" onclick="downloadPlan()">⭳ Download as text</button>
+      <button class="btn soft" onclick="window.print()">⎙ Print / Save as PDF</button>
+    </div>
+
+    <div id="planOutput" style="display:none"></div>
+
+    <div class="navrow">
+      <button class="btn soft" onclick="go(10)">← Back</button>
+      <span></span>
+    </div>
+  </section>
+
+</div>
+</main>
+
+<footer class="site">
+  <div class="wrap">
+    <p class="cite" style="margin:0 0 8px">Aguinis, H., &amp; Bradley, K. J. 2014. Best practice recommendations for designing and implementing experimental vignette methodology studies. <em>Organizational Research Methods</em>, 17(4): 351–371.</p>
+    <p style="margin:0">Built on recommendations from Aguinis, H. 2025. <em>Research methodology: Best practices for rigorous, credible, and impactful research.</em> SAGE. <a href="https://collegepublishing.sagepub.com/products/research-methodology-1-280088" target="_blank" rel="noopener">https://collegepublishing.sagepub.com/products/research-methodology-1-280088</a></p>
+  </div>
+</footer>
+
+<div class="toast" id="toast"></div>
+
+<script>
+/* ============================================================
+   STATE  (kept in memory only — no browser storage APIs)
+   ============================================================ */
+const S = {
+  projTitle:"", projRQ:"",
+  dp1tree:null, dp1scales:{},
+  dp2:null, dp2scales:{},
+  dp3:null, dp3baseline:"",
+  dp4medium:0, dp4budget:null,
+  factors:[{name:"",levels:2}],
+  dp5approach:null,
+  dp6final:"",
+  dp7pop:"", dp7source:null, dp7n:"",
+  dp8setting:null, dp8timing:null,
+  dp10:{}
+};
+const STEP_TITLES = [
+  {t:"Start", stage:""},
+  {t:"DP1 · EVM fit", stage:"1"},
+  {t:"DP2 · Type", stage:"1"},
+  {t:"DP3 · Design", stage:"1"},
+  {t:"DP4 · Immersion", stage:"1"},
+  {t:"DP5 · Factors", stage:"1"},
+  {t:"DP6 · # Vignettes", stage:"1"},
+  {t:"DP7 · Sample", stage:"2"},
+  {t:"DP8 · Setting", stage:"2"},
+  {t:"DP9 · Analysis", stage:"2"},
+  {t:"DP10 · Transparency", stage:"3"},
+  {t:"About", stage:""},
+  {t:"Plan", stage:""}
+];
+let current = 0;
+
+/* ============================================================
+   NAVIGATION
+   ============================================================ */
+function buildNav(){
+  const nav = document.getElementById('stepsNav');
+  nav.innerHTML='';
+  STEP_TITLES.forEach((s,i)=>{
+    const b=document.createElement('button');
+    b.className='stepbtn';
+    b.id='nav'+i;
+    b.onclick=()=>go(i);
+    const dot = i===11?'i': i===12?'✓': i===0?'•': String(i);
+    b.innerHTML='<span class="dot">'+dot+'</span>'+s.t;
+    nav.appendChild(b);
+  });
+}
+function go(i){
+  current=i;
+  document.querySelectorAll('.step').forEach(el=>el.classList.remove('active'));
+  document.querySelector('.step[data-step="'+i+'"]').classList.add('active');
+  document.querySelectorAll('.stepbtn').forEach((b,idx)=>{
+    b.classList.toggle('active', idx===i);
+    b.classList.toggle('done', isDPdone(idx) && idx!==i);
+    if(isDPdone(idx)&&idx===i) b.classList.add('done');
+  });
+  updateProgress();
+  if(i===12){renderCompletion();}
+  document.getElementById('nav'+i).scrollIntoView({block:'nearest',inline:'center',behavior:'smooth'});
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+function updateProgress(){
+  let done=0; for(let i=1;i<=10;i++){if(isDPdone(i))done++;}
+  document.getElementById('pbar').style.width=(done/10*100)+'%';
+}
+
+/* ============================================================
+   COMPLETION LOGIC
+   ============================================================ */
+function isDPdone(i){
+  switch(i){
+    case 1: return !!S.dp1tree;
+    case 2: return !!S.dp2;
+    case 3: return !!S.dp3 && (S.dp3!=='between' || S.dp3baseline.trim().length>0);
+    case 4: return S.dp4budget!==null;
+    case 5: return S.factors.some(f=>f.name.trim()) ;
+    case 6: return S.dp6final!=='' && Number(S.dp6final)>0;
+    case 7: return !!S.dp7source && S.dp7n!=='';
+    case 8: return !!S.dp8setting && !!S.dp8timing;
+    case 9: return !!S.dp3; // analysis derived from design
+    case 10: return Object.values(S.dp10).filter(Boolean).length>=6;
+    default: return false;
+  }
+}
+
+/* ============================================================
+   DP1 — branching decision tree + scales + verdict
+   ============================================================ */
+const dp1treeOpts=[
+  {v:"causal", t:"I need experimental control over independent variables to establish causation", d:"Variables are known to correlate, but I must isolate cause and rule out confounds."},
+  {v:"sensitive", t:"My topic is sensitive or hard/unethical to manipulate in the field", d:"E.g., harassment, moral disengagement, misconduct — real-world manipulation isn't ethical or feasible."},
+  {v:"inaccessible", t:"My population is small, inaccessible, or hard to reach", d:"E.g., CEOs, board members, early-stage entrepreneurs — I need rich data from few people."},
+  {v:"highstakes", t:"My phenomenon is high-stakes and context-bound in ways a scenario can't recreate", d:"E.g., live M&A negotiations — hypothetical scenarios may not reproduce real pressures."},
+  {v:"descriptive", t:"I mainly want to describe correlations or existing field behavior", d:"No need to manipulate causes; observational/field data may suffice."}
+];
+const dp1scaleQs=[
+  {k:"control", q:"How much do you need experimental control to establish causation?"},
+  {k:"direction", q:"How unclear is the causal direction among variables that correlate?"},
+  {k:"ethics", q:"How sensitive / ethically difficult is field manipulation of your variables?"},
+  {k:"realism", q:"How well can a realistic scenario reproduce the real-life context?"}
+];
+function buildDP1(){
+  const tree=document.getElementById('dp1tree'); tree.innerHTML='';
+  dp1treeOpts.forEach(o=>{
+    const d=document.createElement('label'); d.className='opt'; d.dataset.v=o.v;
+    d.innerHTML='<input type="radio" name="dp1tree" '+(S.dp1tree===o.v?'checked':'')+'><span><span class="ot">'+o.t+'</span><span class="od">'+o.d+'</span></span>';
+    d.onclick=()=>{S.dp1tree=o.v; markSel('dp1tree',d); dp1verdict();};
+    if(S.dp1tree===o.v)d.classList.add('sel');
+    tree.appendChild(d);
+  });
+  const sc=document.getElementById('dp1scales'); sc.innerHTML='';
+  dp1scaleQs.forEach(o=>{ sc.appendChild(scaleRow('dp1',o.k,o.q,S.dp1scales,dp1verdict)); });
+  dp1verdict();
+}
+function dp1verdict(){
+  const box=document.getElementById('dp1verdict');
+  if(!S.dp1tree){box.innerHTML=''; return;}
+  let cls,title,msg;
+  const sc=S.dp1scales;
+  const control=sc.control||0, ethics=sc.ethics||0, realism=sc.realism||0, direction=sc.direction||0;
+  if(S.dp1tree==='descriptive'){
+    cls='c-danger'; title='EVM is likely a POOR fit';
+    msg='You described a primarily descriptive or correlational goal. EVM\'s core value is experimental control to establish causation. If you don\'t need to manipulate causes, a field/observational design may serve you better. Reconsider EVM only if you actually need to isolate causal effects.';
+  } else if(S.dp1tree==='highstakes' || (realism>0 && realism<=2)){
+    cls='c-warn'; title='EVM is a QUALIFIED fit — proceed with caution';
+    msg='Your phenomenon may be high-stakes or context-bound in ways a hypothetical scenario struggles to reproduce (e.g., live M&A decisions). EVM can still work, but invest heavily in realism: maximize immersion (Decision Point 4), use actual derived cases for factor levels (Decision Point 5), and pilot scenarios with people like your target sample. If responses can\'t plausibly mirror the real context, EVM may not be defensible here.';
+  } else if(S.dp1tree==='causal'||S.dp1tree==='sensitive'||S.dp1tree==='inaccessible'){
+    cls='c-rec'; title='EVM is a GOOD fit';
+    let reasons=[];
+    if(S.dp1tree==='causal'||control>=4) reasons.push('you need experimental control to establish causation among variables known to correlate');
+    if(S.dp1tree==='sensitive'||ethics>=4) reasons.push('your topic is sensitive or hard to manipulate ethically in the field, which EVM handles through controlled hypothetical scenarios');
+    if(S.dp1tree==='inaccessible') reasons.push('your population is small or inaccessible, and EVM (especially policy capturing/conjoint) extracts rich data from few respondents');
+    if(direction>=4) reasons.push('causal direction is currently ambiguous, and experimental manipulation can clarify it');
+    if(!reasons.length) reasons.push('your goal aligns with EVM\'s strength: controlled, realistic scenarios that support causal inference');
+    msg='EVM is a strong choice because '+reasons.join('; ')+'. Proceed — and keep strengthening external validity as you go (immersion, realistic levels, a well-matched sample).';
+    if(realism>0 && realism<=2){
+      cls='c-warn'; title='EVM is a GOOD fit — with one caution';
+      msg+=' <strong>However</strong>, you rated scenario realism low: prioritize immersion and realistic factor levels so the hypothetical context is believable.';
+    }
+  } else { cls='c-info'; title='Answer the items for a verdict'; msg=''; }
+  box.innerHTML='<div class="verdict-big '+cls+'">'+title+'</div>'+(msg?'<div class="callout '+cls+'">'+msg+'</div>':'');
+}
+
+/* ============================================================
+   DP2 — type
+   ============================================================ */
+const dp2opts=[
+  {v:"paper", t:"Paper people (explicit)", d:"Participants make decisions, judgments, or state attitudes they are aware of and can report. Typically one response per scenario."},
+  {v:"pccA", t:"Policy capturing / conjoint (implicit)", d:"Participants rank or choose among many scenarios; captures real-time, implicit decision processes. Requires factors known a priori from theory."}
+];
+const dp2scaleQs=[
+  {k:"explicit", q:"Is the process you study explicit (participants aware, can self-report)? 1=fully implicit, 5=fully explicit"},
+  {k:"theory", q:"How clearly does theory specify the relevant factors a priori? 1=new/underdeveloped, 5=well-specified"}
+];
+function buildDP2(){
+  const o=document.getElementById('dp2opts'); o.innerHTML='';
+  dp2opts.forEach(x=>{
+    const d=document.createElement('label'); d.className='opt';
+    d.innerHTML='<input type="radio" name="dp2"><span><span class="ot">'+x.t+'</span><span class="od">'+x.d+'</span></span>';
+    d.onclick=()=>{S.dp2=x.v; markSel('dp2',d); dp2rec();};
+    if(S.dp2===x.v)d.classList.add('sel');
+    o.appendChild(d);
+  });
+  const sc=document.getElementById('dp2scales'); sc.innerHTML='';
+  dp2scaleQs.forEach(q=>sc.appendChild(scaleRow('dp2',q.k,q.q,S.dp2scales,dp2rec)));
+  dp2rec();
+}
+function dp2rec(){
+  const rec=document.getElementById('dp2rec'); const tr=document.getElementById('dp2trade');
+  const ex=S.dp2scales.explicit||0, th=S.dp2scales.theory||0;
+  let suggestion='';
+  if(ex||th){
+    if(ex>=4 && th<4) suggestion='Your process is explicit, so <b>paper people</b> is the natural fit — participants can directly report the judgments you care about.';
+    else if(ex<=2 && th>=4) suggestion='Your process is implicit and theory specifies the factors well, so <b>policy capturing / conjoint</b> fits — let participants choose among scenarios to surface real-time decisions.';
+    else if(ex<=2 && th<4) suggestion='You want implicit processes, but theory does not yet clearly specify the factors. Policy capturing/conjoint <i>assumes</i> factors are known a priori — consider developing theory first, or use paper people while the area matures.';
+    else suggestion='Your inputs are mixed. If participants can report the judgment directly, lean <b>paper people</b>; if you need to capture choices made without full awareness <i>and</i> theory specifies the factors, lean <b>policy capturing / conjoint</b>.';
+  }
+  let chosen='';
+  if(S.dp2==='paper') chosen='You chose <b>paper people</b> — assess explicit decisions, judgments, and attitudes.';
+  if(S.dp2==='pccA') chosen='You chose <b>policy capturing / conjoint</b> — capture implicit, real-time processes via ranking/choice. The 5-per-attribute vignette rule (Decision Point 6) will apply.';
+  rec.innerHTML=(chosen?'<div class="callout c-rec"><span class="ctitle">Your choice</span>'+chosen+'</div>':'')+(suggestion?'<div class="callout c-info"><span class="ctitle">Guided suggestion</span>'+suggestion+'</div>':'');
+  // tradeoff
+  if(S.dp2){
+    tr.style.display='grid';
+    if(S.dp2==='paper'){
+      tr.innerHTML=tradeHTML(
+        ['Directly measures judgments participants are aware of','Long, well-established track record across many domains','Simple to administer; one response per scenario','Works even when theory is still developing'],
+        ['Only captures explicit, reportable processes','Misses implicit/real-time decision processes','Self-reports vulnerable to social desirability']);
+    } else {
+      tr.innerHTML=tradeHTML(
+        ['Captures implicit, real-time decision processes','Extracts rich data from few participants — good for small/inaccessible populations','Models how factors trade off in choices'],
+        ['Requires factors known a priori from theory','Poor fit for new/underdeveloped areas','Needs ≥5 scenarios per attribute → more vignettes per person','Higher respondent burden']);
+    }
+  } else tr.style.display='none';
+}
+
+/* ============================================================
+   DP3 — design
+   ============================================================ */
+const dp3opts=[
+  {v:"within", t:"Within-person (preferred)", d:"Each participant sees the same set of vignettes; compare across vignettes within a person. Reveals manipulation effects inside one individual."},
+  {v:"mixed", t:"Mixed (preferred)", d:"Different groups see different vignette sets; everyone within a group sees the same set. Adds cross-respondent comparison."},
+  {v:"between", t:"Between-person (use with caution)", d:"Each participant reads only ONE vignette; compare across participants. Uncommon; risks ungrounded judgments without shared baseline context."}
+];
+function buildDP3(){
+  const o=document.getElementById('dp3opts'); o.innerHTML='';
+  dp3opts.forEach(x=>{
+    const d=document.createElement('label'); d.className='opt';
+    d.innerHTML='<input type="radio" name="dp3"><span><span class="ot">'+x.t+'</span><span class="od">'+x.d+'</span></span>';
+    d.onclick=()=>{S.dp3=x.v; markSel('dp3',d); dp3rec();};
+    if(S.dp3===x.v)d.classList.add('sel');
+    o.appendChild(d);
+  });
+  document.getElementById('dp3baselineText').value=S.dp3baseline;
+  document.getElementById('dp3baselineText').oninput=function(){S.dp3baseline=this.value; dp3rec();};
+  dp3rec();
+}
+function dp3rec(){
+  const rec=document.getElementById('dp3rec'); const tr=document.getElementById('dp3trade');
+  const bl=document.getElementById('dp3baseline'); const flag=document.getElementById('dp3baselineFlag');
+  if(!S.dp3){rec.innerHTML='';tr.style.display='none';bl.style.display='none';return;}
+  let html='';
+  if(S.dp3==='between'){
+    bl.style.display='block';
+    flag.style.display = S.dp3baseline.trim()?'none':'block';
+    html='<div class="callout c-danger"><span class="ctitle">Caution — between-person</span>True between-person designs are uncommon and risk <b>ungrounded judgments</b>: with only one vignette, participants have no referent points, so responses may not reflect their true judgments. The article discourages this design. If you keep it, you <b>must</b> give all participants sufficient shared baseline/contextual information first (as Raaijmakers et al. did). '+(S.dp3baseline.trim()?'✓ You\'ve specified baseline context — good.':'<b>Please specify your shared baseline context below.</b>')+'</div>';
+  } else {
+    bl.style.display='none';
+    html='<div class="callout c-rec"><span class="ctitle">Good choice</span>'+(S.dp3==='within'?'Within-person':'Mixed')+' designs are <b>preferred</b>. '+(S.dp3==='within'?'Each participant sees the same vignettes, revealing manipulation effects within the individual.':'Different groups see different sets while sharing within-group, enabling both within- and cross-respondent comparison.')+' This yields a two-level data structure (vignettes nested within respondents) → see the multilevel analysis recommendation in Decision Point 9.</div>';
+  }
+  rec.innerHTML=html;
+  tr.style.display='grid';
+  if(S.dp3==='within'){
+    tr.innerHTML=tradeHTML(
+      ['Grounds judgments via comparison across vignettes','Multiple observations per person → more statistical power per participant','Reveals within-individual judgment processes'],
+      ['Order/fatigue effects possible — randomize vignette order','Requires multilevel analysis','Higher per-respondent burden']);
+  } else if(S.dp3==='mixed'){
+    tr.innerHTML=tradeHTML(
+      ['Combines within- and between-respondent comparison','Spreads a large vignette population across groups','Multiple observations per person'],
+      ['More complex to design and balance across groups','Requires multilevel analysis','Group assignment must be handled carefully']);
+  } else {
+    tr.innerHTML=tradeHTML(
+      ['Simplest respondent task — one vignette each','No order/carryover effects','Can suit some single-decision contexts'],
+      ['Discouraged: risks ungrounded judgments','No referent points → responses may misrepresent true judgments','Requires shared baseline context to be defensible','Needs many more participants']);
+  }
+}
+
+/* ============================================================
+   DP4 — immersion
+   ============================================================ */
+const media=[
+  {n:"Text",real:1,cost:1,note:"Lowest cost — a researcher's time and creativity. Fewest distractors; least realism."},
+  {n:"Pictures",real:2,cost:2,note:"Adds visual grounding at modest cost."},
+  {n:"Audio",real:3,cost:3,note:"Engages hearing; adds tone and delivery cues."},
+  {n:"Video",real:4,cost:4,note:"High realism and recall; controllable 'natural noise' (e.g., equally attractive actors). May require hiring actors (Taggar & Neubert hired five)."},
+  {n:"Virtual reality",real:5,cost:5,note:"Highest immersion — see, hear, touch, fully experience. Highest cost and logistics."}
+];
+const dp4budgetOpts=[
+  {v:"low", t:"Lean (time only)", d:"Little budget; researcher time is the main resource."},
+  {v:"mid", t:"Moderate", d:"Some budget for design, recording, or pictures."},
+  {v:"high", t:"Well-resourced", d:"Budget for actors, video production, or VR."}
+];
+function buildDP4(){
+  document.getElementById('dp4range').value=S.dp4medium;
+  const b=document.getElementById('dp4budget'); b.innerHTML='';
+  dp4budgetOpts.forEach(x=>{
+    const d=document.createElement('label'); d.className='opt';
+    d.innerHTML='<input type="radio" name="dp4b"><span><span class="ot">'+x.t+'</span><span class="od">'+x.d+'</span></span>';
+    d.onclick=()=>{S.dp4budget=x.v; markSel('dp4b',d); dp4rec();};
+    if(S.dp4budget===x.v)d.classList.add('sel');
+    b.appendChild(d);
+  });
+  dp4changed();
+}
+function dp4changed(){
+  S.dp4medium=Number(document.getElementById('dp4range').value);
+  const m=media[S.dp4medium];
+  document.getElementById('dp4label').innerHTML=
+    '<div class="callout c-info"><span class="ctitle">'+m.n+'</span>'+m.note+'<br><br><b>Realism:</b> '+'★'.repeat(m.real)+'☆'.repeat(5-m.real)+' &nbsp;·&nbsp; <b>Cost/effort:</b> '+'$'.repeat(m.cost)+'</div>';
+  dp4rec();
+}
+function dp4rec(){
+  const rec=document.getElementById('dp4rec'); const tr=document.getElementById('dp4trade');
+  const m=media[S.dp4medium];
+  if(S.dp4budget){
+    let msg='';
+    const budgetRank={low:1,mid:3,high:5}[S.dp4budget];
+    if(m.cost>budgetRank+1){
+      msg='<div class="callout c-warn"><span class="ctitle">Realism vs. budget mismatch</span>You selected <b>'+m.n+'</b> (cost '+'$'.repeat(m.cost)+') but a <b>'+S.dp4budget+'</b> budget. Higher immersion boosts realism, recall, and external validity, but '+m.n.toLowerCase()+' production may strain your resources (e.g., hiring actors for video). Either secure more resources or step down a level and compensate with realistic factor levels (Decision Point 5) and a natural setting (Decision Point 8).</div>';
+    } else if(m.cost<=2 && budgetRank>=3){
+      msg='<div class="callout c-rec"><span class="ctitle">Room to increase realism</span>Your budget ('+S.dp4budget+') can likely support more immersion than <b>'+m.n+'</b>. Since higher immersion improves realism, engagement, recall, and external validity, consider stepping up (e.g., pictures→video) if it suits your phenomenon.</div>';
+    } else {
+      msg='<div class="callout c-rec"><span class="ctitle">Balanced choice</span><b>'+m.n+'</b> is well matched to a <b>'+S.dp4budget+'</b> budget. Remember: when you control the "natural noise" in richer media, you gain realism without sacrificing internal validity.</div>';
+    }
+    rec.innerHTML=msg;
+  } else rec.innerHTML='';
+  tr.style.display='grid';
+  tr.innerHTML=tradeHTML(
+    ['Higher immersion → more realism, engagement & recall','Improves external validity (closer to real experience)','Lets you control "natural noise" for lifelike yet clean scenarios','Enables sensitive topics hard to stage in real life'],
+    ['Cost and effort rise with immersion','Video/VR may require actors, recording, equipment','More production time and logistics','Risk of multiple sessions for long video (history threat)']);
+}
+
+/* ============================================================
+   DP5 — factors & levels + LIVE CALCULATOR
+   ============================================================ */
+function buildDP5(){
+  renderFactors();
+  const o=document.getElementById('dp5approach'); o.innerHTML='';
+  const opts=[
+    {v:"ortho", t:"Attribute-driven (orthogonal)", d:"Factors set orthogonal to each other → clean independent effects. Watch for unrealistic combinations; replace those with realistic scenarios."},
+    {v:"derived", t:"Actual derived cases", d:"Levels chosen to mirror concrete real-world values → more lifelike, more generalizable. Ask people like your target sample for realistic levels."}
+  ];
+  opts.forEach(x=>{
+    const d=document.createElement('label'); d.className='opt';
+    d.innerHTML='<input type="radio" name="dp5a"><span><span class="ot">'+x.t+'</span><span class="od">'+x.d+'</span></span>';
+    d.onclick=()=>{S.dp5approach=x.v; markSel('dp5a',d); dp5trade();};
+    if(S.dp5approach===x.v)d.classList.add('sel');
+    o.appendChild(d);
+  });
+  dp5trade();
+}
+function renderFactors(){
+  const tb=document.getElementById('factorBody'); tb.innerHTML='';
+  S.factors.forEach((f,i)=>{
+    const tr=document.createElement('tr');
+    tr.innerHTML='<td><input type="text" value="'+escapeHtml(f.name)+'" placeholder="e.g., Leadership style" oninput="setFactorName('+i+',this.value)"></td>'+
+      '<td class="lv"><input type="number" min="1" value="'+f.levels+'" oninput="setFactorLevels('+i+',this.value)"></td>'+
+      '<td>'+(S.factors.length>1?'<button class="rm-factor" onclick="rmFactor('+i+')" title="Remove">×</button>':'')+'</td>';
+    tb.appendChild(tr);
+  });
+  recalc();
+}
+function addFactor(){S.factors.push({name:"",levels:2}); renderFactors();}
+function rmFactor(i){S.factors.splice(i,1); renderFactors();}
+function setFactorName(i,v){S.factors[i].name=v;}
+function setFactorLevels(i,v){S.factors[i].levels=Math.max(1,parseInt(v)||1); recalc();}
+
+function fullFactorial(){
+  const valid=S.factors.filter(f=>f.levels>=1);
+  if(!valid.length) return 0;
+  return valid.reduce((p,f)=>p*f.levels,1);
+}
+function namedFactorCount(){return S.factors.filter(f=>f.name.trim()).length;}
+function recalc(){
+  const nf=S.factors.length;
+  const full=fullFactorial();
+  if(document.getElementById('calcFactors')){
+    document.getElementById('calcFactors').textContent=nf;
+    document.getElementById('calcFull').textContent=full.toLocaleString();
+  }
+  // warnings
+  const w=document.getElementById('dp5warn');
+  if(w){
+    let html='';
+    if(full>0){
+      html+='<div class="callout c-info"><span class="ctitle">Full factorial population</span>'+
+        S.factors.map(f=>(f.levels)).join(' × ')+' = <b>'+full.toLocaleString()+'</b> unique vignettes. You need not use them all — Decision Point 6 recommends how many to present.</div>';
+    }
+    if(nf>=5){
+      html+='<div class="callout c-warn"><span class="ctitle">Many factors</span>With '+nf+' factors, the full population grows fast and risks information overload. Theory should justify each factor; consider a fractional/orthogonal subset.</div>';
+    }
+    if(full>0 && full<4){
+      html+='<div class="callout c-warn"><span class="ctitle">Very small population</span>Only '+full+' unique vignettes. Too few scenarios can bias responses and limit your ability to manipulate critical variables — consider adding factors or levels.</div>';
+    }
+    w.innerHTML=html;
+  }
+  if(document.querySelector('.step[data-step="6"]')) buildDP6();
+}
+function dp5trade(){
+  const tr=document.getElementById('dp5trade');
+  if(!S.dp5approach){tr.style.display='none';return;}
+  tr.style.display='grid';
+  if(S.dp5approach==='ortho'){
+    tr.innerHTML=tradeHTML(
+      ['Clean estimation of each factor\'s independent effect','Efficient, balanced design','Standard for policy capturing/conjoint'],
+      ['Some orthogonal combinations are unrealistic','Unrealistic scenarios can hurt believability','May need manual replacement of odd combinations']);
+  } else {
+    tr.innerHTML=tradeHTML(
+      ['Lifelike scenarios → stronger generalizability','Levels reflect real-world values','Higher believability for respondents'],
+      ['Factors may not be fully orthogonal → effects can correlate','Requires gathering realistic levels from sample-like people','Harder to isolate independent effects']);
+  }
+}
+
+/* ============================================================
+   DP6 — number of vignettes
+   ============================================================ */
+function buildDP6(){
+  const full=fullFactorial();
+  const nAttr=namedFactorCount() || S.factors.filter(f=>f.levels>1).length || S.factors.length;
+  const min5 = nAttr*5;                 // 5 per manipulated attribute (PC/CA)
+  const dupes = 5;                       // 4–5 recommended; use 5
+  const isPCCA = S.dp2==='pccA';
+  // base unique to present: for PC/CA use min5 capped by full; else suggest min(full, 20-ish) but at least follow factorial
+  let baseUnique;
+  if(isPCCA){ baseUnique = Math.min(Math.max(min5, nAttr*5), full || min5); if(!full) baseUnique=min5; }
+  else { baseUnique = full>0 ? Math.min(full, Math.max(8, nAttr*4)) : 0; }
+  const recommended = (baseUnique||0) + (baseUnique?dupes:0);
+
+  const cards=document.getElementById('dp6cards');
+  cards.innerHTML=
+    card(full.toLocaleString(),'Full factorial<br>population')+
+    card(nAttr,'Manipulated<br>attributes')+
+    (isPCCA?card(min5,'5 × attributes<br>(PC/CA minimum)'):'')+
+    card('4–5','Duplicates for<br>reliability')+
+    card(recommended.toLocaleString(),'Recommended total<br>per respondent');
+
+  const math=document.getElementById('dp6math');
+  let m='<div class="callout c-rec"><span class="ctitle">How we got the recommendation</span>';
+  if(!full){ m+='Add factors and levels in Decision Point 5 to compute a recommendation.'; }
+  else if(isPCCA){
+    m+='You chose <b>policy capturing / conjoint</b>, so the rule is a <b>minimum of 5 scenarios per manipulated attribute</b>: 5 × '+nAttr+' = <b>'+min5+'</b>. The article also says <i>err toward more vignettes per respondent</i>, so present as many unique vignettes as feasible up to the full population of '+full.toLocaleString()+'. Add <b>4–5 duplicated</b> vignettes to assess reliability. ';
+    m+='<br><br><b>Suggested: '+baseUnique+' unique + 5 duplicates = '+recommended+' vignettes per respondent.</b>';
+  } else {
+    m+='You chose <b>paper people</b>. Build the full population ('+full.toLocaleString()+' = '+S.factors.map(f=>f.levels).join(' × ')+'), then present a theory-justified subset — enough to manipulate your critical variables without causing fatigue. Include <b>4–5 duplicated</b> vignettes for reliability. ';
+    m+='<br><br><b>Suggested: about '+baseUnique+' unique + 5 duplicates = '+recommended+' vignettes per respondent</b> (adjust to your design; within/mixed designs can carry more).';
+  }
+  m+='</div>';
+  math.innerHTML=m;
+
+  document.getElementById('dp6final').value=S.dp6final;
+  S._recommendedVignettes=recommended;
+  dp6changed();
+}
+function dp6changed(){
+  S.dp6final=document.getElementById('dp6final').value;
+  const w=document.getElementById('dp6warn');
+  const n=Number(S.dp6final);
+  if(!n){w.innerHTML='';return;}
+  const rec=S._recommendedVignettes||0;
+  let html='';
+  if(n>50){
+    html='<div class="callout c-danger"><span class="ctitle">⚠ Overload risk</span>'+n+' vignettes is high. Weber (1992) warns that too many vignettes cause <b>information overload and fatigue</b>. Unless your design spreads these across groups (mixed) or sessions, consider reducing.</div>';
+  } else if(n< (rec? Math.max(5,rec-5):5)){
+    html='<div class="callout c-warn"><span class="ctitle">⚠ Underload risk</span>'+n+' vignettes may be too few. Too few scenarios can <b>bias responses</b> and limit manipulation of critical variables'+(rec?'. Your computed recommendation is about <b>'+rec+'</b>.':'.')+(S.dp2==='pccA'?' For policy capturing/conjoint, keep at least 5 per attribute.':'')+'</div>';
+  } else {
+    html='<div class="callout c-rec"><span class="ctitle">✓ Reasonable</span>'+n+' vignettes is in a sensible range'+(rec?' (recommended ≈ '+rec+')':'')+'. Confirm 4–5 of these are duplicates for reliability, and randomize presentation order.</div>';
+  }
+  w.innerHTML=html;
+}
+
+/* ============================================================
+   DP7 — sample
+   ============================================================ */
+function buildDP7(){
+  document.getElementById('dp7pop').value=S.dp7pop;
+  document.getElementById('dp7pop').oninput=function(){S.dp7pop=this.value;};
+  const o=document.getElementById('dp7source'); o.innerHTML='';
+  const opts=[
+    {v:"matched", t:"Working sample matched to target population", d:"E.g., practitioners, managers, alumni — closely approximates who you generalize to. Strongest external validity."},
+    {v:"elance", t:"Online / eLancing crowdsource marketplace", d:"Working, diverse, global individuals at low cost. Now nearly as easy to collect as students; eases external-validity concerns."},
+    {v:"student", t:"Student sample", d:"Convenient but debated. Problematic when the target is high-ranking or hard-to-reach (CEOs, boards, early-stage entrepreneurs)."},
+    {v:"specialized", t:"Specialized / hard-to-reach professionals", d:"E.g., executives recruited directly. High validity but harder access — PC/CA helps extract rich data from few."}
+  ];
+  opts.forEach(x=>{
+    const d=document.createElement('label'); d.className='opt';
+    d.innerHTML='<input type="radio" name="dp7s"><span><span class="ot">'+x.t+'</span><span class="od">'+x.d+'</span></span>';
+    d.onclick=()=>{S.dp7source=x.v; markSel('dp7s',d); dp7rec();};
+    if(S.dp7source===x.v)d.classList.add('sel');
+    o.appendChild(d);
+  });
+  document.getElementById('dp7n').value=S.dp7n;
+  dp7rec(); dp7changed();
+}
+function dp7rec(){
+  const rec=document.getElementById('dp7rec');
+  if(!S.dp7source){rec.innerHTML='';return;}
+  let msg='';
+  if(S.dp7source==='student'){
+    msg='<div class="callout c-warn"><span class="ctitle">Student sample — proceed carefully</span>Student samples are debated and especially problematic when generalizing to high-ranking or hard-to-reach groups (CEOs, board members, top management teams, early-stage entrepreneurs). Ensure your scenarios are <b>familiar</b> to students, or adapt the vignettes to their knowledge — otherwise responses become artificial. If your target is professionals, consider an eLancing/working sample instead.</div>';
+  } else if(S.dp7source==='elance'){
+    msg='<div class="callout c-rec"><span class="ctitle">Good for reach &amp; diversity</span>eLancing marketplaces provide large, diverse, global samples of <b>working</b> individuals at low cost — now nearly as easy to collect as student samples, which helps minimize external-validity concerns. Verify participants are familiar with your scenario context.</div>';
+  } else if(S.dp7source==='matched'){
+    msg='<div class="callout c-rec"><span class="ctitle">Strong external validity</span>A working sample matched to your target population maximizes generalizability. Confirm the scenarios are familiar to them so responses are authentic.</div>';
+  } else {
+    msg='<div class="callout c-rec"><span class="ctitle">High-fidelity sample</span>Specialized professionals give strong validity. Access is harder — policy capturing/conjoint is ideal here because it extracts rich data from relatively few, inaccessible respondents.</div>';
+  }
+  rec.innerHTML=msg;
+}
+function dp7changed(){
+  S.dp7n=document.getElementById('dp7n').value;
+  const out=document.getElementById('dp7nout');
+  const n=Number(S.dp7n);
+  if(!n){out.innerHTML='';return;}
+  let obs='';
+  if((S.dp3==='within'||S.dp3==='mixed') && S.dp6final){
+    const total=n*Number(S.dp6final);
+    obs='<div class="callout c-info"><span class="ctitle">Observations, not just people</span>Your '+(S.dp3==='within'?'within-person':'mixed')+' design yields multiple observations per participant. With '+n+' participants × '+S.dp6final+' vignettes ≈ <b>'+total.toLocaleString()+' vignette-level observations</b> (Level 1), nested within '+n+' respondents (Level 2). Power your study at the observation level, and plan multilevel analysis (Decision Point 9).</div>';
+  } else {
+    obs='<div class="callout c-info"><span class="ctitle">Note</span>'+n+' participants planned.'+(S.dp3==='between'?' In a between-person design each person contributes one vignette response, so you need a larger headcount for adequate power.':'')+'</div>';
+  }
+  out.innerHTML=obs;
+}
+
+/* ============================================================
+   DP8 — setting & timing
+   ============================================================ */
+function buildDP8(){
+  const o=document.getElementById('dp8setting'); o.innerHTML='';
+  [{v:"natural",t:"Natural setting (e.g., remote, own work environment)",d:"Boosts realism and addresses the 'EVM lacks realism' criticism. Recommended."},
+   {v:"lab",t:"Controlled lab / on-site facility",d:"Maximal control but more removed from real context; realism suffers."}].forEach(x=>{
+    const d=document.createElement('label'); d.className='opt';
+    d.innerHTML='<input type="radio" name="dp8set"><span><span class="ot">'+x.t+'</span><span class="od">'+x.d+'</span></span>';
+    d.onclick=()=>{S.dp8setting=x.v; markSel('dp8set',d); dp8rec();};
+    if(S.dp8setting===x.v)d.classList.add('sel'); o.appendChild(d);
+  });
+  const t=document.getElementById('dp8timing'); t.innerHTML='';
+  [{v:"single",t:"Single session (recommended)",d:"Avoids history and other validity threats."},
+   {v:"multi",t:"Multiple sessions",d:"Sometimes needed (e.g., long video), but more vulnerable to history threats."}].forEach(x=>{
+    const d=document.createElement('label'); d.className='opt';
+    d.innerHTML='<input type="radio" name="dp8tim"><span><span class="ot">'+x.t+'</span><span class="od">'+x.d+'</span></span>';
+    d.onclick=()=>{S.dp8timing=x.v; markSel('dp8tim',d); dp8rec();};
+    if(S.dp8timing===x.v)d.classList.add('sel'); t.appendChild(d);
+  });
+  dp8rec();
+}
+function dp8rec(){
+  const rec=document.getElementById('dp8rec'); let msg='';
+  if(S.dp8setting==='lab') msg+='<div class="callout c-warn"><span class="ctitle">Realism risk</span>A lab/on-site setting removes participants from their natural context. Where feasible, let them respond remotely from their own environment to strengthen realism and external validity.</div>';
+  else if(S.dp8setting==='natural') msg+='<div class="callout c-rec"><span class="ctitle">Good</span>Natural-setting participation boosts realism, directly addressing a common EVM criticism (as in Sauer, 2011).</div>';
+  if(S.dp8timing==='multi') msg+='<div class="callout c-warn"><span class="ctitle">History threat</span>Multiple sessions are more likely to be affected by history and other validity threats. Use a single session unless your format (e.g., long video) makes it impossible — and if so, control for between-session events.</div>';
+  else if(S.dp8timing==='single') msg+='<div class="callout c-rec"><span class="ctitle">Good</span>A single session avoids history and related threats to validity.</div>';
+  rec.innerHTML=msg;
+}
+
+/* ============================================================
+   DP9 — analysis (design-aware)
+   ============================================================ */
+function buildDP9(){ dp9rec(); }
+function analysisRec(){
+  if(!S.dp3) return null;
+  if(S.dp3==='between') return {tech:'MANOVA / ANOVA / ANCOVA', why:'Your between-person design compares across participants, each contributing one vignette response. These techniques are appropriate (though the article discourages between-person designs in the first place).', cls:'c-warn'};
+  return {tech:'Multilevel modeling', why:'Your '+(S.dp3==='within'?'within-person':'mixed')+' design produces a two-level data structure — vignettes (Level 1) nested within respondents (Level 2). Because responses from the same person are non-independent, use multilevel modeling to analyze both levels simultaneously (Aguinis, Gottfredson, & Culpepper, 2013; Hox et al., 1991).', cls:'c-rec'};
+}
+function dp9rec(){
+  const rec=document.getElementById('dp9rec');
+  const a=analysisRec();
+  if(!a){rec.innerHTML='<div class="callout c-info">Choose your research design in <b>Decision Point 3</b> and the recommended analysis will appear here automatically.</div>';return;}
+  rec.innerHTML='<div class="verdict-big '+a.cls+'">Recommended analysis: '+a.tech+'</div><div class="callout '+a.cls+'">'+a.why+'</div>';
+}
+
+/* ============================================================
+   DP10 — transparency checklist
+   ============================================================ */
+const dp10items=[
+  {k:"include", t:"Include text/picture vignettes directly in the manuscript"},
+  {k:"avail", t:"Make video/VR materials available on request or via the journal website"},
+  {k:"creation", t:"Report the vignette creation process"},
+  {k:"pilot", t:"Report the pilot-testing process"},
+  {k:"factors", t:"Disclose factors and their levels"},
+  {k:"count", t:"Disclose number of vignettes and number of duplicates"},
+  {k:"sample", t:"Disclose sample and number of participants"},
+  {k:"setting", t:"Disclose setting and timing of administration"},
+  {k:"analysis", t:"Disclose the analysis method"},
+  {k:"open", t:"Make vignettes openly available for cumulative science"}
+];
+function buildDP10(){
+  const ul=document.getElementById('dp10list'); ul.innerHTML='';
+  dp10items.forEach(it=>{
+    const li=document.createElement('li');
+    const on=S.dp10[it.k];
+    li.innerHTML='<span class="chk-mark '+(on?'on':'')+'" id="chk_'+it.k+'">'+(on?'✓':'')+'</span><span>'+it.t+'</span>';
+    li.querySelector('.chk-mark').onclick=()=>{S.dp10[it.k]=!S.dp10[it.k]; buildDP10(); updateProgress(); buildNav2();};
+    ul.appendChild(li);
+  });
+}
+
+/* ============================================================
+   COMPLETION GRID + PLAN
+   ============================================================ */
+function renderCompletion(){
+  const g=document.getElementById('compGrid'); g.innerHTML='';
+  for(let i=1;i<=10;i++){
+    const done=isDPdone(i);
+    const d=document.createElement('div'); d.className='comp-item'+(done?' ok':'');
+    d.innerHTML='<span class="cd">'+(done?'✓':i)+'</span>'+dpName(i);
+    d.onclick=()=>go(i<=6?i:(i<=9?i:10));
+    d.style.cursor='pointer';
+    g.appendChild(d);
+  }
+}
+function dpName(i){return ['','Is EVM suitable?','Type of EVM','Research design','Level of immersion','Factors & levels','Number of vignettes','Sample & participants','Setting & timing','Analysis method','Transparency'][i];}
+
+function val(x,fallback){return (x&&String(x).trim())?x:(fallback||'<span class="meta">— not specified —</span>');}
+function generatePlan(){
+  S.projTitle=document.getElementById('projTitle').value;
+  S.projRQ=document.getElementById('projRQ').value;
+  const full=fullFactorial();
+  const a=analysisRec();
+  const typeLabel=S.dp2==='paper'?'Paper people (explicit processes)':S.dp2==='pccA'?'Policy capturing / conjoint analysis (implicit processes)':'—';
+  const designLabel={within:'Within-person',mixed:'Mixed',between:'Between-person'}[S.dp3]||'—';
+  const mediumLabel=media[S.dp4medium].n;
+  const approachLabel={ortho:'Attribute-driven (orthogonal)',derived:'Actual derived cases'}[S.dp5approach]||'—';
+  const sourceLabel={matched:'Working sample matched to target population',elance:'Online/eLancing marketplace',student:'Student sample',specialized:'Specialized/hard-to-reach professionals'}[S.dp7source]||'—';
+  const settingLabel={natural:'Natural setting (remote/own environment)',lab:'Lab/on-site'}[S.dp8setting]||'—';
+  const timingLabel={single:'Single session',multi:'Multiple sessions'}[S.dp8timing]||'—';
+
+  const factorsRows=S.factors.filter(f=>f.name.trim()||f.levels).map(f=>'<tr><td>'+escapeHtml(f.name||'(unnamed)')+'</td><td>'+f.levels+'</td></tr>').join('');
+  const dupChk=dp10items.map(it=>'<tr><td>'+(S.dp10[it.k]?'☑':'☐')+'</td><td>'+it.t+'</td></tr>').join('');
+
+  const o=document.getElementById('planOutput');
+  o.style.display='block';
+  o.innerHTML=
+  '<h2>EVM Study Plan'+(S.projTitle?': '+escapeHtml(S.projTitle):'')+'</h2>'+
+  '<p class="meta">Generated by the EVM Study Designer · based on Aguinis &amp; Bradley (2014)</p>'+
+  (S.projRQ?'<p class="pp"><b>Research question:</b> '+escapeHtml(S.projRQ)+'</p>':'')+
+
+  '<h3>Stage 1 — Planning</h3>'+
+  '<p class="pp"><b>DP1 · Is EVM suitable?</b> '+dp1planText()+'</p>'+
+  '<p class="pp"><b>DP2 · Type of EVM:</b> '+typeLabel+'</p>'+
+  '<p class="pp"><b>DP3 · Research design:</b> '+designLabel+designPill()+
+     (S.dp3==='between'?'<br><span class="meta">Shared baseline context: '+val(escapeHtml(S.dp3baseline))+'</span>':'')+'</p>'+
+  '<p class="pp"><b>DP4 · Level of immersion:</b> '+mediumLabel+' (realism '+media[S.dp4medium].real+'/5, cost '+media[S.dp4medium].cost+'/5); budget capacity: '+val({low:'Lean',mid:'Moderate',high:'Well-resourced'}[S.dp4budget])+'</p>'+
+  '<p class="pp"><b>DP5 · Factors &amp; levels:</b> approach — '+approachLabel+'</p>'+
+  (factorsRows?'<table><tr><th>Factor</th><th>Levels</th></tr>'+factorsRows+'</table><p class="pp">Full factorial population = '+S.factors.filter(f=>f.name.trim()).map(f=>f.levels).join(' × ')+' = <b>'+full.toLocaleString()+'</b> unique vignettes.</p>':'<p class="pp meta">No factors specified.</p>')+
+  '<p class="pp"><b>DP6 · Number of vignettes:</b> planned <b>'+val(S.dp6final)+'</b> per respondent'+(S._recommendedVignettes?' (recommended ≈ '+S._recommendedVignettes+', incl. 4–5 duplicates for reliability'+(S.dp2==='pccA'?'; ≥5 per attribute':'')+')':'')+'</p>'+
+
+  '<h3>Stage 2 — Implementation</h3>'+
+  '<p class="pp"><b>DP7 · Sample:</b> '+sourceLabel+'. Target population: '+val(escapeHtml(S.dp7pop))+'. Planned N = '+val(S.dp7n)+
+     (((S.dp3==='within'||S.dp3==='mixed')&&S.dp7n&&S.dp6final)?' → ≈ '+(Number(S.dp7n)*Number(S.dp6final)).toLocaleString()+' vignette-level observations':'')+'</p>'+
+  '<p class="pp"><b>DP8 · Setting &amp; timing:</b> '+settingLabel+'; '+timingLabel+'</p>'+
+  '<p class="pp"><b>DP9 · Analysis method:</b> '+(a?'<b>'+a.tech+'</b> — '+a.why:'<span class="meta">Set design in DP3</span>')+'</p>'+
+
+  '<h3>Stage 3 — Reporting</h3>'+
+  '<p class="pp"><b>DP10 · Transparency &amp; replicability checklist</b> ('+Object.values(S.dp10).filter(Boolean).length+'/10 items planned):</p>'+
+  '<table><tr><th></th><th>Disclosure item</th></tr>'+dupChk+'</table>'+
+
+  '<h3>Validity scorecard</h3>'+validityScorecard()+
+
+  '<p class="meta" style="margin-top:18px">Based on: Aguinis, H., &amp; Bradley, K. J. 2014. Best practice recommendations for designing and implementing experimental vignette methodology studies. <i>Organizational Research Methods</i>, 17(4): 351–371. Built on recommendations from Aguinis, H. 2025. <i>Research methodology: Best practices for rigorous, credible, and impactful research.</i> SAGE. https://collegepublishing.sagepub.com/products/research-methodology-1-280088</p>';
+
+  o.scrollIntoView({behavior:'smooth'});
+  toast('Plan generated below');
+}
+function designPill(){
+  if(S.dp3==='between') return '<span class="pill bad">discouraged — needs baseline context</span>';
+  if(S.dp3==='within'||S.dp3==='mixed') return '<span class="pill good">preferred</span>';
+  return '';
+}
+function dp1planText(){
+  if(!S.dp1tree) return '<span class="meta">not assessed</span>';
+  const map={causal:'EVM is a good fit — experimental control needed to establish causation.',
+    sensitive:'EVM is a good fit — sensitive topic better handled through controlled hypothetical scenarios.',
+    inaccessible:'EVM is a good fit — small/inaccessible population suits PC/CA\'s rich data from few respondents.',
+    highstakes:'Qualified fit — high-stakes context; invest heavily in realism or reconsider.',
+    descriptive:'Poor fit — primarily descriptive goal; a field/observational design may be better.'};
+  return map[S.dp1tree];
+}
+function validityScorecard(){
+  // simple heuristic readout, all grounded in article levers
+  let internal=[], external=[];
+  // internal validity levers
+  if(S.dp2) internal.push('manipulated factors with experimental control');
+  if(S.dp3==='within'||S.dp3==='mixed') internal.push('within/mixed design grounds judgments via comparison');
+  if(S.dp8timing==='single') internal.push('single session limits history threats');
+  if(S.dp5approach==='ortho') internal.push('orthogonal design isolates independent effects');
+  if(S.dp10.analysis||analysisRec()) internal.push('design-appropriate analysis planned');
+  // external validity levers
+  if(S.dp4medium>=3) external.push('high immersion ('+media[S.dp4medium].n+') increases realism');
+  if(S.dp5approach==='derived') external.push('actual derived (realistic) factor levels');
+  if(S.dp7source==='matched'||S.dp7source==='elance'||S.dp7source==='specialized') external.push('working/matched sample');
+  if(S.dp8setting==='natural') external.push('natural-setting participation');
+  let warns=[];
+  if(S.dp3==='between'&&!S.dp3baseline.trim()) warns.push('between-person design without shared baseline context');
+  if(S.dp7source==='student') warns.push('student sample may limit generalizability');
+  if(S.dp8timing==='multi') warns.push('multiple sessions risk history threats');
+  if(Number(S.dp6final)>50) warns.push('high vignette count risks fatigue/overload');
+  return '<table><tr><th>Internal-validity strengths</th><th>External-validity strengths</th></tr>'+
+    '<tr><td>'+(internal.length?internal.map(x=>'• '+x).join('<br>'):'<span class="meta">—</span>')+'</td>'+
+    '<td>'+(external.length?external.map(x=>'• '+x).join('<br>'):'<span class="meta">—</span>')+'</td></tr></table>'+
+    (warns.length?'<div class="callout c-warn" style="margin-top:8px"><span class="ctitle">Open risks to address</span>'+warns.map(w=>'• '+w).join('<br>')+'</div>':'<div class="callout c-rec" style="margin-top:8px">No major outstanding validity risks flagged.</div>');
+}
+
+/* plain-text plan for copy/download */
+function planText(){
+  const full=fullFactorial(); const a=analysisRec();
+  const L=[];
+  L.push('EVM STUDY PLAN'+(S.projTitle?': '+S.projTitle:''));
+  L.push('Based on Aguinis & Bradley (2014), Organizational Research Methods 17(4): 351-371');
+  L.push('='.repeat(60));
+  if(S.projRQ)L.push('Research question: '+S.projRQ);
+  L.push('');
+  L.push('STAGE 1 — PLANNING');
+  L.push('DP1 Is EVM suitable?  '+stripTags(dp1planText()));
+  L.push('DP2 Type of EVM:      '+(S.dp2==='paper'?'Paper people (explicit)':S.dp2==='pccA'?'Policy capturing / conjoint (implicit)':'—'));
+  L.push('DP3 Research design:  '+({within:'Within-person (preferred)',mixed:'Mixed (preferred)',between:'Between-person (discouraged)'}[S.dp3]||'—'));
+  if(S.dp3==='between')L.push('    Shared baseline:  '+(S.dp3baseline||'(none specified — REQUIRED)'));
+  L.push('DP4 Immersion:        '+media[S.dp4medium].n+' (realism '+media[S.dp4medium].real+'/5, cost '+media[S.dp4medium].cost+'/5); budget '+(S.dp4budget||'—'));
+  L.push('DP5 Factors & levels: approach '+({ortho:'orthogonal',derived:'actual derived cases'}[S.dp5approach]||'—'));
+  S.factors.filter(f=>f.name.trim()||f.levels).forEach(f=>L.push('     - '+(f.name||'(unnamed)')+': '+f.levels+' levels'));
+  L.push('    Full factorial population = '+S.factors.filter(f=>f.name.trim()).map(f=>f.levels).join(' x ')+' = '+full+' unique vignettes');
+  L.push('DP6 # vignettes:      planned '+(S.dp6final||'—')+' per respondent'+(S._recommendedVignettes?' (recommended ~'+S._recommendedVignettes+', incl. 4-5 duplicates'+(S.dp2==='pccA'?'; >=5 per attribute':'')+')':''));
+  L.push('');
+  L.push('STAGE 2 — IMPLEMENTATION');
+  L.push('DP7 Sample:           '+({matched:'Working sample matched to target',elance:'Online/eLancing marketplace',student:'Student sample',specialized:'Specialized professionals'}[S.dp7source]||'—'));
+  L.push('    Target population: '+(S.dp7pop||'—'));
+  L.push('    Planned N:        '+(S.dp7n||'—')+(((S.dp3==='within'||S.dp3==='mixed')&&S.dp7n&&S.dp6final)?'  (~'+(Number(S.dp7n)*Number(S.dp6final))+' vignette-level observations)':''));
+  L.push('DP8 Setting & timing: '+({natural:'Natural setting',lab:'Lab/on-site'}[S.dp8setting]||'—')+'; '+({single:'single session',multi:'multiple sessions'}[S.dp8timing]||'—'));
+  L.push('DP9 Analysis:         '+(a?a.tech:'—')+(a?'  ('+stripTags(a.why)+')':''));
+  L.push('');
+  L.push('STAGE 3 — REPORTING');
+  L.push('DP10 Transparency checklist ('+Object.values(S.dp10).filter(Boolean).length+'/10):');
+  dp10items.forEach(it=>L.push('    ['+(S.dp10[it.k]?'x':' ')+'] '+it.t));
+  L.push('');
+  L.push('Built on recommendations from Aguinis, H. 2025. Research methodology: Best practices');
+  L.push('for rigorous, credible, and impactful research. SAGE.');
+  L.push('https://collegepublishing.sagepub.com/products/research-methodology-1-280088');
+  return L.join('\n');
+}
+function copyPlan(){
+  const t=planText();
+  if(navigator.clipboard&&navigator.clipboard.writeText){
+    navigator.clipboard.writeText(t).then(()=>toast('Plan copied to clipboard')).catch(()=>fallbackCopy(t));
+  } else fallbackCopy(t);
+}
+function fallbackCopy(t){
+  const ta=document.createElement('textarea'); ta.value=t; document.body.appendChild(ta); ta.select();
+  try{document.execCommand('copy'); toast('Plan copied to clipboard');}catch(e){toast('Copy failed — use Download instead');}
+  document.body.removeChild(ta);
+}
+function downloadPlan(){
+  const blob=new Blob([planText()],{type:'text/plain'});
+  const url=URL.createObjectURL(blob); const a=document.createElement('a');
+  a.href=url; a.download='EVM-study-plan.txt'; document.body.appendChild(a); a.click();
+  document.body.removeChild(a); URL.revokeObjectURL(url); toast('Downloaded EVM-study-plan.txt');
+}
+
+/* ============================================================
+   HELPERS
+   ============================================================ */
+function scaleRow(prefix,key,q,store,cb){
+  const row=document.createElement('div'); row.className='scale-row';
+  const qd=document.createElement('div'); qd.className='q'; qd.textContent=q; row.appendChild(qd);
+  const sc=document.createElement('div'); sc.className='scale';
+  for(let i=1;i<=5;i++){
+    const b=document.createElement('button'); b.textContent=i;
+    if(store[key]===i)b.classList.add('on');
+    b.onclick=()=>{store[key]=i; row.querySelectorAll('.scale button').forEach(x=>x.classList.remove('on')); b.classList.add('on'); if(cb)cb();};
+    sc.appendChild(b);
+  }
+  row.appendChild(sc);
+  return row;
+}
+function markSel(name,el){
+  el.parentNode.querySelectorAll('.opt').forEach(o=>o.classList.remove('sel'));
+  el.classList.add('sel');
+  const inp=el.querySelector('input'); if(inp)inp.checked=true;
+  updateProgress(); buildNav2();
+}
+function buildNav2(){ // refresh done states
+  document.querySelectorAll('.stepbtn').forEach((b,idx)=>{
+    b.classList.toggle('done', isDPdone(idx));
+  });
+  document.getElementById('nav'+current)&&document.getElementById('nav'+current).classList.add('active');
+}
+function tradeHTML(pros,cons){
+  return '<div class="pros"><h4>Advantages</h4><ul>'+pros.map(p=>'<li>'+p+'</li>').join('')+'</ul></div>'+
+         '<div class="cons"><h4>Trade-offs</h4><ul>'+cons.map(c=>'<li>'+c+'</li>').join('')+'</ul></div>';
+}
+function card(num,lbl){return '<div class="calc-card"><div class="num">'+num+'</div><div class="lbl">'+lbl+'</div></div>';}
+function escapeHtml(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+function stripTags(s){return String(s||'').replace(/<[^>]+>/g,'');}
+let toastT;
+function toast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');clearTimeout(toastT);toastT=setTimeout(()=>t.classList.remove('show'),2200);}
+function resetAll(){
+  if(!confirm('Clear all inputs and start over?'))return;
+  location.reload();
+}
+
+/* ============================================================
+   INIT
+   ============================================================ */
+function initInputs(){
+  document.getElementById('projTitle').oninput=function(){S.projTitle=this.value;};
+  document.getElementById('projRQ').oninput=function(){S.projRQ=this.value;};
+}
+buildNav();
+buildDP1(); buildDP2(); buildDP3(); buildDP4(); buildDP5(); buildDP6();
+buildDP7(); buildDP8(); buildDP9(); buildDP10();
+initInputs();
+go(0);
+</script>
+<!-- Begin Countercentral code v 7.0 --> 
+<span id="wts2576"></span> 
+<script>var wts=document.createElement('script');wts.async=true; 
+wts.src='https://server2.countercentral.com/log7.js';document.head.appendChild(wts); 
+wts.onload = function(){ wtslog7(2576,1); }; 
+</script><noscript><a href="https://www.countercentral.com"> 
+<img src="https://server2.countercentral.com/7/1/2576.png"  
+alt="Countercentral web traffic analysis"></a></noscript> 
+<!-- End Countercentral code v 7.0 --> 
+</body>
+</html>

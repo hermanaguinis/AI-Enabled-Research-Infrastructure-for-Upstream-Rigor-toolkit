@@ -1,0 +1,426 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Metaregression Boundary-Condition Reporting Tool</title>
+<style>
+:root{
+  --bg:#f6f8fb; --panel:#ffffff; --text:#17202a; --muted:#5f6b7a; --line:#d9e2ec;
+  --accent:#0f766e; --accent2:#1d4ed8; --warn:#b45309; --bad:#b91c1c; --good:#166534;
+  --soft:#eef6f5; --softBlue:#eef4ff; --softWarn:#fff7ed; --softBad:#fef2f2; --shadow:0 8px 22px rgba(15,23,42,.08);
+  --font: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;background:var(--bg);color:var(--text);font-family:var(--font);line-height:1.45}
+a{color:var(--accent2)}
+header{background:linear-gradient(135deg,#0f766e,#1d4ed8);color:#fff;padding:24px 28px 20px}
+header h1{margin:0 0 8px;font-size:clamp(1.5rem,3vw,2.4rem);letter-spacing:-.02em}
+header p{margin:0;max-width:1180px;color:#e7f4ff;font-size:1rem}
+.header-actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:16px}
+button,.button{border:1px solid transparent;background:var(--accent);color:#fff;border-radius:10px;padding:9px 13px;font-weight:650;cursor:pointer;font-size:.93rem;text-decoration:none;display:inline-flex;align-items:center;gap:6px}
+button.secondary{background:#fff;color:#0f172a;border-color:#cbd5e1}
+button.ghost{background:transparent;color:#fff;border-color:rgba(255,255,255,.45)}
+button.warn{background:var(--warn)}
+button.bad{background:var(--bad)}
+button.small{font-size:.8rem;padding:6px 9px;border-radius:8px}
+button:focus, input:focus, textarea:focus, select:focus{outline:3px solid rgba(29,78,216,.25);outline-offset:2px}
+button:disabled{opacity:.48;cursor:not-allowed}
+.layout{display:grid;grid-template-columns:260px minmax(0,1fr) 320px;gap:18px;padding:18px;align-items:start}
+nav,.rightbar{position:sticky;top:12px;align-self:start}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:16px;box-shadow:var(--shadow);padding:16px;margin-bottom:16px}
+.card h2,.card h3{margin-top:0;letter-spacing:-.01em}
+.card h2{font-size:1.35rem}.card h3{font-size:1.05rem}
+nav .navlink{display:block;padding:9px 10px;margin:4px 0;border-radius:10px;color:#243447;text-decoration:none;font-weight:600;border:1px solid transparent}
+nav .navlink:hover, nav .navlink.active{background:var(--softBlue);border-color:#bfdbfe;color:#1d4ed8}
+.kpis{display:grid;grid-template-columns:repeat(4,minmax(130px,1fr));gap:12px}
+.kpi{background:#f8fafc;border:1px solid var(--line);border-radius:14px;padding:12px;min-height:88px}
+.kpi .label{color:var(--muted);font-size:.82rem;font-weight:700;text-transform:uppercase;letter-spacing:.03em}.kpi .value{font-size:1.45rem;font-weight:800;margin-top:4px}.kpi .note{font-size:.82rem;color:var(--muted)}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px}.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}.grid4{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+.field{margin:10px 0}.field label{display:block;font-weight:700;font-size:.9rem;margin-bottom:5px}.field small,.help{color:var(--muted);font-size:.82rem}.field input,.field select,.field textarea,textarea,input,select{width:100%;border:1px solid #cbd5e1;border-radius:10px;padding:9px 10px;background:#fff;color:var(--text);font-family:var(--font);font-size:.95rem}.field textarea,textarea{min-height:90px;resize:vertical}.mono{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}.tabs{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 12px}.tabbtn{background:#f8fafc;color:#243447;border:1px solid #cbd5e1}.tabbtn.active{background:var(--accent2);color:#fff;border-color:var(--accent2)}.tabpane{display:none}.tabpane.active{display:block}.notice{border-radius:14px;border:1px solid var(--line);background:#f8fafc;padding:12px;margin:10px 0}.notice.good{background:#f0fdf4;border-color:#bbf7d0;color:#14532d}.notice.warn{background:var(--softWarn);border-color:#fed7aa;color:#7c2d12}.notice.bad{background:var(--softBad);border-color:#fecaca;color:#7f1d1d}.notice.info{background:var(--softBlue);border-color:#bfdbfe;color:#1e3a8a}.pill{display:inline-flex;align-items:center;gap:6px;border-radius:999px;padding:3px 9px;font-size:.78rem;font-weight:800;border:1px solid var(--line);background:#f8fafc;color:#334155}.pill.good{background:#dcfce7;border-color:#bbf7d0;color:#166534}.pill.warn{background:#ffedd5;border-color:#fed7aa;color:#9a3412}.pill.bad{background:#fee2e2;border-color:#fecaca;color:#991b1b}.pill.info{background:#dbeafe;border-color:#bfdbfe;color:#1d4ed8}.tablewrap{overflow:auto;border:1px solid var(--line);border-radius:12px;background:#fff;margin:10px 0}table{border-collapse:collapse;width:100%;font-size:.88rem}th,td{border-bottom:1px solid #e5e7eb;padding:8px 9px;text-align:left;vertical-align:top}th{position:sticky;top:0;background:#f8fafc;color:#334155;z-index:1}tbody tr:hover{background:#f8fafc}.mini{font-size:.82rem;color:var(--muted)}.checkitem{display:grid;grid-template-columns:24px 1fr;gap:8px;padding:8px 0;border-bottom:1px solid #eef2f7}.checkmark{width:20px;height:20px;border-radius:50%;display:inline-grid;place-items:center;font-weight:900;font-size:.75rem;background:#fee2e2;color:#991b1b}.checkitem.ok .checkmark{background:#dcfce7;color:#166534}.checkitem.warn .checkmark{background:#ffedd5;color:#9a3412}.checkitem strong{font-size:.88rem}.checkitem span{display:block;color:var(--muted);font-size:.78rem}.chartbox{border:1px solid var(--line);border-radius:14px;background:#fff;padding:10px;margin:10px 0}.chartbox svg{width:100%;height:auto;display:block}.chartactions{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px}.svgText{font-family:var(--font)}.smallcaps{text-transform:uppercase;letter-spacing:.05em;font-size:.78rem;color:var(--muted);font-weight:800}.formula{background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;padding:10px;overflow:auto}.req::after{content:" *";color:var(--bad)}.split{display:flex;justify-content:space-between;gap:12px;align-items:center}.source{font-size:.82rem;color:#334155;border-top:1px solid #e2e8f0;margin-top:16px;padding-top:12px}.hidden{display:none!important}.manual-table input{min-width:90px;border-radius:6px;padding:5px}.manual-table th,.manual-table td{padding:5px}.toolbar{display:flex;gap:8px;flex-wrap:wrap;margin:10px 0}.copybox{background:#fff;border:1px solid #cbd5e1;border-radius:12px;padding:12px;white-space:pre-wrap;font-size:.9rem}.statusline{display:flex;flex-wrap:wrap;gap:7px;margin:8px 0}.accord summary{cursor:pointer;font-weight:800;margin:8px 0}.accord{border:1px solid var(--line);border-radius:12px;padding:8px 12px;margin:8px 0;background:#fff}@media(max-width:1180px){.layout{grid-template-columns:1fr}.rightbar,nav{position:static}.kpis{grid-template-columns:repeat(2,1fr)}.grid2,.grid3,.grid4{grid-template-columns:1fr}}@media print{header,nav,.rightbar,.no-print,.toolbar,.chartactions,button{display:none!important}.layout{display:block;padding:0}.card{box-shadow:none;border:1px solid #ccc;break-inside:avoid}.tabpane{display:block!important}.tabs{display:none}.copybox{white-space:pre-wrap}}
+</style>
+</head>
+<body>
+<header>
+  <h1>Metaregression Boundary-Condition Reporting Tool</h1>
+  <p>Interactive offline assistant for conducting, diagnosing, interpreting, and reporting metaregression analyses in a way that supports theory advancement, transparency, and practical meaning.</p>
+  <div class="header-actions no-print">
+    <button onclick="loadExample('performance')">Load performance example</button>
+    <button onclick="loadExample('satisfaction')" class="secondary">Load satisfaction example</button>
+    <button onclick="window.print()" class="ghost">Print / save PDF</button>
+    <button onclick="exportSession()" class="ghost">Download session</button>
+  </div>
+</header>
+<div class="layout">
+  <nav class="card no-print" aria-label="Workflow navigation">
+    <h3>Workflow</h3>
+    <a class="navlink" href="#input">1. Data input</a>
+    <a class="navlink" href="#diagnostics">2. Diagnostics</a>
+    <a class="navlink" href="#power">3. Power</a>
+    <a class="navlink" href="#heterogeneity">4. Heterogeneity</a>
+    <a class="navlink" href="#model">5. Model choice</a>
+    <a class="navlink" href="#results">6. Results</a>
+    <a class="navlink" href="#interpretation">7. Interpretation</a>
+    <a class="navlink" href="#reporting">8. Reporting</a>
+    <a class="navlink" href="#about">About / source</a>
+    <div class="notice info"><strong>Core rule:</strong> do not treat a metaregression coefficient as meaningful until power, heterogeneity, model choice, residual heterogeneity, hypothesis testing, R²<sub>Meta</sub>, and transparency decisions have been addressed.</div>
+  </nav>
+
+  <main>
+    <section class="card" id="overview">
+      <div class="split"><h2>Analysis dashboard</h2><span id="readyPill" class="pill bad">Not ready to report</span></div>
+      <div class="kpis" aria-live="polite">
+        <div class="kpi"><div class="label">Effect sizes</div><div class="value" id="kVal">0</div><div class="note">k usable rows</div></div>
+        <div class="kpi"><div class="label">Model</div><div class="value" id="modelVal">ME</div><div class="note" id="modelNote">mixed-effects default</div></div>
+        <div class="kpi"><div class="label">Heterogeneity</div><div class="value" id="i2Val">—</div><div class="note">I²</div></div>
+        <div class="kpi"><div class="label">R²Meta</div><div class="value" id="r2MetaVal">—</div><div class="note">between-study variance explained</div></div>
+      </div>
+      <div id="globalMessages"></div>
+    </section>
+
+    <section class="card" id="input">
+      <h2>1. Data input</h2>
+      <div class="tabs" role="tablist" aria-label="Data input options">
+        <button class="tabbtn active" data-tab="paste" onclick="showTab('input','paste',this)">Paste data</button>
+        <button class="tabbtn" data-tab="manual" onclick="showTab('input','manual',this)">Manual table</button>
+        <button class="tabbtn" data-tab="examples" onclick="showTab('input','examples',this)">Worked examples</button>
+        <button class="tabbtn" data-tab="session" onclick="showTab('input','session',this)">Import session</button>
+      </div>
+      <div id="input-paste" class="tabpane active">
+        <p class="help">Paste one row per effect size. Required: <code>study_id</code>, <code>effect_size</code>, and <code>variance</code> or <code>standard_error</code>. Add one or more moderator/boundary-condition columns.</p>
+        <textarea id="dataText" class="mono" aria-label="Paste CSV or tab-separated study-level data"></textarea>
+        <div class="toolbar">
+          <button onclick="parsePastedData()">Parse data</button>
+          <button class="secondary" onclick="copyExampleToPaste('performance')">Paste performance example</button>
+          <button class="secondary" onclick="copyExampleToPaste('satisfaction')">Paste satisfaction example</button>
+          <button class="secondary" onclick="clearDataText()">Clear</button>
+        </div>
+      </div>
+      <div id="input-manual" class="tabpane">
+        <p class="help">Type or paste values directly. You can add additional moderator columns after parsing pasted data.</p>
+        <div class="toolbar">
+          <button onclick="addManualRow()">Add row</button>
+          <button onclick="readManualTable()">Use manual table</button>
+          <button class="secondary" onclick="resetManualTable()">Reset manual table</button>
+        </div>
+        <div class="tablewrap"><table class="manual-table" id="manualTable"></table></div>
+      </div>
+      <div id="input-examples" class="tabpane">
+        <div class="grid2">
+          <div class="notice info"><h3>Example A: Extraversion → job performance</h3><p>Realistic teaching data modeled on boundary conditions such as leading others, decision impact, and contact with others.</p><button onclick="loadExample('performance')">Load Example A</button></div>
+          <div class="notice info"><h3>Example B: Extraversion → job satisfaction</h3><p>Realistic teaching data with stronger average effects and different moderator patterns.</p><button onclick="loadExample('satisfaction')">Load Example B</button></div>
+        </div>
+      </div>
+      <div id="input-session" class="tabpane">
+        <p class="help">Import a JSON session previously exported from this tool.</p>
+        <input type="file" id="sessionFile" accept="application/json,.json" onchange="importSession(event)">
+      </div>
+
+      <div class="grid3">
+        <div class="field"><label for="effectType">Effect-size metric</label><select id="effectType" onchange="analyze()"><option value="Fisher_z">Fisher's z</option><option value="r">r</option><option value="d">d</option><option value="g">g</option><option value="log_OR">log odds ratio</option><option value="user_defined">user-defined</option></select></div>
+        <div class="field"><label for="selectedMods">Boundary conditions / moderators</label><select id="selectedMods" multiple size="5" onchange="analyze()"></select><small>Use Ctrl/Cmd-click to select multiple.</small></div>
+        <div class="field"><label for="clusterCol">Cluster / paper ID column</label><select id="clusterCol" onchange="analyze()"><option value="">None</option></select><small>Used for warnings about dependent effect sizes.</small></div>
+      </div>
+      <div id="dataPreview"></div>
+    </section>
+
+    <section class="card" id="diagnostics">
+      <h2>2. Data diagnostics and quality checks</h2>
+      <div id="diagnosticPanel"></div>
+      <div class="chartbox">
+        <div class="split"><h3>Forest plot of effect sizes</h3><span class="pill info">precision intervals</span></div>
+        <div id="forestChart"></div><div class="chartactions no-print"><button class="secondary small" onclick="downloadSVG('forestChart','forest_plot.svg')">SVG</button><button class="secondary small" onclick="downloadPNG('forestChart','forest_plot.png')">PNG</button></div>
+      </div>
+      <div class="chartbox">
+        <div class="split"><h3>Weights and influence screen</h3><span class="pill info">larger = more weight</span></div>
+        <div id="weightChart"></div><div class="chartactions no-print"><button class="secondary small" onclick="downloadSVG('weightChart','weights.svg')">SVG</button><button class="secondary small" onclick="downloadPNG('weightChart','weights.png')">PNG</button></div>
+      </div>
+    </section>
+
+    <section class="card" id="power">
+      <h2>3. Power before metaregression</h2>
+      <p class="help">Power is the probability of detecting a boundary condition that truly exists. These calculations are approximations intended for planning and transparent interpretation; exact power for metaregression depends on several design and distributional assumptions.</p>
+      <div class="grid4">
+        <div class="field"><label for="alpha">Alpha</label><input id="alpha" type="number" step="0.001" value="0.05" min="0.001" max="0.50" onchange="analyze()"></div>
+        <div class="field"><label for="expectedBeta">Expected moderator effect</label><input id="expectedBeta" type="number" step="0.01" value="0.16" onchange="analyze()"><small>In effect-size units per 1 SD moderator difference.</small></div>
+        <div class="field"><label for="powerSims">Monte Carlo draws</label><input id="powerSims" type="number" step="100" value="1000" min="100" max="10000"></div>
+        <div class="field"><label for="powerSeed">Simulation seed</label><input id="powerSeed" type="number" value="2025"></div>
+      </div>
+      <div class="toolbar"><button onclick="runPowerSimulation()">Run Monte Carlo power check</button><button class="secondary" onclick="analyze()">Refresh approximate power</button></div>
+      <div id="powerPanel"></div>
+    </section>
+
+    <section class="card" id="heterogeneity">
+      <h2>4. Heterogeneity and proceed decision</h2>
+      <p class="help">Heterogeneity is systematic variability in effect sizes. Low heterogeneity means boundary conditions are unlikely to be present; relying on Q alone is insufficient because Q is affected by k.</p>
+      <div id="heterogeneityPanel"></div>
+      <div class="chartbox"><div class="split"><h3>Heterogeneity dashboard</h3><span class="pill info">Q, tau², I²</span></div><div id="heteroChart"></div><div class="chartactions no-print"><button class="secondary small" onclick="downloadSVG('heteroChart','heterogeneity.svg')">SVG</button><button class="secondary small" onclick="downloadPNG('heteroChart','heterogeneity.png')">PNG</button></div></div>
+    </section>
+
+    <section class="card" id="model">
+      <h2>5. Model choice, residual heterogeneity, and inference</h2>
+      <div class="grid2">
+        <div>
+          <h3>Model-choice wizard</h3>
+          <div class="field"><label for="modelType">Primary model</label><select id="modelType" onchange="analyze()"><option value="ME">Mixed effects (recommended default)</option><option value="FE">Fixed effects (requires strong justification)</option></select></div>
+          <div class="field"><label for="studyPopulation">Are studies a sample from a larger population?</label><select id="studyPopulation" onchange="analyze()"><option value="yes">Yes / likely yes</option><option value="no">No, they represent the target population</option><option value="unsure">Unsure</option></select></div>
+          <div class="field"><label for="allMods">Are all plausible boundary conditions included?</label><select id="allMods" onchange="analyze()"><option value="no">No / likely no</option><option value="yes">Yes</option><option value="unsure">Unsure</option></select></div>
+          <div class="field"><label for="domainMature">Is the research domain mature?</label><select id="domainMature" onchange="analyze()"><option value="nascent">Nascent or developing</option><option value="mature">Mature</option><option value="unsure">Unsure</option></select></div>
+          <div class="field"><label for="domainMatch">Does sampled domain match target population?</label><select id="domainMatch" onchange="analyze()"><option value="no">No / imperfect match</option><option value="yes">Yes, closely</option><option value="unsure">Unsure</option></select></div>
+          <div class="field"><label for="feJustification" class="req">Fixed-effects justification if FE is primary</label><textarea id="feJustification" onchange="analyze()" placeholder="Explain why the FE assumptions are plausible: all relevant boundary conditions are included, the study domain is mature, and the sample domain closely matches the population domain."></textarea></div>
+        </div>
+        <div>
+          <h3>Estimation and inference settings</h3>
+          <div class="field"><label for="tauEstimator">Residual heterogeneity estimator</label><select id="tauEstimator" onchange="analyze()"><option value="REML">REML iterative estimator</option><option value="DL">DerSimonian-Laird / moment estimator (sensitivity only)</option></select></div>
+          <div class="field"><label for="testMethod">Primary hypothesis test</label><select id="testMethod" onchange="analyze()"><option value="auto">Recommended: Knapp-Hartung for ME / Hedges-Olkin for FE</option><option value="KH">Knapp-Hartung</option><option value="HO">Hedges-Olkin FE correction</option><option value="Wald">Wald-type test (not recommended for ME)</option><option value="Huber">Huber-White robust SE (only if k > 80)</option></select></div>
+          <div id="modelDecisionPanel"></div>
+        </div>
+      </div>
+      <div class="chartbox"><div class="split"><h3>Fixed- vs mixed-effects comparison</h3><span class="pill info">side-by-side</span></div><div id="modelCompareChart"></div><div class="chartactions no-print"><button class="secondary small" onclick="downloadSVG('modelCompareChart','fe_me_comparison.svg')">SVG</button><button class="secondary small" onclick="downloadPNG('modelCompareChart','fe_me_comparison.png')">PNG</button></div></div>
+    </section>
+
+    <section class="card" id="results">
+      <h2>6. Metaregression results</h2>
+      <div id="resultsPanel"></div>
+      <div class="chartbox"><div class="split"><h3>Moderator bubble plot</h3><span class="pill info">bubble size = precision</span></div><div class="field no-print"><label for="plotModerator">Moderator to plot</label><select id="plotModerator" onchange="analyze()"></select></div><div id="bubbleChart"></div><div class="chartactions no-print"><button class="secondary small" onclick="downloadSVG('bubbleChart','bubble_metaregression.svg')">SVG</button><button class="secondary small" onclick="downloadPNG('bubbleChart','bubble_metaregression.png')">PNG</button></div></div>
+      <div class="chartbox"><div class="split"><h3>Predicted effect-size plot</h3><span class="pill info">substantive values</span></div><div id="predictionChart"></div><div class="chartactions no-print"><button class="secondary small" onclick="downloadSVG('predictionChart','predicted_effects.svg')">SVG</button><button class="secondary small" onclick="downloadPNG('predictionChart','predicted_effects.png')">PNG</button></div></div>
+      <div class="chartbox"><div class="split"><h3>R²Meta visualization</h3><span class="pill info">heterogeneity explained</span></div><div id="r2Chart"></div><div class="chartactions no-print"><button class="secondary small" onclick="downloadSVG('r2Chart','r2meta.svg')">SVG</button><button class="secondary small" onclick="downloadPNG('r2Chart','r2meta.png')">PNG</button></div></div>
+    </section>
+
+    <section class="card" id="interpretation">
+      <h2>7. Theoretical and practical meaning</h2>
+      <p class="help">The report is not complete until the statistical findings are translated into boundary-condition meaning for theory and practice.</p>
+      <div class="grid2">
+        <div class="field"><label for="theoryBox" class="req">What theory is being tested?</label><textarea id="theoryBox" onchange="analyze()" placeholder="Example: The theory predicts that the focal relation becomes stronger when jobs provide more opportunities to express extraversion."></textarea></div>
+        <div class="field"><label for="boundaryBox" class="req">What boundary condition is being examined?</label><textarea id="boundaryBox" onchange="analyze()" placeholder="Example: Leading others, decision impact, and contact with others are job-level conditions expected to strengthen the focal relation."></textarea></div>
+        <div class="field"><label for="practiceBox" class="req">What would a practitioner do differently?</label><textarea id="practiceBox" onchange="analyze()" placeholder="Example: Managers should expect the focal relation to be most relevant in contexts with high levels of the boundary condition."></textarea></div>
+        <div class="field"><label for="limitsBox" class="req">What limitations or cautions should be acknowledged?</label><textarea id="limitsBox" onchange="analyze()" placeholder="Example: Findings should be interpreted in light of limited power, remaining heterogeneity, and study-level coding uncertainty."></textarea></div>
+      </div>
+      <div id="meaningPanel"></div>
+    </section>
+
+    <section class="card" id="reporting">
+      <h2>8. Reporting output</h2>
+      <div class="toolbar no-print">
+        <button onclick="copyElementText('resultsText')">Copy results text</button>
+        <button onclick="copyElementText('methodsText')" class="secondary">Copy methods text</button>
+        <button onclick="copyElementText('reviewerText')" class="secondary">Copy reviewer checklist</button>
+        <button onclick="downloadTextReport()" class="secondary">Download text report</button>
+        <button onclick="window.print()" class="secondary">Print / PDF</button>
+      </div>
+      <div class="tabs" role="tablist" aria-label="Reporting text options">
+        <button class="tabbtn active" onclick="showTab('report','results',this)">Results</button>
+        <button class="tabbtn" onclick="showTab('report','methods',this)">Methods</button>
+        <button class="tabbtn" onclick="showTab('report','tables',this)">Tables</button>
+        <button class="tabbtn" onclick="showTab('report','reviewer',this)">Reviewer checklist</button>
+      </div>
+      <div id="report-results" class="tabpane active"><h3>Copy-paste-ready Results text</h3><div class="copybox" id="resultsText"></div></div>
+      <div id="report-methods" class="tabpane"><h3>Methods and transparency text</h3><div class="copybox" id="methodsText"></div></div>
+      <div id="report-tables" class="tabpane"><h3>APA-style tables</h3><div id="tablesText"></div></div>
+      <div id="report-reviewer" class="tabpane"><h3>Reviewer / reproducibility checklist</h3><div class="copybox" id="reviewerText"></div></div>
+    </section>
+
+    <section class="card" id="about">
+      <h2>About / source credit</h2>
+      <p>This single-file offline tool operationalizes best-practice recommendations for metaregression as a method for assessing boundary conditions in meta-analytic evidence. It is designed as a decision aid and reporting scaffold, not as a replacement for statistical judgment or specialized meta-analysis software when complex dependencies, multilevel structures, or nonstandard effect-size metrics are present.</p>
+      <details class="accord" open><summary>Methods and formulas</summary>
+        <div class="formula mono">
+y_i = B0 + B1x_i1 + ... + Bjx_ij + u_i + e_i
+FE weights: w_i = 1 / v_i
+ME weights: w_i = 1 / (v_i + tau²_res)
+Q = Σ w_i (y_i - ybar_w)²
+I² = max(0, (Q - df) / Q)
+R²Meta = 1 - tau²_res / tau²_total
+        </div>
+        <p class="mini">REML is implemented by optimizing the restricted log-likelihood over a nonnegative tau² range using a derivative-free one-dimensional search. Knapp-Hartung inference is implemented with t critical values and residual-scale adjustment. Power calculations are approximate and should be treated as planning/interpretive aids.</p>
+      </details>
+      <div class="source" id="sourceCredit"><strong>Required source credit:</strong> Based on Gonzalez-Mulé, E., &amp; Aguinis, H. (2018). <em>Advancing theory by assessing boundary conditions with metaregression: A critical review and best-practice recommendations.</em> Journal of Management, 44(6), 2246–2273. Methodological guidance also draws on Aguinis, H. 2025. <em>Research methodology: Best practices for rigorous, credible, and impactful research.</em> SAGE. https://collegepublishing.sagepub.com/products/research-methodology-1-280088</div>
+    </section>
+  </main>
+
+  <aside class="rightbar card" aria-label="Reporting readiness checklist">
+    <div class="split"><h3>Reporting readiness</h3><span id="readyPct" class="pill">0%</span></div>
+    <div id="checklist"></div>
+    <div id="warningList"></div>
+  </aside>
+</div>
+
+<script>
+'use strict';
+const VERSION='1.0 offline';
+let state={rows:[], columns:[], moderators:[], selectedMods:[], analysis:null, warnings:[], errors:[], powerSim:null, source:'none'};
+const COLORS=['#0f766e','#1d4ed8','#b45309','#7c3aed','#be123c','#0369a1','#4d7c0f','#a16207'];
+function $(id){return document.getElementById(id)}
+function fmt(x,d=3){if(x===null||x===undefined||Number.isNaN(x))return '—'; if(!Number.isFinite(x)) return x>0?'∞':'−∞'; const ax=Math.abs(x); if(ax!==0 && ax<0.001) return x.toExponential(2); return Number(x).toFixed(d)}
+function fmtp(p){if(p===null||p===undefined||Number.isNaN(p))return '—'; if(p<.001)return '< .001'; return fmt(p,3)}
+function clamp(x,a,b){return Math.max(a,Math.min(b,x))}
+function html(s){return String(s).replace(/[&<>"]/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[m]))}
+function showTab(prefix,name,btn){document.querySelectorAll(`#${prefix} .tabpane, [id^='${prefix}-'].tabpane`).forEach(e=>e.classList.remove('active')); const p=$(`${prefix}-${name}`); if(p)p.classList.add('active'); if(btn){btn.parentElement.querySelectorAll('.tabbtn').forEach(b=>b.classList.remove('active'));btn.classList.add('active')}}
+function lcg(seed){let s=seed>>>0;return()=>{s=(1664525*s+1013904223)>>>0;return s/4294967296}}
+function randn(r){let u=0,v=0;while(u===0)u=r();while(v===0)v=r();return Math.sqrt(-2*Math.log(u))*Math.cos(2*Math.PI*v)}
+function generateExample(kind){const r=lcg(kind==='performance'?13579:24680); const k=kind==='performance'?100:72; const rows=[]; for(let i=0;i<k;i++){let leading=clamp(3.5+0.55*randn(r),1,5); let impact=clamp(3.9+0.55*randn(r)+0.25*(leading-3.5),1,5); let contact=clamp(4.6+0.38*randn(r)+0.08*(impact-3.9),1,5); let n=Math.round(70+420*r()); let v=1/(n-3); let trueZ=(kind==='performance'?0.06:0.17)+(kind==='performance'?0.045:0.025)*(leading-3.5)+(kind==='performance'?0.015:0.035)*(impact-3.9)+(kind==='performance'?0.04:0.02)*(contact-4.6); let tau=kind==='performance'?0.10:0.13; let y=trueZ+tau*randn(r)+Math.sqrt(v)*randn(r); rows.push({study_id:`${kind==='performance'?'P':'S'}${String(i+1).padStart(3,'0')}`,effect_size:+y.toFixed(4),variance:+v.toFixed(5),sample_size:n,leading_others:+leading.toFixed(2),decision_impact:+impact.toFixed(2),contact_with_others:+contact.toFixed(2),paper_id:`Paper_${Math.floor(i/2)+1}`});}return rows}
+function rowsToCSV(rows){if(!rows.length)return ''; const cols=Object.keys(rows[0]); return [cols.join(','),...rows.map(r=>cols.map(c=>r[c]).join(','))].join('\n')}
+function loadExample(kind){state.rows=generateExample(kind); state.source=kind; $('dataText').value=rowsToCSV(state.rows); setupAfterDataLoad(); analyze(); location.hash='#overview'}
+function copyExampleToPaste(kind){$('dataText').value=rowsToCSV(generateExample(kind))}
+function clearDataText(){$('dataText').value=''}
+function parseCSVText(text){text=text.trim(); if(!text) return []; const delim=(text.split('\n')[0].includes('\t'))?'\t':','; const lines=text.split(/\r?\n/).filter(l=>l.trim().length); const headers=parseLine(lines[0],delim).map(h=>h.trim()); const rows=[]; for(let i=1;i<lines.length;i++){const vals=parseLine(lines[i],delim); if(vals.length===1 && vals[0]==='')continue; let o={}; headers.forEach((h,j)=>{let val=(vals[j]??'').trim(); if(val===''){o[h]=null}else{let num=Number(val); o[h]=Number.isFinite(num)&&!/^0[0-9]+/.test(val)?num:val}}); rows.push(o)} return rows}
+function parseLine(line,delim){if(delim==='\t') return line.split('\t'); const out=[]; let cur='',q=false; for(let i=0;i<line.length;i++){let ch=line[i]; if(ch==='"'){if(q&&line[i+1]==='"'){cur+='"';i++} else q=!q} else if(ch===','&&!q){out.push(cur);cur=''} else cur+=ch} out.push(cur); return out}
+function parsePastedData(){try{const rows=parseCSVText($('dataText').value); if(!rows.length) throw new Error('No rows found. Paste a header row and at least one effect-size row.'); state.rows=rows; state.source='pasted'; setupAfterDataLoad(); analyze()}catch(e){$('dataPreview').innerHTML=`<div class="notice bad"><strong>Could not parse data.</strong> ${html(e.message)}</div>`}}
+function setupAfterDataLoad(){state.columns=state.rows.length?Object.keys(state.rows[0]):[]; inferVariance(); populateSelectors(); renderPreview(); resetManualTableFromRows();}
+function inferVariance(){for(const row of state.rows){if((row.variance===undefined||row.variance===null||row.variance==='') && row.standard_error!==undefined && Number(row.standard_error)>0) row.variance=Number(row.standard_error)**2; if((row.variance===undefined||row.variance===null||row.variance==='') && row.sample_size!==undefined && Number(row.sample_size)>3) row.variance=1/(Number(row.sample_size)-3);}}
+function populateSelectors(){const cols=state.columns; const modSel=$('selectedMods'); modSel.innerHTML=''; const candidate=cols.filter(c=>!['study_id','effect_size','variance','standard_error','sample_size','effect_size_type','cluster_id','paper_id','inclusion','include','notes','moderator_coding_notes'].includes(c) && state.rows.some(r=>isFinite(Number(r[c])))); candidate.forEach(c=>{let opt=document.createElement('option'); opt.value=c; opt.textContent=c; opt.selected=state.selectedMods.length?state.selectedMods.includes(c):candidate.indexOf(c)<3; modSel.appendChild(opt)}); const cl=$('clusterCol'); cl.innerHTML='<option value="">None</option>'; cols.forEach(c=>{let opt=document.createElement('option'); opt.value=c; opt.textContent=c; if(c==='paper_id'||c==='cluster_id') opt.selected=true; cl.appendChild(opt)}); updatePlotModeratorOptions();}
+function getSelectedMods(){const sel=[...$('selectedMods').selectedOptions].map(o=>o.value); return sel.length?sel:[]}
+function updatePlotModeratorOptions(){const s=$('plotModerator'); const old=s.value; const mods=getSelectedMods(); s.innerHTML=''; mods.forEach(m=>{let o=document.createElement('option');o.value=m;o.textContent=m;s.appendChild(o)}); if(mods.includes(old)) s.value=old;}
+function renderPreview(){if(!state.rows.length){$('dataPreview').innerHTML='';return} const cols=state.columns; const head=cols.map(c=>`<th>${html(c)}</th>`).join(''); const body=state.rows.slice(0,8).map(r=>`<tr>${cols.map(c=>`<td>${html(r[c]??'')}</td>`).join('')}</tr>`).join(''); $('dataPreview').innerHTML=`<h3>Data preview</h3><div class="statusline"><span class="pill info">${state.rows.length} rows</span><span class="pill info">${cols.length} columns</span></div><div class="tablewrap"><table><thead><tr>${head}</tr></thead><tbody>${body}</tbody></table></div><p class="mini">Showing first 8 rows.</p>`}
+function resetManualTableFromRows(){const rows=state.rows.length?state.rows.slice(0,20):generateExample('performance').slice(0,8); const cols=Object.keys(rows[0]); const tbl=$('manualTable'); tbl.innerHTML=`<thead><tr>${cols.map(c=>`<th>${html(c)}</th>`).join('')}<th></th></tr></thead><tbody>${rows.map(r=>`<tr>${cols.map(c=>`<td><input value="${html(r[c]??'')}" data-col="${html(c)}"></td>`).join('')}<td><button class="small secondary" onclick="this.closest('tr').remove()">Remove</button></td></tr>`).join('')}</tbody>`}
+function resetManualTable(){state.rows=generateExample('performance').slice(0,8); resetManualTableFromRows()}
+function addManualRow(){const tbl=$('manualTable'); if(!tbl.tHead) resetManualTable(); const cols=[...tbl.tHead.rows[0].cells].slice(0,-1).map(th=>th.textContent); const tr=document.createElement('tr'); tr.innerHTML=cols.map(c=>`<td><input data-col="${html(c)}"></td>`).join('')+`<td><button class="small secondary" onclick="this.closest('tr').remove()">Remove</button></td>`; tbl.tBodies[0].appendChild(tr)}
+function readManualTable(){const tbl=$('manualTable'); const rows=[]; [...tbl.tBodies[0].rows].forEach(tr=>{let o={}; [...tr.querySelectorAll('input')].forEach(inp=>{let val=inp.value.trim(); let num=Number(val); o[inp.dataset.col]=val===''?null:(Number.isFinite(num)?num:val)}); rows.push(o)}); state.rows=rows; state.source='manual'; $('dataText').value=rowsToCSV(rows); setupAfterDataLoad(); analyze()}
+function validateRows(){const warnings=[], errors=[]; let rows=state.rows.map((r,i)=>({...r,__i:i})); rows=rows.filter(r=>!(r.inclusion===0||String(r.inclusion).toLowerCase()==='exclude'||r.include===0||String(r.include).toLowerCase()==='false')); rows.forEach((r,i)=>{r.effect_size=Number(r.effect_size); r.variance=Number(r.variance); if(!Number.isFinite(r.effect_size)) errors.push(`Row ${i+1}: missing or invalid effect_size.`); if(!Number.isFinite(r.variance)||r.variance<=0) errors.push(`Row ${i+1}: missing, zero, negative, or invalid variance.`)}); const usable=rows.filter(r=>Number.isFinite(r.effect_size)&&Number.isFinite(r.variance)&&r.variance>0); if(usable.length<4) errors.push('At least 4 usable effect sizes are needed for a basic metaregression with intercept and moderators.'); if(usable.length<10) warnings.push('Fewer than 10 effect sizes: metaregression is likely fragile and underpowered.'); const mods=getSelectedMods(); mods.forEach(m=>{const missing=usable.filter(r=>!Number.isFinite(Number(r[m]))).length; if(missing>0) warnings.push(`${m}: ${missing} rows have missing/non-numeric values and will be excluded from models using this moderator.`); const vals=usable.map(r=>Number(r[m])).filter(Number.isFinite); if(vals.length>0){const uniq=[...new Set(vals.map(v=>String(v)))]; if(uniq.length<2) warnings.push(`${m}: moderator has fewer than 2 distinct numeric values.`); if(uniq.length<=3) warnings.push(`${m}: appears categorical/limited; interpret coefficients as group/step contrasts and inspect sparse cells.`); if(sd(vals)<1e-8) warnings.push(`${m}: near-zero variance.`)}}); const cl=$('clusterCol').value; if(cl){const counts={}; usable.forEach(r=>{counts[r[cl]]=(counts[r[cl]]||0)+1}); const multi=Object.values(counts).filter(c=>c>1).length; if(multi>0) warnings.push(`${multi} clusters contain more than one effect size. This tool flags dependence but does not fit robust multilevel meta-analytic models; consider sensitivity analyses or specialized software.`)} return {usable,warnings,errors}}
+function mean(a,w){if(!a.length)return NaN;if(!w)return a.reduce((s,x)=>s+x,0)/a.length; const sw=w.reduce((s,x)=>s+x,0); return a.reduce((s,x,i)=>s+x*w[i],0)/sw}
+function variance(a){const m=mean(a); return a.reduce((s,x)=>s+(x-m)**2,0)/(a.length-1)}
+function sd(a){return Math.sqrt(Math.max(0,variance(a)))}
+function quantile(a,q){const b=a.filter(Number.isFinite).sort((x,y)=>x-y); if(!b.length)return NaN; const pos=(b.length-1)*q; const lo=Math.floor(pos),hi=Math.ceil(pos); return lo===hi?b[lo]:b[lo]*(hi-pos)+b[hi]*(pos-lo)}
+function matT(A){return A[0].map((_,j)=>A.map(r=>r[j]))}
+function matMul(A,B){const m=A.length,n=B[0].length,p=B.length; const C=Array.from({length:m},()=>Array(n).fill(0)); for(let i=0;i<m;i++)for(let k=0;k<p;k++){const aik=A[i][k]; for(let j=0;j<n;j++)C[i][j]+=aik*B[k][j]} return C}
+function matVec(A,v){return A.map(r=>r.reduce((s,x,i)=>s+x*v[i],0))}
+function dot(a,b){return a.reduce((s,x,i)=>s+x*b[i],0)}
+function inverse(A){const n=A.length; let M=A.map((r,i)=>[...r,...Array.from({length:n},(_,j)=>i===j?1:0)]); for(let i=0;i<n;i++){let max=i; for(let r=i+1;r<n;r++) if(Math.abs(M[r][i])>Math.abs(M[max][i]))max=r; if(Math.abs(M[max][i])<1e-12) throw new Error('Matrix is singular or collinear. Remove redundant moderators.'); [M[i],M[max]]=[M[max],M[i]]; let piv=M[i][i]; for(let j=0;j<2*n;j++)M[i][j]/=piv; for(let r=0;r<n;r++)if(r!==i){let f=M[r][i]; for(let j=0;j<2*n;j++)M[r][j]-=f*M[i][j]}} return M.map(r=>r.slice(n))}
+function determinant(A){const n=A.length; let M=A.map(r=>[...r]); let det=1; for(let i=0;i<n;i++){let max=i; for(let r=i+1;r<n;r++)if(Math.abs(M[r][i])>Math.abs(M[max][i]))max=r; if(Math.abs(M[max][i])<1e-12)return 0; if(max!==i){[M[i],M[max]]=[M[max],M[i]];det*=-1} det*=M[i][i]; let piv=M[i][i]; for(let r=i+1;r<n;r++){let f=M[r][i]/piv; for(let c=i;c<n;c++)M[r][c]-=f*M[i][c]}} return det}
+function wls(rows,mods,tau2=0){const data=rows.filter(r=>Number.isFinite(r.effect_size)&&Number.isFinite(r.variance)&&r.variance>0&&mods.every(m=>Number.isFinite(Number(r[m])))); const y=data.map(r=>Number(r.effect_size)); const X=data.map(r=>[1,...mods.map(m=>Number(r[m]))]); const w=data.map(r=>1/(Number(r.variance)+Math.max(0,tau2))); const p=X[0]?.length||0; if(data.length<=p) throw new Error(`Not enough usable rows (${data.length}) for ${p} coefficients.`); let XtWX=Array.from({length:p},()=>Array(p).fill(0)); let XtWy=Array(p).fill(0); for(let i=0;i<data.length;i++){for(let a=0;a<p;a++){XtWy[a]+=X[i][a]*w[i]*y[i]; for(let b=0;b<p;b++)XtWX[a][b]+=X[i][a]*w[i]*X[i][b]}} const inv=inverse(XtWX); const beta=matVec(inv,XtWy); const fit=X.map(row=>dot(row,beta)); const resid=y.map((yy,i)=>yy-fit[i]); const QE=resid.reduce((s,e,i)=>s+w[i]*e*e,0); const df=data.length-p; const covBase=inv; const weightedMean=mean(y,w); const SST=y.reduce((s,yy,i)=>s+w[i]*(yy-weightedMean)**2,0); const R2=1-QE/SST; const hat=[]; for(let i=0;i<data.length;i++){const xi=X[i]; const h=w[i]*dot(xi,matVec(inv,xi)); hat.push(h)} return {data,y,X,w,beta,fit,resid,QE,df,p,covBase,R2,hat,tau2}}
+function qHeterogeneity(rows){const data=rows.filter(r=>Number.isFinite(r.effect_size)&&Number.isFinite(r.variance)&&r.variance>0); const y=data.map(r=>Number(r.effect_size)), v=data.map(r=>Number(r.variance)), w=v.map(x=>1/x); const ybar=mean(y,w); const Q=y.reduce((s,yy,i)=>s+w[i]*(yy-ybar)**2,0); const df=data.length-1; const C=w.reduce((s,x)=>s+x,0)-w.reduce((s,x)=>s+x*x,0)/w.reduce((s,x)=>s+x,0); const tau2=Math.max(0,(Q-df)/C); const I2=Q>0?Math.max(0,(Q-df)/Q):0; const seMean=Math.sqrt(1/w.reduce((s,x)=>s+x,0)); const tau=Math.sqrt(tau2); const crLow=ybar-1.96*tau, crHigh=ybar+1.96*tau; return {data,y,v,w,ybar,Q,df,p:chiSqPval(Q,df),tau2,tau,I2,crLow,crHigh,C}}
+function tau2DL(rows,mods){const fit0=wls(rows,mods,0); const w=fit0.data.map(r=>1/Number(r.variance)); const X=fit0.X; const p=fit0.p; let trace=0; const XtWX=Array.from({length:p},()=>Array(p).fill(0)); for(let i=0;i<X.length;i++)for(let a=0;a<p;a++)for(let b=0;b<p;b++)XtWX[a][b]+=X[i][a]*w[i]*X[i][b]; const inv=inverse(XtWX); let sumw=w.reduce((s,x)=>s+x,0); for(let i=0;i<X.length;i++){trace+=w[i]*dot(X[i],matVec(inv,X[i]))} const C=sumw-trace; return Math.max(0,(fit0.QE-fit0.df)/Math.max(C,1e-12))}
+function remlObjective(rows,mods,tau2){const fit=wls(rows,mods,tau2); const logV=fit.data.reduce((s,r)=>s+Math.log(Number(r.variance)+tau2),0); const XtWX=fit.covBase?inverse(fit.covBase):null; const det=determinant(XtWX); if(det<=0)return Infinity; return logV+Math.log(det)+fit.QE}
+function tau2REML(rows,mods){let upper=Math.max(qHeterogeneity(rows).tau2*8, tau2DL(rows,mods)*8, variance(rows.map(r=>Number(r.effect_size)).filter(Number.isFinite))*4, .001); let best=Infinity; let bestT=0; for(let i=0;i<30;i++){const t=upper*i/29; const val=remlObjective(rows,mods,t); if(val<best){best=val;bestT=t}} if(bestT>upper*0.85) upper*=4; let a=0,b=upper,gr=(Math.sqrt(5)-1)/2; let c=b-gr*(b-a),d=a+gr*(b-a),fc=remlObjective(rows,mods,c),fd=remlObjective(rows,mods,d); let iter=0; while(Math.abs(b-a)>1e-8*(1+upper)&&iter<120){if(fc<fd){b=d;d=c;fd=fc;c=b-gr*(b-a);fc=remlObjective(rows,mods,c)}else{a=c;c=d;fc=fd;d=a+gr*(b-a);fd=remlObjective(rows,mods,d)}iter++} const tau=(a+b)/2; return {tau2:Math.max(0,tau), iterations:iter, converged:iter<120, tolerance:Math.abs(b-a)}}
+function standardizeCoefficients(fit,mods){const ysd=sd(fit.y); return fit.beta.map((b,j)=>j===0?NaN:b*sd(fit.data.map(r=>Number(r[mods[j-1]])))/ysd)}
+function analyze(){state.warnings=[];state.errors=[]; updatePlotModeratorOptions(); if(!state.rows.length){renderEmpty(); return} const val=validateRows(); state.warnings.push(...val.warnings); state.errors.push(...val.errors); const usable=val.usable; const mods=getSelectedMods(); state.selectedMods=mods; if(state.errors.length){state.analysis=null; renderAll(); return} let analysis={usable,mods}; try{analysis.hetero=qHeterogeneity(usable); analysis.tauTotal=analysis.hetero.tau2; let tauREML=tau2REML(usable,mods); let tauDL=tau2DL(usable,mods); analysis.tauREML=tauREML; analysis.tauDL=tauDL; analysis.me=wls(usable,mods,$('tauEstimator').value==='DL'?tauDL:tauREML.tau2); analysis.me.tau2= $('tauEstimator').value==='DL'?tauDL:tauREML.tau2; analysis.fe=wls(usable,mods,0); analysis.primary=$('modelType').value==='FE'?analysis.fe:analysis.me; analysis.primaryType=$('modelType').value; const test=resolveTestMethod(analysis.primaryType); analysis.testMethod=test; analysis.coefs=coefTable(analysis.primary,mods,test,analysis.primaryType); analysis.std=standardizeCoefficients(analysis.primary,mods); const tauRes=analysis.me.tau2; analysis.r2Meta=analysis.tauTotal>0?Math.max(0,Math.min(1,1-tauRes/analysis.tauTotal)):NaN; analysis.desc=descriptives(usable,['effect_size',...mods]); analysis.corr=correlations(usable,['effect_size',...mods]); analysis.vif=vifs(usable,mods); analysis.power=approxPower(analysis); addModelWarnings(analysis); state.analysis=analysis;}catch(e){state.errors.push(e.message); state.analysis=analysis;} renderAll();}
+function resolveTestMethod(type){let tm=$('testMethod').value; if(tm==='auto') return type==='ME'?'KH':'HO'; return tm}
+function coefTable(fit,mods,test,type){let p=fit.p, df=fit.df; let scale=1; if(test==='KH') scale=Math.max(1e-9,fit.QE/Math.max(1,df)); if(test==='HO') scale=Math.max(1e-9,fit.QE/Math.max(1,df)); if(test==='Wald') scale=1; if(test==='Huber') scale=Math.max(1e-9,fit.QE/Math.max(1,df)); const cov=fit.covBase.map(row=>row.map(x=>x*scale)); const rows=[]; for(let j=0;j<p;j++){const se=Math.sqrt(Math.max(0,cov[j][j])); const stat=fit.beta[j]/se; const useT=(test==='KH'||test==='HO'||test==='Huber'); const pval=2*(1-(useT?tCDF(Math.abs(stat),df):normalCDF(Math.abs(stat)))); const crit=useT?tInv(0.975,df):1.96; rows.push({term:j===0?'Intercept':mods[j-1],b:fit.beta[j],se,stat,df:useT?df:Infinity,p:pval,lo:fit.beta[j]-crit*se,hi:fit.beta[j]+crit*se})}return rows}
+function addModelWarnings(a){const k=a.usable.length,p=a.mods.length+1;if(k-p<4)state.warnings.push('Very low residual degrees of freedom after including moderators. Simplify the model or interpret cautiously.'); if($('modelType').value==='FE'){const just=$('feJustification').value.trim(); if(!just)state.warnings.push('Fixed-effects model selected without written justification. The report cannot be marked ready.'); state.warnings.push('Fixed-effects assumptions are strong; mixed-effects estimates are shown for comparison.')} if($('testMethod').value==='Wald'&&$('modelType').value==='ME')state.warnings.push('Wald-type tests are not recommended for mixed-effects metaregression because Type I error can be inflated.'); if($('testMethod').value==='Huber'&&a.usable.length<=80)state.warnings.push('Huber-White robust standard errors require large k; k is not greater than 80.'); if(a.hetero.I2<.25)state.warnings.push('Low heterogeneity: metaregression may be unlikely to produce meaningful theory advancement.'); if(a.tauREML&&!a.tauREML.converged)state.warnings.push('REML tau² optimization did not meet the convergence tolerance. Inspect sensitivity analyses.'); if(a.tauREML&&a.tauREML.tau2===0)state.warnings.push('Residual heterogeneity estimated as zero after moderators; R²Meta and mixed-effects inference may be unstable.'); if(a.power&&a.power.overall<.80)state.warnings.push('Approximate power is below .80; nonsignificant boundary-condition results may be Type II errors.'); a.vif.forEach(v=>{if(v.vif>5)state.warnings.push(`High collinearity: VIF for ${v.term} = ${fmt(v.vif,2)}.`)}); const weights=a.primary.w; const maxW=Math.max(...weights), medW=quantile(weights,.5); if(maxW>5*medW)state.warnings.push('One or more studies has an unusually large weight relative to the median. Inspect influence/weight plot.');}
+function approxPower(a){const alpha=Number($('alpha').value)||.05, expected=Number($('expectedBeta').value)||.16; const rows=[]; let powers=[]; const crit=tInv(1-alpha/2,Math.max(1,a.primary.df)); a.coefs.slice(1).forEach((c,i)=>{const mx=mean(a.primary.data.map(r=>Number(r[a.mods[i]]))), sx=sd(a.primary.data.map(r=>Number(r[a.mods[i]]))); const beta=expected/(sx||1); const ncp=Math.abs(beta/(c.se||1)); const power=1-(tCDF(crit-ncp,a.primary.df)-tCDF(-crit-ncp,a.primary.df)); rows.push({term:a.mods[i],power:clamp(power,0,1),ncp}); powers.push(clamp(power,0,1));}); const overall=powers.length?1-powers.reduce((prod,p)=>prod*(1-p),1):NaN; return {rows,overall,alpha,expected,method:'Approximate noncentral t using observed SEs and expected standardized moderator effect'}}
+function runPowerSimulation(){if(!state.analysis){alert('Load valid data first.');return} const a=state.analysis; const sims=clamp(Number($('powerSims').value)||1000,100,10000); const r=lcg(Number($('powerSeed').value)||2025); const expected=Number($('expectedBeta').value)||.16; let detections=0, coefDet=Array(a.mods.length).fill(0); for(let s=0;s<sims;s++){const simRows=a.usable.map(row=>{let y=0; a.mods.forEach(m=>{const vals=a.usable.map(rr=>Number(rr[m])); y+= expected*((Number(row[m])-mean(vals))/(sd(vals)||1))/a.mods.length}); y+=Math.sqrt(Number(row.variance)+a.hetero.tau2)*randn(r); return {...row,effect_size:y};}); try{const tau=tau2REML(simRows,a.mods).tau2; const fit=wls(simRows,a.mods,$('modelType').value==='FE'?0:tau); const co=coefTable(fit,a.mods,resolveTestMethod($('modelType').value),$('modelType').value); let any=false; co.slice(1).forEach((c,i)=>{if(c.p<Number($('alpha').value)){coefDet[i]++; any=true}}); if(any)detections++;}catch(e){}}
+ state.powerSim={overall:detections/sims,coef:coefDet.map(x=>x/sims),sims}; renderPower(); updateChecklist();}
+function descriptives(rows,vars){return vars.map(v=>{const vals=rows.map(r=>Number(r[v])).filter(Number.isFinite);return {var:v,n:vals.length,missing:rows.length-vals.length,mean:mean(vals),sd:sd(vals),min:Math.min(...vals),max:Math.max(...vals)}})}
+function correlations(rows,vars){return vars.map(v1=>vars.map(v2=>{const pairs=rows.map(r=>[Number(r[v1]),Number(r[v2])]).filter(p=>Number.isFinite(p[0])&&Number.isFinite(p[1])); if(pairs.length<3)return NaN; const a=pairs.map(p=>p[0]),b=pairs.map(p=>p[1]); const ma=mean(a),mb=mean(b); return pairs.reduce((s,p)=>s+(p[0]-ma)*(p[1]-mb),0)/Math.sqrt(pairs.reduce((s,p)=>s+(p[0]-ma)**2,0)*pairs.reduce((s,p)=>s+(p[1]-mb)**2,0));}))}
+function vifs(rows,mods){if(mods.length<2)return []; return mods.map((m,idx)=>{const others=mods.filter(x=>x!==m); try{const yRows=rows.filter(r=>mods.every(mm=>Number.isFinite(Number(r[mm])))).map(r=>{let o={effect_size:Number(r[m]),variance:1}; others.forEach(mm=>o[mm]=Number(r[mm])); return o}); const fit=wls(yRows,others,0); return {term:m,vif:1/Math.max(1e-9,1-fit.R2)}}catch(e){return {term:m,vif:NaN}}})}
+function renderEmpty(){['kVal','i2Val','r2MetaVal'].forEach(id=>$(id).textContent='—'); $('globalMessages').innerHTML='<div class="notice info">Load or paste study-level data to begin.</div>'; ['diagnosticPanel','powerPanel','heterogeneityPanel','modelDecisionPanel','resultsPanel','meaningPanel','resultsText','methodsText','tablesText','reviewerText','checklist','warningList','forestChart','weightChart','heteroChart','modelCompareChart','bubbleChart','predictionChart','r2Chart'].forEach(id=>$(id).innerHTML='');}
+function renderAll(){renderOverview(); renderDiagnostics(); renderPower(); renderHeterogeneity(); renderModel(); renderResults(); renderMeaning(); renderReports(); updateChecklist(); renderWarnings();}
+function renderOverview(){const a=state.analysis; $('kVal').textContent=a?.usable?.length??0; $('modelVal').textContent=$('modelType').value; $('modelNote').textContent=$('modelType').value==='ME'?'mixed-effects primary':'fixed-effects primary'; $('i2Val').textContent=a?.hetero?`${fmt(a.hetero.I2*100,1)}%`:'—'; $('r2MetaVal').textContent=a&&Number.isFinite(a.r2Meta)?`${fmt(a.r2Meta*100,1)}%`:'—'; const msgs=[]; if(state.errors.length)msgs.push(`<div class="notice bad"><strong>Errors must be fixed:</strong><ul>${state.errors.map(e=>`<li>${html(e)}</li>`).join('')}</ul></div>`); else if(a)msgs.push(`<div class="notice good"><strong>Valid data loaded.</strong> ${a.usable.length} usable effect sizes; ${a.mods.length} moderator(s) selected.</div>`); $('globalMessages').innerHTML=msgs.join('')}
+function renderDiagnostics(){const a=state.analysis; if(!a){$('diagnosticPanel').innerHTML=state.errors.length?'<div class="notice bad">Fix data errors to run diagnostics.</div>':''; return} const rows=[]; rows.push(['Usable effect sizes',a.usable.length,a.usable.length>=10?'good':'warn']); rows.push(['Selected moderators',a.mods.join(', ')||'None',a.mods.length?'good':'bad']); rows.push(['Invalid data errors',state.errors.length,state.errors.length?'bad':'good']); rows.push(['Warnings',state.warnings.length,state.warnings.length?'warn':'good']); const cluster=$('clusterCol').value; if(cluster){const count={};a.usable.forEach(r=>count[r[cluster]]=(count[r[cluster]]||0)+1); rows.push(['Clusters with multiple effects',Object.values(count).filter(c=>c>1).length,'warn'])} $('diagnosticPanel').innerHTML=`<div class="tablewrap"><table><thead><tr><th>Check</th><th>Result</th><th>Status</th></tr></thead><tbody>${rows.map(r=>`<tr><td>${html(r[0])}</td><td>${html(r[1])}</td><td><span class="pill ${r[2]}">${r[2]}</span></td></tr>`).join('')}</tbody></table></div>`; drawForest(a); drawWeights(a);}
+function renderPower(){const a=state.analysis; if(!a||!a.power){$('powerPanel').innerHTML='<div class="notice info">Load valid data to estimate power.</div>'; return} const p=a.power; const sim=state.powerSim; const rowhtml=p.rows.map((r,i)=>`<tr><td>${html(r.term)}</td><td>${fmt(r.power,3)}</td><td>${sim?fmt(sim.coef[i],3):'—'}</td><td>${r.power>=.8?'<span class="pill good">adequate</span>':'<span class="pill warn">low</span>'}</td></tr>`).join(''); $('powerPanel').innerHTML=`<div class="notice ${p.overall>=.8?'good':'warn'}"><strong>Approximate overall power:</strong> ${fmt(p.overall,3)}. ${p.overall>=.8?'Power is at or above .80 under the stated assumptions.':'Power is below .80; nonsignificant results could be Type II errors.'}<br><span class="mini">Method: ${html(p.method)}.</span>${sim?`<br><strong>Monte Carlo overall power:</strong> ${fmt(sim.overall,3)} based on ${sim.sims} draws.`:''}</div><div class="tablewrap"><table><thead><tr><th>Boundary condition</th><th>Approx. power</th><th>Monte Carlo power</th><th>Status</th></tr></thead><tbody>${rowhtml}</tbody></table></div>`}
+function renderHeterogeneity(){const a=state.analysis;if(!a||!a.hetero){$('heterogeneityPanel').innerHTML='';return} const h=a.hetero; const proceed=h.I2>.5||h.p<.05?'Proceed':(h.I2>.25?'Proceed cautiously':'Metaregression unlikely to be informative'); const cls=proceed==='Proceed'?'good':(proceed.includes('cautiously')?'warn':'bad'); $('heterogeneityPanel').innerHTML=`<div class="notice ${cls}"><strong>Proceed decision:</strong> ${proceed}. ${h.I2<.25?'Little between-study heterogeneity suggests boundary conditions may not be meaningful.':'Heterogeneity evidence supports examining boundary conditions, subject to power and model assumptions.'}</div><div class="tablewrap"><table><thead><tr><th>Index</th><th>Value</th><th>Interpretation</th></tr></thead><tbody><tr><td>Q</td><td>${fmt(h.Q,3)}, df=${h.df}, p=${fmtp(h.p)}</td><td>Significance test of heterogeneity; affected by k.</td></tr><tr><td>tau² / T²</td><td>${fmt(h.tau2,4)}</td><td>Absolute between-study variance.</td></tr><tr><td>tau</td><td>${fmt(h.tau,4)}</td><td>Between-study SD on effect-size scale.</td></tr><tr><td>I²</td><td>${fmt(h.I2*100,1)}%</td><td>Relative proportion of variability attributable to between-study heterogeneity.</td></tr><tr><td>Approx. 95% credibility interval</td><td>[${fmt(h.crLow,3)}, ${fmt(h.crHigh,3)}]</td><td>Range of plausible population effects using tau.</td></tr></tbody></table></div>`; drawHetero(a)}
+function renderModel(){const a=state.analysis;if(!a){$('modelDecisionPanel').innerHTML='';return} const rec=($('studyPopulation').value==='yes'||$('allMods').value!=='yes'||$('domainMature').value!=='mature'||$('domainMatch').value!=='yes')?'ME':'FE possible'; const primary=$('modelType').value; const cls=(primary==='ME'||(primary==='FE'&&rec==='FE possible'&&$('feJustification').value.trim()))?'good':'warn'; $('modelDecisionPanel').innerHTML=`<div class="notice ${cls}"><strong>Wizard recommendation:</strong> ${rec==='ME'?'Mixed-effects model.':'Fixed-effects may be defensible if assumptions are documented; mixed-effects comparison should still be shown.'}<br><strong>Primary model selected:</strong> ${primary}.<br><strong>Residual tau² estimator:</strong> ${$('tauEstimator').value}; REML tau²=${fmt(a.tauREML.tau2,5)} (${a.tauREML.converged?'converged':'not converged'}, ${a.tauREML.iterations} iterations).<br><strong>Primary hypothesis-testing method:</strong> ${html(a.testMethod)}.</div>`; drawModelCompare(a)}
+function renderResults(){const a=state.analysis;if(!a||!a.coefs){$('resultsPanel').innerHTML='';return} const rows=a.coefs.map((c,i)=>`<tr><td>${html(c.term)}</td><td>${fmt(c.b,4)}</td><td>${i===0?'—':fmt(a.std[i],4)}</td><td>${fmt(c.se,4)}</td><td>${fmt(c.stat,3)}</td><td>${Number.isFinite(c.df)?c.df:'z'}</td><td>${fmtp(c.p)}</td><td>[${fmt(c.lo,4)}, ${fmt(c.hi,4)}]</td></tr>`).join(''); $('resultsPanel').innerHTML=`<div class="tablewrap"><table><thead><tr><th>Term</th><th>b</th><th>β/std.</th><th>SE</th><th>stat</th><th>df</th><th>p</th><th>95% CI</th></tr></thead><tbody>${rows}</tbody></table></div><p class="mini">Primary model: ${a.primaryType}; test: ${a.testMethod}; tau²_res = ${fmt(a.primary.tau2,5)}; ordinary weighted R² = ${fmt(a.primary.R2,3)}; R²Meta = ${fmt(a.r2Meta,3)}.</p>`; drawBubble(a); drawPrediction(a); drawR2(a)}
+function renderMeaning(){const complete=meaningComplete(); $('meaningPanel').innerHTML=`<div class="notice ${complete?'good':'warn'}"><strong>${complete?'Meaning statement complete.':'Meaning statement incomplete.'}</strong> Explain what the boundary condition changes, why that matters for theory, what action it informs, and what cautions apply.</div>`}
+function renderWarnings(){if(state.errors.length){$('warningList').innerHTML=`<div class="notice bad"><strong>Errors</strong><ul>${state.errors.map(w=>`<li>${html(w)}</li>`).join('')}</ul></div>`;return} if(!state.warnings.length){$('warningList').innerHTML='<div class="notice good"><strong>No major warnings.</strong></div>';return} $('warningList').innerHTML=`<div class="notice warn"><strong>Warnings to address</strong><ul>${state.warnings.map(w=>`<li>${html(w)}</li>`).join('')}</ul></div>`}
+function readinessItems(){const a=state.analysis; const noBadTest= a && !(($('modelType').value==='ME'&&$('testMethod').value==='Wald')||($('testMethod').value==='Huber'&&a.usable.length<=80)); const feOK=$('modelType').value!=='FE'||$('feJustification').value.trim().length>20; return [
+ ['Valid effect sizes and variances',a&&state.errors.length===0, state.errors.length?'Fix data errors.':'Data pass basic validation.'],
+ ['Power calculated and interpreted',a&&a.power&&Number.isFinite(a.power.overall), a?.power?.overall<.8?'Power is low; interpret nonsignificance cautiously.':'Power module completed.'],
+ ['Multiple heterogeneity indices computed',a&&a.hetero&&Number.isFinite(a.hetero.I2), 'Q, tau², tau, I², and credibility interval reported.'],
+ ['Proceed decision justified',a&&a.hetero&&(a.hetero.I2>=.25||document.querySelector('#heterogeneity .notice')), 'Use heterogeneity results to justify metaregression.'],
+ ['Model choice justified',a&&($('modelType').value==='ME'||feOK), $('modelType').value==='FE'&&!feOK?'Write a substantive FE justification.':'Model rationale available.'],
+ ['Residual heterogeneity estimated',a&&a.me&&Number.isFinite(a.me.tau2), 'tau²_res estimated and reported.'],
+ ['Recommended hypothesis test used',a&&noBadTest, noBadTest?'Inference method defensible.':'Change hypothesis-testing method.'],
+ ['R²Meta calculated',a&&Number.isFinite(a.r2Meta), 'R²Meta foregrounded over ordinary R².'],
+ ['Coefficients fully reported',a&&a.coefs&&a.coefs.length>1, 'Unstandardized and standardized coefficients reported.'],
+ ['Predicted effects generated',a&&a.mods.length>0, 'Predicted effect sizes are shown for moderator values.'],
+ ['Descriptives/intercorrelations reported',a&&a.desc&&a.corr, 'Tables generated.'],
+ ['Transparency choices documented',transparencyComplete(), 'Complete source, coding, inclusion, variance, and outlier notes.'],
+ ['Theory/practice meaning written',meaningComplete(), 'Complete all four meaning boxes.'],
+ ['Warnings reviewed',a&&state.warnings.length===0 || (a&&document.body.dataset.warningsReviewed==='yes'), state.warnings.length?'Review warnings; click acknowledge below.':'No warnings remain.'],
+ ['Manuscript-ready text generated',a&&$('resultsText').textContent.trim().length>100, 'Reporting text available.']
+ ]}
+function transparencyComplete(){return ['theoryBox','boundaryBox','practiceBox','limitsBox'].every(id=>$(id).value.trim().length>10)}
+function meaningComplete(){return ['theoryBox','boundaryBox','practiceBox','limitsBox'].every(id=>$(id).value.trim().length>20)}
+function updateChecklist(){const items=readinessItems(); const ok=items.filter(x=>x[1]).length; const pct=Math.round(100*ok/items.length); $('readyPct').textContent=pct+'%'; $('readyPct').className='pill '+(pct===100?'good':pct>70?'warn':'bad'); $('readyPill').textContent=pct===100?'Ready to report':'Not ready to report'; $('readyPill').className='pill '+(pct===100?'good':'bad'); $('checklist').innerHTML=items.map(x=>`<div class="checkitem ${x[1]?'ok':''}"><div class="checkmark">${x[1]?'✓':'!'}</div><div><strong>${html(x[0])}</strong><span>${html(x[2])}</span></div></div>`).join('')+(state.warnings.length?`<button class="secondary small" style="margin-top:10px" onclick="document.body.dataset.warningsReviewed='yes';updateChecklist()">Acknowledge reviewed warnings</button>`:'')}
+function renderReports(){const a=state.analysis;if(!a){return} const sig=a.coefs.slice(1).filter(c=>c.p<Number($('alpha').value)).map(c=>c.term); const source=$('sourceCredit').textContent.replace('Required source credit: ',''); const mods=a.mods.join(', '); const hetero=`Q(${a.hetero.df}) = ${fmt(a.hetero.Q,2)}, p ${fmtp(a.hetero.p)}, tau² = ${fmt(a.hetero.tau2,4)}, I² = ${fmt(a.hetero.I2*100,1)}%`;
+ const coefLines=a.coefs.slice(1).map((c,i)=>`${c.term}: b = ${fmt(c.b,4)}, standardized coefficient = ${fmt(a.std[i+1],4)}, SE = ${fmt(c.se,4)}, ${Number.isFinite(c.df)?'t':'z'} = ${fmt(c.stat,2)}, p ${fmtp(c.p)}, 95% CI [${fmt(c.lo,4)}, ${fmt(c.hi,4)}]`).join('; ');
+ const predTxt=predictionText(a);
+ $('resultsText').textContent=`We conducted metaregression to assess whether the focal meta-analytic effect varied as a function of the following boundary condition(s): ${mods || '[insert moderators]'}. Before testing moderators, we evaluated heterogeneity across effect sizes. Heterogeneity results were ${hetero}, indicating ${a.hetero.I2>=.5?'substantial between-study variability and support for examining boundary conditions':a.hetero.I2>=.25?'moderate between-study variability and a cautious basis for examining boundary conditions':'limited between-study variability; results should be interpreted cautiously because boundary conditions may be unlikely to explain meaningful variation'}.
+
+The primary model was a ${a.primaryType==='ME'?'mixed-effects':'fixed-effects'} metaregression. ${modelRationaleText()} Residual heterogeneity for the mixed-effects model was estimated using ${$('tauEstimator').value}, tau²_res = ${fmt(a.me.tau2,5)}. Boundary-condition hypotheses were tested using ${testLabel(a.testMethod)}. Approximate overall power for detecting boundary conditions under the stated assumptions was ${fmt(a.power.overall,3)}${a.power.overall<.8?', so nonsignificant moderator results should be interpreted in the context of low power.':'.'}
+
+The metaregression results were as follows: ${coefLines}. The model explained ${fmt(a.r2Meta*100,1)}% of the between-study variance in effect sizes based on R²Meta, compared with an ordinary weighted R² of ${fmt(a.primary.R2,3)}. ${sig.length?`The statistically significant boundary condition(s) were: ${sig.join(', ')}.`:'No boundary condition reached the selected alpha level; however, interpretation should consider power, heterogeneity, confidence intervals, and substantive effect-size changes rather than statistical significance alone.'}
+
+${predTxt}
+
+Theoretical and practical meaning: ${$('theoryBox').value.trim()||'[insert theory statement]'} ${$('boundaryBox').value.trim()||'[insert boundary-condition statement]'} ${$('practiceBox').value.trim()||'[insert practical implication]'} Limitations/cautions: ${$('limitsBox').value.trim()||'[insert cautions]'}
+
+${source}`;
+ $('methodsText').textContent=`Effect sizes were coded at the study level and analyzed using metaregression, where the dependent variable was the meta-analytic effect-size estimate and predictors were study-level boundary conditions. The effect-size metric was ${$('effectType').value}. Variances were obtained from the variance column or computed from reported standard errors/sample sizes when available. The analytic sample included k = ${a.usable.length} usable effect sizes. Moderator variables were: ${mods}.
+
+Power was evaluated before interpreting moderator tests. The approximate overall power was ${fmt(a.power.overall,3)}, using alpha = ${$('alpha').value} and an expected moderator effect of ${$('expectedBeta').value} effect-size units per one-standard-deviation moderator change. Heterogeneity was evaluated using multiple indices: ${hetero}. The primary model was ${a.primaryType}, with ${$('tauEstimator').value} used to estimate residual heterogeneity in the mixed-effects model. The primary hypothesis-testing method was ${testLabel(a.testMethod)}. R²Meta was calculated as 1 − tau²_res / tau²_total, using the no-moderator heterogeneity estimate as tau²_total and the moderator-model residual heterogeneity estimate as tau²_res.
+
+Transparency notes: Model choice rationale: ${modelRationaleText()} Treatment of dependent effects: ${$('clusterCol').value?`The variable ${$('clusterCol').value} was inspected to flag multiple effect sizes from the same source.`:'No cluster variable was specified.'} Outliers and influence were inspected using weights, residuals, and fitted values. All analyses were conducted with the offline Metaregression Boundary-Condition Reporting Tool, version ${VERSION}.
+
+${source}`;
+ renderTables(a); $('reviewerText').textContent=`Reviewer/reproducibility checklist
+
+1. Valid study-level effect sizes and sampling variances were provided: ${a.usable.length} usable rows.
+2. Power was calculated before interpreting metaregression: approximate overall power = ${fmt(a.power.overall,3)}.
+3. Multiple heterogeneity indices were reported: ${hetero}.
+4. The decision to conduct metaregression was justified based on heterogeneity and theory.
+5. Model choice was documented: primary model = ${a.primaryType}; rationale = ${modelRationaleText()}
+6. Residual heterogeneity was estimated: tau²_res = ${fmt(a.me.tau2,5)} using ${$('tauEstimator').value}.
+7. Boundary-condition hypotheses were tested using ${testLabel(a.testMethod)}.
+8. R²Meta was reported: ${fmt(a.r2Meta,3)}.
+9. Both unstandardized and standardized coefficients were reported.
+10. Predicted effect sizes were generated at meaningful moderator values.
+11. Descriptive statistics and intercorrelations were generated.
+12. Theoretical/practical meaning was stated: ${meaningComplete()?'yes':'incomplete'}.
+13. Warnings reviewed: ${state.warnings.length?state.warnings.join('; '):'none'}.
+
+${source}`;}
+function testLabel(m){return m==='KH'?'Knapp-Hartung inference for mixed-effects metaregression':m==='HO'?'Hedges-Olkin fixed-effects correction':m==='Wald'?'Wald-type inference (not recommended for mixed-effects primary inference)':m==='Huber'?'Huber-White robust standard errors':'recommended method'}
+function modelRationaleText(){const vals={studyPopulation:$('studyPopulation').value,allMods:$('allMods').value,domainMature:$('domainMature').value,domainMatch:$('domainMatch').value}; if($('modelType').value==='ME') return `A mixed-effects model was used because studies were treated as a sample from a broader population and because not all possible boundary conditions can be assumed to be represented in the model.`; return $('feJustification').value.trim()||`A fixed-effects model was selected; a full justification should explain why the study sample represents the population, why the domain is mature, and why all relevant boundary conditions are included.`}
+function predictionText(a){if(!a.mods.length)return ''; const m=a.mods[0]; const vals=a.primary.data.map(r=>Number(r[m])); const mn=mean(vals), s=sd(vals); const pts=[mn-s,mn,mn+s]; const terms=pts.map(x=>`${m} = ${fmt(x,2)}: predicted effect size = ${fmt(predictAt(a,m,x),3)}`).join('; '); return `Using unstandardized coefficients to translate results into effect-size values, predicted effects at representative levels of ${m} were: ${terms}.`}
+function predictAt(a,mod,val){const means={}; a.mods.forEach(m=>means[m]=mean(a.primary.data.map(r=>Number(r[m])))); means[mod]=val; const x=[1,...a.mods.map(m=>means[m])]; return dot(x,a.primary.beta)}
+function renderTables(a){const desc=`<h3>Table 1. Descriptive statistics</h3><div class="tablewrap"><table><thead><tr><th>Variable</th><th>N</th><th>Missing</th><th>Mean</th><th>SD</th><th>Min</th><th>Max</th></tr></thead><tbody>${a.desc.map(d=>`<tr><td>${html(d.var)}</td><td>${d.n}</td><td>${d.missing}</td><td>${fmt(d.mean,3)}</td><td>${fmt(d.sd,3)}</td><td>${fmt(d.min,3)}</td><td>${fmt(d.max,3)}</td></tr>`).join('')}</tbody></table></div><button class="secondary small no-print" onclick="downloadCSV('descriptives.csv', descCSV())">Download CSV</button>`; const vars=['effect_size',...a.mods]; const corr=`<h3>Table 2. Intercorrelations</h3><div class="tablewrap"><table><thead><tr><th>Variable</th>${vars.map(v=>`<th>${html(v)}</th>`).join('')}</tr></thead><tbody>${vars.map((v,i)=>`<tr><th>${html(v)}</th>${vars.map((_,j)=>`<td>${i===j?'1.000':fmt(a.corr[i][j],3)}</td>`).join('')}</tr>`).join('')}</tbody></table></div><button class="secondary small no-print" onclick="downloadCSV('correlations.csv', corrCSV())">Download CSV</button>`; const reg=`<h3>Table 3. Metaregression coefficients</h3>${$('resultsPanel').querySelector('.tablewrap')?.outerHTML||''}`; $('tablesText').innerHTML=desc+corr+reg;}
+function descCSV(){const a=state.analysis; return ['Variable,N,Missing,Mean,SD,Min,Max',...a.desc.map(d=>[d.var,d.n,d.missing,d.mean,d.sd,d.min,d.max].join(','))].join('\n')}
+function corrCSV(){const a=state.analysis; const vars=['effect_size',...a.mods]; return [['Variable',...vars].join(','),...vars.map((v,i)=>[v,...vars.map((_,j)=>a.corr[i][j])].join(','))].join('\n')}
+function chartSVG(width,height,inner){return `<svg role="img" aria-label="Metaregression chart" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${width} ${height}" width="${width}" height="${height}"><rect width="100%" height="100%" fill="#fff"/>${inner}</svg>`}
+function scale(v,domain,range){const [d0,d1]=domain,[r0,r1]=range; if(d1===d0)return (r0+r1)/2; return r0+(v-d0)*(r1-r0)/(d1-d0)}
+function drawAxes(x0,y0,w,h,xlab,ylab){return `<line x1="${x0}" y1="${y0+h}" x2="${x0+w}" y2="${y0+h}" stroke="#334155"/><line x1="${x0}" y1="${y0}" x2="${x0}" y2="${y0+h}" stroke="#334155"/><text x="${x0+w/2}" y="${y0+h+38}" text-anchor="middle" font-size="12" fill="#334155">${html(xlab)}</text><text transform="translate(${x0-42},${y0+h/2}) rotate(-90)" text-anchor="middle" font-size="12" fill="#334155">${html(ylab)}</text>`}
+function niceDomain(vals,pad=.08){let mn=Math.min(...vals.filter(Number.isFinite)), mx=Math.max(...vals.filter(Number.isFinite)); if(!Number.isFinite(mn)||!Number.isFinite(mx)){mn=0;mx=1} if(mn===mx){mn-=1;mx+=1} const p=(mx-mn)*pad; return [mn-p,mx+p]}
+function drawForest(a){const data=a.usable.slice().sort((r1,r2)=>Number(r1.effect_size)-Number(r2.effect_size)); const n=Math.min(data.length,70), rows=data.slice(0,n); const width=760,height=Math.max(260,45+n*10), x0=90,y0=25,w=580,h=height-70; const vals=rows.flatMap(r=>[Number(r.effect_size)-1.96*Math.sqrt(Number(r.variance)),Number(r.effect_size)+1.96*Math.sqrt(Number(r.variance))]); const dom=niceDomain(vals); let inner=drawAxes(x0,y0,w,h,'Effect size','Studies'); rows.forEach((r,i)=>{const y=y0+10+i*(h-20)/(Math.max(1,n-1)); const e=Number(r.effect_size), se=Math.sqrt(Number(r.variance)); const lo=scale(e-1.96*se,dom,[x0,x0+w]), hi=scale(e+1.96*se,dom,[x0,x0+w]), x=scale(e,dom,[x0,x0+w]); inner+=`<line x1="${lo}" x2="${hi}" y1="${y}" y2="${y}" stroke="#64748b"/><circle cx="${x}" cy="${y}" r="3" fill="#0f766e"/><title>${html(r.study_id||'study')}: ${fmt(e,3)} [${fmt(e-1.96*se,3)}, ${fmt(e+1.96*se,3)}]</title>`}); inner+=`<line x1="${scale(0,dom,[x0,x0+w])}" x2="${scale(0,dom,[x0,x0+w])}" y1="${y0}" y2="${y0+h}" stroke="#94a3b8" stroke-dasharray="4 4"/>`; $('forestChart').innerHTML=chartSVG(width,height,inner)}
+function drawWeights(a){const fit=a.primary; const data=fit.data; const width=760,height=300,x0=55,y0=20,w=660,h=220; const xs=data.map((_,i)=>i+1), ys=fit.w; const ydom=[0,Math.max(...ys)*1.1], xdom=[1,data.length]; let inner=drawAxes(x0,y0,w,h,'Study index','Weight'); ys.forEach((yy,i)=>{const x=scale(i+1,xdom,[x0,x0+w]), y=scale(yy,ydom,[y0+h,y0]); inner+=`<circle cx="${x}" cy="${y}" r="4" fill="#1d4ed8" opacity=".75"><title>${html(data[i].study_id||i+1)} weight=${fmt(yy,2)}, hat=${fmt(fit.hat[i],3)}</title></circle>`}); $('weightChart').innerHTML=chartSVG(width,height,inner)}
+function drawHetero(a){const width=760,height=260,x0=65,y0=25,w=620,h=170; const vals=[a.hetero.Q/Math.max(1,a.hetero.df),a.hetero.tau2,a.hetero.I2]; const labels=['Q/df','tau²','I²']; const dom=[0,Math.max(...vals,1)*1.15]; let inner=drawAxes(x0,y0,w,h,'Index','Value'); vals.forEach((v,i)=>{const bw=70,x=x0+80+i*160,y=scale(v,dom,[y0+h,y0]); inner+=`<rect x="${x}" y="${y}" width="${bw}" height="${y0+h-y}" fill="${COLORS[i]}" opacity=".85"/><text x="${x+bw/2}" y="${y-6}" text-anchor="middle" font-size="12">${fmt(v,3)}</text><text x="${x+bw/2}" y="${y0+h+18}" text-anchor="middle" font-size="12">${labels[i]}</text>`}); $('heteroChart').innerHTML=chartSVG(width,height,inner)}
+function drawModelCompare(a){const terms=a.coefs.map(c=>c.term); const width=760,height=Math.max(260,80+terms.length*52),x0=170,y0=30,w=520,h=height-85; const all=[...a.fe.beta,...a.me.beta]; const dom=niceDomain(all,.25); let inner=drawAxes(x0,y0,w,h,'Coefficient','Terms'); terms.forEach((t,i)=>{const y=y0+25+i*(h-40)/Math.max(1,terms.length-1); const xFE=scale(a.fe.beta[i],dom,[x0,x0+w]), xME=scale(a.me.beta[i],dom,[x0,x0+w]); inner+=`<text x="${x0-10}" y="${y+4}" text-anchor="end" font-size="12" fill="#334155">${html(t)}</text><line x1="${xFE}" x2="${xME}" y1="${y}" y2="${y}" stroke="#94a3b8"/><circle cx="${xFE}" cy="${y}" r="5" fill="#b45309"><title>FE ${t}: ${fmt(a.fe.beta[i],4)}</title></circle><circle cx="${xME}" cy="${y}" r="5" fill="#0f766e"><title>ME ${t}: ${fmt(a.me.beta[i],4)}</title></circle>`}); inner+=`<text x="${x0+w-120}" y="20" font-size="12" fill="#b45309">● FE</text><text x="${x0+w-60}" y="20" font-size="12" fill="#0f766e">● ME</text><line x1="${scale(0,dom,[x0,x0+w])}" x2="${scale(0,dom,[x0,x0+w])}" y1="${y0}" y2="${y0+h}" stroke="#94a3b8" stroke-dasharray="4 4"/>`; $('modelCompareChart').innerHTML=chartSVG(width,height,inner)}
+function drawBubble(a){const m=$('plotModerator').value||a.mods[0]; if(!m){$('bubbleChart').innerHTML='<div class="notice info">Select at least one moderator.</div>';return} const data=a.primary.data; const xs=data.map(r=>Number(r[m])), ys=data.map(r=>Number(r.effect_size)); const xdom=niceDomain(xs), ydom=niceDomain(ys); const width=760,height=340,x0=65,y0=25,w=620,h=240; let inner=drawAxes(x0,y0,w,h,m,'Effect size'); const maxW=Math.max(...a.primary.w); data.forEach((r,i)=>{const x=scale(Number(r[m]),xdom,[x0,x0+w]), y=scale(Number(r.effect_size),ydom,[y0+h,y0]); const rad=3+8*Math.sqrt(a.primary.w[i]/maxW); inner+=`<circle cx="${x}" cy="${y}" r="${rad}" fill="#0f766e" opacity=".35" stroke="#0f766e"><title>${html(r.study_id||'study')}: ${m}=${fmt(Number(r[m]),2)}, effect=${fmt(Number(r.effect_size),3)}</title></circle>`}); const xmin=xdom[0],xmax=xdom[1]; const y1=predictAt(a,m,xmin), y2=predictAt(a,m,xmax); inner+=`<line x1="${scale(xmin,xdom,[x0,x0+w])}" y1="${scale(y1,ydom,[y0+h,y0])}" x2="${scale(xmax,xdom,[x0,x0+w])}" y2="${scale(y2,ydom,[y0+h,y0])}" stroke="#1d4ed8" stroke-width="3"/>`; $('bubbleChart').innerHTML=chartSVG(width,height,inner)}
+function drawPrediction(a){const m=$('plotModerator').value||a.mods[0]; if(!m){$('predictionChart').innerHTML='<div class="notice info">Select at least one moderator.</div>';return} const vals=a.primary.data.map(r=>Number(r[m])); const mn=mean(vals), s=sd(vals); const pts=[mn-s,mn,mn+s].map((x,i)=>({x,label:['−1 SD','Mean','+1 SD'][i],y:predictAt(a,m,x)})); const ydom=niceDomain(pts.map(p=>p.y),.35), xdom=niceDomain(pts.map(p=>p.x),.15); const width=760,height=320,x0=70,y0=25,w=620,h=220; let inner=drawAxes(x0,y0,w,h,m,'Predicted effect size'); let path=pts.map((p,i)=>`${i?'L':'M'}${scale(p.x,xdom,[x0,x0+w])},${scale(p.y,ydom,[y0+h,y0])}`).join(' '); inner+=`<path d="${path}" fill="none" stroke="#1d4ed8" stroke-width="3"/>`; pts.forEach(p=>{const x=scale(p.x,xdom,[x0,x0+w]), y=scale(p.y,ydom,[y0+h,y0]); inner+=`<circle cx="${x}" cy="${y}" r="6" fill="#1d4ed8"/><text x="${x}" y="${y-12}" text-anchor="middle" font-size="12">${p.label}: ${fmt(p.y,3)}</text>`}); $('predictionChart').innerHTML=chartSVG(width,height,inner)}
+function drawR2(a){const width=760,height=260,x0=80,y0=50,w=600,h=70; const tau=a.tauTotal||0, res=a.me.tau2||0, exp=Math.max(0,tau-res); const total=Math.max(tau,1e-9); let inner=`<text x="${x0}" y="25" font-size="14" font-weight="700">Between-study variance explained by moderators</text><rect x="${x0}" y="${y0}" width="${w}" height="${h}" fill="#e2e8f0"/><rect x="${x0}" y="${y0}" width="${w*(exp/total)}" height="${h}" fill="#0f766e"/><rect x="${x0+w*(exp/total)}" y="${y0}" width="${w*(res/total)}" height="${h}" fill="#f97316" opacity=".85"/><text x="${x0+w*(exp/total)/2}" y="${y0+h/2+5}" text-anchor="middle" fill="#fff" font-weight="700">Explained ${fmt(a.r2Meta*100,1)}%</text><text x="${x0+w*(exp/total)+w*(res/total)/2}" y="${y0+h/2+5}" text-anchor="middle" fill="#fff" font-weight="700">Residual</text><text x="${x0}" y="${y0+h+32}" font-size="12">tau²_total = ${fmt(tau,5)}; tau²_res = ${fmt(res,5)}; R²Meta = ${fmt(a.r2Meta,3)}</text>`; $('r2Chart').innerHTML=chartSVG(width,height,inner)}
+function downloadSVG(containerId,filename){const svg=$(containerId).querySelector('svg'); if(!svg){alert('No SVG chart available.');return} downloadBlob(filename,new Blob([svg.outerHTML],{type:'image/svg+xml'}))}
+function downloadPNG(containerId,filename){const svg=$(containerId).querySelector('svg'); if(!svg){alert('No SVG chart available.');return} const img=new Image(); const blob=new Blob([svg.outerHTML],{type:'image/svg+xml'}); const url=URL.createObjectURL(blob); img.onload=function(){const canvas=document.createElement('canvas'); canvas.width=svg.viewBox.baseVal.width||760; canvas.height=svg.viewBox.baseVal.height||320; const ctx=canvas.getContext('2d'); ctx.fillStyle='#fff'; ctx.fillRect(0,0,canvas.width,canvas.height); ctx.drawImage(img,0,0); URL.revokeObjectURL(url); canvas.toBlob(b=>downloadBlob(filename,b),'image/png')}; img.src=url}
+function downloadBlob(filename,blob){const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download=filename; document.body.appendChild(a); a.click(); setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove()},0)}
+function downloadCSV(name,text){downloadBlob(name,new Blob([text],{type:'text/csv'}))}
+function downloadTextReport(){downloadBlob('metaregression_report.txt',new Blob([$('resultsText').textContent+'\n\n'+$('methodsText').textContent+'\n\n'+$('reviewerText').textContent],{type:'text/plain'}))}
+function copyElementText(id){navigator.clipboard?.writeText($(id).textContent).then(()=>alert('Copied to clipboard.')).catch(()=>alert('Copy failed; select and copy manually.'))}
+function exportSession(){const data={version:VERSION,rows:state.rows,settings:{effectType:$('effectType').value,selectedMods:getSelectedMods(),clusterCol:$('clusterCol').value,modelType:$('modelType').value,tauEstimator:$('tauEstimator').value,testMethod:$('testMethod').value,alpha:$('alpha').value,expectedBeta:$('expectedBeta').value,studyPopulation:$('studyPopulation').value,allMods:$('allMods').value,domainMature:$('domainMature').value,domainMatch:$('domainMatch').value,feJustification:$('feJustification').value,theoryBox:$('theoryBox').value,boundaryBox:$('boundaryBox').value,practiceBox:$('practiceBox').value,limitsBox:$('limitsBox').value}}; downloadBlob('metaregression_session.json',new Blob([JSON.stringify(data,null,2)],{type:'application/json'}))}
+function importSession(event){const f=event.target.files[0]; if(!f)return; const rd=new FileReader(); rd.onload=()=>{try{const s=JSON.parse(rd.result); state.rows=s.rows||[]; setupAfterDataLoad(); const set=s.settings||{}; Object.keys(set).forEach(k=>{if($(k))$(k).value=set[k]}); if(set.selectedMods){[...$('selectedMods').options].forEach(o=>o.selected=set.selectedMods.includes(o.value))} $('dataText').value=rowsToCSV(state.rows); analyze()}catch(e){alert('Could not import session: '+e.message)}}; rd.readAsText(f)}
+function downloadText(filename,text){downloadBlob(filename,new Blob([text],{type:'text/plain'}))}
+function normalCDF(x){return .5*(1+erf(x/Math.SQRT2))}
+function erf(x){const sign=x<0?-1:1; x=Math.abs(x); const a1=.254829592,a2=-.284496736,a3=1.421413741,a4=-1.453152027,a5=1.061405429,p=.3275911; const t=1/(1+p*x); const y=1-(((((a5*t+a4)*t)+a3)*t+a2)*t+a1)*t*Math.exp(-x*x); return sign*y}
+function gammln(xx){const cof=[76.18009172947146,-86.50532032941677,24.01409824083091,-1.231739572450155,.1208650973866179e-2,-.5395239384953e-5]; let x=xx-1,tmp=x+5.5; tmp-=(x+.5)*Math.log(tmp); let ser=1.000000000190015; for(let j=0;j<6;j++){x+=1;ser+=cof[j]/x} return -tmp+Math.log(2.5066282746310005*ser)}
+function gser(a,x){const ITMAX=100,EPS=3e-7; if(x<=0)return 0; let sum=1/a,del=sum,ap=a; for(let n=1;n<=ITMAX;n++){ap++;del*=x/ap;sum+=del;if(Math.abs(del)<Math.abs(sum)*EPS)break} return sum*Math.exp(-x+a*Math.log(x)-gammln(a))}
+function gcf(a,x){const ITMAX=100,EPS=3e-7,FPMIN=1e-30; let b=x+1-a,c=1/FPMIN,d=1/b,h=d; for(let i=1;i<=ITMAX;i++){let an=-i*(i-a); b+=2; d=an*d+b; if(Math.abs(d)<FPMIN)d=FPMIN; c=b+an/c; if(Math.abs(c)<FPMIN)c=FPMIN; d=1/d; let del=d*c; h*=del; if(Math.abs(del-1)<EPS)break} return Math.exp(-x+a*Math.log(x)-gammln(a))*h}
+function gammq(a,x){return x<a+1?1-gser(a,x):gcf(a,x)}
+function chiSqPval(x,df){if(x<0||df<=0)return NaN; return gammq(df/2,x/2)}
+function betacf(a,b,x){const MAXIT=100,EPS=3e-8,FPMIN=1e-30; let qab=a+b,qap=a+1,qam=a-1,c=1,d=1-qab*x/qap; if(Math.abs(d)<FPMIN)d=FPMIN; d=1/d; let h=d; for(let m=1;m<=MAXIT;m++){let m2=2*m; let aa=m*(b-m)*x/((qam+m2)*(a+m2)); d=1+aa*d;if(Math.abs(d)<FPMIN)d=FPMIN;c=1+aa/c;if(Math.abs(c)<FPMIN)c=FPMIN;d=1/d;h*=d*c; aa=-(a+m)*(qab+m)*x/((a+m2)*(qap+m2)); d=1+aa*d;if(Math.abs(d)<FPMIN)d=FPMIN;c=1+aa/c;if(Math.abs(c)<FPMIN)c=FPMIN;d=1/d;let del=d*c;h*=del;if(Math.abs(del-1)<EPS)break} return h}
+function ibeta(x,a,b){if(x<=0)return 0;if(x>=1)return 1; const bt=Math.exp(gammln(a+b)-gammln(a)-gammln(b)+a*Math.log(x)+b*Math.log(1-x)); if(x<(a+1)/(a+b+2))return bt*betacf(a,b,x)/a; return 1-bt*betacf(b,a,1-x)/b}
+function tCDF(t,df){if(!Number.isFinite(df))return normalCDF(t); const x=df/(df+t*t); const ib=ibeta(x,df/2,.5); return t>=0?1-.5*ib:.5*ib}
+function tInv(p,df){if(!Number.isFinite(df))return invNorm(p); let lo=-20,hi=20; for(let i=0;i<80;i++){let mid=(lo+hi)/2; if(tCDF(mid,df)<p)lo=mid; else hi=mid} return (lo+hi)/2}
+function invNorm(p){const a=[-39.6968302866538,220.946098424521,-275.928510446969,138.357751867269,-30.6647980661472,2.50662827745924],b=[-54.4760987982241,161.585836858041,-155.698979859887,66.8013118877197,-13.2806815528857],c=[-0.00778489400243029,-0.322396458041136,-2.40075827716184,-2.54973253934373,4.37466414146497,2.93816398269878],d=[0.00778469570904146,0.32246712907004,2.445134137143,3.75440866190742]; const pl=.02425,ph=1-pl; let q,r;if(p<pl){q=Math.sqrt(-2*Math.log(p));return (((((c[0]*q+c[1])*q+c[2])*q+c[3])*q+c[4])*q+c[5])/((((d[0]*q+d[1])*q+d[2])*q+d[3])*q+1)} if(p>ph){q=Math.sqrt(-2*Math.log(1-p));return -(((((c[0]*q+c[1])*q+c[2])*q+c[3])*q+c[4])*q+c[5])/((((d[0]*q+d[1])*q+d[2])*q+d[3])*q+1)} q=p-.5;r=q*q; return (((((a[0]*r+a[1])*r+a[2])*r+a[3])*r+a[4])*r+a[5])*q/(((((b[0]*r+b[1])*r+b[2])*r+b[3])*r+b[4])*r+1)}
+window.addEventListener('load',()=>{loadExample('performance')});
+</script>
+<!-- Begin Countercentral code v 7.0 --> 
+<span id="wts2576"></span> 
+<script>var wts=document.createElement('script');wts.async=true; 
+wts.src='https://server2.countercentral.com/log7.js';document.head.appendChild(wts); 
+wts.onload = function(){ wtslog7(2576,1); }; 
+</script><noscript><a href="https://www.countercentral.com"> 
+<img src="https://server2.countercentral.com/7/1/2576.png"  
+alt="Countercentral web traffic analysis"></a></noscript> 
+<!-- End Countercentral code v 7.0 --> 
+</body>
+</html>

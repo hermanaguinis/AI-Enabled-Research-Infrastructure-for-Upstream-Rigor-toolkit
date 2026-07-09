@@ -1,0 +1,1054 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ANCOVA with Fallible Covariates — EIV Correction Tool</title>
+<style>
+:root{
+  --bg:#f4f6f9; --card:#ffffff; --ink:#1c2733; --muted:#5b6b7b; --line:#dce3ea;
+  --blue:#1f5f8b; --blue-d:#143f5e; --accent:#2e8b9b; --good:#1d7a4d; --good-bg:#e6f4ec;
+  --warn:#b25f00; --warn-bg:#fdf0e1; --bad:#b3261e; --bad-bg:#fbe8e7; --chip:#eef3f7;
+  --shadow:0 1px 3px rgba(20,40,60,.08),0 4px 18px rgba(20,40,60,.06);
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+  background:var(--bg);color:var(--ink);line-height:1.55;font-size:16px}
+.wrap{max-width:1040px;margin:0 auto;padding:18px 18px 60px}
+header.app{background:linear-gradient(135deg,var(--blue-d),var(--blue));color:#fff;border-radius:14px;
+  padding:22px 24px;box-shadow:var(--shadow)}
+header.app h1{margin:0 0 6px;font-size:1.5rem;letter-spacing:.2px}
+header.app p{margin:0;opacity:.92;font-size:.97rem;max-width:78ch}
+nav.tabs{display:flex;flex-wrap:wrap;gap:6px;margin:18px 0 14px;position:sticky;top:0;z-index:20;
+  background:var(--bg);padding:8px 0}
+nav.tabs button{border:1px solid var(--line);background:var(--card);color:var(--muted);
+  padding:9px 13px;border-radius:9px;font-size:.9rem;cursor:pointer;font-weight:600;transition:.15s}
+nav.tabs button:hover{border-color:var(--accent);color:var(--blue)}
+nav.tabs button.active{background:var(--blue);color:#fff;border-color:var(--blue)}
+section.panel{display:none;animation:fade .25s ease}
+section.panel.active{display:block}
+@keyframes fade{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
+.card{background:var(--card);border:1px solid var(--line);border-radius:13px;padding:20px 22px;
+  margin-bottom:16px;box-shadow:var(--shadow)}
+.card h2{margin:0 0 4px;font-size:1.18rem;color:var(--blue-d)}
+.card h3{margin:18px 0 8px;font-size:1.02rem;color:var(--blue-d)}
+.sub{color:var(--muted);font-size:.92rem;margin:0 0 12px}
+p{margin:0 0 11px}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:14px}
+label.field{display:block;font-size:.86rem;font-weight:600;color:var(--ink);margin-bottom:4px}
+.fieldwrap{margin-bottom:12px}
+input[type=number],input[type=text],select,textarea{width:100%;padding:8px 10px;border:1px solid var(--line);
+  border-radius:8px;font-size:.95rem;font-family:inherit;background:#fff;color:var(--ink)}
+input:focus,select:focus,textarea:focus{outline:2px solid var(--accent);outline-offset:0;border-color:var(--accent)}
+textarea{resize:vertical;font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:.82rem}
+.row{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+input[type=range]{width:100%}
+.btn{background:var(--blue);color:#fff;border:none;border-radius:9px;padding:10px 16px;font-size:.93rem;
+  font-weight:600;cursor:pointer;transition:.15s}
+.btn:hover{background:var(--blue-d)}
+.btn.sec{background:var(--chip);color:var(--blue-d);border:1px solid var(--line)}
+.btn.sec:hover{background:#e2eaf1}
+.btn.sm{padding:6px 11px;font-size:.83rem}
+.tip{position:relative;display:inline-block;cursor:help;border-bottom:1px dotted var(--muted);font-weight:700;color:var(--blue)}
+.tip .tt{visibility:hidden;opacity:0;position:absolute;left:50%;transform:translateX(-50%);bottom:135%;
+  background:var(--ink);color:#fff;padding:8px 10px;border-radius:7px;font-size:.78rem;font-weight:400;
+  width:240px;z-index:30;transition:.15s;box-shadow:var(--shadow);line-height:1.4;text-align:left}
+.tip:hover .tt,.tip:focus .tt{visibility:visible;opacity:1}
+.tip .tt::after{content:"";position:absolute;top:100%;left:50%;transform:translateX(-50%);
+  border:6px solid transparent;border-top-color:var(--ink)}
+.verdict{border-radius:10px;padding:14px 16px;margin:14px 0;font-size:.97rem;border:1px solid}
+.verdict.good{background:var(--good-bg);border-color:#bfe3cd;color:#13633c}
+.verdict.warn{background:var(--warn-bg);border-color:#f3d9b8;color:#8a4a00}
+.verdict.bad{background:var(--bad-bg);border-color:#f2c9c6;color:#8e1c16}
+.verdict strong{font-size:1.05em}
+.interp{font-size:.88rem;color:var(--muted);margin:6px 0 0;font-style:italic}
+table.out{width:100%;border-collapse:collapse;margin:10px 0;font-size:.9rem}
+table.out th,table.out td{padding:8px 10px;text-align:right;border-bottom:1px solid var(--line)}
+table.out th:first-child,table.out td:first-child{text-align:left}
+table.out thead th{background:var(--chip);color:var(--blue-d);font-size:.8rem;text-transform:uppercase;letter-spacing:.3px}
+table.out tr.hl{background:#fff7e8}
+table.out tr.hl td{font-weight:700}
+.mono{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
+.codebox{position:relative;background:#0f1f2e;color:#d7e3ee;border-radius:10px;padding:16px 16px 16px;
+  font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:.8rem;overflow-x:auto;white-space:pre;line-height:1.5}
+.copybtn{position:absolute;top:10px;right:10px;background:#22405a;color:#cfe0ee;border:none;border-radius:7px;
+  padding:5px 10px;font-size:.76rem;cursor:pointer;font-weight:600}
+.copybtn:hover{background:#2e5374}
+.checklist{list-style:none;padding:0;margin:0}
+.checklist li{display:flex;align-items:flex-start;gap:12px;padding:13px 0;border-bottom:1px solid var(--line)}
+.checklist li:last-child{border-bottom:none}
+.checklist .q{flex:1}
+.checklist .q .qt{font-weight:600}
+.checklist .q .qh{font-size:.83rem;color:var(--muted)}
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:8px;overflow:hidden;flex-shrink:0}
+.seg button{border:none;background:#fff;color:var(--muted);padding:7px 14px;cursor:pointer;font-size:.85rem;font-weight:600}
+.seg button.on{background:var(--blue);color:#fff}
+.kpi{display:flex;gap:14px;flex-wrap:wrap;margin:6px 0 0}
+.kpi .box{flex:1;min-width:150px;background:var(--chip);border-radius:10px;padding:12px 14px}
+.kpi .box .v{font-size:1.4rem;font-weight:700;color:var(--blue-d)}
+.kpi .box .l{font-size:.78rem;color:var(--muted);text-transform:uppercase;letter-spacing:.3px}
+.note{font-size:.85rem;color:var(--muted)}
+.err{color:var(--bad);font-size:.85rem;font-weight:600;margin-top:5px}
+.pill{display:inline-block;background:var(--chip);border-radius:20px;padding:3px 11px;font-size:.78rem;
+  font-weight:600;color:var(--blue-d);margin:2px 4px 2px 0}
+.pass{color:var(--good);font-weight:700}.fail{color:var(--bad);font-weight:700}
+footer.app{margin-top:26px;padding:18px 20px;background:#eef3f7;border:1px solid var(--line);border-radius:12px;
+  font-size:.85rem;color:var(--muted)}
+footer.app a{color:var(--blue)}
+.matgrid{display:grid;gap:6px;margin:8px 0}
+.matgrid input{padding:6px;text-align:center;font-size:.85rem}
+.flex2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+@media(max-width:680px){.flex2{grid-template-columns:1fr}header.app h1{font-size:1.25rem}}
+details.acc{border:1px solid var(--line);border-radius:9px;margin:8px 0;background:#fafcfe}
+details.acc summary{cursor:pointer;padding:11px 14px;font-weight:600;color:var(--blue-d)}
+details.acc .body{padding:0 14px 14px}
+hr.soft{border:none;border-top:1px solid var(--line);margin:16px 0}
+.legend{display:flex;gap:14px;flex-wrap:wrap;font-size:.82rem;margin:8px 0}
+.legend span{display:inline-flex;align-items:center;gap:6px}
+.legend i{width:22px;height:3px;border-radius:2px;display:inline-block}
+.small{font-size:.82rem}
+</style>
+</head>
+<body>
+<div class="wrap">
+<header class="app">
+  <h1>ANCOVA with Fallible Covariates — a practical EIV toolkit</h1>
+  <p>When you control for a covariate that is measured with error in a nonexperimental study, ordinary ANCOVA can manufacture treatment effects that are not real. This tool diagnoses your risk and applies the errors‑in‑variables (EIV) correction recommended by Culpepper &amp; Aguinis (2011).</p>
+</header>
+
+<nav class="tabs" id="tabs"></nav>
+
+<!-- ============ OVERVIEW ============ -->
+<section class="panel" data-tab="overview">
+  <div class="card">
+    <h2>1 · What is the problem, and are you at risk?</h2>
+    <p class="sub">A two‑minute orientation, then a guided checklist that tells you whether your study is exposed.</p>
+    <p>Analysis of covariance (ANCOVA) adjusts a treatment effect for a covariate (for example, comparing two programs while "controlling for" prior ability). A built‑in assumption is that the covariate is measured <em>without error</em>. In real research that assumption is almost always false — questionnaires, tests, and ratings are <span class="tip">fallible<span class="tt">Fallible = measured with error. Its reliability ρxx is below 1.</span></span>.</p>
+    <p>Measurement error in the covariate biases the treatment effect <strong>only when both</strong> of these are true:</p>
+    <ul>
+      <li>the covariate's reliability is below 1 (<span class="tip">ρxx<span class="tt">ρxx — reliability of the covariate, between 0 and 1. 1 = perfectly reliable.</span></span> &lt; 1), <em>and</em></li>
+      <li>the groups differ in their average covariate value (<span class="tip">μ1x − μ0x<span class="tt">Difference in the covariate's mean between the treatment and control groups, in standard‑deviation units. Zero in a perfectly randomized experiment.</span></span> ≠ 0), which is the norm in nonexperimental designs.</li>
+    </ul>
+    <p>If the groups are equivalent on the covariate, or the covariate is perfectly reliable, there is <strong>no</strong> bias. Otherwise, testing the treatment effect with ordinary OLS ANCOVA inflates the <span class="tip">Type I error rate<span class="tt">The chance of declaring a treatment effect when none exists (a false positive). The nominal target is usually 0.05.</span></span> — sometimes severely — so you may conclude a treatment works when it does not. The fix is the <strong>errors‑in‑variables (EIV)</strong> correction, which outperformed OLS, Lord's method, the Raaijmakers &amp; Pieters method, and SEM across two Monte Carlo studies.</p>
+  </div>
+
+  <div class="card">
+    <h2>Risk checklist</h2>
+    <p class="sub">Answer three questions about your study.</p>
+    <ul class="checklist" id="checklist"></ul>
+    <div id="checkVerdict"></div>
+  </div>
+</section>
+
+<!-- ============ RISK CALCULATOR ============ -->
+<section class="panel" data-tab="risk">
+  <div class="card">
+    <h2>2 · Bias &amp; Type I error risk calculator</h2>
+    <p class="sub">Enter what you know about your design. The tool computes the bias in ΔR² for the treatment effect under the null (Eq. 2 / A9) and the <em>real</em> Type I error rate using the noncentral‑F approach (Eqs. A10–A11). Everything runs in your browser.</p>
+    <div class="grid">
+      <div class="fieldwrap"><label class="field">Covariate reliability — <span class="tip">ρxx<span class="tt">Reliability of the covariate scores (0–1). Cronbach's α or a test–retest coefficient are common estimates.</span></span></label><input type="number" id="r_rxx" step="0.01" min="0" max="1" value="0.70"></div>
+      <div class="fieldwrap"><label class="field">Group mean diff. on covariate — <span class="tip">μ1x − μ0x<span class="tt">Standardized difference (SD units) between treatment and control on the covariate. Try 0 for an experiment, 0.5 for moderate nonequivalence.</span></span></label><input type="number" id="r_delta" step="0.05" value="0.50"></div>
+      <div class="fieldwrap"><label class="field">True covariate–outcome corr. — <span class="tip">ρxy<span class="tt">The correlation between the covariate and the outcome at the true‑score level (0–1).</span></span></label><input type="number" id="r_rxy" step="0.05" min="0" max="1" value="0.50"></div>
+      <div class="fieldwrap"><label class="field">Proportion in treatment group — <span class="tip">p<span class="tt">Share of the sample in the treatment group (0–1). 0.5 = balanced groups.</span></span></label><input type="number" id="r_p" step="0.05" min="0" max="1" value="0.50"></div>
+      <div class="fieldwrap"><label class="field">Sample size — <span class="tip">n<span class="tt">Total number of participants (N).</span></span></label><input type="number" id="r_n" step="10" min="10" value="500"></div>
+      <div class="fieldwrap"><label class="field">Outcome reliability — <span class="tip">ρyy<span class="tt">Reliability of the dependent‑variable scores (0–1). Use 1 if you treat the outcome as error‑free.</span></span></label><input type="number" id="r_ryy" step="0.01" min="0" max="1" value="1.00"></div>
+      <div class="fieldwrap"><label class="field">Nominal significance level — <span class="tip">α<span class="tt">Your intended false‑positive rate, usually 0.05.</span></span></label><input type="number" id="r_alpha" step="0.01" min="0.001" max="0.5" value="0.05"></div>
+    </div>
+    <div class="row">
+      <button class="btn" onclick="runRisk()">Compute risk</button>
+      <button class="btn sec sm" onclick="resetRisk()">Reset</button>
+    </div>
+    <div id="riskErr" class="err"></div>
+    <div id="riskOut"></div>
+  </div>
+</section>
+
+<!-- ============ FIGURE 1 ============ -->
+<section class="panel" data-tab="figure">
+  <div class="card">
+    <h2>3 · Figure‑1 explorer: how Type I error inflates</h2>
+    <p class="sub">Reproduces the spirit of Figure 1 in the article. The real Type I error rate is plotted against the group mean difference on the covariate, for four covariate‑reliability curves. The dashed line marks the nominal α. Move the controls and watch it update live.</p>
+    <div class="grid">
+      <div class="fieldwrap"><label class="field">True covariate–outcome corr. ρxy</label>
+        <select id="f_rxy"><option>0.3</option><option selected>0.5</option><option>0.7</option><option>0.9</option></select></div>
+      <div class="fieldwrap"><label class="field">Sample size n: <span id="f_nlab" class="mono">500</span></label><input type="range" id="f_n" min="50" max="2000" step="10" value="500"></div>
+      <div class="fieldwrap"><label class="field">Nominal α: <span id="f_alab" class="mono">0.05</span></label><input type="range" id="f_alpha" min="0.01" max="0.20" step="0.01" value="0.05"></div>
+      <div class="fieldwrap"><label class="field">Proportion treatment p: <span id="f_plab" class="mono">0.50</span></label><input type="range" id="f_p" min="0.1" max="0.9" step="0.05" value="0.5"></div>
+    </div>
+    <div class="legend" id="figLegend"></div>
+    <div id="figWrap" style="overflow-x:auto"></div>
+    <p class="interp" id="figInterp"></p>
+  </div>
+</section>
+
+<!-- ============ EIV CORRECTION ============ -->
+<section class="panel" data-tab="eiv">
+  <div class="card">
+    <h2>4 · EIV correction — the recommended fix</h2>
+    <p class="sub">This faithfully implements Fuller's errors‑in‑variables algorithm from Appendix B of the article. It disattenuates each coefficient, computes Fuller's (1987) standard errors (Eq. 4), and reports t and p values — exactly mirroring the published R program. A worked example is pre‑loaded so you see output immediately.</p>
+    <div class="seg" id="eivMode" role="tablist">
+      <button class="on" onclick="setEivMode('raw')">Raw data (CSV)</button>
+      <button onclick="setEivMode('summary')">Summary statistics (covariance matrix)</button>
+    </div>
+
+    <!-- RAW -->
+    <div id="eivRaw">
+      <h3>Paste or load data</h3>
+      <p class="note">First row = column names. Include the dependent variable, one or more covariates, and a dichotomous (0/1) treatment indicator. Then assign a role and a reliability to each column.</p>
+      <div class="row" style="margin-bottom:8px">
+        <button class="btn sec sm" onclick="loadWorked()">Load worked example</button>
+        <label class="btn sec sm" style="cursor:pointer">Upload CSV…<input type="file" id="csvFile" accept=".csv,text/csv" style="display:none"></label>
+        <button class="btn sec sm" onclick="document.getElementById('csvText').value='';">Clear</button>
+      </div>
+      <textarea id="csvText" rows="6" placeholder="y,x1,x2,treat&#10;0.61,1.66,1.33,0&#10;..."></textarea>
+      <div class="row" style="margin-top:8px"><button class="btn sm" onclick="parseCsv()">Detect columns →</button></div>
+      <div id="colRoles"></div>
+      <div id="rawErr" class="err"></div>
+      <div class="row" style="margin-top:8px"><button class="btn" id="runRawBtn" onclick="runRaw()" style="display:none">Run EIV + OLS comparison</button></div>
+    </div>
+
+    <!-- SUMMARY -->
+    <div id="eivSummary" style="display:none">
+      <h3>Covariance‑matrix input</h3>
+      <p class="note">For users without raw data. Provide the covariance matrix among the predictors (covariates + treatment indicator), the covariance of each predictor with the outcome, the outcome variance, the sample size, and a reliability for each predictor (treatment = 1). Pre‑filled with the worked example's covariances.</p>
+      <div class="row" style="margin-bottom:8px">
+        <div class="fieldwrap" style="margin:0"><label class="field"># predictors K</label><input type="number" id="s_K" min="1" max="6" value="3" style="width:90px" onchange="buildSummaryGrid()"></div>
+        <div class="fieldwrap" style="margin:0"><label class="field">Sample size n</label><input type="number" id="s_n" min="5" value="200" style="width:110px"></div>
+        <div class="fieldwrap" style="margin:0"><label class="field">Outcome variance var(y)</label><input type="number" id="s_vary" step="0.0001" value="1.005023" style="width:140px"></div>
+      </div>
+      <div id="summaryGrid"></div>
+      <div id="sumErr" class="err"></div>
+      <div class="row" style="margin-top:10px"><button class="btn" onclick="runSummary()">Run EIV</button>
+        <button class="btn sec sm" onclick="fillWorkedSummary()">Reset to worked example</button></div>
+    </div>
+
+    <div id="eivOut"></div>
+  </div>
+</section>
+
+<!-- ============ METHOD GUIDE ============ -->
+<section class="panel" data-tab="guide">
+  <div class="card">
+    <h2>5 · Which correction method should you use?</h2>
+    <p class="sub">A decision guide based on the article's two Monte Carlo studies.</p>
+    <div class="verdict good"><strong>Default recommendation: use EIV.</strong> Across both studies it produced the most accurate treatment‑effect estimates, the highest statistical power, and Type I error rates closest to the nominal level. It handles one or several fallible covariates.</div>
+    <h3>How the methods compare</h3>
+    <table class="out">
+      <thead><tr><th>Method</th><th>Avg. Type I error*</th><th>Avg. power*</th><th>Notes</th></tr></thead>
+      <tbody>
+        <tr class="hl"><td>EIV (recommended)</td><td>.048</td><td>.67</td><td>Most accurate &amp; powerful; relative bias ≈ 1.8–2.1% across ρxx .6–.9; handles multiple covariates/indicators.</td></tr>
+        <tr><td>Lord (1960)</td><td>.007</td><td>.28</td><td>Limited to a <em>single</em> fallible covariate in pre/post designs. Overly conservative — deflated Type I error and low power.</td></tr>
+        <tr><td>SEM (Sörbom 1978)</td><td>.033</td><td>.612</td><td>Handles multiple indicators but underestimated the treatment effect (~30% downward bias with multiple indicators in Study 2); bias 3.5–15.8% across ρxx.</td></tr>
+        <tr><td>R&amp;P (functional)</td><td>—</td><td>—</td><td>Least accurate of the methods evaluated; its equal‑variance assumption is violated whenever covariate reliability ≠ outcome variance explained.</td></tr>
+        <tr><td>Naive OLS ANCOVA</td><td>inflated</td><td>—</td><td>Ignores the problem; inflates Type I error when ρxx &lt; 1 and groups differ. Not recommended.</td></tr>
+      </tbody>
+    </table>
+    <p class="small">*Averages across simulated conditions, against a nominal α of .05. Source: Culpepper &amp; Aguinis (2011).</p>
+    <div class="verdict warn">SEM and EIV both accept multiple indicators, but when you have a single measure of each construct and an estimate of its reliability, EIV is simpler and was the most accurate. Choose SEM only if you have a specific multi‑indicator measurement model you trust and reliability estimates are poor.</div>
+  </div>
+</section>
+
+<!-- ============ REPORTING ============ -->
+<section class="panel" data-tab="report">
+  <div class="card">
+    <h2>6 · Reporting &amp; interpretation helper</h2>
+    <p class="sub">Run an EIV analysis in Module 4 first; this generates ready‑to‑paste text for a Methods/Results section, populated from your numbers. You can also edit the fields below by hand.</p>
+    <div class="grid">
+      <div class="fieldwrap"><label class="field">Outcome name</label><input type="text" id="rep_y" value="the outcome"></div>
+      <div class="fieldwrap"><label class="field">Treatment variable name</label><input type="text" id="rep_t" value="treatment"></div>
+      <div class="fieldwrap"><label class="field">Covariate(s) &amp; reliabilities</label><input type="text" id="rep_cov" value="x1 (ρxx=.70), x2 (ρxx=.90)"></div>
+      <div class="fieldwrap"><label class="field">Sample size n</label><input type="number" id="rep_n" value="200"></div>
+    </div>
+    <div class="grid">
+      <div class="fieldwrap"><label class="field">EIV treatment estimate</label><input type="number" id="rep_b" step="0.001" value="0.135"></div>
+      <div class="fieldwrap"><label class="field">SE</label><input type="number" id="rep_se" step="0.001" value="0.165"></div>
+      <div class="fieldwrap"><label class="field">t</label><input type="number" id="rep_tval" step="0.01" value="0.81"></div>
+      <div class="fieldwrap"><label class="field">p</label><input type="number" id="rep_p" step="0.001" value="0.416"></div>
+    </div>
+    <div class="row"><button class="btn" onclick="buildReport()">Generate report text</button></div>
+    <div id="reportOut"></div>
+  </div>
+</section>
+
+<!-- ============ CODE ============ -->
+<section class="panel" data-tab="code">
+  <div class="card">
+    <h2>7 · Reproduce outside the browser — R &amp; Stata</h2>
+    <p class="sub">The original Appendix B R function, so you can reproduce these results in R. Stata is the only widespread commercial package that performs EIV natively (<span class="mono">eivreg</span>).</p>
+    <h3>R — Appendix B <span class="mono">eiv()</span> function</h3>
+    <div class="codebox" id="rcode"><button class="copybtn" onclick="copyCode('rcode')">Copy</button><span id="rcodeTxt"></span></div>
+    <h3>Example call</h3>
+    <div class="codebox" id="rcall"><button class="copybtn" onclick="copyCode('rcall')">Copy</button><span id="rcallTxt"></span></div>
+    <h3>Stata — native EIV</h3>
+    <div class="codebox" id="stata"><button class="copybtn" onclick="copyCode('stata')">Copy</button><span id="stataTxt"></span></div>
+    <p class="note">The reliability vector matches the predictor order in the formula; the treatment indicator's reliability is 1.</p>
+  </div>
+</section>
+
+<!-- ============ ABOUT / TESTS ============ -->
+<section class="panel" data-tab="about">
+  <div class="card">
+    <h2>8 · Self‑tests &amp; about</h2>
+    <p class="sub">The tool verifies its own numerical routines every time it loads. Green means the engine reproduces the published worked example and the no‑bias edge cases.</p>
+    <div id="selftests"></div>
+    <h3>Symbols used</h3>
+    <p class="small"><span class="pill">ρxx</span>covariate reliability <span class="pill">ρyy</span>outcome reliability <span class="pill">ρxy</span>true covariate–outcome correlation <span class="pill">μ1x − μ0x</span>standardized group mean difference on the covariate <span class="pill">p</span>proportion in treatment group <span class="pill">n / N</span>sample size <span class="pill">α</span>nominal Type I error rate <span class="pill">K</span>number of predictors <span class="pill">ΔR²</span>change in R² from adding the treatment</p>
+  </div>
+</section>
+
+<footer class="app">
+  <p style="margin:0 0 8px"><strong>Built on the methodology of:</strong> Culpepper, S. A., &amp; Aguinis, H. (2011). Using analysis of covariance (ANCOVA) with fallible covariates. <em>Psychological Methods, 16</em>(2), 166–178. <a href="https://doi.org/10.1037/a0023355" target="_blank" rel="noopener">https://doi.org/10.1037/a0023355</a></p>
+  <p style="margin:0 0 8px"><strong>Recommended companion resource:</strong> Aguinis, H. (2025). <em>Research methodology: Best practices for rigorous, credible, and impactful research.</em> SAGE. <a href="https://collegepublishing.sagepub.com/products/research-methodology-1-280088" target="_blank" rel="noopener">Link</a></p>
+  <p style="margin:0"><strong>Disclaimer:</strong> This tool is an aid for implementing published methods. It does not replace careful methodological judgment, attention to ANCOVA's other assumptions (linearity, homogeneity of regression slopes, normality), or the substantive reasoning behind your design. Reliability estimates should be defensible and the disattenuation is only as good as those estimates.</p>
+</footer>
+</div>
+
+<script>
+/* =========================================================================
+   Embedded worked-example dataset (n=200). Generated under the NULL
+   (no true treatment effect) with a confounded, fallible covariate.
+   ========================================================================= */
+const WORKED_CSV = `y,x1,x2,treat
+0.6074,1.6576,1.3333,0
+-1.0683,-0.2712,1.7332,0
+-1.462,-0.7383,-1.8766,0
+-1.2634,-2.8481,-0.4264,0
+-1.6662,-0.2125,1.0907,0
+0.2323,-1.1968,-1.479,0
+-1.057,-0.4393,-1.0588,0
+-1.0462,-0.0817,-1.1571,0
+-0.7035,0.2712,-1.2135,0
+1.0083,-1.5069,-1.2125,0
+0.4239,-1.5175,0.0282,0
+-0.7412,-1.2493,0.8666,0
+0.9862,0.7923,1.4576,0
+1.4812,-0.037,-0.1587,0
+-1.6756,-1.5408,-2.4497,0
+-1.1059,-2.2456,-0.2833,0
+0.8956,0.1926,-0.253,0
+0.9538,-0.9992,0.2808,0
+-0.5631,0.3539,-0.5339,0
+0.6618,-1.048,-1.5647,0
+0.7711,0.5233,0.4371,0
+0.2075,-1.3981,-1.8572,0
+2.0634,-0.3852,-0.2942,0
+1.0112,1.2068,0.045,0
+2.2138,0.0241,0.3751,0
+0.0367,-0.0732,1.2323,0
+0.0347,0.9163,-2.014,0
+-0.5058,-0.5195,0.5396,0
+0.3479,-1.5502,0.6499,0
+-0.0473,-1.3669,-0.2101,0
+-0.0658,-1.1533,0.1906,0
+-1.7055,-1.256,-0.9664,0
+-1.2207,-1.6557,0.0872,0
+-0.6747,-1.7963,1.0352,0
+0.3815,-0.7032,-0.6901,0
+0.9394,-0.6437,-1.2475,0
+-1.9985,0.1533,-1.1651,0
+0.418,0.5803,-0.3461,0
+-1.486,-0.8297,0.5444,0
+0.3877,-0.3284,0.1814,0
+-0.2182,-1.3199,0.6524,0
+-1.6261,-1.2194,0.9551,0
+-1.407,-0.6557,-0.3029,0
+0.6054,-0.8357,-0.1454,0
+0.9453,0.9098,-1.1375,0
+-1.1835,-0.6237,-0.4314,0
+-0.2295,0.524,-1.1378,0
+-0.741,-0.4922,0.5685,0
+-2.3251,-1.7234,-0.9806,0
+-0.4033,-1.1949,0.079,0
+-0.4514,0.1445,-0.484,0
+-0.7596,0.7486,-1.172,0
+-0.1257,0.2353,0.0005,0
+1.3514,0.2626,0.7891,0
+0.3194,-1.2621,1.2234,0
+0.0009,0.1437,-0.9854,0
+0.4952,1.4997,-0.6255,0
+-0.0414,-1.0594,-0.4411,0
+0.2485,0.0858,-0.8617,0
+-1.0815,-0.9696,0.8829,0
+-1.3344,-1.8165,0.7651,0
+-0.0403,-0.1612,0.7496,0
+-0.5325,-0.8297,1.7161,0
+-0.3497,-0.1395,-0.3598,0
+-0.6435,0.6112,0.1441,0
+0.1907,-1.4975,0.0187,0
+-0.3503,-1.1136,0.2073,0
+-0.7695,2.2117,-0.4522,0
+0.0419,-1.2749,0.3043,0
+-0.4087,-0.6489,1.3057,0
+0.401,0.2435,1.0218,0
+0.0127,0.1604,0.0955,0
+0.1941,-0.0227,-0.7554,0
+-0.4642,-0.7999,-1.714,0
+-0.843,0.3392,1.0469,0
+-0.1955,1.3423,0.3067,0
+0.2037,0.2499,-0.6806,0
+-0.6283,-1.1198,-0.5253,0
+-0.1587,-1.6816,-0.2645,0
+-1.4258,-1.9297,-1.7168,0
+-1.6826,0.2007,0.2936,0
+-0.7214,-2.1881,-0.9401,0
+-0.4343,0.8258,-0.233,0
+-0.3181,0.7908,0.5907,0
+-1.1385,-1.312,-0.2919,0
+-1.7595,-0.4556,0.2054,0
+-0.2715,-0.6272,0.1398,0
+-0.5618,0.9132,0.0148,0
+0.766,-1.1862,-0.8438,0
+-0.5667,-0.7095,1.9499,0
+-1.0322,-0.5311,-1.0708,0
+-0.9582,-0.4518,1.2812,0
+-1.2907,1.3177,-1.1138,0
+-1.5315,-0.9188,0.7442,0
+-0.8621,-0.3244,0.0684,0
+-0.4103,0.0965,-0.8524,0
+-1.5832,0.6803,-2.5863,0
+-0.9768,-1.9956,1.6101,0
+1.3515,0.4487,-0.4924,0
+-0.3941,-0.2017,-0.9357,0
+0.6578,1.7136,-0.3256,1
+0.5899,0.1466,0.126,1
+-1.345,-0.3776,0.5963,1
+-0.4991,-0.8574,1.0189,1
+1.4322,0.9805,-1.4233,1
+0.3888,0.9689,0.8899,1
+-0.7839,0.1729,-0.4542,1
+-0.1913,2.4235,0.5144,1
+3.2771,1.011,0.3184,1
+0.5586,0.34,1.5986,1
+0.0514,1.9939,-0.412,1
+-0.7663,-1.3133,-0.1611,1
+-0.38,-2.1153,0.4088,1
+0.815,1.4153,-1.9211,1
+-1.403,-1.1317,-0.6013,1
+2.0027,1.3389,-0.1951,1
+1.006,0.9291,-0.9402,1
+0.0355,0.8238,0.0292,1
+1.1687,0.7631,-0.2665,1
+0.1511,-0.1327,1.9466,1
+-0.88,-1.157,1.0866,1
+1.0788,0.2764,-1.7357,1
+-1.2212,0.8317,-0.1423,1
+2.0761,1.6549,-1.0866,1
+-0.0646,-0.3234,1.1272,1
+0.8676,0.6342,0.3252,1
+0.7436,0.7935,0.9272,1
+1.4206,-0.8392,0.6276,1
+2.3382,1.4666,0.6834,1
+1.1781,1.0379,-0.4518,1
+-0.3033,0.3631,-1.7513,1
+0.901,0.1755,-0.6127,1
+0.3182,0.8294,-0.8533,1
+-1.0471,-0.4886,-0.0249,1
+0.4871,0.2205,-0.2687,1
+1.4254,1.2904,1.8715,1
+1.7039,0.6968,0.2083,1
+-1.4485,-0.2857,1.0109,1
+0.4866,-0.2283,-0.1498,1
+0.7278,0.9991,1.1427,1
+-0.4986,-1.4,-0.5518,1
+1.9909,1.6481,0.7051,1
+-0.2175,1.7003,-0.6051,1
+0.6325,0.5882,0.3685,1
+-0.7364,0.6173,1.9504,1
+-0.1242,-0.2825,-1.8095,1
+-0.1915,1.6944,-0.7302,1
+0.3245,0.551,0.6054,1
+0.5467,-0.6912,0.1462,1
+0.6704,0.9669,-1.0799,1
+1.0934,2.158,0.7513,1
+-0.6949,-0.4905,0.6741,1
+1.2548,0.2109,1.6115,1
+-0.7484,-0.8685,0.8624,1
+-0.3394,-1.0358,-0.5032,1
+1.2078,1.2642,-0.3597,1
+0.4361,0.6846,1.6082,1
+1.0857,0.9581,-0.234,1
+-0.2097,0.134,-0.4925,1
+1.0591,-1.1065,0.8904,1
+0.694,-0.0518,0.9653,1
+0.3789,0.0724,1.528,1
+-0.2773,1.7449,-1.103,1
+0.2696,-0.3573,1.8031,1
+1.4581,0.6426,-0.1403,1
+1.6341,2.0664,-0.233,1
+0.4252,2.7792,-0.5256,1
+0.7641,1.3589,-0.8759,1
+0.1486,0.2765,-0.9221,1
+0.8247,1.1503,-0.459,1
+-1.0168,0.5008,1.4754,1
+2.288,2.3228,-1.3195,1
+-0.0022,-0.595,-1.9731,1
+0.1037,-0.9103,1.2659,1
+-0.4234,-0.0377,0.1405,1
+0.6456,1.2483,0.4901,1
+1.957,-0.605,2.1166,1
+-0.3598,0.2104,0.2842,1
+-0.7662,0.0092,0.0888,1
+-0.4555,0.2246,0.1286,1
+-0.9618,-0.491,1.2505,1
+2.3179,1.6809,1.0236,1
+-0.2905,0.6527,-0.3477,1
+0.0282,0.7962,-1.4097,1
+-1.2072,0.4621,-0.132,1
+-0.8951,-0.1841,-1.387,1
+-0.3129,-1.0026,0.7253,1
+-0.1232,0.4511,-0.664,1
+0.802,2.2227,0.0178,1
+0.2819,-0.7937,-0.4438,1
+0.2981,-0.3605,1.3583,1
+0.1705,-0.0409,0.9718,1
+-1.2852,-1.4581,0.1226,1
+-1.8598,0.1564,0.9185,1
+1.3714,0.3385,0.3208,1
+-0.9644,1.403,0.8653,1
+0.5678,0.4991,1.6557,1
+0.9853,1.6854,0.2367,1
+-0.39,0.1267,0.6999,1
+1.1776,0.8465,-0.0128,1`;
+
+/* ===================== Linear algebra ===================== */
+function zeros(r,c){return Array.from({length:r},()=>new Array(c).fill(0));}
+function transpose(A){const r=A.length,c=A[0].length,T=zeros(c,r);for(let i=0;i<r;i++)for(let j=0;j<c;j++)T[j][i]=A[i][j];return T;}
+function matmul(A,B){const r=A.length,k=B.length,c=B[0].length,C=zeros(r,c);
+  for(let i=0;i<r;i++)for(let j=0;j<c;j++){let s=0;for(let t=0;t<k;t++)s+=A[i][t]*B[t][j];C[i][j]=s;}return C;}
+function matvec(A,v){return A.map(row=>row.reduce((s,a,i)=>s+a*v[i],0));}
+function dot(a,b){return a.reduce((s,x,i)=>s+x*b[i],0);}
+function outer(a,b){return a.map(ai=>b.map(bj=>ai*bj));}
+function inv(M){ // Gauss-Jordan, partial pivoting
+  const n=M.length, A=M.map((r,i)=>[...r,...Array.from({length:n},(_,j)=>i===j?1:0)]);
+  for(let col=0;col<n;col++){
+    let piv=col;for(let r=col+1;r<n;r++)if(Math.abs(A[r][col])>Math.abs(A[piv][col]))piv=r;
+    if(Math.abs(A[piv][col])<1e-14)throw new Error("Matrix is singular / not invertible.");
+    [A[col],A[piv]]=[A[piv],A[col]];
+    const d=A[col][col];for(let j=0;j<2*n;j++)A[col][j]/=d;
+    for(let r=0;r<n;r++){if(r===col)continue;const f=A[r][col];for(let j=0;j<2*n;j++)A[r][j]-=f*A[col][j];}
+  }
+  return A.map(r=>r.slice(n));
+}
+function colMeans(X){const n=X.length,K=X[0].length,m=new Array(K).fill(0);
+  for(const row of X)for(let j=0;j<K;j++)m[j]+=row[j];return m.map(v=>v/n);}
+function covMatrix(X){ // sample covariance, ddof=1
+  const n=X.length,K=X[0].length,m=colMeans(X),C=zeros(K,K);
+  for(const row of X)for(let i=0;i<K;i++)for(let j=0;j<K;j++)C[i][j]+=(row[i]-m[i])*(row[j]-m[j]);
+  for(let i=0;i<K;i++)for(let j=0;j<K;j++)C[i][j]/=(n-1);return C;}
+function covXY(X,y){const n=X.length,K=X[0].length,m=colMeans(X),my=y.reduce((a,b)=>a+b,0)/n,v=new Array(K).fill(0);
+  for(let r=0;r<n;r++)for(let j=0;j<K;j++)v[j]+=(X[r][j]-m[j])*(y[r]-my);return v.map(s=>s/(n-1));}
+function variance(y){const n=y.length,m=y.reduce((a,b)=>a+b,0)/n;return y.reduce((s,v)=>s+(v-m)*(v-m),0)/(n-1);}
+function diagOf(M){return M.map((r,i)=>r[i]);}
+
+/* ===================== Special functions ===================== */
+function gammln(x){const c=[76.18009172947146,-86.50532032941677,24.01409824083091,
+  -1.231739572450155,0.1208650973866179e-2,-0.5395239384953e-5];
+  let y=x,t=x+5.5;t-=(x+0.5)*Math.log(t);let s=1.000000000190015;
+  for(let j=0;j<6;j++){y++;s+=c[j]/y;}return -t+Math.log(2.5066282746310005*s/x);}
+function betacf(a,b,x){const MAXIT=300,EPS=3e-14,FPMIN=1e-300;
+  let qab=a+b,qap=a+1,qam=a-1,c=1,d=1-qab*x/qap;
+  if(Math.abs(d)<FPMIN)d=FPMIN;d=1/d;let h=d;
+  for(let m=1;m<=MAXIT;m++){const m2=2*m;
+    let aa=m*(b-m)*x/((qam+m2)*(a+m2));d=1+aa*d;if(Math.abs(d)<FPMIN)d=FPMIN;
+    c=1+aa/c;if(Math.abs(c)<FPMIN)c=FPMIN;d=1/d;h*=d*c;
+    aa=-(a+m)*(qab+m)*x/((a+m2)*(qap+m2));d=1+aa*d;if(Math.abs(d)<FPMIN)d=FPMIN;
+    c=1+aa/c;if(Math.abs(c)<FPMIN)c=FPMIN;d=1/d;const del=d*c;h*=del;
+    if(Math.abs(del-1)<EPS)break;}
+  return h;}
+function betai(a,b,x){ // regularized incomplete beta I_x(a,b)
+  if(x<=0)return 0;if(x>=1)return 1;
+  const bt=Math.exp(gammln(a+b)-gammln(a)-gammln(b)+a*Math.log(x)+b*Math.log(1-x));
+  if(x<(a+1)/(a+b+2))return bt*betacf(a,b,x)/a;
+  return 1-bt*betacf(b,a,1-x)/b;}
+function fCdf(f,d1,d2){if(f<=0)return 0;const x=d1*f/(d1*f+d2);return betai(d1/2,d2/2,x);}
+function fInv(p,d1,d2){ // central F quantile via bisection
+  let lo=1e-9,hi=1e9;for(let i=0;i<200;i++){const mid=(lo+hi)/2;
+    if(fCdf(mid,d1,d2)<p)lo=mid;else hi=mid;}return (lo+hi)/2;}
+function ncFsurv(f,d1,d2,lam){ // P(F>f) for noncentral F, Poisson-weighted central beta mixture
+  if(lam<=0)return 1-fCdf(f,d1,d2);
+  const x=d1*f/(d1*f+d2);let tot=0,term=Math.exp(-lam/2),j=0;
+  while(j<5000){tot+=term*betai(d1/2+j,d2/2,x);j++;term*=(lam/2)/j;
+    if(term<1e-17&&j>lam/2)break;}
+  return 1-tot;}
+function tTwoTailedP(t,df){const x=df/(df+t*t);return betai(df/2,0.5,x);} // = 2*(1-pt(|t|,df))
+
+/* ===================== Core statistics ===================== */
+function biasDeltaR2(rxx,delta,rxy,p,ryy){ // Eq. 2 / A9, predictor standardized (sx2=1)
+  const sx2=1,num=rxy*rxy*ryy*delta*delta*p*(1-p)*(1-rxx)*(1-rxx),
+        den=sx2-rxx*delta*delta*p*(1-p);
+  return {dR2:num/den,den};
+}
+function realTypeI(rxx,delta,rxy,p,n,ryy,alpha){
+  const {dR2,den}=biasDeltaR2(rxx,delta,rxy,p,ryy);
+  const R2x=rxy*rxy*rxx*ryy+dR2;
+  const lam=dR2*(n-3)/(1-R2x);
+  const Fstar=fInv(1-alpha,1,n-3);
+  const rate=ncFsurv(Fstar,1,n-3,lam);
+  return {dR2,lam,Fstar,rate,R2x,den};
+}
+/* EIV — faithful to Appendix B; var(y) generalized so raw data need not be standardized */
+function eiv(X,y,rel){
+  const n=X.length,K=X[0].length;
+  const MXX=covMatrix(X),MXY=covXY(X,y),varY=variance(y);
+  const Suu=zeros(K,K);for(let i=0;i<K;i++)Suu[i][i]=(1-rel[i])*MXX[i][i];
+  const Mxx=MXX.map((row,i)=>row.map((v,j)=>v-(1-K/n)*Suu[i][j]));
+  const iMxx=inv(Mxx);
+  const B=matvec(iMxx,MXY);
+  const MSE=n*(varY-2*dot(B,MXY)+dot(B,matvec(MXX,B)))/(n-3);
+  const u=B.map((b,i)=>Suu[i][i]*b);           // Suu %*% B (Suu diagonal)
+  const RhatDiag=B.map((b,i)=>(b*Suu[i][i])*(b*Suu[i][i]));
+  const inner=zeros(K,K);const uu=outer(u,u);
+  for(let i=0;i<K;i++)for(let j=0;j<K;j++){
+    inner[i][j]=Suu[i][j]*MSE+uu[i][j]+(i===j?2*RhatDiag[i]:0);
+  }
+  const term1=iMxx.map(r=>r.map(v=>v*MSE/n));
+  const term2=matmul(matmul(iMxx,inner),iMxx).map(r=>r.map(v=>v/n));
+  const VC=term1.map((r,i)=>r.map((v,j)=>v+term2[i][j]));
+  const se=diagOf(VC).map(Math.sqrt);
+  const t=B.map((b,i)=>b/se[i]);
+  const pv=t.map(tt=>tTwoTailedP(tt,n-K));
+  return {B,se,t,p:pv,MXX,MXY,varY,n,K};
+}
+/* Naive OLS ANCOVA with intercept */
+function ols(X,y){
+  const n=X.length,K=X[0].length,Kp=K+1;
+  const Xd=X.map(r=>[1,...r]);
+  const XtX=matmul(transpose(Xd),Xd);
+  const Xty=matvec(transpose(Xd),y);
+  const iXtX=inv(XtX);
+  const beta=matvec(iXtX,Xty);
+  let rss=0;for(let r=0;r<n;r++){const yh=dot(Xd[r],beta);rss+=(y[r]-yh)**2;}
+  const s2=rss/(n-Kp);
+  const se=diagOf(iXtX).map(d=>Math.sqrt(s2*d));
+  const t=beta.map((b,i)=>b/se[i]);
+  const pv=t.map(tt=>tTwoTailedP(tt,n-Kp));
+  return {beta,se,t,p:pv};
+}
+
+/* ===================== Formatting helpers ===================== */
+function fmt(x,d=3){if(!isFinite(x))return"—";return x.toFixed(d);}
+function pfmt(p){if(p<0.0001)return"&lt;.0001";return p.toFixed(4).replace(/^0/,"");}
+function pct(x){return (x*100).toFixed(1)+"%";}
+
+/* ===================== Tabs ===================== */
+const TABS=[["overview","Overview & checklist"],["risk","Risk calculator"],["figure","Figure 1 explorer"],
+  ["eiv","EIV correction"],["guide","Method guide"],["report","Reporting helper"],["code","R / Stata code"],["about","Self‑tests & about"]];
+function initTabs(){const nav=document.getElementById("tabs");
+  TABS.forEach(([id,label],i)=>{const b=document.createElement("button");b.textContent=label;b.dataset.t=id;
+    if(i===0)b.classList.add("active");b.onclick=()=>showTab(id);nav.appendChild(b);});
+  document.querySelector('[data-tab="overview"]').classList.add("active");}
+function showTab(id){document.querySelectorAll("section.panel").forEach(s=>s.classList.toggle("active",s.dataset.tab===id));
+  document.querySelectorAll("#tabs button").forEach(b=>b.classList.toggle("active",b.dataset.t===id));
+  window.scrollTo({top:0,behavior:"smooth"});if(id==="figure")drawFigure();}
+
+/* ===================== Overview checklist ===================== */
+const CHK=[
+  {id:"nonexp",qt:"Is your design nonexperimental?",qh:"Groups were not formed by random assignment (e.g., existing groups, self‑selection, observational data)."},
+  {id:"diff",qt:"Do the groups differ on the covariate?",qh:"The treatment and control groups have different average covariate values (μ1x − μ0x ≠ 0)."},
+  {id:"fallible",qt:"Is the covariate measured with error?",qh:"Its reliability is below 1 (any test, scale, or rating; ρxx < 1)."}
+];
+const chkState={};
+function initChecklist(){const ul=document.getElementById("checklist");
+  CHK.forEach(c=>{chkState[c.id]=null;const li=document.createElement("li");
+    li.innerHTML=`<div class="q"><div class="qt">${c.qt}</div><div class="qh">${c.qh}</div></div>
+      <div class="seg" data-c="${c.id}"><button onclick="setChk('${c.id}',true,this)">Yes</button>
+      <button onclick="setChk('${c.id}',false,this)">No</button></div>`;ul.appendChild(li);});
+}
+function setChk(id,val,btn){chkState[id]=val;
+  btn.parentElement.querySelectorAll("button").forEach(b=>b.classList.remove("on"));btn.classList.add("on");
+  renderChkVerdict();}
+function renderChkVerdict(){
+  const d=document.getElementById("checkVerdict");
+  if(Object.values(chkState).some(v=>v===null)){d.innerHTML="";return;}
+  const allYes=chkState.diff&&chkState.fallible;
+  if(allYes){
+    d.innerHTML=`<div class="verdict bad"><strong>You are at risk of biased treatment effects and inflated Type I error.</strong><br>
+      Both bias conditions hold: your covariate is fallible <em>and</em> the groups differ on it${chkState.nonexp?" in a nonexperimental design":""}.
+      Ordinary OLS ANCOVA will overstate the treatment effect and reject the null too often.
+      <br><br><strong>What to do:</strong> quantify the damage in the <a href="#" onclick="showTab('risk');return false">Risk calculator</a>,
+      then re‑estimate the treatment effect with the <a href="#" onclick="showTab('eiv');return false">EIV correction</a>.</div>`;
+  } else if(!chkState.fallible){
+    d.innerHTML=`<div class="verdict good"><strong>Low risk from measurement error.</strong> You indicated the covariate is essentially error‑free (ρxx ≈ 1).
+      With a perfectly reliable covariate there is no measurement‑error bias, regardless of group differences. Standard ANCOVA is appropriate for this concern
+      (still check ANCOVA's other assumptions). In practice, perfect reliability is rare — if in doubt, treat ρxx as &lt; 1.</div>`;
+  } else if(!chkState.diff){
+    d.innerHTML=`<div class="verdict good"><strong>Low risk.</strong> You indicated the groups are equivalent on the covariate (μ1x − μ0x ≈ 0).
+      When groups do not differ on the covariate, covariate measurement error does not bias the treatment effect, even if reliability is low.
+      Confirm the groups really are equivalent; if there is any systematic difference, move to the EIV correction.</div>`;
+  }
+}
+
+/* ===================== Risk calculator ===================== */
+function readRisk(){
+  return {rxx:+v("r_rxx"),delta:+v("r_delta"),rxy:+v("r_rxy"),p:+v("r_p"),n:+v("r_n"),ryy:+v("r_ryy"),alpha:+v("r_alpha")};
+}
+function v(id){return document.getElementById(id).value;}
+function runRisk(){
+  const e=document.getElementById("riskErr");e.textContent="";
+  const i=readRisk();
+  const probs=[];
+  if(i.rxx<0||i.rxx>1)probs.push("ρxx must be between 0 and 1.");
+  if(i.rxy<0||i.rxy>1)probs.push("ρxy must be between 0 and 1.");
+  if(i.ryy<0||i.ryy>1)probs.push("ρyy must be between 0 and 1.");
+  if(i.p<=0||i.p>=1)probs.push("p must be strictly between 0 and 1.");
+  if(i.n<10)probs.push("n must be at least 10.");
+  if(i.alpha<=0||i.alpha>=0.5)probs.push("α must be between 0 and 0.5.");
+  if(probs.length){e.innerHTML=probs.join("<br>");document.getElementById("riskOut").innerHTML="";return;}
+  const r=realTypeI(i.rxx,i.delta,i.rxy,i.p,i.n,i.ryy,i.alpha);
+  if(r.den<=0){e.textContent="The denominator of the bias formula is ≤ 0 for these values (extreme group difference × reliability). Reduce the group mean difference or reliability.";document.getElementById("riskOut").innerHTML="";return;}
+  const ratio=r.rate/i.alpha;
+  let cls="good",msg="";
+  if(ratio>=1.5)cls="bad";else if(ratio>=1.1)cls="warn";
+  if(Math.abs(i.delta)<1e-9||i.rxx>=0.999){
+    msg=`<strong>No bias here.</strong> With ${Math.abs(i.delta)<1e-9?"equivalent groups (μ1x − μ0x = 0)":"a perfectly reliable covariate (ρxx = 1)"}, the treatment effect is unbiased and the real Type I error equals the nominal α (${i.alpha}).`;
+    cls="good";
+  } else {
+    msg=`Your <strong>real Type I error rate is ~${r.rate.toFixed(3)}</strong> — about <strong>${ratio.toFixed(1)}×</strong> the nominal ${i.alpha}. `+
+      (ratio>=1.5?"That is a serious inflation: you would falsely declare a treatment effect far more often than you think.":
+       ratio>=1.1?"That is a meaningful inflation worth correcting.":"That is close to nominal, but the bias is nonzero.");
+  }
+  document.getElementById("riskOut").innerHTML=`
+    <div class="verdict ${cls}">${msg}</div>
+    <div class="kpi">
+      <div class="box"><div class="v">${r.dR2.toExponential(2)}</div><div class="l">Bias in ΔR² (under H₀)</div></div>
+      <div class="box"><div class="v">${r.rate.toFixed(3)}</div><div class="l">Real Type I error</div></div>
+      <div class="box"><div class="v">${i.alpha}</div><div class="l">Nominal α</div></div>
+      <div class="box"><div class="v">${ratio.toFixed(2)}×</div><div class="l">Inflation factor</div></div>
+    </div>
+    <p class="interp">ΔR² is the spurious variance the treatment appears to explain purely because of covariate measurement error (Eq. 2 / A9). Noncentrality λ = ${fmt(r.lam,3)}; central‑F critical value F*(${1-i.alpha}, 1, ${i.n-3}) = ${fmt(r.Fstar,3)}. The real Type I error is the noncentral‑F tail beyond F* (Eqs. A10–A11).</p>`;
+}
+function resetRisk(){const dflt={r_rxx:"0.70",r_delta:"0.50",r_rxy:"0.50",r_p:"0.50",r_n:"500",r_ryy:"1.00",r_alpha:"0.05"};
+  for(const k in dflt)document.getElementById(k).value=dflt[k];document.getElementById("riskOut").innerHTML="";document.getElementById("riskErr").textContent="";}
+
+/* ===================== Figure 1 ===================== */
+const RXX_CURVES=[0.7,0.8,0.9,1.0];
+const CURVE_COLORS={0.7:"#b3261e",0.8:"#b25f00",0.9:"#1f5f8b",1.0:"#1d7a4d"};
+function drawFigure(){
+  const rxy=+document.getElementById("f_rxy").value;
+  const n=+document.getElementById("f_n").value;
+  const alpha=+document.getElementById("f_alpha").value;
+  const p=+document.getElementById("f_p").value;
+  document.getElementById("f_nlab").textContent=n;
+  document.getElementById("f_alab").textContent=alpha.toFixed(2);
+  document.getElementById("f_plab").textContent=p.toFixed(2);
+  const W=720,H=420,m={l:64,r:20,t:18,b:54};
+  const xs=[];for(let d=-1;d<=1.0001;d+=0.04)xs.push(+d.toFixed(3));
+  // compute series + auto y-max
+  const series={};let ymax=alpha;
+  RXX_CURVES.forEach(rxx=>{series[rxx]=xs.map(d=>{
+    const r=realTypeI(rxx,d,rxy,p,n,1.0,alpha);
+    const val=(r.den<=0||!isFinite(r.rate))?null:r.rate;if(val!==null)ymax=Math.max(ymax,val);return val;});});
+  ymax=Math.min(1,Math.ceil(ymax*10)/10);if(ymax<alpha*2)ymax=Math.min(1,alpha*4);
+  const X=d=>m.l+(d+1)/2*(W-m.l-m.r);
+  const Y=val=>H-m.b-(val/ymax)*(H-m.t-m.b);
+  let svg=`<svg viewBox="0 0 ${W} ${H}" width="100%" style="max-width:760px" role="img" aria-label="Real Type I error vs group mean difference">`;
+  svg+=`<rect x="0" y="0" width="${W}" height="${H}" fill="#fff"/>`;
+  // gridlines y
+  const ystep=ymax<=0.2?0.05:0.1;
+  for(let g=0;g<=ymax+1e-9;g+=ystep){const yy=Y(g);
+    svg+=`<line x1="${m.l}" y1="${yy}" x2="${W-m.r}" y2="${yy}" stroke="#eef2f6"/>`;
+    svg+=`<text x="${m.l-8}" y="${yy+4}" text-anchor="end" font-size="11" fill="#5b6b7b">${g.toFixed(2)}</text>`;}
+  // x ticks
+  [-1,-0.5,0,0.5,1].forEach(d=>{const xx=X(d);
+    svg+=`<line x1="${xx}" y1="${m.t}" x2="${xx}" y2="${H-m.b}" stroke="#f4f7fa"/>`;
+    svg+=`<text x="${xx}" y="${H-m.b+18}" text-anchor="middle" font-size="11" fill="#5b6b7b">${d}</text>`;});
+  // axes
+  svg+=`<line x1="${m.l}" y1="${H-m.b}" x2="${W-m.r}" y2="${H-m.b}" stroke="#9fb0bf"/>`;
+  svg+=`<line x1="${m.l}" y1="${m.t}" x2="${m.l}" y2="${H-m.b}" stroke="#9fb0bf"/>`;
+  // nominal alpha dashed
+  svg+=`<line x1="${m.l}" y1="${Y(alpha)}" x2="${W-m.r}" y2="${Y(alpha)}" stroke="#374b5d" stroke-dasharray="6 4" stroke-width="1.5"/>`;
+  svg+=`<text x="${W-m.r-4}" y="${Y(alpha)-6}" text-anchor="end" font-size="11" fill="#374b5d">nominal α = ${alpha.toFixed(2)}</text>`;
+  // curves
+  RXX_CURVES.forEach(rxx=>{const pts=series[rxx];let dstr="",started=false;
+    pts.forEach((val,i)=>{if(val===null){started=false;return;}const cmd=started?"L":"M";dstr+=`${cmd}${X(xs[i]).toFixed(1)} ${Y(val).toFixed(1)} `;started=true;});
+    svg+=`<path d="${dstr}" fill="none" stroke="${CURVE_COLORS[rxx]}" stroke-width="2.4"/>`;});
+  // labels
+  svg+=`<text x="${(m.l+W-m.r)/2}" y="${H-8}" text-anchor="middle" font-size="12.5" fill="#1c2733">Group mean difference on covariate (μ1x − μ0x, SD units)</text>`;
+  svg+=`<text transform="translate(16 ${(m.t+H-m.b)/2}) rotate(-90)" text-anchor="middle" font-size="12.5" fill="#1c2733">Real Type I error rate</text>`;
+  svg+=`</svg>`;
+  document.getElementById("figWrap").innerHTML=svg;
+  document.getElementById("figLegend").innerHTML=RXX_CURVES.map(r=>
+    `<span><i style="background:${CURVE_COLORS[r]}"></i>ρxx = ${r.toFixed(1)}${r===1?" (no error)":""}</span>`).join("")
+    +`<span><i style="background:#374b5d;height:0;border-top:2px dashed #374b5d"></i>nominal α</span>`;
+  // interpretation at delta=0.5
+  const ref=realTypeI(0.7,0.5,rxy,p,n,1.0,alpha);
+  document.getElementById("figInterp").innerHTML=`At ρxy = ${rxy}, a moderate group difference (μ1x − μ0x = 0.5) with ρxx = 0.7 yields a real Type I error of about ${ref.rate.toFixed(3)} — roughly ${(ref.rate/alpha).toFixed(1)}× the nominal ${alpha.toFixed(2)}. The flat green line (ρxx = 1) stays exactly at α: with a perfectly reliable covariate there is no inflation, no matter the group difference.`;
+}
+
+/* ===================== EIV correction ===================== */
+let parsedData=null; // {cols:[], rows:[[...]]}
+function setEivMode(mode){
+  document.querySelectorAll("#eivMode button").forEach((b,i)=>b.classList.toggle("on",(i===0)===(mode==="raw")));
+  document.getElementById("eivRaw").style.display=mode==="raw"?"block":"none";
+  document.getElementById("eivSummary").style.display=mode==="summary"?"block":"none";
+  document.getElementById("eivOut").innerHTML="";
+}
+function loadWorked(){document.getElementById("csvText").value=WORKED_CSV;parseCsv();}
+document.addEventListener("DOMContentLoaded",()=>{
+  const f=document.getElementById("csvFile");
+  if(f)f.addEventListener("change",ev=>{const file=ev.target.files[0];if(!file)return;
+    const rd=new FileReader();rd.onload=e=>{document.getElementById("csvText").value=e.target.result;parseCsv();};rd.readAsText(file);});
+});
+function parseCsv(){
+  const err=document.getElementById("rawErr");err.textContent="";
+  document.getElementById("eivOut").innerHTML="";
+  const txt=document.getElementById("csvText").value.trim();
+  if(!txt){err.textContent="Paste some CSV data first (or load the worked example).";return;}
+  const lines=txt.split(/\r?\n/).filter(l=>l.trim().length);
+  const cols=lines[0].split(",").map(s=>s.trim());
+  const rows=[];
+  for(let i=1;i<lines.length;i++){const parts=lines[i].split(",").map(s=>+s.trim());
+    if(parts.length!==cols.length||parts.some(isNaN)){err.textContent=`Row ${i+1} is malformed or non‑numeric. Each row must have ${cols.length} numeric values.`;return;}
+    rows.push(parts);}
+  if(rows.length<cols.length+2){err.textContent="Too few rows for the number of variables.";return;}
+  parsedData={cols,rows};
+  // role assignment UI: guess DV=first col, treat = a 0/1 column
+  let treatGuess=-1;
+  cols.forEach((c,j)=>{const vals=rows.map(r=>r[j]);const uniq=[...new Set(vals)];
+    if(uniq.length===2&&uniq.every(u=>u===0||u===1)&&/treat|group|cond|tx|dummy/i.test(c)&&treatGuess<0)treatGuess=j;});
+  if(treatGuess<0)cols.forEach((c,j)=>{const uniq=[...new Set(rows.map(r=>r[j]))];if(uniq.length===2&&uniq.every(u=>u===0||u===1)&&treatGuess<0)treatGuess=j;});
+  let html=`<h3>Assign roles &amp; reliabilities</h3><table class="out"><thead><tr><th>Column</th><th>Role</th><th>Reliability (covariates)</th></tr></thead><tbody>`;
+  cols.forEach((c,j)=>{
+    const role=j===0?"dv":(j===treatGuess?"treat":"cov");
+    html+=`<tr><td>${c}</td><td style="text-align:left">
+      <select id="role_${j}" onchange="syncRel(${j})">
+        <option value="dv"${role==="dv"?" selected":""}>Dependent variable</option>
+        <option value="cov"${role==="cov"?" selected":""}>Covariate (fallible)</option>
+        <option value="treat"${role==="treat"?" selected":""}>Treatment indicator (0/1)</option>
+        <option value="ignore">Ignore</option>
+      </select></td>
+      <td><input type="number" id="rel_${j}" min="0.01" max="1" step="0.01" value="${role==="cov"?"0.80":"1.00"}" ${role!=="cov"?"disabled":""} style="width:90px"></td></tr>`;
+  });
+  html+=`</tbody></table><p class="note">The treatment indicator's reliability is fixed at 1. Set a defensible reliability (e.g., Cronbach's α) for each fallible covariate.</p>`;
+  document.getElementById("colRoles").innerHTML=html;
+  document.getElementById("runRawBtn").style.display="inline-block";
+}
+function syncRel(j){const role=document.getElementById("role_"+j).value;const rel=document.getElementById("rel_"+j);
+  rel.disabled=role!=="cov";if(role==="treat")rel.value="1.00";else if(role==="cov"&&(+rel.value>=1||!rel.value))rel.value="0.80";}
+function runRaw(){
+  const err=document.getElementById("rawErr");err.textContent="";
+  if(!parsedData){err.textContent="Detect columns first.";return;}
+  const {cols,rows}=parsedData;
+  let dvIdx=-1,predIdx=[],rels=[],predNames=[],treatName=null;
+  cols.forEach((c,j)=>{const role=document.getElementById("role_"+j).value;
+    if(role==="dv")dvIdx=j;
+    else if(role==="cov"){predIdx.push(j);rels.push(+document.getElementById("rel_"+j).value);predNames.push(c);}
+    else if(role==="treat"){predIdx.push(j);rels.push(1.0);predNames.push(c);treatName=c;}});
+  if(dvIdx<0){err.textContent="Mark exactly one column as the Dependent variable.";return;}
+  if(predIdx.length<1){err.textContent="Mark at least one predictor (covariate or treatment).";return;}
+  if(rels.some(r=>r<=0||r>1)){err.textContent="Reliabilities must be between 0 (exclusive) and 1.";return;}
+  const y=rows.map(r=>r[dvIdx]);
+  const X=rows.map(r=>predIdx.map(j=>r[j]));
+  let res;
+  try{res=eiv(X,y,rels);}catch(e){err.textContent="EIV failed: "+e.message;return;}
+  const olsRes=ols(X,y);
+  renderEivResults(res,olsRes,predNames,rels,treatName);
+}
+function buildSummaryGrid(){
+  const K=Math.max(1,Math.min(6,+document.getElementById("s_K").value||1));
+  let h=`<h3>Covariance matrix among predictors (Σxx)</h3><div class="matgrid" style="grid-template-columns:repeat(${K},1fr);max-width:${K*90+10}px">`;
+  for(let i=0;i<K;i++)for(let j=0;j<K;j++)h+=`<input type="number" step="0.0001" id="cv_${i}_${j}" value="${i===j?"1":"0"}">`;
+  h+=`</div><h3>Covariance of each predictor with the outcome (Σxy)</h3><div class="matgrid" style="grid-template-columns:repeat(${K},1fr);max-width:${K*90+10}px">`;
+  for(let j=0;j<K;j++)h+=`<input type="number" step="0.0001" id="cy_${j}" value="0">`;
+  h+=`</div><h3>Reliability of each predictor</h3><div class="matgrid" style="grid-template-columns:repeat(${K},1fr);max-width:${K*90+10}px">`;
+  for(let j=0;j<K;j++)h+=`<input type="number" step="0.01" min="0.01" max="1" id="sr_${j}" value="${j===K-1?"1":"0.8"}">`;
+  h+=`</div><h3>Predictor names (optional)</h3><div class="matgrid" style="grid-template-columns:repeat(${K},1fr);max-width:${K*90+10}px">`;
+  for(let j=0;j<K;j++)h+=`<input type="text" id="sn_${j}" value="${j===K-1?"treat":"x"+(j+1)}">`;
+  h+=`</div>`;
+  document.getElementById("summaryGrid").innerHTML=h;
+}
+const WORKED_MXX=[[1.13995,-0.046084,0.217613],[-0.046084,0.950983,0.075743],[0.217613,0.075743,0.251256]];
+const WORKED_MXY=[0.471081,0.059657,0.16129];
+function fillWorkedSummary(){
+  document.getElementById("s_K").value=3;document.getElementById("s_n").value=200;document.getElementById("s_vary").value="1.005023";
+  buildSummaryGrid();
+  for(let i=0;i<3;i++)for(let j=0;j<3;j++)document.getElementById(`cv_${i}_${j}`).value=WORKED_MXX[i][j];
+  for(let j=0;j<3;j++){document.getElementById(`cy_${j}`).value=WORKED_MXY[j];}
+  ["0.7","0.9","1"].forEach((r,j)=>document.getElementById("sr_"+j).value=r);
+  ["x1","x2","treat"].forEach((nm,j)=>document.getElementById("sn_"+j).value=nm);
+}
+function runSummary(){
+  const err=document.getElementById("sumErr");err.textContent="";document.getElementById("eivOut").innerHTML="";
+  const K=+document.getElementById("s_K").value,n=+document.getElementById("s_n").value,varY=+document.getElementById("s_vary").value;
+  if(n<K+2){err.textContent="n is too small for the number of predictors.";return;}
+  const MXX=zeros(K,K);for(let i=0;i<K;i++)for(let j=0;j<K;j++)MXX[i][j]=+document.getElementById(`cv_${i}_${j}`).value;
+  const MXY=[];for(let j=0;j<K;j++)MXY.push(+document.getElementById(`cy_${j}`).value);
+  const rels=[],names=[];for(let j=0;j<K;j++){rels.push(+document.getElementById("sr_"+j).value);names.push(document.getElementById("sn_"+j).value||("v"+(j+1)));}
+  if(rels.some(r=>r<=0||r>1)){err.textContent="Reliabilities must be between 0 and 1.";return;}
+  // symmetry check
+  for(let i=0;i<K;i++)for(let j=0;j<K;j++)if(Math.abs(MXX[i][j]-MXX[j][i])>1e-6){err.textContent="Σxx must be symmetric.";return;}
+  let res;try{res=eivFromMoments(MXX,MXY,varY,rels,n);}catch(e){err.textContent="EIV failed: "+e.message;return;}
+  const olsR=olsFromMoments(MXX,MXY,varY,n,K);
+  renderEivResults(res,olsR,names.slice(0,K-1+1).map((nm,i)=>nm),rels,names[K-1]);
+}
+function eivFromMoments(MXX,MXY,varY,rel,n){
+  const K=MXX.length;
+  const Suu=zeros(K,K);for(let i=0;i<K;i++)Suu[i][i]=(1-rel[i])*MXX[i][i];
+  const Mxx=MXX.map((row,i)=>row.map((v,j)=>v-(1-K/n)*Suu[i][j]));
+  const iMxx=inv(Mxx);const B=matvec(iMxx,MXY);
+  const MSE=n*(varY-2*dot(B,MXY)+dot(B,matvec(MXX,B)))/(n-3);
+  const u=B.map((b,i)=>Suu[i][i]*b);const RhatDiag=B.map((b,i)=>(b*Suu[i][i])**2);
+  const uu=outer(u,u);const inner=zeros(K,K);
+  for(let i=0;i<K;i++)for(let j=0;j<K;j++)inner[i][j]=Suu[i][j]*MSE+uu[i][j]+(i===j?2*RhatDiag[i]:0);
+  const term1=iMxx.map(r=>r.map(v=>v*MSE/n));
+  const term2=matmul(matmul(iMxx,inner),iMxx).map(r=>r.map(v=>v/n));
+  const VC=term1.map((r,i)=>r.map((v,j)=>v+term2[i][j]));
+  const se=diagOf(VC).map(Math.sqrt);const t=B.map((b,i)=>b/se[i]);const pv=t.map(tt=>tTwoTailedP(tt,n-K));
+  return {B,se,t,p:pv,n,K};
+}
+function olsFromMoments(MXX,MXY,varY,n,K){
+  // slope estimates from covariances: beta = MXX^-1 MXY ; SE from residual variance
+  const iMXX=inv(MXX);const B=matvec(iMXX,MXY);
+  const resVar=varY-2*dot(B,MXY)+dot(B,matvec(MXX,B)); // conditional var (ddof handled below)
+  const s2=resVar*(n-1)/(n-K-1);
+  const se=diagOf(iMXX).map(d=>Math.sqrt(s2*d/(n-1)));
+  const t=B.map((b,i)=>b/se[i]);const pv=t.map(tt=>tTwoTailedP(tt,n-K-1));
+  return {beta:[NaN,...B],se:[NaN,...se],t:[NaN,...t],p:[NaN,...pv],fromMoments:true};
+}
+function renderEivResults(res,olsRes,predNames,rels,treatName){
+  const K=res.B.length;
+  let treatPos=predNames.indexOf(treatName);if(treatPos<0)treatPos=K-1;
+  // EIV table
+  let h=`<h3>EIV‑corrected estimates <span class="note">(disattenuated; Fuller 1987 SEs)</span></h3>`;
+  h+=`<table class="out"><thead><tr><th>Predictor</th><th>Reliability</th><th>Estimate</th><th>SE</th><th>t</th><th>p (&gt;|t|)</th></tr></thead><tbody>`;
+  for(let i=0;i<K;i++){const hl=i===treatPos?' class="hl"':'';
+    h+=`<tr${hl}><td>${predNames[i]||("v"+(i+1))}${i===treatPos?" ◄ treatment":""}</td><td>${rels[i].toFixed(2)}</td><td>${fmt(res.B[i])}</td><td>${fmt(res.se[i])}</td><td>${fmt(res.t[i],2)}</td><td>${pfmt(res.p[i])}</td></tr>`;}
+  h+=`</tbody></table>`;
+  // side by side for treatment
+  const eb=res.B[treatPos],ese=res.se[treatPos],et=res.t[treatPos],ep=res.p[treatPos];
+  const oIdx=treatPos+1; // ols beta has intercept at 0
+  const ob=olsRes.beta[oIdx],ose=olsRes.se[oIdx],ot=olsRes.t[oIdx],op=olsRes.p[oIdx];
+  h+=`<h3>Side‑by‑side: naive OLS vs EIV (treatment effect)</h3>`;
+  h+=`<table class="out"><thead><tr><th>Quantity</th><th>Naive OLS ANCOVA</th><th>EIV‑corrected</th></tr></thead><tbody>
+    <tr><td>Treatment estimate</td><td>${fmt(ob)}</td><td>${fmt(eb)}</td></tr>
+    <tr><td>Standard error</td><td>${fmt(ose)}</td><td>${fmt(ese)}</td></tr>
+    <tr><td>t</td><td>${fmt(ot,2)}</td><td>${fmt(et,2)}</td></tr>
+    <tr><td>p value</td><td>${pfmt(op)}</td><td>${pfmt(ep)}</td></tr>
+    <tr><td>Significant at .05?</td><td>${op<0.05?"Yes":"No"}</td><td>${ep<0.05?"Yes":"No"}</td></tr>
+  </tbody></table>`;
+  // interpretation
+  const shrink=ob!==0?((ob-eb)/ob*100):0;
+  let interp=`The EIV correction changes the treatment estimate from ${fmt(ob)} (OLS) to ${fmt(eb)} (EIV), a ${Math.abs(shrink).toFixed(0)}% ${shrink>=0?"reduction":"increase"} once covariate measurement error is accounted for. `;
+  if(op<0.05&&ep>=0.05)interp+=`Crucially, the naive OLS result is statistically significant (p=${pfmt(op).replace('&lt;','<')}) but the corrected effect is not (p=${pfmt(ep).replace('&lt;','<')}) — a textbook false positive driven by a fallible, confounded covariate.`;
+  else if(op>=0.05&&ep<0.05)interp+=`The corrected effect is significant while the OLS one is not; here disattenuation strengthened the signal.`;
+  else if(ep<0.05&&op<0.05)interp+=`Both remain significant, but the corrected estimate is the trustworthy one.`;
+  else interp+=`Neither is significant; the corrected estimate is the one to report.`;
+  h+=`<div class="verdict ${op<0.05&&ep>=0.05?'bad':'warn'}" style="margin-top:6px">${interp}</div>`;
+  h+=`<p class="note">Tip: open the <a href="#" onclick="showTab('report');return false">Reporting helper</a> — the fields are pre‑filled to match this analysis.</p>`;
+  document.getElementById("eivOut").innerHTML=h;
+  // push to report helper
+  document.getElementById("rep_t").value=treatName||"treatment";
+  document.getElementById("rep_cov").value=predNames.map((nm,i)=>i===treatPos?null:`${nm} (ρxx=${rels[i].toFixed(2)})`).filter(Boolean).join(", ");
+  document.getElementById("rep_n").value=res.n||document.getElementById("rep_n").value;
+  document.getElementById("rep_b").value=eb.toFixed(3);document.getElementById("rep_se").value=ese.toFixed(3);
+  document.getElementById("rep_tval").value=et.toFixed(2);document.getElementById("rep_p").value=ep.toFixed(3);
+}
+
+/* ===================== Reporting ===================== */
+function buildReport(){
+  const y=document.getElementById("rep_y").value,t=document.getElementById("rep_t").value,
+    cov=document.getElementById("rep_cov").value,n=document.getElementById("rep_n").value,
+    b=+document.getElementById("rep_b").value,se=+document.getElementById("rep_se").value,
+    tv=+document.getElementById("rep_tval").value,p=+document.getElementById("rep_p").value;
+  const sig=p<0.05;
+  const pstr=p<0.0001?"< .0001":("= "+p.toFixed(3).replace(/^0/,""));
+  const txt=`Because our design was nonexperimental and groups could differ on the covariate(s), and because the covariate(s) were measured with error, ordinary ANCOVA would bias the treatment effect and inflate the Type I error rate (Culpepper & Aguinis, 2011). We therefore estimated the treatment effect using an errors-in-variables (EIV) correction (Fuller, 1987; Warren, White, & Fuller, 1974), disattenuating the covariate(s) with the following reliability estimates: ${cov}. Based on N = ${n}, the EIV-corrected effect of ${t} on ${y} was b = ${b.toFixed(3)} (SE = ${se.toFixed(3)}), t = ${tv.toFixed(2)}, p ${pstr}. The effect was ${sig?"statistically significant":"not statistically significant"} at α = .05. We report the EIV estimate rather than the ordinary least squares ANCOVA estimate because the latter is biased in the presence of fallible covariates when groups are nonequivalent. (Caveat: this correction assumes the reliability estimates are accurate and that ANCOVA's other assumptions — linearity, homogeneity of regression slopes, and normally distributed, homoscedastic errors — hold.)`;
+  document.getElementById("reportOut").innerHTML=`<div class="codebox" id="repTxtBox"><button class="copybtn" onclick="copyCode('repTxtBox')">Copy</button><span id="repTxt" style="white-space:pre-wrap">${txt}</span></div>`;
+}
+
+/* ===================== Code blocks ===================== */
+const R_CODE=`eiv <- function(formula, reliability, data){
+  mfx <- model.matrix(formula, data = data)
+  p <- length(mfx[1,]) - 1; n <- length(mfx[,1])
+  mf <- match.call(expand.dots = FALSE)
+  m <- match(c("formula","data","subset","weights","na.action","offset"), names(mf), 0L)
+  mf <- mf[c(1L, m)]
+  mf$drop.unused.levels <- TRUE
+  mf[[1L]] <- as.name("model.frame")
+  mf <- eval(mf, parent.frame())
+  mf <- data.frame(mf)
+  MXX <- cov(mfx[,c(2:(p+1))]); MXY <- cov(mfx[,c(2:(p+1))], mf[,1])
+  Suu <- matrix(0,p,p); diag(Suu) <- (1-reliability)*diag(MXX)
+  Mxx <- MXX-(1-p/n)*Suu; Btilde <- solve(Mxx)%*%MXY
+  MSEtilde <- as.numeric(n*(1-2*t(Btilde)%*%MXY+t(Btilde)%*%MXX%*%Btilde)/(n-3))
+  Rhat <- matrix(0,p,p); diag(Rhat) <- (t(Btilde)%*%Suu)^2
+  VCtilde <- MSEtilde*(1/n)*solve(Mxx)+(1/n)*solve(Mxx)%*%(Suu*MSEtilde+
+             Suu%*%Btilde%*%t(Btilde)%*%Suu+2*Rhat)%*%solve(Mxx)
+  ttilde <- Btilde/sqrt(diag(VCtilde))
+  output <- cbind(reliability, Btilde, sqrt(diag(VCtilde)), ttilde,
+                  2*(1-pt(ttilde, n-p)))
+  colnames(output) <- c('Reliability','Est.','S.E.','t','Prob.(>|t|)')
+  output
+}`;
+const R_CALL=`# Order of reliabilities matches the predictors in the formula;
+# the treatment indicator's reliability is 1.
+eiv(y ~ x1 + x2 + treat, reliability = c(.8, .9, 1), data = eivdata)`;
+const STATA=`* Stata performs EIV natively via eivreg.
+* reliability(varname # ...) gives each covariate's reliability;
+* a perfectly measured treatment dummy needs no entry (reliability 1).
+eivreg y x1 x2 treat, reliability(x1 .8 x2 .9)`;
+function copyCode(id){const el=document.getElementById(id);const txt=el.querySelector("span")?el.querySelector("span").textContent:el.textContent;
+  navigator.clipboard.writeText(txt).then(()=>{const b=el.querySelector(".copybtn");const o=b.textContent;b.textContent="Copied!";setTimeout(()=>b.textContent=o,1200);});}
+
+/* ===================== Self-tests ===================== */
+function runSelfTests(){
+  const tests=[];
+  // 1. EIV reproduces worked-example disattenuated treatment estimate
+  const lines=WORKED_CSV.trim().split(/\r?\n/);const cols=lines[0].split(",");
+  const rows=lines.slice(1).map(l=>l.split(",").map(Number));
+  const dv=rows.map(r=>r[0]);const X=rows.map(r=>[r[1],r[2],r[3]]);
+  const res=eiv(X,dv,[0.7,0.9,1.0]);
+  const expB=0.134802,expSE=0.165482,expP=0.416285;
+  tests.push(["EIV treatment estimate reproduces worked example",Math.abs(res.B[2]-expB)<1e-3,`got ${res.B[2].toFixed(6)}, expected ${expB}`]);
+  tests.push(["EIV treatment SE reproduces worked example (Fuller 1987)",Math.abs(res.se[2]-expSE)<1e-3,`got ${res.se[2].toFixed(6)}, expected ${expSE}`]);
+  tests.push(["EIV treatment p value reproduces worked example",Math.abs(res.p[2]-expP)<1e-3,`got ${res.p[2].toFixed(6)}, expected ${expP}`]);
+  // covariate x1 disattenuated > OLS slope (should be larger after correction)
+  const olsR=ols(X,dv);
+  tests.push(["Disattenuated covariate slope exceeds OLS slope (x1)",res.B[0]>olsR.beta[1],`EIV ${res.B[0].toFixed(3)} vs OLS ${olsR.beta[1].toFixed(3)}`]);
+  // 2. No-bias edge cases -> real Type I error == nominal alpha
+  const t_rxx1=realTypeI(1.0,0.5,0.5,0.5,500,1.0,0.05);
+  tests.push(["Type I = α when ρxx = 1 (no error)",Math.abs(t_rxx1.rate-0.05)<1e-4,`got ${t_rxx1.rate.toFixed(6)}`]);
+  const t_d0=realTypeI(0.7,0.0,0.5,0.5,500,1.0,0.05);
+  tests.push(["Type I = α when μ1x − μ0x = 0 (equal groups)",Math.abs(t_d0.rate-0.05)<1e-4,`got ${t_d0.rate.toFixed(6)}`]);
+  // 3. central F quantile round-trips
+  const fstar=fInv(0.95,1,497);
+  tests.push(["F CDF/quantile inverse consistency",Math.abs(fCdf(fstar,1,497)-0.95)<1e-5,`F(${fstar.toFixed(3)})=${fCdf(fstar,1,497).toFixed(6)}`]);
+  // 4. inflation in the canonical fallible case
+  const t_inf=realTypeI(0.7,0.5,0.5,0.5,500,1.0,0.05);
+  tests.push(["Type I inflates when ρxx<1 and groups differ",t_inf.rate>0.05,`got ${t_inf.rate.toFixed(4)} (>0.05)`]);
+  // 5. betai sanity (symmetry)
+  tests.push(["Incomplete beta I_0.5(3,3)=0.5 (symmetry)",Math.abs(betai(3,3,0.5)-0.5)<1e-6,`got ${betai(3,3,0.5).toFixed(6)}`]);
+  const allPass=tests.every(t=>t[1]);
+  let h=`<div class="verdict ${allPass?'good':'bad'}"><strong>${allPass?"All "+tests.length+" self-tests passed.":"Some self-tests failed."}</strong> The numerical engine ${allPass?"reproduces the published worked example and the no‑bias edge cases.":"needs attention."}</div>`;
+  h+=`<table class="out"><thead><tr><th>Test</th><th>Result</th><th>Detail</th></tr></thead><tbody>`;
+  tests.forEach(t=>h+=`<tr><td style="text-align:left">${t[0]}</td><td class="${t[1]?'pass':'fail'}">${t[1]?'PASS':'FAIL'}</td><td class="small" style="text-align:left">${t[2]}</td></tr>`);
+  h+=`</tbody></table>`;
+  document.getElementById("selftests").innerHTML=h;
+  return allPass;
+}
+
+/* ===================== Init ===================== */
+function initCode(){document.getElementById("rcodeTxt").textContent=R_CODE;
+  document.getElementById("rcallTxt").textContent=R_CALL;document.getElementById("stataTxt").textContent=STATA;}
+window.addEventListener("DOMContentLoaded",()=>{
+  initTabs();initChecklist();initCode();
+  ["f_rxy","f_n","f_alpha","f_p"].forEach(id=>document.getElementById(id).addEventListener("input",drawFigure));
+  buildSummaryGrid();fillWorkedSummary();
+  loadWorked();          // pre-load worked example into EIV module
+  runRisk();             // show risk output immediately
+  drawFigure();
+  runSelfTests();
+});
+</script>
+<!-- Begin Countercentral code v 7.0 --> 
+<span id="wts2576"></span> 
+<script>var wts=document.createElement('script');wts.async=true; 
+wts.src='https://server2.countercentral.com/log7.js';document.head.appendChild(wts); 
+wts.onload = function(){ wtslog7(2576,1); }; 
+</script><noscript><a href="https://www.countercentral.com"> 
+<img src="https://server2.countercentral.com/7/1/2576.png"  
+alt="Countercentral web traffic analysis"></a></noscript> 
+<!-- End Countercentral code v 7.0 --> 
+</body>
+</html>

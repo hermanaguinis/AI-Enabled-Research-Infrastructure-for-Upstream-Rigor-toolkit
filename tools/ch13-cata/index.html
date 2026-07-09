@@ -1,0 +1,1261 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CATA Accuracy Toolkit — Improving Computer-Aided Text Analysis</title>
+<style>
+  :root{
+    --navy:#1f3a5f; --navy-dark:#152a45; --accent:#2f6f8f; --accent-light:#e7f0f4;
+    --gold:#b07d2b; --bg:#f5f6f8; --panel:#ffffff; --ink:#1d2733; --muted:#5a6675;
+    --border:#d6dbe2; --good:#2e7d52; --warn:#b8860b; --bad:#b23b3b;
+    --good-bg:#e6f4ec; --warn-bg:#fbf3dd; --bad-bg:#f8e7e7;
+    --shadow:0 1px 3px rgba(20,40,70,.08),0 1px 2px rgba(20,40,70,.06);
+  }
+  *{box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    color:var(--ink);background:var(--bg);line-height:1.55;font-size:16px}
+  h1,h2,h3,h4{font-family:Georgia,"Times New Roman",serif;color:var(--navy);line-height:1.25;margin:0 0 .5em}
+  a{color:var(--accent)}
+  code,.mono{font-family:"SFMono-Regular",Consolas,"Liberation Mono",Menlo,monospace;font-size:.92em}
+  .skip{position:absolute;left:-999px;top:auto}
+  .skip:focus{left:8px;top:8px;background:#fff;padding:8px 12px;z-index:100;border:2px solid var(--navy);border-radius:6px}
+
+  header.top{background:var(--navy);color:#fff;padding:14px 22px;display:flex;flex-wrap:wrap;align-items:center;gap:10px 20px;position:sticky;top:0;z-index:40;box-shadow:var(--shadow)}
+  header.top h1{color:#fff;font-size:1.15rem;margin:0}
+  header.top .sub{color:#c8d6e5;font-size:.8rem;font-family:inherit}
+  header.top .actions{margin-left:auto;display:flex;gap:8px;flex-wrap:wrap}
+  .btn{cursor:pointer;border:1px solid var(--border);background:#fff;color:var(--navy);padding:8px 14px;border-radius:7px;font-size:.9rem;font-weight:600;transition:.15s}
+  .btn:hover{background:var(--accent-light)}
+  .btn:focus-visible{outline:3px solid #ffcf5c;outline-offset:2px}
+  .btn.primary{background:var(--gold);border-color:var(--gold);color:#fff}
+  .btn.primary:hover{background:#8f6522}
+  .btn.ghost-light{background:transparent;color:#fff;border-color:#4a648a}
+  .btn.ghost-light:hover{background:#2b4a71}
+
+  .layout{display:flex;align-items:flex-start;max-width:1280px;margin:0 auto}
+  nav.side{position:sticky;top:64px;width:290px;flex:0 0 290px;padding:18px 14px;max-height:calc(100vh - 64px);overflow:auto}
+  nav.side ol{list-style:none;margin:0;padding:0;counter-reset:m}
+  nav.side li{margin:0 0 4px}
+  nav.side button.navitem{counter-increment:m;width:100%;text-align:left;display:flex;gap:10px;align-items:flex-start;
+    background:#fff;border:1px solid var(--border);border-radius:9px;padding:10px 12px;cursor:pointer;font-size:.9rem;color:var(--ink);transition:.15s}
+  nav.side button.navitem:hover{border-color:var(--accent);background:var(--accent-light)}
+  nav.side button.navitem[aria-current="true"]{border-color:var(--navy);background:var(--navy);color:#fff;box-shadow:var(--shadow)}
+  nav.side button.navitem[aria-current="true"] .nnum{background:#fff;color:var(--navy)}
+  .nnum{flex:0 0 auto;width:24px;height:24px;border-radius:50%;background:var(--accent-light);color:var(--navy);
+    display:flex;align-items:center;justify-content:center;font-weight:700;font-size:.8rem;border:1px solid var(--border)}
+  .nnum.done{background:var(--good);color:#fff;border-color:var(--good)}
+  .ntitle{font-weight:600}
+  .ndesc{display:block;font-size:.75rem;color:var(--muted);margin-top:2px}
+  nav.side button.navitem[aria-current="true"] .ndesc{color:#c8d6e5}
+
+  .progwrap{background:#fff;border:1px solid var(--border);border-radius:10px;padding:12px;margin-bottom:14px}
+  .progwrap h2{font-size:.85rem;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);font-family:inherit;margin:0 0 8px}
+  .progbar{height:10px;background:var(--accent-light);border-radius:6px;overflow:hidden}
+  .progbar>span{display:block;height:100%;background:linear-gradient(90deg,var(--accent),var(--good));width:0;transition:width .4s}
+  .progpct{font-size:.8rem;color:var(--muted);margin-top:6px}
+
+  main{flex:1 1 auto;min-width:0;padding:22px 26px 60px}
+  section.module{display:none;animation:fade .25s ease}
+  section.module.active{display:block}
+  @keyframes fade{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+  .eyebrow{display:inline-block;font-size:.72rem;text-transform:uppercase;letter-spacing:.09em;color:var(--gold);font-weight:700;margin-bottom:6px}
+  .module>h2{font-size:1.7rem;margin-bottom:.15em}
+  .lead{font-size:1.03rem;color:var(--ink);max-width:70ch}
+
+  .card{background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:20px 22px;margin:18px 0;box-shadow:var(--shadow)}
+  .card h3{font-size:1.15rem;margin-bottom:.4em}
+  .card h4{font-size:1rem;margin:.9em 0 .3em;font-family:inherit;color:var(--navy)}
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+  @media(max-width:760px){.grid2{grid-template-columns:1fr}}
+
+  details.why{border:1px solid var(--border);border-radius:9px;margin:12px 0;background:var(--accent-light)}
+  details.why>summary{cursor:pointer;padding:10px 14px;font-weight:600;color:var(--navy);list-style:none;display:flex;gap:8px;align-items:center}
+  details.why>summary::-webkit-details-marker{display:none}
+  details.why>summary::before{content:"?";flex:0 0 auto;width:20px;height:20px;border-radius:50%;background:var(--navy);color:#fff;font-size:.75rem;display:flex;align-items:center;justify-content:center}
+  details.why[open]>summary::before{content:"−"}
+  details.why .body{padding:2px 16px 14px 44px;font-size:.93rem;color:var(--ink)}
+
+  label{display:block;font-weight:600;font-size:.9rem;margin:12px 0 4px}
+  label .hint{font-weight:400;color:var(--muted);font-size:.82rem}
+  input[type=text],input[type=number],textarea,select{width:100%;padding:9px 11px;border:1px solid var(--border);border-radius:8px;font-size:.95rem;font-family:inherit;background:#fff;color:var(--ink)}
+  input:focus,textarea:focus,select:focus{outline:2px solid var(--accent);outline-offset:1px;border-color:var(--accent)}
+  textarea{min-height:80px;resize:vertical}
+  .inline{display:flex;gap:12px;flex-wrap:wrap;align-items:flex-end}
+  .inline>div{flex:1 1 140px}
+
+  .result{margin-top:14px;border-radius:10px;padding:14px 16px;background:var(--accent-light);border:1px solid #cfe0e8}
+  .result .big{font-size:1.6rem;font-weight:700;color:var(--navy);font-family:Georgia,serif}
+  .result .interp{font-size:.92rem;margin-top:6px}
+  .flag{border-left:5px solid;padding:12px 14px;border-radius:8px;margin:10px 0;font-size:.93rem}
+  .flag.good{background:var(--good-bg);border-color:var(--good)}
+  .flag.warn{background:var(--warn-bg);border-color:var(--warn)}
+  .flag.bad{background:var(--bad-bg);border-color:var(--bad)}
+  .flag.info{background:var(--accent-light);border-color:var(--accent)}
+  .flag strong{display:block;margin-bottom:2px}
+
+  .formula{background:#f0f3f7;border:1px dashed #b9c6d6;border-radius:8px;padding:10px 14px;font-family:"SFMono-Regular",Consolas,monospace;font-size:.95rem;margin:8px 0;overflow-x:auto}
+
+  table{width:100%;border-collapse:collapse;margin:10px 0;font-size:.9rem}
+  th,td{border:1px solid var(--border);padding:8px 10px;text-align:left;vertical-align:top}
+  th{background:var(--navy);color:#fff;font-family:inherit;font-weight:600}
+  tbody tr:nth-child(even){background:#fafbfc}
+  .tag{display:inline-block;font-size:.72rem;padding:2px 8px;border-radius:20px;background:var(--accent-light);color:var(--navy);border:1px solid #cfe0e8;margin:2px 3px 0 0}
+  .removebtn{cursor:pointer;border:none;background:var(--bad-bg);color:var(--bad);border-radius:6px;padding:3px 9px;font-weight:700}
+  .removebtn:hover{background:#f2d2d2}
+
+  ul.checklist{list-style:none;margin:0;padding:0}
+  ul.checklist li{display:flex;gap:10px;align-items:flex-start;padding:9px 10px;border:1px solid var(--border);border-radius:8px;margin-bottom:7px;background:#fff}
+  ul.checklist li.checked{background:var(--good-bg);border-color:#bfe0cc}
+  ul.checklist input[type=checkbox]{width:20px;height:20px;margin-top:2px;flex:0 0 auto;accent-color:var(--good)}
+  ul.checklist label{margin:0;font-weight:500;cursor:pointer;font-size:.92rem}
+
+  .decision-q{border:1px solid var(--border);border-radius:10px;padding:14px 16px;margin:12px 0;background:#fff}
+  .decision-q p.q{font-weight:600;margin:0 0 8px}
+  .opts{display:flex;gap:8px;flex-wrap:wrap}
+  .opts button{cursor:pointer;border:1px solid var(--border);background:#fff;border-radius:20px;padding:6px 16px;font-size:.88rem;font-weight:600}
+  .opts button[aria-pressed="true"]{background:var(--navy);color:#fff;border-color:var(--navy)}
+
+  footer.credit{border-top:1px solid var(--border);background:#fff;padding:16px 26px;font-size:.8rem;color:var(--muted);max-width:1280px;margin:0 auto}
+  footer.credit strong{color:var(--ink)}
+  .steps{counter-reset:s;padding-left:0;list-style:none}
+  .steps li{counter-increment:s;position:relative;padding:6px 0 6px 34px;margin-bottom:2px}
+  .steps li::before{content:counter(s);position:absolute;left:0;top:6px;width:24px;height:24px;border-radius:50%;background:var(--accent);color:#fff;font-weight:700;font-size:.8rem;display:flex;align-items:center;justify-content:center}
+  .pill{display:inline-block;font-size:.72rem;font-weight:700;padding:2px 9px;border-radius:20px;text-transform:uppercase;letter-spacing:.04em}
+  .pill.te{background:#e4edf6;color:#2b4a71}
+  .pill.sf{background:#f3e9dd;color:#8a5a1a}
+  .pill.ae{background:#e6f0ea;color:#2e7d52}
+  .muted{color:var(--muted)}
+  .small{font-size:.85rem}
+  .navfoot{display:flex;justify-content:space-between;margin-top:26px;gap:10px}
+  .sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0 0 0 0);border:0}
+  #diag{font-size:.82rem}
+  #diag .ok{color:var(--good)}#diag .fail{color:var(--bad);font-weight:700}
+  @media(max-width:900px){
+    .layout{flex-direction:column}
+    nav.side{position:static;width:100%;flex:none;max-height:none;display:flex;flex-wrap:wrap;gap:8px}
+    nav.side .progwrap{width:100%}
+    nav.side ol{display:flex;flex-wrap:wrap;gap:6px;width:100%}
+    nav.side li{flex:1 1 140px}
+    nav.side .ndesc{display:none}
+  }
+</style>
+</head>
+<body>
+<a class="skip" href="#maincontent">Skip to main content</a>
+<header class="top">
+  <div>
+    <h1>CATA Accuracy Toolkit</h1>
+    <span class="sub">A working companion for rigorous Computer-Aided Text Analysis</span>
+  </div>
+  <div class="actions">
+    <button class="btn ghost-light" id="selftestBtn" aria-controls="diag">Run self-tests</button>
+    <button class="btn primary" id="downloadBtn">⬇ Download my report</button>
+  </div>
+</header>
+
+<div class="layout">
+  <nav class="side" aria-label="Module navigation">
+    <div class="progwrap" role="status" aria-live="polite">
+      <h2>Progress</h2>
+      <div class="progbar"><span id="progFill"></span></div>
+      <div class="progpct" id="progText">0 of 7 modules touched · 0 checklist items</div>
+    </div>
+    <ol id="navlist"></ol>
+  </nav>
+
+  <main id="maincontent">
+  <!-- MODULES INJECTED HERE -->
+  <div id="modules"></div>
+
+  <div class="card" id="diagcard" style="display:none">
+    <h3>Built-in calculation self-tests</h3>
+    <p class="small muted">Each test reproduces a worked number reported in McKenny et&nbsp;al. (2018). All must pass.</p>
+    <div id="diag"></div>
+  </div>
+  </main>
+</div>
+
+<footer class="credit">
+  <p style="margin:.2em 0"><strong>Based on best-practice recommendations for rigorous, credible, and impactful research methodology.</strong>
+  Source: Aguinis, H. 2025. <em>Research methodology: Best practices for rigorous, credible, and impactful research.</em> SAGE.
+  <a href="https://collegepublishing.sagepub.com/products/research-methodology-1-280088" target="_blank" rel="noopener">https://collegepublishing.sagepub.com/products/research-methodology-1-280088</a></p>
+  <p style="margin:.2em 0">Underlying methodological article: McKenny, A.&nbsp;F., Aguinis, H., Short, J.&nbsp;C., &amp; Anglin, A.&nbsp;H. 2018.
+  What doesn't get measured does exist: Improving the accuracy of computer-aided text analysis. <em>Journal of Management,</em> 44(7): 2909–2933.</p>
+</footer>
+
+<script>
+"use strict";
+/* ============================================================
+   CATA Accuracy Toolkit — all logic, offline, no dependencies.
+   Article: McKenny, Aguinis, Short, & Anglin (2018), J. of Management.
+   ============================================================ */
+
+/* ---------- central state (in-memory only; NO localStorage) ---------- */
+const state = {
+  study:{title:"",construct:"",definition:"",texts:"",sampleN:"",software:""},
+  suitability:{},            // question id -> "yes"/"no"
+  words:[],                  // {id,term,dim,source,type,judged}
+  transient:{r:"",set1:"",set2:"",statelike:"",lag:"",shock:""},
+  specific:{r:"",manualN:"",sb_r:"",sb_have:"",sb_want:""},
+  algorithm:{alpha:"",Do:"",De:"",packages:""},
+  calc:{rel:"",dis_r:"",dis_xx:"",dis_yy:"",ces1:"",ces2:"",cs:"",ce:"",ps_r:"",ps_sy:"",ps_sx:""},
+  checklist:{},              // itemId -> bool
+  visited:{}                 // moduleId -> true
+};
+
+/* ---------- numeric helpers ---------- */
+function parseNums(str){
+  if(!str) return [];
+  return String(str).split(/[\s,;]+/).map(s=>s.trim()).filter(s=>s!=="").map(Number).filter(n=>!isNaN(n));
+}
+function pearson(xs, ys){
+  const n = Math.min(xs.length, ys.length);
+  if(n<2) return NaN;
+  let sx=0,sy=0,sxx=0,syy=0,sxy=0;
+  for(let i=0;i<n;i++){const x=xs[i],y=ys[i];sx+=x;sy+=y;sxx+=x*x;syy+=y*y;sxy+=x*y;}
+  const num = n*sxy - sx*sy;
+  const den = Math.sqrt((n*sxx - sx*sx)*(n*syy - sy*sy));
+  return den===0?NaN:num/den;
+}
+const pctVariance   = rel => (1-rel)*100;                       // (1 - reliability) * 100
+const disattenuate  = (r,rxx,ryy)=> r/Math.sqrt(rxx*ryy);       // corrected r
+const spearmanBrown = (r,k)=> (k*r)/(1+(k-1)*r);                // prophecy formula
+const practicalB    = (r,sy,sx)=> r*(sy/sx);                    // b = r(Sy/Sx)
+const cesAverage    = (a,b)=> (a+b)/2;                          // average of the two CES
+const pctUnderest   = (ro,rc)=> ((rc*rc - ro*ro)/(ro*ro))*100;  // % underestimation in variance explained
+const num = v => { const x=parseFloat(v); return isNaN(x)?null:x; };
+const fmt = (x,d=3)=> (x===null||isNaN(x)||!isFinite(x))?"—":Number(x).toFixed(d);
+
+/* ============================================================
+   MODULE DEFINITIONS
+   ============================================================ */
+const MODULES = [
+  {id:"m1", short:"Suitability", title:"Overview & CATA Suitability", desc:"Is CATA right for your construct?"},
+  {id:"m2", short:"Word list", title:"Measure Development & Word-List Builder", desc:"Two-phase development"},
+  {id:"m3", short:"Error sources", title:"Three Sources of Measurement Error", desc:"Assessment hub"},
+  {id:"m4", short:"Calculators", title:"Reliability & Correction Calculators", desc:"CES, disattenuation, more"},
+  {id:"m5", short:"Best practices", title:"Best-Practice Recommendations Checklist", desc:"Table 4 actions"},
+  {id:"m6", short:"Transparency", title:"Transparency & Data Sharing", desc:"Text-sharing guidelines"},
+  {id:"m7", short:"Report", title:"Reporting & Summary", desc:"Assemble & export"}
+];
+
+/* ---------- decision-aid questions (Module 1) ---------- */
+const SUIT_Q = [
+  {id:"q1", text:"Can a single word or short phrase, on its own, signal your construct? (e.g., \"creativity\" signals innovativeness)",
+   yesGood:true, why:"CATA is most useful when single words or short phrases provide evidence of the construct. If your construct only reveals itself through extended context, dictionary counting will miss it."},
+  {id:"q2", text:"Does correctly identifying the construct usually require the surrounding context or rhetorical nuance? (e.g., exemplification from the impression-management literature)",
+   yesGood:false, why:"Constructs such as exemplification are hard to operationalize without incorporating context. These are better measured with manual content analysis where context can be coded directly."},
+  {id:"q3", text:"Is your construct likely to be shaped by impression management or favorable self-presentation? (e.g., counterproductive behaviors; flattering shareholder letters)",
+   yesGood:false, why:"CATA is sensitive to impression management. Texts like shareholder letters are used to shape readers' impressions favorably, so phenomena where impression management is likely may be measured more accurately by questionnaires or interviews."},
+  {id:"q4", text:"Are your texts produced only once for each unit? (e.g., IPO prospectuses, crowdfunding campaigns)",
+   yesGood:false, tradeoff:true, why:"When a text is produced only once, transient error cannot be estimated (there is no second text to correlate). This is a trade-off to balance, not necessarily a reason to abandon CATA."},
+  {id:"q5", text:"Is your goal to measure change in the construct over time?",
+   yesGood:false, tradeoff:true, why:"When the study measures change over time, variation in the underlying construct and transient error are inseparable. Treat the research goal and measurement precision as a trade-off to be balanced."}
+];
+
+/* ---------- checklist items = Table 4 (Module 5) ---------- */
+const TABLE4 = [
+ {src:"Transient error", cls:"te", challenge:"CATA scores demonstrate variability over time.", items:[
+   "Identify whether the construct is theorized to be stable over the assessment period.",
+   "Decrease the lag between collected texts.",
+   "Collect texts that are produced more frequently.",
+   "Investigate the possibility of shocks within the sampling frame."]},
+ {src:"Transient error", cls:"te", challenge:"The language used in texts varies significantly over time.", items:[
+   "Identify whether texts with more standardized contents are available.",
+   "Identify whether the sampled texts are likely to be influenced by managerial attention rather than the salience of the construct being measured.",
+   "For individual-level texts, confirm the identity of the author and whether the author changed between texts."]},
+ {src:"Specific factor error", cls:"sf", challenge:"Word lists are either too inclusive or exclusive (words used out of context, or relevant words missed).", items:[
+   "Iteratively compare the words identified by CATA and manual content analyses and refine the measure to improve alignment.",
+   "Eliminate word stems and replace them with only the conjugations that fit the construct definition.",
+   "Eliminate single words that are commonly used out of context and replace them with common short phrases.",
+   "Identify omitted conjugations of words on the word list that are relevant to the construct.",
+   "Generate a list of words used in your sampled texts and have judges evaluate whether words should be added to the measure."]},
+ {src:"Specific factor error", cls:"sf", challenge:"The measure was developed in a different context.", items:[
+   "Iteratively compare the words identified by CATA and manual content analyses and refine the measure to improve alignment.",
+   "Generate a deductive list of words thought to indicate the construct in the new context and have judges evaluate whether they should be included in the revised list.",
+   "Generate a list of words used in your sampled texts and have judges evaluate whether the words reflect the construct in the new context."]},
+ {src:"Algorithm error", cls:"ae", challenge:"Two CATA software packages provide inconsistent scores.", items:[
+   "Identify whether the measure uses features idiosyncratic to one package.",
+   "Select a third package for comparison to both original packages.",
+   "Recreate a CATA analysis using manual coding and compare results to both packages."]}
+];
+
+/* ============================================================
+   HTML for each module
+   ============================================================ */
+function whyPanel(title, body){
+  return `<details class="why"><summary>Why this matters: ${title}</summary><div class="body">${body}</div></details>`;
+}
+
+function moduleHTML(id){
+  if(id==="m1") return M1();
+  if(id==="m2") return M2();
+  if(id==="m3") return M3();
+  if(id==="m4") return M4();
+  if(id==="m5") return M5();
+  if(id==="m6") return M6();
+  if(id==="m7") return M7();
+}
+
+/* ---------------- MODULE 1 ---------------- */
+function M1(){
+  let qs = SUIT_Q.map(q=>`
+    <div class="decision-q">
+      <p class="q">${q.text}</p>
+      <div class="opts" role="group" aria-label="${q.text}">
+        <button type="button" data-suit="${q.id}" data-val="yes" aria-pressed="false">Yes</button>
+        <button type="button" data-suit="${q.id}" data-val="no" aria-pressed="false">No</button>
+      </div>
+      ${whyPanel("this question", q.why)}
+    </div>`).join("");
+  return `
+  <section class="module" id="m1" role="tabpanel" aria-labelledby="tab-m1" tabindex="0">
+    <span class="eyebrow">Module 1</span>
+    <h2>Overview &amp; CATA Suitability</h2>
+    <p class="lead">Computer-aided text analysis (CATA) is a form of content analysis that measures constructs by
+    processing text into quantitative data based on the frequency of words. Before investing in it, judge whether CATA
+    is a good fit for <em>your</em> construct.</p>
+
+    <div class="card">
+      <h3>First, describe your study</h3>
+      <p class="small muted">These entries flow into every later module and into your downloadable report.</p>
+      <div class="grid2">
+        <div><label for="s_title">Study / project title</label>
+          <input type="text" id="s_title" data-state="study.title" placeholder="e.g., Entrepreneurial orientation & firm value"></div>
+        <div><label for="s_construct">Focal construct</label>
+          <input type="text" id="s_construct" data-state="study.construct" placeholder="e.g., Innovativeness"></div>
+      </div>
+      <label for="s_def">Construct definition <span class="hint">(you will use this exact definition to judge every candidate word)</span></label>
+      <textarea id="s_def" data-state="study.definition" placeholder="Paste the theoretical definition of your construct…"></textarea>
+      <div class="grid2">
+        <div><label for="s_texts">Text type / corpus</label>
+          <input type="text" id="s_texts" data-state="study.texts" placeholder="e.g., CEO shareholder letters, 2005–2006"></div>
+        <div><label for="s_n">Sample size (N texts)</label>
+          <input type="number" min="0" id="s_n" data-state="study.sampleN" placeholder="e.g., 745"></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3>Suitability decision aid</h3>
+      <p>Answer each question. The tool weighs your answers against the article's stated limitations and returns a verdict.</p>
+      ${qs}
+      <div id="suitVerdict" aria-live="polite"></div>
+    </div>
+
+    <div class="card">
+      <h3>What CATA does &amp; doesn't do well</h3>
+      <div class="grid2">
+        <div>
+          <h4 style="color:var(--good)">Plays to CATA's strengths</h4>
+          <ul>
+            <li>Constructs signalled by single words or short phrases.</li>
+            <li>Large corpora of naturally occurring text (annual reports, filings).</li>
+            <li>Data drawn from different sources — reduces common-method variance &amp; endogeneity.</li>
+          </ul>
+        </div>
+        <div>
+          <h4 style="color:var(--bad)">Works against CATA</h4>
+          <ul>
+            <li>Constructs needing context (e.g., exemplification) → prefer manual coding.</li>
+            <li>Constructs shaped by impression management (e.g., counterproductive behaviors).</li>
+            <li>Texts produced only once → transient error can't be estimated.</li>
+            <li>Studies of change over time → construct change &amp; transient error are inseparable.</li>
+          </ul>
+        </div>
+      </div>
+      ${whyPanel("trade-offs vs. hard stops",
+      "A \"once-only\" text or a change-over-time design does not disqualify CATA. The article recommends treating the research goal and measurement precision as a trade-off to be balanced — flagged here, not forbidden.")}
+    </div>
+  </section>`;
+}
+
+/* ---------------- MODULE 2 ---------------- */
+function M2(){
+  return `
+  <section class="module" id="m2" role="tabpanel" tabindex="0">
+    <span class="eyebrow">Module 2</span>
+    <h2>Measure Development &amp; Word-List Builder</h2>
+    <p class="lead">Follow Short et&nbsp;al.'s (2010) two-phase process, then refine the list with the article's rules.
+    Every word should survive a simple test: <em>does this word indicate my construct, in my texts' context?</em></p>
+
+    <div class="card">
+      <h3>Phase A — Deductive derivation</h3>
+      <p>Derive words from theory, your construct definition, and <strong>existing CATA measures</strong>. Be sure to
+      carry over words and phrases from any prior published measure of this construct.</p>
+      <ol class="steps">
+        <li>List words implied by the construct definition.</li>
+        <li>Add every word/phrase from prior CATA measures of this construct.</li>
+        <li>Have expert judges evaluate whether each word indicates the construct <em>in your study's context</em>.</li>
+      </ol>
+      ${whyPanel("include prior-measure words",
+      "Reusing a validated measure only works if you actually include its words and phrases. Omitting them silently changes the measure and injects specific factor error.")}
+    </div>
+
+    <div class="card">
+      <h3>Phase B — Inductive derivation</h3>
+      <p>Generate a list of words actually used in your sampled texts (e.g., every word used three or more times), then
+      have judges decide which reflect the construct in this context.</p>
+      ${whyPanel("why go to the sample",
+      "Different industries, texts, and individuals use words differently. Moss et al. (2014) found context-specific words like \"scientist\" and \"laboratories\" indicated exploration in technology firms but were absent from a manufacturing-derived list.")}
+    </div>
+
+    <div class="card">
+      <h3>Word-list workspace</h3>
+      <p class="small muted">Add each candidate word or phrase, tag it, and mark whether expert judges approved it. Running counts update live.</p>
+      <div class="inline">
+        <div><label for="w_term">Word or phrase</label><input type="text" id="w_term" placeholder="e.g., new product"></div>
+        <div><label for="w_dim">Dimension / sub-construct</label><input type="text" id="w_dim" placeholder="e.g., Innovativeness"></div>
+        <div><label for="w_source">Source</label>
+          <select id="w_source"><option>Deductive</option><option>Inductive</option><option>Prior measure</option></select></div>
+        <div><label for="w_type">Type</label>
+          <select id="w_type"><option>Single word</option><option>Short phrase</option><option>Word stem</option></select></div>
+        <div><label for="w_judged">Judge-approved?</label>
+          <select id="w_judged"><option value="pending">Pending</option><option value="yes">Yes</option><option value="no">No</option></select></div>
+        <div style="flex:0 0 auto"><label>&nbsp;</label><button class="btn primary" id="addWord">+ Add</button></div>
+      </div>
+      <div id="wordCounts" class="small" style="margin-top:10px"></div>
+      <div id="stemWarn"></div>
+      <table id="wordTable"><thead><tr><th>Term</th><th>Dimension</th><th>Source</th><th>Type</th><th>Judges</th><th></th></tr></thead>
+      <tbody></tbody></table>
+    </div>
+
+    <div class="card">
+      <h3>Refinement rules (bake these in)</h3>
+      <table>
+        <thead><tr><th>Rule</th><th>Example from the article</th></tr></thead>
+        <tbody>
+        <tr><td>Replace a word <strong>stem</strong> with only the conjugations that fit the definition.</td>
+            <td><span class="mono">refine*</span> wrongly catches <em>refinery / refineries</em> — keep only <em>refine, refined, refinement</em>.</td></tr>
+        <tr><td>Replace an <strong>ambiguous single word</strong> with targeted short phrases.</td>
+            <td><span class="mono">new</span> also matches <em>new regulations, New York</em> → use <em>new product</em>, <em>new technology</em>.</td></tr>
+        <tr><td><strong>Add omitted conjugations</strong> that are relevant to the construct.</td>
+            <td>Check that every relevant tense/plural of an included word is present.</td></tr>
+        <tr><td><strong>Flag context mismatch</strong> when reusing a measure from another setting.</td>
+            <td>A list built on manufacturing firms may miss <em>scientist, laboratories</em> in technology firms.</td></tr>
+        </tbody>
+      </table>
+      <label for="ctx_note">Context-mismatch note <span class="hint">(record any words your setting adds or drops vs. the original measure)</span></label>
+      <textarea id="ctx_note" data-state="study.software" placeholder="e.g., Original list from manufacturing; our tech sample adds 'scientist','laboratories'; drops 'refinery'…"></textarea>
+    </div>
+  </section>`;
+}
+
+/* ---------------- MODULE 3 ---------------- */
+function M3(){
+  return `
+  <section class="module" id="m3" role="tabpanel" tabindex="0">
+    <span class="eyebrow">Module 3</span>
+    <h2>Three Sources of Measurement Error — Assessment Hub</h2>
+    <p class="lead">CATA has three relevant sources of measurement-error variance, each with its own reliability estimate.
+    Work through all three.</p>
+
+    <div class="flag info">
+      <strong>Note on random response error / split-half reliability — not informative for CATA.</strong>
+      Authors write about one topic at a time, so a <em>horizontal</em> split isolates topics into the first or second
+      half (overestimating random response error). A <em>vertical</em> split no longer reflects different points in time,
+      and is corrupted by formatting artifacts (headers, columns) and researcher judgment when a word straddles the split.
+      Neither operationalization captures random response error, so this estimate is set aside for CATA.
+    </div>
+
+    <div class="card">
+      <h3><span class="pill te">Transient error</span> &nbsp;→ Test–retest reliability</h3>
+      <p>Collect two texts per unit (person / organization) produced at <strong>different time points</strong>, run CATA on both,
+      and correlate the two score sets.</p>
+      <div class="grid2">
+        <div><label for="t_set1">CATA scores — Time 1 <span class="hint">(one value per unit, comma or line separated)</span></label>
+          <textarea id="t_set1" data-state="transient.set1" placeholder="0.42, 0.55, 0.31, …"></textarea></div>
+        <div><label for="t_set2">CATA scores — Time 2</label>
+          <textarea id="t_set2" data-state="transient.set2" placeholder="0.38, 0.60, 0.29, …"></textarea></div>
+      </div>
+      <div class="inline">
+        <div><label for="t_rdirect">…or enter the correlation directly</label>
+          <input type="number" step="0.01" id="t_rdirect" data-state="transient.r" placeholder="e.g., 0.51"></div>
+        <div style="flex:0 0 auto"><label>&nbsp;</label><button class="btn primary" id="calcTransient">Compute test–retest r</button></div>
+      </div>
+      <div id="transientOut" aria-live="polite"></div>
+      <h4>Reduce &amp; interpret transient error</h4>
+      <div class="grid2">
+        <div><label for="t_state">Is the construct state-like or trait-like?</label>
+          <select id="t_state" data-state="transient.statelike">
+            <option value="">— select —</option>
+            <option value="state">State-like — changes often (optimism, affect, mood)</option>
+            <option value="trait">Trait-like — stable (strategic orientation, personality, values)</option>
+          </select></div>
+        <div><label for="t_lag">Between-text lag</label>
+          <input type="text" id="t_lag" data-state="transient.lag" placeholder="e.g., 12 months (annual reports)"></div>
+      </div>
+      <label for="t_shock">Shocks during the assessment window? <span class="hint">(leadership change, lawsuit, economic shift…)</span></label>
+      <input type="text" id="t_shock" data-state="transient.shock" placeholder="e.g., CEO succession in 2006">
+      <div id="stateAdvice"></div>
+      ${whyPanel("state-like vs. trait-like",
+      "If theory says the construct varies (state-like), reduce the lag — collect texts more frequently, or switch to more frequently produced texts such as quarterly reports. If a shock (e.g., leadership change) occurred in the window, low test–retest may reflect real change, not measurement error.")}
+    </div>
+
+    <div class="card">
+      <h3><span class="pill sf">Specific factor error</span> &nbsp;→ Parallel forms reliability</h3>
+      <p>Manually code at least <strong>10%</strong> of the texts (Wimmer &amp; Dominick, 2013) and correlate the manual scores
+      with the CATA scores.</p>
+      <div class="inline">
+        <div><label for="sf_N">Total texts (N)</label><input type="number" id="sf_N" placeholder="e.g., 745"></div>
+        <div><label for="sf_plan">Texts you plan to manually code</label><input type="number" id="sf_plan" data-state="specific.manualN" placeholder="e.g., 100"></div>
+        <div style="flex:0 0 auto"><label>&nbsp;</label><button class="btn primary" id="calcTenPct">Check 10% threshold</button></div>
+      </div>
+      <div id="tenPctOut" aria-live="polite"></div>
+
+      <h4>Parallel forms correlation</h4>
+      <div class="grid2">
+        <div><label for="sf_manual">Manual scores <span class="hint">(subsample)</span></label>
+          <textarea id="sf_manual" placeholder="0.40, 0.61, …"></textarea></div>
+        <div><label for="sf_cata">CATA scores <span class="hint">(same texts)</span></label>
+          <textarea id="sf_cata" placeholder="0.29, 0.51, …"></textarea></div>
+      </div>
+      <div class="inline">
+        <div><label for="sf_rdirect">…or enter parallel-forms r directly</label>
+          <input type="number" step="0.01" id="sf_rdirect" data-state="specific.r" placeholder="e.g., 0.43"></div>
+        <div style="flex:0 0 auto"><label>&nbsp;</label><button class="btn primary" id="calcParallel">Compute parallel-forms r</button></div>
+      </div>
+      <div id="parallelOut" aria-live="polite"></div>
+
+      <h4>Iterative refinement workflow</h4>
+      <ol class="steps">
+        <li>Compare words flagged by CATA vs. words your manual coders relied on.</li>
+        <li>Remove words consistently used <em>out of context</em>; add words consistently used <em>in context</em>.</li>
+        <li>Recompute parallel-forms reliability. Repeat until the estimate stabilizes.</li>
+      </ol>
+      <div class="flag good small"><strong>What good refinement can achieve.</strong>
+        In the article, supplementing the exploration list raised parallel-forms reliability from .09 to .87, and exploitation from .30 to .59.</div>
+
+      <h4>Spearman–Brown prophecy calculator</h4>
+      <p class="small">When coding 10% is impractical (e.g., a 267-page IPO prospectus), predict the reliability a larger manual
+      subsample <em>would</em> yield.</p>
+      <div class="formula">predicted r = (k · r) / (1 + (k − 1) · r),&nbsp;&nbsp; where k = (texts you would code) ÷ (texts you did code)</div>
+      <div class="inline">
+        <div><label for="sb_r">Observed reliability from current subsample (r)</label><input type="number" step="0.01" id="sb_r" data-state="specific.sb_r" placeholder="e.g., 0.53"></div>
+        <div><label for="sb_have">Texts coded so far</label><input type="number" id="sb_have" data-state="specific.sb_have" placeholder="e.g., 50"></div>
+        <div><label for="sb_want">Texts in the larger plan</label><input type="number" id="sb_want" data-state="specific.sb_want" placeholder="e.g., 224"></div>
+        <div style="flex:0 0 auto"><label>&nbsp;</label><button class="btn primary" id="calcSB">Predict reliability</button></div>
+      </div>
+      <div id="sbOut" aria-live="polite"></div>
+      ${whyPanel("the 10% rule and Spearman–Brown",
+      "Wimmer & Dominick (2013) support coding at least 10% of texts for stable content-analytic estimates. When texts are enormous, Spearman–Brown predicts the reliability a bigger subsample would give: coding 50 firms gave .53, and the formula predicted .83 for all 224.")}
+    </div>
+
+    <div class="card">
+      <h3><span class="pill ae">Algorithm error</span> &nbsp;→ Interrater (interalgorithm) agreement · Krippendorff's α</h3>
+      <p>Run the <strong>same texts</strong> through two or more CATA packages and compute Krippendorff's alpha.</p>
+      <div class="formula">Krippendorff's α = 1 − (observed disagreement ÷ expected disagreement by chance)</div>
+      <p class="small muted">α applies to any number of "raters" (algorithms). Macros exist for SPSS, Stata, SAS, and R.
+      Compute α there and enter it below, or enter the two disagreement quantities.</p>
+      <div class="inline">
+        <div><label for="a_alpha">Krippendorff's α (direct)</label><input type="number" step="0.01" id="a_alpha" data-state="algorithm.alpha" placeholder="e.g., 0.89"></div>
+        <div class="small muted" style="flex:0 0 auto;align-self:center;padding-bottom:8px">— or —</div>
+        <div><label for="a_Do">Observed disagreement (D<sub>o</sub>)</label><input type="number" step="any" id="a_Do" data-state="algorithm.Do" placeholder="e.g., 0.11"></div>
+        <div><label for="a_De">Expected disagreement (D<sub>e</sub>)</label><input type="number" step="any" id="a_De" data-state="algorithm.De" placeholder="e.g., 1.00"></div>
+        <div style="flex:0 0 auto"><label>&nbsp;</label><button class="btn primary" id="calcAlpha">Compute α</button></div>
+      </div>
+      <div id="alphaOut" aria-live="polite"></div>
+      <label for="a_pkg">Which package features might drive disagreement? <span class="hint">(phrases with spaces, punctuation/hyphenation, numerals, word-stem handling)</span></label>
+      <input type="text" id="a_pkg" data-state="algorithm.packages" placeholder="e.g., CAT Scanner handles spaced phrases; DICTION 5 needs a hyphen">
+      ${whyPanel("nontrivial algorithm error ≠ abandon the measure",
+      "Algorithm error is often driven by idiosyncratic package features (e.g., CAT Scanner reads spaced phrases; DICTION 5 requires a hyphen). If error is nontrivial, add a third package and/or recreate the analysis via manual coding to locate the discrepancy — a deeper examination, rather than automatically abandoning the measure.")}
+    </div>
+  </section>`;
+}
+
+/* ---------------- MODULE 4 ---------------- */
+function M4(){
+  return `
+  <section class="module" id="m4" role="tabpanel" tabindex="0">
+    <span class="eyebrow">Module 4</span>
+    <h2>Reliability &amp; Correction Calculators</h2>
+    <p class="lead">Interactive calculators for every quantity the article uses. Each returns an instant result with a plain-language reading.</p>
+
+    <div class="card">
+      <h3>1 · Percent of variance due to measurement error</h3>
+      <div class="formula">% variance due to measurement error = (1 − reliability) × 100</div>
+      <div class="inline">
+        <div><label for="c_rel">Reliability estimate</label><input type="number" step="0.01" id="c_rel" data-state="calc.rel" placeholder="e.g., 0.51"></div>
+        <div style="flex:0 0 auto"><label>&nbsp;</label><button class="btn primary" id="calcPctVar">Compute</button></div>
+      </div>
+      <div id="pctVarOut" aria-live="polite"></div>
+    </div>
+
+    <div class="card">
+      <h3>2 · Coefficient of Equivalence and Stability (CES)</h3>
+      <p><strong>CS</strong> (coefficient of stability) = stability of one measure over two time points, ρ(obs₁, obs₂).
+         <strong>CE</strong> (coefficient of equivalence) = equivalence of CATA vs. manual coding at one time, ρ(obs<sub>CATA</sub>, obs<sub>Manual</sub>).
+         <strong>CES</strong> combines both by cross-correlating across time <em>and</em> method, then averaging.</p>
+      <div class="formula">CES₁ = ρ(CATA-Time1, Manual-Time2)&nbsp;&nbsp;·&nbsp;&nbsp;CES₂ = ρ(CATA-Time2, Manual-Time1)&nbsp;&nbsp;·&nbsp;&nbsp;CES = (CES₁ + CES₂) ÷ 2</div>
+      <div class="grid2">
+        <div><label for="c_cs">CS — stability (optional, for your records)</label><input type="number" step="0.01" id="c_cs" data-state="calc.cs" placeholder="e.g., 0.51"></div>
+        <div><label for="c_ce">CE — equivalence (optional, for your records)</label><input type="number" step="0.01" id="c_ce" data-state="calc.ce" placeholder="e.g., 0.43"></div>
+      </div>
+      <div class="inline">
+        <div><label for="c_ces1">CES₁ = ρ(CATA-T1, Manual-T2)</label><input type="number" step="0.01" id="c_ces1" data-state="calc.ces1" placeholder="e.g., 0.49"></div>
+        <div><label for="c_ces2">CES₂ = ρ(CATA-T2, Manual-T1)</label><input type="number" step="0.01" id="c_ces2" data-state="calc.ces2" placeholder="e.g., 0.53"></div>
+        <div style="flex:0 0 auto"><label>&nbsp;</label><button class="btn primary" id="calcCES">Average CES</button></div>
+      </div>
+      <div id="cesOut" aria-live="polite"></div>
+      ${whyPanel("why CES rather than one source",
+      "Disattenuation needs a single reliability, but CATA has two important error sources (transient and specific factor). Cross-correlating CATA-Time1 with Manual-Time2 (and vice-versa) means a discrepancy in either stability or equivalence lowers the CES — a more complete reliability for correcting substantive relations.")}
+    </div>
+
+    <div class="card">
+      <h3>3 · Disattenuation — correction for measurement error</h3>
+      <div class="formula">corrected r = observed r ÷ √( r<sub>xx</sub> · r<sub>yy</sub> )</div>
+      <p class="small muted">Use your CES as the reliability. If one variable is measured without CATA error, enter 1 for its reliability.</p>
+      <div class="inline">
+        <div><label for="c_dr">Observed correlation r</label><input type="number" step="0.01" id="c_dr" data-state="calc.dis_r" placeholder="e.g., 0.24"></div>
+        <div><label for="c_dxx">Reliability of X (r<sub>xx</sub>)</label><input type="number" step="0.01" id="c_dxx" data-state="calc.dis_xx" placeholder="e.g., 0.51"></div>
+        <div><label for="c_dyy">Reliability of Y (r<sub>yy</sub>)</label><input type="number" step="0.01" id="c_dyy" data-state="calc.dis_yy" placeholder="e.g., 1.00"></div>
+        <div style="flex:0 0 auto"><label>&nbsp;</label><button class="btn primary" id="calcDisatt">Correct</button></div>
+      </div>
+      <div id="disattOut" aria-live="polite"></div>
+      <div class="flag warn small"><strong>Caveat.</strong> If either reliability is 0, negative, or undefined, √(r<sub>xx</sub>·r<sub>yy</sub>) is undefined and the correction cannot be computed — the tool will say so rather than return a misleading number.</div>
+    </div>
+
+    <div class="card">
+      <h3>4 · Practical-significance ("customer-centric") translator</h3>
+      <p>Convert a correlation into a regression coefficient in domain-meaningful units.</p>
+      <div class="formula">b = r · (S<sub>y</sub> ÷ S<sub>x</sub>)</div>
+      <div class="inline">
+        <div><label for="c_pr">Correlation r</label><input type="number" step="0.01" id="c_pr" data-state="calc.ps_r" placeholder="e.g., 0.34"></div>
+        <div><label for="c_sy">S<sub>y</sub> (SD of outcome)</label><input type="number" step="any" id="c_sy" data-state="calc.ps_sy" placeholder="e.g., 0.98"></div>
+        <div><label for="c_sx">S<sub>x</sub> (SD of predictor)</label><input type="number" step="any" id="c_sx" data-state="calc.ps_sx" placeholder="e.g., 0.40"></div>
+        <div style="flex:0 0 auto"><label>&nbsp;</label><button class="btn primary" id="calcPS">Translate</button></div>
+      </div>
+      <div id="psOut" aria-live="polite"></div>
+      ${whyPanel("why translate to raw units",
+      "A .10 jump in r feels trivial, but the article shows the same jump means a .24-point change in Tobin's Q — roughly $2.4 billion in market value for a firm with ~$10B in assets. Raw-unit coefficients make effect sizes meaningful to non-academic audiences.")}
+    </div>
+  </section>`;
+}
+
+/* ---------------- MODULE 5 ---------------- */
+function M5(){
+  let blocks = TABLE4.map((b,bi)=>{
+    let items = b.items.map((t,ii)=>{
+      let key = `c_${bi}_${ii}`;
+      return `<li data-key="${key}"><input type="checkbox" id="${key}" data-check="${key}"><label for="${key}">${t}</label></li>`;
+    }).join("");
+    return `<div class="card">
+      <h3><span class="pill ${b.cls}">${b.src}</span></h3>
+      <p style="margin:.2em 0 .6em"><strong>Challenge:</strong> ${b.challenge}</p>
+      <ul class="checklist">${items}</ul></div>`;
+  }).join("");
+  return `
+  <section class="module" id="m5" role="tabpanel" tabindex="0">
+    <span class="eyebrow">Module 5</span>
+    <h2>Best-Practice Recommendations Checklist</h2>
+    <p class="lead">The article's Table&nbsp;4, organized by error source and challenge. Tick actions as you implement them —
+    your completion feeds the progress bar and the final report.</p>
+    ${blocks}
+  </section>`;
+}
+
+/* ---------------- MODULE 6 ---------------- */
+function M6(){
+  return `
+  <section class="module" id="m6" role="tabpanel" tabindex="0">
+    <span class="eyebrow">Module 6</span>
+    <h2>Transparency &amp; Data Sharing</h2>
+    <p class="lead">Sharing the texts behind a published CATA analysis supports replication and guards against questionable
+    research practices. The article offers two guidelines based on APA Ethics Code Standard 8.14a.</p>
+
+    <div class="card">
+      <h3>Guideline 1 — Retain &amp; share for verification</h3>
+      <p>All texts used in a published manuscript using content analysis should be <strong>retained and shared upon request
+      for verification purposes</strong>, unless the authors are ethically or legally unable to do so.</p>
+    </div>
+    <div class="card">
+      <h3>Guideline 2 — Verification-only use by recipients</h3>
+      <p>The recipient of a shared sample of texts should use the texts <strong>only to verify the analyses conducted by the
+      authors</strong>, unless given permission to conduct additional analyses by the text owner.</p>
+    </div>
+    <div class="card">
+      <h3>Your sharing plan</h3>
+      <ul class="checklist">
+        <li data-key="share1"><input type="checkbox" id="share1" data-check="share1"><label for="share1">I have retained the complete corpus used in the analysis.</label></li>
+        <li data-key="share2"><input type="checkbox" id="share2" data-check="share2"><label for="share2">I can share the texts on request (no ethical/legal barrier), or I have documented the barrier.</label></li>
+        <li data-key="share3"><input type="checkbox" id="share3" data-check="share3"><label for="share3">My sharing terms restrict recipients to verification unless I grant further permission.</label></li>
+      </ul>
+      ${whyPanel("why this protects everyone",
+      "These guidelines balance authors' investment in collecting texts against science's need for replication and verification. They let others confirm your conclusions while reserving new analyses for the data owner's permission.")}
+    </div>
+  </section>`;
+}
+
+/* ---------------- MODULE 7 ---------------- */
+function M7(){
+  return `
+  <section class="module" id="m7" role="tabpanel" tabindex="0">
+    <span class="eyebrow">Module 7</span>
+    <h2>Reporting &amp; Summary</h2>
+    <p class="lead">A clean, copyable summary of your inputs, computed reliabilities, corrected correlations, refinement
+    decisions, and checklist status — suitable for a methods section and supplemental materials.</p>
+    <div class="card">
+      <button class="btn primary" id="refreshSummary">↻ Refresh summary</button>
+      <button class="btn" id="downloadBtn2">⬇ Download report (.html)</button>
+      <button class="btn" id="downloadTxt">⬇ Download report (.txt)</button>
+      <div id="summaryOut" style="margin-top:16px"></div>
+    </div>
+  </section>`;
+}
+
+/* ============================================================
+   RENDER + WIRING
+   ============================================================ */
+const $ = sel => document.querySelector(sel);
+const $$ = sel => Array.from(document.querySelectorAll(sel));
+let current = "m1";
+
+function buildNav(){
+  const ol = $("#navlist");
+  ol.innerHTML = MODULES.map((m,i)=>`
+    <li><button class="navitem" id="tab-${m.id}" data-go="${m.id}" aria-current="${m.id===current}">
+      <span class="nnum" id="nn-${m.id}">${i+1}</span>
+      <span><span class="ntitle">${m.short}</span><span class="ndesc">${m.desc}</span></span>
+    </button></li>`).join("");
+  $$("[data-go]").forEach(b=>b.addEventListener("click",()=>goTo(b.dataset.go)));
+}
+function renderModules(){
+  $("#modules").innerHTML = MODULES.map(m=>moduleHTML(m.id)).join("");
+}
+function goTo(id){
+  current = id;
+  state.visited[id] = true;
+  $$(".module").forEach(s=>s.classList.toggle("active", s.id===id));
+  $$(".navitem").forEach(b=>b.setAttribute("aria-current", b.dataset.go===id));
+  const sec = document.getElementById(id);
+  if(sec) sec.focus({preventScroll:true});
+  window.scrollTo({top:0,behavior:"smooth"});
+  if(id==="m7") renderSummary();
+  updateProgress();
+}
+
+/* two-way binding for [data-state] inputs */
+function bindStateInputs(){
+  $$("[data-state]").forEach(el=>{
+    const path = el.dataset.state.split(".");
+    // set initial value from state
+    let ref = state; for(let i=0;i<path.length-1;i++) ref=ref[path[i]];
+    if(ref[path[path.length-1]]!=="" && ref[path[path.length-1]]!=null) el.value = ref[path[path.length-1]];
+    el.addEventListener("input",()=>{
+      let r = state; for(let i=0;i<path.length-1;i++) r=r[path[i]];
+      r[path[path.length-1]] = el.value;
+      updateProgress();
+    });
+  });
+}
+
+/* ---------- progress ---------- */
+function totalChecklistItems(){
+  let n=0; TABLE4.forEach(b=>n+=b.items.length); n+=3+3; // +sharing plan +sharing checklist? sharing has 3
+  return n;
+}
+function checkedCount(){ return Object.values(state.checklist).filter(Boolean).length; }
+function updateProgress(){
+  const visited = Object.keys(state.visited).length;
+  MODULES.forEach(m=>{
+    const nn = $("#nn-"+m.id);
+    if(nn) nn.classList.toggle("done", !!state.visited[m.id]);
+  });
+  const totalItems = totalChecklistItems();
+  const checked = checkedCount();
+  // progress = weighted: half from modules visited, half from checklist completion
+  const modPart = visited/MODULES.length;
+  const chkPart = totalItems? checked/totalItems : 0;
+  const pct = Math.round((modPart*0.5 + chkPart*0.5)*100);
+  $("#progFill").style.width = pct+"%";
+  $("#progText").textContent = `${visited} of ${MODULES.length} modules visited · ${checked} of ${totalItems} checklist items`;
+}
+
+/* ============================================================
+   SUITABILITY (M1)
+   ============================================================ */
+function wireSuitability(){
+  $$("[data-suit]").forEach(btn=>{
+    btn.addEventListener("click",()=>{
+      const q=btn.dataset.suit, v=btn.dataset.val;
+      state.suitability[q]=v;
+      // toggle pressed within the group
+      $$(`[data-suit="${q}"]`).forEach(b=>b.setAttribute("aria-pressed", b.dataset.val===v));
+      renderSuitVerdict();
+    });
+  });
+}
+function renderSuitVerdict(){
+  const ans = state.suitability;
+  if(Object.keys(ans).length < SUIT_Q.length){
+    $("#suitVerdict").innerHTML = `<div class="flag info small">Answer all ${SUIT_Q.length} questions to see your verdict.</div>`;
+    return;
+  }
+  let concerns=[], tradeoffs=[], strengths=[];
+  SUIT_Q.forEach(q=>{
+    const a = ans[q.id];
+    const favorable = (q.yesGood && a==="yes") || (!q.yesGood && a==="no");
+    if(q.tradeoff && ((q.yesGood&&a==="no")||(!q.yesGood&&a==="yes"))){
+      tradeoffs.push(q);
+    } else if(!favorable){
+      concerns.push(q);
+    } else {
+      strengths.push(q);
+    }
+  });
+  let html="";
+  if(concerns.length===0 && tradeoffs.length===0){
+    html += `<div class="flag good"><strong>CATA appears well suited to this construct.</strong>
+      Your construct is signalled by words/short phrases, is not heavily context-dependent or impression-managed, and your
+      design supports estimating transient error. Proceed to Module 2 to build your measure.</div>`;
+  } else {
+    if(concerns.length){
+      html += `<div class="flag bad"><strong>Caution — ${concerns.length} limitation${concerns.length>1?"s":""} flagged.</strong>
+        <ul style="margin:.4em 0 0">${concerns.map(q=>`<li>${limitationText(q,ans[q.id])}</li>`).join("")}</ul>
+        For strongly context-dependent or impression-managed constructs, consider manual content analysis, questionnaires, or interviews instead.</div>`;
+    }
+    if(tradeoffs.length){
+      html += `<div class="flag warn"><strong>Trade-off${tradeoffs.length>1?"s":""} to balance — not a hard stop.</strong>
+        <ul style="margin:.4em 0 0">${tradeoffs.map(q=>`<li>${limitationText(q,ans[q.id])}</li>`).join("")}</ul>
+        The article recommends treating the research goal and measurement precision as a trade-off to be balanced.</div>`;
+    }
+    if(strengths.length && (concerns.length||tradeoffs.length)){
+      html += `<div class="flag good small">On the favorable side: ${strengths.length} of ${SUIT_Q.length} indicators support CATA.</div>`;
+    }
+  }
+  $("#suitVerdict").innerHTML = html;
+}
+function limitationText(q,a){
+  if(q.id==="q1") return "The construct is <em>not</em> clearly signalled by single words or short phrases — CATA's core strength is absent.";
+  if(q.id==="q2") return "The construct requires context/rhetorical nuance (like exemplification) — better suited to manual coding.";
+  if(q.id==="q3") return "The construct is exposed to impression management — publicly available texts may distort it.";
+  if(q.id==="q4") return "Texts are produced only once — transient error cannot be estimated (no second text to correlate).";
+  if(q.id==="q5") return "You are measuring change over time — construct change and transient error are inseparable.";
+  return "";
+}
+
+/* ============================================================
+   WORD LIST (M2)
+   ============================================================ */
+let wordSeq=1;
+function wireWordList(){
+  $("#addWord").addEventListener("click",()=>{
+    const term=$("#w_term").value.trim();
+    if(!term){ $("#w_term").focus(); return; }
+    state.words.push({id:wordSeq++, term, dim:$("#w_dim").value.trim()||"—",
+      source:$("#w_source").value, type:$("#w_type").value, judged:$("#w_judged").value});
+    $("#w_term").value=""; $("#w_dim").value="";
+    $("#w_term").focus();
+    renderWords();
+  });
+  $("#w_term").addEventListener("keydown",e=>{ if(e.key==="Enter"){e.preventDefault();$("#addWord").click();}});
+  renderWords();
+}
+function renderWords(){
+  const tb=$("#wordTable tbody");
+  tb.innerHTML = state.words.map(w=>{
+    const jlabel = w.judged==="yes"?'<span class="tag" style="background:var(--good-bg);color:var(--good)">approved</span>':
+                   w.judged==="no"?'<span class="tag" style="background:var(--bad-bg);color:var(--bad)">rejected</span>':
+                   '<span class="tag">pending</span>';
+    const stem = w.type==="Word stem"?' <span class="tag" style="background:var(--warn-bg);color:var(--warn)">stem⚠</span>':'';
+    return `<tr><td>${escapeHTML(w.term)}${stem}</td><td>${escapeHTML(w.dim)}</td><td>${w.source}</td><td>${w.type}</td>
+      <td>${jlabel}</td><td><button class="removebtn" data-del="${w.id}" aria-label="Remove ${escapeHTML(w.term)}">Remove</button></td></tr>`;
+  }).join("");
+  $$("[data-del]").forEach(b=>b.addEventListener("click",()=>{
+    state.words = state.words.filter(w=>w.id!=b.dataset.del); renderWords();
+  }));
+  // counts
+  const total=state.words.length;
+  const byDim={}; const stems=state.words.filter(w=>w.type==="Word stem").length;
+  const phrases=state.words.filter(w=>w.type==="Short phrase").length;
+  const approved=state.words.filter(w=>w.judged==="yes").length;
+  const pending=state.words.filter(w=>w.judged==="pending").length;
+  state.words.forEach(w=>byDim[w.dim]=(byDim[w.dim]||0)+1);
+  const dimtags=Object.keys(byDim).map(d=>`<span class="tag">${escapeHTML(d)}: ${byDim[d]}</span>`).join("");
+  $("#wordCounts").innerHTML = `<strong>${total}</strong> term${total!==1?"s":""} ·
+    ${approved} judge-approved · ${pending} pending · ${phrases} phrase${phrases!==1?"s":""} · ${stems} stem${stems!==1?"s":""}<br>${dimtags}`;
+  $("#stemWarn").innerHTML = stems>0
+    ? `<div class="flag warn small"><strong>${stems} word stem${stems>1?"s":""} in the list.</strong> Replace each stem with only the conjugations that fit your definition (e.g., <span class="mono">refine*</span> wrongly catches <em>refinery/refineries</em>).</div>`
+    : "";
+}
+function escapeHTML(s){return String(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));}
+
+/* ============================================================
+   MODULE 3 calculators
+   ============================================================ */
+function wireM3(){
+  $("#calcTransient").addEventListener("click",()=>{
+    let r = num($("#t_rdirect").value);
+    let via="entered directly";
+    if(r===null){
+      const s1=parseNums($("#t_set1").value), s2=parseNums($("#t_set2").value);
+      if(s1.length<2||s2.length<2){ out("#transientOut","warn","Enter at least two paired scores in both columns, or type the correlation directly."); return; }
+      if(s1.length!==s2.length){ out("#transientOut","warn",`The two columns have different counts (${s1.length} vs ${s2.length}). Pairs must line up.`); return; }
+      r=pearson(s1,s2); via=`computed from ${s1.length} paired texts`;
+    }
+    state.transient.r = r.toFixed(4);
+    const pv=pctVariance(r);
+    out("#transientOut","info",
+      `<div class="result"><div class="big">Test–retest r = ${fmt(r)}</div>
+      <div class="interp">${via}. Percent of variance due to <strong>transient error</strong> = (1 − ${fmt(r)}) × 100 = <strong>${fmt(pv,1)}%</strong>. ${relRead(r)}</div></div>`);
+    renderStateAdvice();
+  });
+  $("#t_state").addEventListener("change",renderStateAdvice);
+  $("#t_shock").addEventListener("input",renderStateAdvice);
+
+  $("#calcTenPct").addEventListener("click",()=>{
+    const N=num($("#sf_N").value), plan=num($("#sf_plan").value);
+    if(N===null||N<=0){ out("#tenPctOut","warn","Enter your total number of texts (N)."); return; }
+    const need=Math.ceil(N*0.10);
+    let msg, cls;
+    if(plan===null){ cls="info"; msg=`10% of ${N} = <strong>${need}</strong> texts. Plan to manually code at least this many.`; }
+    else if(plan>=need){ cls="good"; msg=`Your plan of <strong>${plan}</strong> texts meets the 10% guideline (need ≥ ${need}). That is ${(plan/N*100).toFixed(1)}% of the sample.`; }
+    else { cls="bad"; msg=`Your plan of <strong>${plan}</strong> texts is below the 10% guideline. Code at least <strong>${need}</strong> (you're short by ${need-plan}). If coding that many is impractical, use the Spearman–Brown calculator below.`; }
+    out("#tenPctOut",cls,msg);
+  });
+
+  $("#calcParallel").addEventListener("click",()=>{
+    let r=num($("#sf_rdirect").value); let via="entered directly";
+    if(r===null){
+      const m=parseNums($("#sf_manual").value), c=parseNums($("#sf_cata").value);
+      if(m.length<2||c.length<2){ out("#parallelOut","warn","Enter at least two paired scores in both columns, or type the correlation directly."); return; }
+      if(m.length!==c.length){ out("#parallelOut","warn",`Counts differ (${m.length} vs ${c.length}). Pairs must line up.`); return; }
+      r=pearson(m,c); via=`computed from ${m.length} paired texts`;
+    }
+    state.specific.r=r.toFixed(4);
+    const pv=pctVariance(r);
+    out("#parallelOut","info",
+      `<div class="result"><div class="big">Parallel-forms r = ${fmt(r)}</div>
+      <div class="interp">${via}. Percent of variance due to <strong>specific factor error</strong> = <strong>${fmt(pv,1)}%</strong>. ${relRead(r)}</div></div>`);
+  });
+
+  $("#calcSB").addEventListener("click",()=>{
+    const r=num($("#sb_r").value), have=num($("#sb_have").value), want=num($("#sb_want").value);
+    if(r===null||have===null||want===null||have<=0){ out("#sbOut","warn","Enter the observed reliability, texts coded, and the larger plan."); return; }
+    if(r<=0||r>=1){ out("#sbOut","warn","Observed reliability should be between 0 and 1 (exclusive) for a meaningful prediction."); return; }
+    const k=want/have;
+    const pred=spearmanBrown(r,k);
+    out("#sbOut","info",
+      `<div class="result"><div class="big">Predicted reliability ≈ ${fmt(pred)}</div>
+      <div class="interp">If you coded <strong>${want}</strong> texts (k = ${want}/${have} = ${fmt(k,2)}) instead of ${have}, the Spearman–Brown prophecy formula predicts reliability of about <strong>${fmt(pred,2)}</strong> (up from ${fmt(r,2)}).</div></div>`);
+  });
+
+  $("#calcAlpha").addEventListener("click",()=>{
+    let a=num($("#a_alpha").value); let via="entered directly";
+    if(a===null){
+      const Do=num($("#a_Do").value), De=num($("#a_De").value);
+      if(Do===null||De===null){ out("#alphaOut","warn","Enter α directly, or both observed and expected disagreement."); return; }
+      if(De===0){ out("#alphaOut","warn","Expected disagreement (Dₑ) cannot be 0."); return; }
+      a=1-(Do/De); via=`= 1 − (${fmt(Do,3)} / ${fmt(De,3)})`;
+    }
+    state.algorithm.alpha=a.toFixed(4);
+    const pv=pctVariance(a);
+    let read;
+    if(a>=0.80) read="At or above the common .80 benchmark — algorithm error is small.";
+    else if(a>=0.667) read="Between .667 and .80 — acceptable in many content-analytic settings, but examine which package features drive the disagreement.";
+    else read="Below .667 — nontrivial algorithm error. Examine idiosyncratic package features; consider a third package or manual coding to locate the discrepancy before refining or abandoning the measure.";
+    out("#alphaOut","info",
+      `<div class="result"><div class="big">Krippendorff's α = ${fmt(a)}</div>
+      <div class="interp">${via}. Percent of variance due to <strong>algorithm error</strong> = (1 − ${fmt(a)}) × 100 = <strong>${fmt(pv,1)}%</strong>. ${read}</div></div>`);
+  });
+}
+function renderStateAdvice(){
+  const s=state.transient.statelike, shock=($("#t_shock")?$("#t_shock").value:"").trim();
+  let html="";
+  if(s==="state") html += `<div class="flag warn small"><strong>State-like construct.</strong> Expect more variation over time. Reduce the between-text lag — collect texts more frequently, or use more frequently produced texts such as quarterly reports.</div>`;
+  else if(s==="trait") html += `<div class="flag good small"><strong>Trait-like construct.</strong> Expected to be stable; low test–retest more likely reflects measurement error than true change. Still check for shocks.</div>`;
+  if(shock) html += `<div class="flag warn small"><strong>Shock recorded:</strong> "${escapeHTML(shock)}". A shock during the window (e.g., leadership change) can deflate test–retest reliability by driving real change — low reliability may not be measurement error.</div>`;
+  const el=$("#stateAdvice"); if(el) el.innerHTML=html;
+}
+function relRead(r){
+  if(isNaN(r)) return "";
+  if(r>=0.80) return "This meets the usual .80 benchmark (Nunnally & Bernstein, 1994).";
+  if(r>=0.50) return "Below the .80 benchmark, but note the article shows CATA reliabilities in this range are comparable to many established measures (e.g., .52 average interrater reliability for job-performance ratings).";
+  return "Well below .80 — substantial error. Consider refinement (Module 3 workflow) before interpreting substantive relations.";
+}
+function out(sel,cls,html){ $(sel).innerHTML = `<div class="flag ${cls}">${html}</div>`; }
+
+/* ============================================================
+   MODULE 4 calculators
+   ============================================================ */
+function wireM4(){
+  $("#calcPctVar").addEventListener("click",()=>{
+    const rel=num($("#c_rel").value);
+    if(rel===null){ out("#pctVarOut","warn","Enter a reliability estimate."); return; }
+    const pv=pctVariance(rel);
+    out("#pctVarOut","info",
+      `<div class="result"><div class="big">${fmt(pv,1)}%</div>
+      <div class="interp">(1 − ${fmt(rel)}) × 100. About <strong>${fmt(pv,1)}%</strong> of observed variance is measurement error; roughly ${fmt(100-pv,1)}% reflects the true construct.</div></div>`);
+  });
+  $("#calcCES").addEventListener("click",()=>{
+    const a=num($("#c_ces1").value), b=num($("#c_ces2").value);
+    if(a===null||b===null){ out("#cesOut","warn","Enter both CES₁ and CES₂."); return; }
+    const ces=cesAverage(a,b);
+    state.calc.cesValue=ces;
+    out("#cesOut","info",
+      `<div class="result"><div class="big">CES = ${fmt(ces)}</div>
+      <div class="interp">Average of CES₁ (${fmt(a)}) and CES₂ (${fmt(b)}). Use this composite reliability — it combines transient and specific factor error — when disattenuating substantive correlations below. Percent of variance due to combined error = ${fmt(pctVariance(ces),1)}%.</div></div>`);
+  });
+  $("#calcDisatt").addEventListener("click",()=>{
+    const r=num($("#c_dr").value), xx=num($("#c_dxx").value), yy=num($("#c_dyy").value);
+    if(r===null||xx===null||yy===null){ out("#disattOut","warn","Enter the observed r and both reliabilities."); return; }
+    const prod=xx*yy;
+    if(prod<=0){ out("#disattOut","bad",`<strong>Correction undefined.</strong> √(r<sub>xx</sub>·r<sub>yy</sub>) requires a positive product, but ${fmt(xx)} × ${fmt(yy)} = ${fmt(prod)}. Undefined or non-positive reliabilities make disattenuation undefined.`); return; }
+    const corr=disattenuate(r,xx,yy);
+    const r2o=r*r, r2c=corr*corr;
+    const under=pctUnderest(r, corr);
+    let clip = Math.abs(corr)>1 ? ` <em>(|corrected r| exceeds 1.0 — the reliabilities imply the observed correlation is very heavily attenuated; interpret with care.)</em>`:"";
+    out("#disattOut","info",
+      `<div class="result"><div class="big">Corrected r = ${fmt(corr)}</div>
+      <div class="interp">observed ${fmt(r)} ÷ √(${fmt(xx)} × ${fmt(yy)}).${clip}<br>
+      r² rises from ${fmt(r2o,3)} to ${fmt(r2c,3)} (Δr² = ${fmt(r2c-r2o,3)}).
+      The observed relation <strong>underestimated variance explained by ${fmt(under,0)}%</strong>.</div></div>`);
+  });
+  $("#calcPS").addEventListener("click",()=>{
+    const r=num($("#c_pr").value), sy=num($("#c_sy").value), sx=num($("#c_sx").value);
+    if(r===null||sy===null||sx===null){ out("#psOut","warn","Enter r and both standard deviations."); return; }
+    if(sx===0){ out("#psOut","warn","S_x cannot be 0."); return; }
+    const b=practicalB(r,sy,sx);
+    out("#psOut","info",
+      `<div class="result"><div class="big">b = ${fmt(b)}</div>
+      <div class="interp">${fmt(r)} × (${fmt(sy)} / ${fmt(sx)}). A 1-unit increase in the predictor is associated with a <strong>${fmt(b,3)}-unit</strong> change in the outcome, in the outcome's own units.</div></div>`);
+  });
+}
+
+/* ============================================================
+   CHECKLISTS (M5 + M6)
+   ============================================================ */
+function wireChecklists(){
+  $$("[data-check]").forEach(cb=>{
+    cb.addEventListener("change",()=>{
+      state.checklist[cb.dataset.check]=cb.checked;
+      cb.closest("li").classList.toggle("checked", cb.checked);
+      updateProgress();
+    });
+  });
+}
+
+/* ============================================================
+   REPORT / SUMMARY (M7) + download
+   ============================================================ */
+function summaryData(){
+  const s=state;
+  const chk=[];
+  TABLE4.forEach((b,bi)=>b.items.forEach((t,ii)=>{
+    const key=`c_${bi}_${ii}`;
+    chk.push({src:b.src,challenge:b.challenge,text:t,done:!!s.checklist[key]});
+  }));
+  const share=[
+    {text:"Retained the complete corpus",done:!!s.checklist.share1},
+    {text:"Can share for verification (or barrier documented)",done:!!s.checklist.share2},
+    {text:"Sharing restricted to verification unless permission granted",done:!!s.checklist.share3}
+  ];
+  return {s,chk,share};
+}
+function renderSummary(){ $("#summaryOut").innerHTML = summaryHTML(); }
+function summaryHTML(){
+  const {s,chk,share}=summaryData();
+  const suit=SUIT_Q.map(q=>`<tr><td>${q.text}</td><td>${s.suitability[q.id]?s.suitability[q.id].toUpperCase():"—"}</td></tr>`).join("");
+  const words=s.words.length?`<table><thead><tr><th>Term</th><th>Dimension</th><th>Source</th><th>Type</th><th>Judges</th></tr></thead><tbody>${
+    s.words.map(w=>`<tr><td>${escapeHTML(w.term)}</td><td>${escapeHTML(w.dim)}</td><td>${w.source}</td><td>${w.type}</td><td>${w.judged}</td></tr>`).join("")}</tbody></table>`
+    :`<p class="muted small">No words entered.</p>`;
+  const done=chk.filter(c=>c.done).length;
+  const chkRows=chk.map(c=>`<tr><td>${c.done?"✔":"☐"}</td><td>${c.src}</td><td>${c.text}</td></tr>`).join("");
+  const shareRows=share.map(c=>`<li>${c.done?"✔":"☐"} ${c.text}</li>`).join("");
+  const ces = (s.calc.cesValue!=null)?fmt(s.calc.cesValue):"—";
+  return `
+  <h3>${escapeHTML(s.study.title)||"(Untitled study)"} — CATA measurement summary</h3>
+  <p class="small muted">Generated ${new Date().toLocaleString()}</p>
+  <h4>Study</h4>
+  <table><tbody>
+    <tr><th style="width:32%">Construct</th><td>${escapeHTML(s.study.construct)||"—"}</td></tr>
+    <tr><th>Definition</th><td>${escapeHTML(s.study.definition)||"—"}</td></tr>
+    <tr><th>Corpus</th><td>${escapeHTML(s.study.texts)||"—"}</td></tr>
+    <tr><th>Sample size (N)</th><td>${escapeHTML(s.study.sampleN)||"—"}</td></tr>
+    <tr><th>Context / refinement note</th><td>${escapeHTML(s.study.software)||"—"}</td></tr>
+  </tbody></table>
+  <h4>Suitability responses</h4>
+  <table><thead><tr><th>Question</th><th>Answer</th></tr></thead><tbody>${suit}</tbody></table>
+  <h4>Word list (${s.words.length} terms)</h4>
+  ${words}
+  <h4>Reliability estimates</h4>
+  <table><tbody>
+    <tr><th style="width:45%">Transient error — test–retest r</th><td>${s.transient.r||"—"} ${s.transient.r?`(→ ${fmt(pctVariance(parseFloat(s.transient.r)),1)}% error variance)`:""}</td></tr>
+    <tr><th>Specific factor — parallel-forms r</th><td>${s.specific.r||"—"} ${s.specific.r?`(→ ${fmt(pctVariance(parseFloat(s.specific.r)),1)}% error variance)`:""}</td></tr>
+    <tr><th>Algorithm — Krippendorff's α</th><td>${s.algorithm.alpha||"—"} ${s.algorithm.alpha?`(→ ${fmt(pctVariance(parseFloat(s.algorithm.alpha)),1)}% error variance)`:""}</td></tr>
+    <tr><th>CES (composite reliability)</th><td>${ces}</td></tr>
+    <tr><th>Construct type</th><td>${s.transient.statelike==="state"?"State-like":s.transient.statelike==="trait"?"Trait-like":"—"}</td></tr>
+    <tr><th>Between-text lag</th><td>${escapeHTML(s.transient.lag)||"—"}</td></tr>
+    <tr><th>Shocks noted</th><td>${escapeHTML(s.transient.shock)||"—"}</td></tr>
+  </tbody></table>
+  <h4>Disattenuation &amp; practical significance</h4>
+  <table><tbody>
+    <tr><th style="width:45%">Observed r / r_xx / r_yy</th><td>${s.calc.dis_r||"—"} / ${s.calc.dis_xx||"—"} / ${s.calc.dis_yy||"—"}</td></tr>
+    <tr><th>Practical translation r / S_y / S_x</th><td>${s.calc.ps_r||"—"} / ${s.calc.ps_sy||"—"} / ${s.calc.ps_sx||"—"}</td></tr>
+  </tbody></table>
+  <h4>Best-practice checklist — ${done} of ${chk.length} complete</h4>
+  <table><thead><tr><th>Done</th><th>Error source</th><th>Action</th></tr></thead><tbody>${chkRows}</tbody></table>
+  <h4>Transparency &amp; data sharing</h4>
+  <ul>${shareRows}</ul>`;
+}
+
+function buildReportDoc(){
+  const inner=summaryHTML();
+  return `<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><title>CATA measurement report</title>
+  <style>body{font-family:Georgia,serif;max-width:800px;margin:30px auto;padding:0 20px;color:#1d2733;line-height:1.5}
+  h3,h4{color:#1f3a5f}table{width:100%;border-collapse:collapse;margin:8px 0;font-family:Arial,sans-serif;font-size:14px}
+  th,td{border:1px solid #ccc;padding:6px 8px;text-align:left;vertical-align:top}th{background:#1f3a5f;color:#fff}
+  .muted{color:#666}.small{font-size:.85em}footer{margin-top:30px;border-top:1px solid #ccc;padding-top:12px;font-size:12px;color:#555}</style>
+  </head><body>${inner}
+  <footer><p><strong>Based on best-practice recommendations for rigorous, credible, and impactful research methodology.</strong>
+  Source: Aguinis, H. 2025. Research methodology: Best practices for rigorous, credible, and impactful research. SAGE.
+  https://collegepublishing.sagepub.com/products/research-methodology-1-280088</p>
+  <p>McKenny, A. F., Aguinis, H., Short, J. C., &amp; Anglin, A. H. 2018. What doesn't get measured does exist: Improving the
+  accuracy of computer-aided text analysis. Journal of Management, 44(7): 2909–2933.</p></footer></body></html>`;
+}
+function buildReportText(){
+  const {s,chk,share}=summaryData();
+  const L=[];
+  L.push("CATA MEASUREMENT REPORT");
+  L.push("Generated "+new Date().toLocaleString());
+  L.push("".padEnd(60,"="));
+  L.push("\nSTUDY");
+  L.push("  Title: "+(s.study.title||"—"));
+  L.push("  Construct: "+(s.study.construct||"—"));
+  L.push("  Definition: "+(s.study.definition||"—"));
+  L.push("  Corpus: "+(s.study.texts||"—"));
+  L.push("  Sample size (N): "+(s.study.sampleN||"—"));
+  L.push("  Context/refinement note: "+(s.study.software||"—"));
+  L.push("\nSUITABILITY RESPONSES");
+  SUIT_Q.forEach(q=>L.push("  ["+((s.suitability[q.id]||"—").toUpperCase())+"] "+q.text));
+  L.push("\nWORD LIST ("+s.words.length+" terms)");
+  s.words.forEach(w=>L.push("  - "+w.term+" | "+w.dim+" | "+w.source+" | "+w.type+" | judges:"+w.judged));
+  if(!s.words.length) L.push("  (none)");
+  L.push("\nRELIABILITY ESTIMATES");
+  L.push("  Transient (test-retest r): "+(s.transient.r||"—"));
+  L.push("  Specific factor (parallel-forms r): "+(s.specific.r||"—"));
+  L.push("  Algorithm (Krippendorff's alpha): "+(s.algorithm.alpha||"—"));
+  L.push("  CES (composite): "+(s.calc.cesValue!=null?fmt(s.calc.cesValue):"—"));
+  L.push("  Construct type: "+(s.transient.statelike||"—")+" | lag: "+(s.transient.lag||"—")+" | shocks: "+(s.transient.shock||"—"));
+  L.push("\nDISATTENUATION / PRACTICAL SIGNIFICANCE");
+  L.push("  observed r / rxx / ryy: "+(s.calc.dis_r||"—")+" / "+(s.calc.dis_xx||"—")+" / "+(s.calc.dis_yy||"—"));
+  L.push("  practical r / Sy / Sx: "+(s.calc.ps_r||"—")+" / "+(s.calc.ps_sy||"—")+" / "+(s.calc.ps_sx||"—"));
+  const done=chk.filter(c=>c.done).length;
+  L.push("\nBEST-PRACTICE CHECKLIST ("+done+"/"+chk.length+")");
+  chk.forEach(c=>L.push("  ["+(c.done?"x":" ")+"] ("+c.src+") "+c.text));
+  L.push("\nTRANSPARENCY & DATA SHARING");
+  share.forEach(c=>L.push("  ["+(c.done?"x":" ")+"] "+c.text));
+  L.push("\n"+"".padEnd(60,"="));
+  L.push("Based on best-practice recommendations for rigorous, credible, and impactful research methodology.");
+  L.push("Source: Aguinis, H. 2025. Research methodology: Best practices for rigorous, credible, and impactful research. SAGE.");
+  L.push("https://collegepublishing.sagepub.com/products/research-methodology-1-280088");
+  L.push("McKenny, Aguinis, Short, & Anglin (2018). Journal of Management, 44(7): 2909-2933.");
+  return L.join("\n");
+}
+function download(filename, content, mime){
+  const blob=new Blob([content],{type:mime});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement("a");
+  a.href=url; a.download=filename; document.body.appendChild(a); a.click();
+  document.body.removeChild(a); setTimeout(()=>URL.revokeObjectURL(url),1500);
+}
+function fnameBase(){
+  const t=(state.study.title||"cata-report").toLowerCase().replace(/[^a-z0-9]+/g,"-").replace(/^-+|-+$/g,"");
+  return t||"cata-report";
+}
+
+/* ============================================================
+   SELF-TESTS
+   ============================================================ */
+function runSelfTests(){
+  const approx=(a,b,tol)=>Math.abs(a-b)<=(tol||0.01);
+  const tests=[
+    ["(1 − .51) × 100 = 49", ()=>approx(pctVariance(.51),49,0.001)],
+    ["Disattenuation: .24 / √(.51·1) ≈ .336", ()=>approx(disattenuate(.24,.51,1),0.336,0.002)],
+    ["% underestimation (r .24→.34) ≈ 100%", ()=>approx(pctUnderest(.24,.34),100.6,1.5)],
+    ["% underestimation (r .10→.41) ≈ 1581%", ()=>approx(pctUnderest(.10,.41),1581,3)],
+    ["% underestimation (r .15→.45) = 800%", ()=>approx(pctUnderest(.15,.45),800,1)],
+    ["Practical b: .24·(.98/.40) ≈ .59", ()=>approx(practicalB(.24,.98,.40),0.588,0.005)],
+    ["Practical b: .34·(.98/.40) ≈ .83", ()=>approx(practicalB(.34,.98,.40),0.833,0.005)],
+    ["Spearman–Brown: k=224/50, r=.53 → .83", ()=>approx(spearmanBrown(.53,224/50),0.835,0.01)],
+    ["CES average of .49 & .53 = .51", ()=>approx(cesAverage(.49,.53),0.51,0.001)],
+    ["Krippendorff α = 1 − (.11/1) = .89", ()=>approx(1-(0.11/1),0.89,0.001)],
+    ["Pearson r of perfectly linear data = 1", ()=>approx(pearson([1,2,3,4],[2,4,6,8]),1,1e-9)],
+    ["Pearson r of perfect negative = −1", ()=>approx(pearson([1,2,3,4],[4,3,2,1]),-1,1e-9)],
+    ["Pearson r known set ≈ 0.9967", ()=>approx(pearson([10,20,30,40,50],[12,24,33,45,52]),0.9967,0.001)]
+  ];
+  let rows="", allPass=true;
+  tests.forEach(t=>{
+    let pass=false; try{pass=t[1]();}catch(e){pass=false;}
+    if(!pass) allPass=false;
+    rows+=`<div>${pass?'<span class="ok">✓ PASS</span>':'<span class="fail">✗ FAIL</span>'} — ${t[0]}</div>`;
+  });
+  $("#diag").innerHTML = `<div class="flag ${allPass?'good':'bad'}" style="margin-bottom:10px"><strong>${allPass?'All '+tests.length+' self-tests passed.':'Some tests failed.'}</strong> Each reproduces a worked value from McKenny et al. (2018).</div>${rows}`;
+  $("#diagcard").style.display="block";
+  $("#diagcard").scrollIntoView({behavior:"smooth"});
+  return allPass;
+}
+
+/* ============================================================
+   INIT
+   ============================================================ */
+function init(){
+  buildNav();
+  renderModules();
+  bindStateInputs();
+  wireSuitability();
+  wireWordList();
+  wireM3();
+  wireM4();
+  wireChecklists();
+  renderSuitVerdict();
+
+  // downloads
+  const dlHTML=()=>download(fnameBase()+".html", buildReportDoc(), "text/html");
+  const dlTXT =()=>download(fnameBase()+".txt", buildReportText(), "text/plain");
+  $("#downloadBtn").addEventListener("click",dlHTML);
+  document.addEventListener("click",e=>{
+    if(e.target.id==="downloadBtn2") dlHTML();
+    if(e.target.id==="downloadTxt") dlTXT();
+    if(e.target.id==="refreshSummary") renderSummary();
+  });
+  $("#selftestBtn").addEventListener("click",runSelfTests);
+
+  // keyboard: left/right arrows move modules when focus is on a nav item
+  document.addEventListener("keydown",e=>{
+    if((e.key==="ArrowRight"||e.key==="ArrowLeft") && document.activeElement.classList.contains("navitem")){
+      const idx=MODULES.findIndex(m=>m.id===current);
+      const ni=e.key==="ArrowRight"?Math.min(idx+1,MODULES.length-1):Math.max(idx-1,0);
+      goTo(MODULES[ni].id);
+      $("#tab-"+MODULES[ni].id).focus();
+    }
+  });
+
+  state.visited.m1=true;
+  goTo("m1");
+
+  // silently self-verify on load (console only); UI button shows full panel
+  try{
+    const ok=(function(){
+      const a=(x,y,t)=>Math.abs(x-y)<=(t||0.01);
+      return a(pctVariance(.51),49,.001)&&a(disattenuate(.24,.51,1),.336,.002)&&
+             a(practicalB(.24,.98,.40),.588,.005)&&a(spearmanBrown(.53,224/50),.835,.01)&&
+             a(pctUnderest(.10,.41),1581,3)&&a(pearson([1,2,3,4],[2,4,6,8]),1,1e-9);
+    })();
+    console.log("[CATA Toolkit] load-time self-check: "+(ok?"PASS":"FAIL"));
+  }catch(e){console.warn(e);}
+}
+document.addEventListener("DOMContentLoaded",init);
+</script>
+<!-- Begin Countercentral code v 7.0 --> 
+<span id="wts2576"></span> 
+<script>var wts=document.createElement('script');wts.async=true; 
+wts.src='https://server2.countercentral.com/log7.js';document.head.appendChild(wts); 
+wts.onload = function(){ wtslog7(2576,1); }; 
+</script><noscript><a href="https://www.countercentral.com"> 
+<img src="https://server2.countercentral.com/7/1/2576.png"  
+alt="Countercentral web traffic analysis"></a></noscript> 
+<!-- End Countercentral code v 7.0 --> 
+</body>
+</html>

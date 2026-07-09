@@ -1,0 +1,1058 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Outlier Detection &amp; Management Tool</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Segoe UI',Arial,sans-serif;font-size:15px;background:#f0f4f8;color:#1a2a3a;line-height:1.5}
+a{color:#3a8ec4}
+/* ── HEADER ── */
+.hdr{background:#1a3a5c;color:#fff;padding:14px 28px}
+.hdr h1{font-size:1.25em;font-weight:700;margin-bottom:3px}
+.hdr p{font-size:.79em;opacity:.85}
+.hdr a{color:#7ec8f7}
+/* ── TABS ── */
+.tab-bar{display:flex;background:#122d47;overflow-x:auto;gap:0}
+.tb{padding:11px 18px;color:#90b4cc;border:none;background:none;cursor:pointer;font-size:.86em;white-space:nowrap;border-bottom:3px solid transparent;transition:.2s}
+.tb:hover{color:#fff;background:rgba(255,255,255,.07)}
+.tb.on{color:#fff;border-bottom-color:#4a9fd4;font-weight:600}
+.tab-body{display:none;max-width:1200px;margin:0 auto;padding:22px}
+.tab-body.on{display:block}
+/* ── CARDS ── */
+.card{background:#fff;border-radius:8px;padding:20px 24px;margin-bottom:18px;box-shadow:0 1px 5px rgba(0,0,0,.07)}
+.card h2{font-size:1.05em;color:#1a3a5c;margin-bottom:12px;padding-bottom:8px;border-bottom:2px solid #e0e8f0}
+.card h3{font-size:.93em;color:#2a508a;margin:14px 0 7px;font-weight:700}
+/* ── DECISION TREE ── */
+.tree-wrap{display:grid;grid-template-columns:230px 1fr;gap:18px;align-items:start}
+.tree-sidebar{background:#fff;border-radius:8px;padding:14px;box-shadow:0 1px 5px rgba(0,0,0,.07);position:sticky;top:10px}
+.tree-sidebar h3{font-size:.82em;text-transform:uppercase;letter-spacing:.8px;color:#6a8aaa;margin-bottom:10px}
+.s-item{display:flex;align-items:flex-start;gap:9px;padding:7px 0;border-bottom:1px solid #f0f4f8}
+.s-item:last-child{border-bottom:none}
+.s-num{width:22px;height:22px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:.72em;font-weight:700;flex-shrink:0;margin-top:1px}
+.s-done{background:#27ae60;color:#fff}
+.s-cur{background:#1a3a5c;color:#fff}
+.s-pend{background:#e0e8f0;color:#999}
+.s-lbl{font-size:.8em;color:#6a8aaa;line-height:1.3}
+.s-lbl.cur{color:#1a3a5c;font-weight:600}
+.tree-panel{background:#fff;border-radius:8px;padding:24px;box-shadow:0 1px 5px rgba(0,0,0,.07)}
+.t-phase{font-size:.72em;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:#4a9fd4;margin-bottom:5px}
+.t-title{font-size:1.18em;color:#1a3a5c;font-weight:700;margin-bottom:10px}
+.t-desc{color:#445;line-height:1.65;font-size:.92em}
+.t-opts{display:flex;flex-wrap:wrap;gap:9px;margin-top:18px}
+.t-btn{padding:9px 17px;border:2px solid #1a3a5c;border-radius:6px;background:#fff;color:#1a3a5c;cursor:pointer;font-size:.88em;font-weight:600;transition:.15s}
+.t-btn:hover,.t-btn.pri{background:#1a3a5c;color:#fff}
+.t-btn.back{border-color:#bbb;color:#777}
+.t-btn.back:hover{background:#f0f4f8}
+.t-btn.done{border-color:#27ae60;color:#27ae60}
+.t-btn.done:hover{background:#27ae60;color:#fff}
+.prog-bar{height:4px;background:#e0e8f0;border-radius:2px;margin:10px 0 20px}
+.prog-fill{height:100%;background:#4a9fd4;border-radius:2px;transition:width .4s}
+/* ── BOXES ── */
+.info-box{background:#e8f4fd;border-left:4px solid #4a9fd4;padding:11px 15px;border-radius:4px;margin:10px 0;font-size:.87em;line-height:1.6}
+.warn-box{background:#fff8e0;border-left:4px solid #f0a500;padding:11px 15px;border-radius:4px;margin:10px 0;font-size:.87em;line-height:1.6}
+.good-box{background:#eafaf1;border-left:4px solid #27ae60;padding:11px 15px;border-radius:4px;margin:10px 0;font-size:.87em;line-height:1.6}
+.bad-box{background:#fdf0f0;border-left:4px solid #e74c3c;padding:11px 15px;border-radius:4px;margin:10px 0;font-size:.87em;line-height:1.6}
+.banner{background:#1a3a5c;color:#fff;padding:14px 18px;border-radius:8px;margin-top:16px}
+.banner strong{display:block;font-size:.95em;margin-bottom:4px}
+.banner p{font-size:.86em;opacity:.9;line-height:1.55}
+/* ── TOOLTIP ── */
+.tip-wrap{position:relative;display:inline}
+.tip-i{display:inline-flex;align-items:center;justify-content:center;width:17px;height:17px;background:#4a9fd4;color:#fff;border-radius:50%;font-size:.68em;font-weight:700;cursor:pointer;margin-left:4px;vertical-align:middle}
+.tip-box{display:none;position:absolute;z-index:200;background:#1a2a3a;color:#fff;padding:9px 13px;border-radius:6px;font-size:.8em;width:240px;bottom:130%;left:50%;transform:translateX(-50%);line-height:1.5;box-shadow:0 4px 12px rgba(0,0,0,.3)}
+.tip-wrap:hover .tip-box{display:block}
+/* ── TABLE ── */
+.filter-row{display:flex;flex-wrap:wrap;gap:9px;margin-bottom:14px;align-items:center}
+.filter-row input,.filter-row select{padding:8px 11px;border:1px solid #c0d0e0;border-radius:6px;font-size:.86em}
+.filter-row input{flex:1;min-width:160px}
+table{width:100%;border-collapse:collapse;font-size:.85em}
+th{background:#1a3a5c;color:#fff;padding:9px 11px;text-align:left;font-weight:600}
+td{padding:8px 11px;border-bottom:1px solid #e8eef4;vertical-align:top}
+tr:hover td{background:#f5f9fd}
+tr:nth-child(even) td{background:#fafcfe}
+tr:nth-child(even):hover td{background:#eef5fc}
+.badge{display:inline-block;padding:2px 6px;border-radius:10px;font-size:.75em;font-weight:700;white-space:nowrap;margin:1px 2px}
+.b-err{background:#fde;color:#c0392b}
+.b-int{background:#fdebd0;color:#c05000}
+.b-inf{background:#d5f5e3;color:#1e8449}
+.b-mf{background:#d6eaf8;color:#1a5276}
+.b-pred{background:#ede;color:#6c3483}
+.b-all{background:#e0e0e0;color:#444}
+/* ── CHECKLIST ── */
+.cklist{list-style:none}
+.cklist li{display:flex;align-items:flex-start;gap:9px;padding:8px 4px;border-bottom:1px solid #f0f4f8;font-size:.87em}
+.cklist li:last-child{border-bottom:none}
+.cklist input[type=checkbox]{width:17px;height:17px;cursor:pointer;flex-shrink:0;margin-top:1px;accent-color:#1a3a5c}
+.cklist label{cursor:pointer;line-height:1.4}
+.cklist li.ck label{text-decoration:line-through;color:#aaa}
+/* ── CALCULATOR ── */
+.calc-wrap{display:grid;grid-template-columns:270px 1fr;gap:18px;align-items:start}
+.calc-inp label{display:block;font-size:.83em;color:#4a6a8a;margin-bottom:3px;margin-top:12px;font-weight:600}
+.calc-inp input,.calc-inp select{width:100%;padding:8px 11px;border:1px solid #c0d0e0;border-radius:6px;font-size:.9em}
+.calc-inp small{font-size:.76em;color:#999;display:block;margin-top:2px}
+.cg{display:grid;grid-template-columns:repeat(auto-fill,minmax(270px,1fr));gap:13px}
+.cc{background:#f8fafd;border:1px solid #cde;border-radius:8px;padding:13px}
+.cc h4{font-size:.88em;color:#1a3a5c;font-weight:700;margin-bottom:5px}
+.cc .fm{font-size:.79em;color:#666;font-family:'Courier New',monospace;background:#eef2f7;padding:3px 7px;border-radius:3px;display:block;margin-bottom:7px}
+.cc .val{font-size:1.25em;font-weight:700;color:#1a3a5c;margin:4px 0}
+.cc .val2{font-size:.9em;color:#3a7a5a;font-weight:600}
+.cc .cn{font-size:.77em;color:#666;line-height:1.4;margin-top:5px}
+.cc .sw{font-size:.73em;color:#999;border-top:1px solid #dde;padding-top:5px;margin-top:6px}
+/* ── HANDLE PANELS ── */
+.h-tabs{display:flex;gap:3px;margin-bottom:0}
+.h-tab{padding:9px 18px;border-radius:6px 6px 0 0;border:1px solid #cdd;border-bottom:none;cursor:pointer;font-size:.87em;background:#f0f4f8;color:#555}
+.h-tab.on{background:#fff;color:#1a3a5c;font-weight:700;border-color:#c0d0e0}
+.h-panel{display:none;background:#fff;border-radius:0 8px 8px 8px;padding:22px;box-shadow:0 1px 5px rgba(0,0,0,.07);border:1px solid #c0d0e0}
+.h-panel.on{display:block}
+.robust-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:10px;margin-top:12px}
+.rg-item{background:#f8fafd;border:1px solid #cde;border-radius:6px;padding:11px}
+.rg-item h4{font-size:.86em;color:#1a3a5c;margin-bottom:3px;font-weight:700}
+.rg-item p{font-size:.81em;color:#555;line-height:1.4}
+/* ── METHODS ── */
+.meth-wrap{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+.fg{margin-bottom:13px}
+.fg label{display:block;font-size:.84em;font-weight:700;color:#1a3a5c;margin-bottom:4px}
+.fg select,.fg input[type=number],.fg textarea{width:100%;padding:8px 11px;border:1px solid #c0d0e0;border-radius:6px;font-size:.87em}
+.fg textarea{height:65px;resize:vertical}
+.fg .cbg{display:flex;flex-direction:column;gap:4px;margin-top:3px;max-height:160px;overflow-y:auto;padding:4px}
+.fg .cbg label{font-weight:normal;font-size:.84em;display:flex;align-items:center;gap:6px;cursor:pointer}
+.fg .cbg input{width:auto;accent-color:#1a3a5c}
+.gen-btn{background:#1a3a5c;color:#fff;border:none;padding:10px 20px;border-radius:6px;font-size:.92em;font-weight:700;cursor:pointer;width:100%;margin-top:6px;transition:.15s}
+.gen-btn:hover{background:#2a4a6c}
+.out-box{background:#f8fafd;border:1px solid #c0d0e0;border-radius:6px;padding:15px;min-height:220px;font-size:.88em;line-height:1.75;white-space:pre-wrap;color:#1a2a3a}
+.copy-btn{background:#27ae60;color:#fff;border:none;padding:7px 15px;border-radius:5px;font-size:.83em;cursor:pointer;margin-top:7px}
+.copy-btn:hover{background:#219a52}
+.trans-list{list-style:none}
+.trans-list li{display:flex;align-items:flex-start;gap:9px;padding:8px 10px;background:#f8fafd;border-radius:4px;margin-bottom:4px;font-size:.86em}
+.trans-list input[type=checkbox]{width:17px;height:17px;cursor:pointer;flex-shrink:0;margin-top:2px;accent-color:#1a3a5c}
+.trans-list label{cursor:pointer;line-height:1.4}
+.trans-list li.ck{background:#eafaf1}
+.trans-list li.ck label{color:#1e8449}
+/* ── CHART ── */
+.chart-wrap{max-width:680px;margin:0 auto;padding:12px 0}
+/* ── RESPONSIVE ── */
+@media(max-width:760px){.tree-wrap,.calc-wrap,.meth-wrap{grid-template-columns:1fr}.tree-sidebar{display:none}}
+</style>
+</head>
+<body>
+
+<div class="hdr">
+  <h1>Outlier Detection &amp; Management Tool</h1>
+  <p>Based on: Aguinis, H. (2025). <em>Research methodology: Best practices for rigorous, credible, and impactful research.</em> SAGE. &nbsp;<a href="https://collegepublishing.sagepub.com/products/research-methodology-1-280088" target="_blank">https://collegepublishing.sagepub.com/products/research-methodology-1-280088</a></p>
+</div>
+
+<nav class="tab-bar">
+  <button class="tb on" onclick="showTab(0)">① Start Here: Decision Guide</button>
+  <button class="tb" onclick="showTab(1)">② Identify Outliers</button>
+  <button class="tb" onclick="showTab(2)">③ Calculate Cutoffs</button>
+  <button class="tb" onclick="showTab(3)">④ Handle Outliers</button>
+  <button class="tb" onclick="showTab(4)">⑤ Write Methods Section</button>
+</nav>
+
+<!-- ══════════════════ TAB 1: DECISION GUIDE ══════════════════ -->
+<div class="tab-body on" id="t0">
+  <div class="card" style="margin-bottom:14px;padding:14px 20px;background:#e8f4fd;border-left:5px solid #4a9fd4">
+    <strong>How to use this guide:</strong> This interactive decision tree walks you through the full sequential process for detecting and managing outliers. Follow each step in order — Error Outliers → Interesting Outliers → Influential Outliers. The approach you select in Step 1 customizes guidance throughout.
+  </div>
+  <div class="tree-wrap" id="tree-wrap">
+    <div class="tree-sidebar">
+      <h3>Your Progress</h3>
+      <div id="sidebar-steps"></div>
+    </div>
+    <div class="tree-panel" id="tree-panel">
+      <!-- Filled by JS -->
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════ TAB 2: IDENTIFY OUTLIERS ══════════════════ -->
+<div class="tab-body" id="t1">
+
+  <div class="card">
+    <h2>2A — Identification Techniques Reference (39 Techniques)</h2>
+    <div class="filter-row">
+      <input type="text" id="tech-search" placeholder="Search techniques..." oninput="filterTech()">
+      <select id="tech-ctx" onchange="filterTech()">
+        <option value="">All Contexts</option>
+        <option value="regression">Regression</option>
+        <option value="sem">SEM</option>
+        <option value="mlm">MLM</option>
+        <option value="meta">Meta-Analysis</option>
+        <option value="timeseries">Time Series</option>
+        <option value="general">General / All</option>
+      </select>
+      <select id="tech-type" onchange="filterTech()">
+        <option value="">All Outlier Types</option>
+        <option value="error">Error / Interesting</option>
+        <option value="modelfit">Influential — Model Fit</option>
+        <option value="prediction">Influential — Prediction</option>
+      </select>
+    </div>
+    <div style="overflow-x:auto">
+      <table id="tech-table">
+        <thead><tr><th>#</th><th>Technique</th><th>Category</th><th>Brief Description</th><th>Outlier Type</th><th>Context</th></tr></thead>
+        <tbody id="tech-tbody"></tbody>
+      </table>
+      <div class="no-results" id="no-tech" style="display:none;text-align:center;padding:30px;color:#888">No techniques match your filters.</div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>2B — Recommended Identification Sequence (Checklist)</h2>
+    <p style="font-size:.87em;color:#555;margin-bottom:12px">Tick each item as you complete it. Aguinis (2025) recommends using techniques from every category below.</p>
+    <ul class="cklist" id="seq-list">
+      <li id="sl1"><input type="checkbox" onchange="ckToggle(this,'sl1')"><label>Used at least one <strong>single-construct visual</strong> tool (e.g., box plot, stem-and-leaf)</label></li>
+      <li id="sl2"><input type="checkbox" onchange="ckToggle(this,'sl2')"><label>Followed up with a <strong>quantitative single-construct</strong> technique (SD analysis at ±2.24 SD, or top/bottom 2.5%)</label></li>
+      <li id="sl3"><input type="checkbox" onchange="ckToggle(this,'sl3')"><label>Used at least one <strong>multiple-construct visual</strong> tool (e.g., scatter plot, q-q plot)</label></li>
+      <li id="sl4"><input type="checkbox" onchange="ckToggle(this,'sl4')"><label>Assessed outlyingness based on <strong>predictor scores</strong> (leverage, centered leverage, or Mahalanobis distance)</label></li>
+      <li id="sl5"><input type="checkbox" onchange="ckToggle(this,'sl5')"><label>Assessed outlyingness based on <strong>residual scores</strong> (studentized deleted residuals, or deletion standardized multivariate residuals for MLM)</label></li>
+      <li id="sl6"><input type="checkbox" onchange="ckToggle(this,'sl6')"><label><strong>Investigated each flagged case</strong> to determine its cause (error vs. interesting vs. influential)</label></li>
+      <li id="sl7"><input type="checkbox" onchange="ckToggle(this,'sl7')"><label>Applied <strong>context-appropriate influential outlier statistics</strong>: Cook's D / DFFITSᵢ / DFBETASᵢⱼ (regression); gCDᵢ / Δθ̂ⱼᵢ (SEM); Cᵢ (MLM)</label></li>
+      <li id="sl8"><input type="checkbox" onchange="ckToggle(this,'sl8')"><label>Confirmed you will <strong>report results both with and without</strong> the outlier-handling technique</label></li>
+    </ul>
+  </div>
+
+  <div class="card">
+    <h2>2C — Common Errors to Avoid</h2>
+    <div class="bad-box"><strong>Error 1: Vague reporting.</strong> Don't write "we ran regression diagnostics and removed outliers." Name every technique used, the cutoff value applied, how many cases were flagged, and how each was classified. Transparency is a core principle in Aguinis (2025).</div>
+    <div class="bad-box"><strong>Error 2: Incongruent technique.</strong> The identification technique must match the outlier definition. For example: if you define outliers as influential on prediction, you must use DFFITSᵢ, Cook's Dᵢ, or DFBETASᵢⱼ — not SD analysis (which measures single-construct deviation, not prediction influence).</div>
+    <div class="bad-box"><strong>Error 3: Treating all outliers as problems.</strong> Not every extreme score is an error. Flagged cases may be interesting outliers containing substantive knowledge worth studying, or they may be legitimate data points with negligible influence on results. Investigate before acting.</div>
+  </div>
+
+  <div class="card">
+    <h2>Conceptual Visualization: How Influence Measures Relate</h2>
+    <p style="font-size:.87em;color:#555;margin-bottom:8px">The chart below illustrates three hypothetical cases showing how Cook's Dᵢ (global influence on all coefficients), DFFITSᵢ (global prediction influence), and DFBETASᵢⱼ (influence on one coefficient) can tell different stories about the same case. A case can be influential on all coefficients (Cook's D high), globally on prediction (DFFITS high), but have small specific coefficient influence (DFBETAS low), or vice versa.</p>
+    <div class="chart-wrap"><canvas id="inflChart" height="200"></canvas></div>
+  </div>
+
+</div>
+
+<!-- ══════════════════ TAB 3: CALCULATE CUTOFFS ══════════════════ -->
+<div class="tab-body" id="t2">
+  <div class="card" style="padding:14px 20px;background:#e8f4fd;border-left:5px solid #4a9fd4;margin-bottom:14px;font-size:.88em">
+    Enter your sample size <strong>n</strong> and number of predictors <strong>k</strong>. All cutoffs update instantly. For Bonferroni-corrected thresholds (Mahalanobis, studentized residuals), the tool divides α by n to control the familywise error rate.
+  </div>
+  <div class="calc-wrap">
+    <div class="card calc-inp" style="margin-bottom:0">
+      <h2 style="margin-bottom:6px">Inputs</h2>
+      <label>Sample size (n)</label>
+      <input type="number" id="ci-n" value="150" min="5" max="100000" oninput="calcCutoffs()">
+      <small>Total number of observations in your dataset</small>
+      <label>Number of predictors (k)</label>
+      <input type="number" id="ci-k" value="3" min="1" max="500" oninput="calcCutoffs()">
+      <small>Number of predictor variables in your model</small>
+      <label>Significance level (α)</label>
+      <select id="ci-alpha" onchange="calcCutoffs()">
+        <option value=".05" selected>α = .05</option>
+        <option value=".01">α = .01</option>
+      </select>
+      <label>Analytic context</label>
+      <select id="ci-ctx" onchange="calcCutoffs()">
+        <option value="regression">Regression</option>
+        <option value="sem">SEM</option>
+        <option value="mlm">MLM</option>
+      </select>
+      <div id="mlm-extra" style="display:none">
+        <label>Number of highest-level units (J)</label>
+        <input type="number" id="ci-J" value="30" min="2" oninput="calcCutoffs()">
+        <small>Number of groups / clusters (MLM only)</small>
+        <label>Avg. group size (n<sub>j</sub> = n/J)</label>
+        <input type="number" id="ci-nj" value="5" min="2" oninput="calcCutoffs()">
+        <small>Average number of obs. per group</small>
+      </div>
+      <div style="margin-top:18px;font-size:.78em;color:#888;line-height:1.5">
+        <strong>Note on sample size:</strong> Leverage cutoffs use 2(k+1)/n for large samples (n &gt; 50) and 3(k+1)/n for small samples (n ≤ 50).
+      </div>
+    </div>
+    <div id="cutoff-grid"></div>
+  </div>
+</div>
+
+<!-- ══════════════════ TAB 4: HANDLE OUTLIERS ══════════════════ -->
+<div class="tab-body" id="t3">
+  <div class="h-tabs">
+    <button class="h-tab on" onclick="showHPanel(0)">Error Outliers</button>
+    <button class="h-tab" onclick="showHPanel(1)">Interesting Outliers</button>
+    <button class="h-tab" onclick="showHPanel(2)">Influential Outliers</button>
+  </div>
+
+  <!-- PANEL A: ERROR -->
+  <div class="h-panel on" id="hp0">
+    <h2 style="color:#1a3a5c;margin-bottom:14px">Panel A — Error Outliers</h2>
+    <div class="good-box"><strong>✔ Correct handling — do BOTH of the following:</strong></div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin:12px 0">
+      <div class="card" style="margin:0;border-left:4px solid #27ae60">
+        <h3 style="margin-top:0">Step 1: Correct or Remove</h3>
+        <p style="font-size:.87em;line-height:1.6">If possible, correct the value to its true value (e.g., by contacting the respondent, if IRB permits). If correction is not possible, remove the case from the dataset. Do not simply flag it and move on.</p>
+      </div>
+      <div class="card" style="margin:0;border-left:4px solid #27ae60">
+        <h3 style="margin-top:0">Step 2: Document in Detail</h3>
+        <p style="font-size:.87em;line-height:1.6">Report the <em>nature</em> of the error in your manuscript. Was it a coding error? A data entry error? A case outside the target population? An impossible value (e.g., age = 200)? A misunderstood survey question?</p>
+      </div>
+    </div>
+    <div class="bad-box"><strong>✘ Incorrect handling to avoid:</strong> Automatically deleting any deviant data point without first verifying it was actually caused by a data error. Deletion without verification conflates error outliers with interesting or influential outliers.</div>
+    <div class="warn-box"><strong>⚠ IRB note:</strong> If your IRB protocol requires data anonymization, keep detailed diaries or logs <em>during data collection</em> to enable retrospective investigation of unusual cases after data collection is complete. This makes it possible to verify whether flagged cases are genuine errors.</div>
+  </div>
+
+  <!-- PANEL B: INTERESTING -->
+  <div class="h-panel" id="hp1">
+    <h2 style="color:#1a3a5c;margin-bottom:14px">Panel B — Interesting Outliers</h2>
+    <div class="good-box"><strong>✔ Correct handling: Study the outlier. Do not simply remove it.</strong></div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin:12px 0">
+      <div class="card" style="margin:0;border-left:4px solid #f39c12">
+        <h3 style="margin-top:0">Option 1: Quantitative Study</h3>
+        <p style="font-size:.87em;line-height:1.6">Compare the interesting outlier(s) to non-outliers on theoretically relevant characteristics. Use statistical tests to identify what distinguishes the extreme cases from the rest of the sample. This approach is most useful when you have several interesting outliers.</p>
+      </div>
+      <div class="card" style="margin:0;border-left:4px solid #f39c12">
+        <h3 style="margin-top:0">Option 2: Qualitative Study</h3>
+        <p style="font-size:.87em;line-height:1.6">Apply a case study method to identify the unique attributes of extreme cases. For example, select the top and bottom cases in a distribution and examine their organizational, contextual, or behavioral features in depth. Both options can be used together.</p>
+      </div>
+    </div>
+    <div class="info-box"><strong>A priori vs. post hoc interesting outliers:</strong> An <em>a priori</em> interesting outlier is defined before data collection as a theoretically extreme case of interest. A <em>post hoc</em> interesting outlier is identified during or after data analysis as an unexpected extreme case. Both are valuable, but post hoc classification should be clearly labeled as exploratory.</div>
+    <div class="bad-box"><strong>✘ Incorrect handling to avoid:</strong><br>
+    (1) Treating interesting outliers as errors and deleting them without justification.<br>
+    (2) Investigating whether they affect results (i.e., treating them as influential outliers) without studying what makes them substantively interesting.
+    </div>
+  </div>
+
+  <!-- PANEL C: INFLUENTIAL -->
+  <div class="h-panel" id="hp2">
+    <h2 style="color:#1a3a5c;margin-bottom:8px">Panel C — Influential Outliers</h2>
+    <p style="font-size:.87em;color:#555;margin-bottom:16px">Select your analytic context for context-specific guidance. All three handling options apply to all contexts.</p>
+    <div style="display:flex;gap:8px;margin-bottom:18px;flex-wrap:wrap">
+      <button class="t-btn pri" id="inf-reg" onclick="showInfCtx('reg')">Regression</button>
+      <button class="t-btn" id="inf-sem" onclick="showInfCtx('sem')">SEM</button>
+      <button class="t-btn" id="inf-mlm" onclick="showInfCtx('mlm')">MLM</button>
+    </div>
+    <div id="inf-ctx-box"></div>
+    <hr style="margin:20px 0;border-color:#e0e8f0">
+    <h3>Three Handling Options (All Contexts)</h3>
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:14px;margin-top:12px">
+      <div class="card" style="margin:0;border-left:4px solid #4a9fd4">
+        <h3 style="margin-top:0">Option 1: Respecify the Model</h3>
+        <p style="font-size:.87em;line-height:1.6">Add terms to the model that may account for the outlier's extreme behavior — nonlinear terms, interaction terms (moderators), or cross-level interactions (MLM). <strong>If the added term is theoretically supported, report it in the Future Research section as a potential avenue — not as a confirmed finding.</strong> Respecification capitalizes on chance and should not be used as a primary theory-testing strategy.</p>
+      </div>
+      <div class="card" style="margin:0;border-left:4px solid #e74c3c">
+        <h3 style="margin-top:0">Option 2: Delete the Outlier</h3>
+        <p style="font-size:.87em;line-height:1.6">Remove the case from the analysis. <strong>You MUST report results both with and without the deletion.</strong> If results differ, you must explain why and discuss the implications. Deletion without disclosure suggests you selected the result that favors your hypotheses.</p>
+      </div>
+      <div class="card" style="margin:0;border-left:4px solid #8e44ad">
+        <h3 style="margin-top:0">Option 3: Robust Approaches</h3>
+        <p style="font-size:.87em;line-height:1.6">Use estimation methods that reduce the weight of extreme cases rather than deleting them. See options below. Always report results from both the standard and the robust approach.</p>
+        <div class="robust-grid" style="margin-top:10px">
+          <div class="rg-item"><h4>Least Absolute Deviation (LAD)</h4><p>Minimizes the sum of absolute (not squared) residuals; less sensitive to extreme values.</p></div>
+          <div class="rg-item"><h4>Least Trimmed Squares (LTS)</h4><p>Removes the cases with the highest squared residuals before estimation.</p></div>
+          <div class="rg-item"><h4>M-Estimation</h4><p>Replaces the squared residuals in the objective function with a less rapidly increasing function, reducing outlier influence.</p></div>
+          <div class="rg-item"><h4>Bayesian Statistics</h4><p>Prior information shrinks extreme observations toward the center of the distribution.</p></div>
+          <div class="rg-item"><h4>Two-Stage Robust (SEM/Reg)</h4><p>Computes Mahalanobis distance to identify extreme predictor cases and downweights them in estimation.</p></div>
+          <div class="rg-item"><h4>Iteratively Reweighted Least Squares (SEM)</h4><p>Similar to two-stage robust but uses an iterative IRLS algorithm to achieve robustness.</p></div>
+          <div class="rg-item"><h4>GEE Methods (MLM)</h4><p>Estimates variances and covariances from residuals with weaker distributional assumptions. Approximates random effects only.</p></div>
+          <div class="rg-item"><h4>Bootstrapping (MLM)</h4><p>Does not assume a theoretical sampling distribution. Requires n &gt; 150 for stable estimates.</p></div>
+        </div>
+      </div>
+    </div>
+    <div class="banner"><strong>⚡ Transparency Requirement — Always report results BOTH ways</strong><p>Always present results with <em>and</em> without the handling technique. Provide a clear explanation for any differences in findings. This is the core principle of transparent outlier reporting (Aguinis, 2025) and prevents readers from suspecting that outlier treatment was selected to support the hypotheses.</p></div>
+  </div>
+</div>
+
+<!-- ══════════════════ TAB 5: WRITE METHODS SECTION ══════════════════ -->
+<div class="tab-body" id="t4">
+  <div class="card" style="padding:13px 20px;background:#e8f4fd;border-left:5px solid #4a9fd4;margin-bottom:14px;font-size:.88em">
+    Fill out the form below and click <strong>"Generate Paragraph"</strong> to produce publication-ready text you can copy directly into your manuscript's "Outlier Detection and Management" section.
+  </div>
+  <div class="meth-wrap">
+    <!-- FORM -->
+    <div class="card">
+      <h2>Your Outlier Analysis Details</h2>
+      <div class="fg">
+        <label>Analytic approach used</label>
+        <select id="m-approach" onchange="updateMethodForm()">
+          <option value="regression">Regression (OLS / logistic / etc.)</option>
+          <option value="sem">Structural Equation Modeling (SEM)</option>
+          <option value="mlm">Multilevel Modeling (MLM / HLM)</option>
+          <option value="other">Other</option>
+        </select>
+      </div>
+      <div class="fg">
+        <label>Error outlier identification techniques used</label>
+        <div class="cbg" id="m-errtech">
+          <label><input type="checkbox" value="box plot"> Box plot</label>
+          <label><input type="checkbox" value="stem-and-leaf plot"> Stem-and-leaf plot</label>
+          <label><input type="checkbox" value="standard deviation analysis (±2.24 SD)"> SD analysis (±2.24 SD)</label>
+          <label><input type="checkbox" value="percentage analysis (top/bottom 2.5%)"> Percentage analysis (top/bottom 2.5%)</label>
+          <label><input type="checkbox" value="scatter plot"> Scatter plot</label>
+          <label><input type="checkbox" value="leverage values"> Leverage values</label>
+          <label><input type="checkbox" value="centered leverage values"> Centered leverage values</label>
+          <label><input type="checkbox" value="Mahalanobis distance"> Mahalanobis distance</label>
+          <label><input type="checkbox" value="studentized deleted residuals"> Studentized deleted residuals</label>
+          <label><input type="checkbox" value="deletion standardized multivariate residuals"> Deletion standardized multivariate residuals</label>
+        </div>
+      </div>
+      <div class="fg">
+        <label>Number of error outliers found</label>
+        <input type="number" id="m-nerr" value="0" min="0">
+      </div>
+      <div class="fg">
+        <label>How were they handled?</label>
+        <select id="m-errhandle">
+          <option value="corrected">Corrected to true value</option>
+          <option value="removed">Removed from dataset</option>
+          <option value="both">Some corrected, some removed</option>
+          <option value="none">N/A (no error outliers)</option>
+        </select>
+      </div>
+      <div class="fg">
+        <label>Nature of the errors (brief description)</label>
+        <textarea id="m-errnature" placeholder="e.g., two coding errors in age variable; one case outside target population"></textarea>
+      </div>
+      <div class="fg">
+        <label>Were potential interesting outliers identified?</label>
+        <select id="m-int" onchange="toggleIntSection()">
+          <option value="no">No</option>
+          <option value="yes">Yes</option>
+        </select>
+      </div>
+      <div id="int-section" style="display:none">
+        <div class="fg">
+          <label>How were interesting outliers handled?</label>
+          <select id="m-inthandle">
+            <option value="quant">Studied quantitatively</option>
+            <option value="qual">Studied qualitatively</option>
+            <option value="both">Both quantitative and qualitative</option>
+            <option value="none">Not separately studied</option>
+          </select>
+        </div>
+        <div id="int-warn" class="warn-box" style="display:none;font-size:.82em">⚠ Aguinis (2025) recommends actively studying interesting outliers rather than only examining their influence on results.</div>
+        <div class="fg">
+          <label>Number of interesting outliers studied</label>
+          <input type="number" id="m-nint" value="1" min="0">
+        </div>
+      </div>
+      <div class="fg">
+        <label>Influential outlier identification techniques used</label>
+        <div class="cbg" id="m-inftech">
+          <label><input type="checkbox" value="DFFITSᵢ"> DFFITSᵢ</label>
+          <label><input type="checkbox" value="Cook's Dᵢ"> Cook's Dᵢ</label>
+          <label><input type="checkbox" value="DFBETASᵢⱼ"> DFBETASᵢⱼ</label>
+          <label><input type="checkbox" value="generalized Cook's Dᵢ (gCDᵢ)"> gCDᵢ (SEM)</label>
+          <label><input type="checkbox" value="single parameter influence (Δθ̂ⱼᵢ)"> Δθ̂ⱼᵢ (SEM)</label>
+          <label><input type="checkbox" value="average squared deviation (Cᵢ)"> Cᵢ (MLM)</label>
+          <label><input type="checkbox" value="AIC/BIC comparison"> AIC/BIC change (MLM)</label>
+          <label><input type="checkbox" value="chi-squared difference test"> χ² difference test (SEM)</label>
+        </div>
+      </div>
+      <div class="fg">
+        <label>Number of influential outliers found</label>
+        <input type="number" id="m-ninf" value="0" min="0">
+      </div>
+      <div class="fg">
+        <label>Handling technique used for influential outliers</label>
+        <select id="m-infhandle">
+          <option value="none">N/A (no influential outliers)</option>
+          <option value="respecify">Model respecification</option>
+          <option value="delete">Deletion</option>
+          <option value="robust">Robust estimation approach</option>
+        </select>
+      </div>
+      <div class="fg" id="robust-specify" style="display:none">
+        <label>Which robust approach?</label>
+        <input type="text" id="m-robust" placeholder="e.g., M-estimation, bootstrapping">
+      </div>
+      <div class="fg">
+        <label>Did results differ with vs. without the handling technique?</label>
+        <select id="m-differ" onchange="toggleDiffSection()">
+          <option value="no">No — results were essentially the same</option>
+          <option value="yes">Yes — results differed</option>
+          <option value="na">N/A</option>
+        </select>
+      </div>
+      <div id="diff-section" style="display:none">
+        <div class="fg">
+          <label>Briefly describe the difference</label>
+          <textarea id="m-difftext" placeholder="e.g., the association between X and Y was weaker (β = .12 vs. .28) when the three influential outliers were retained"></textarea>
+        </div>
+      </div>
+      <button class="gen-btn" onclick="generateParagraph()">Generate Paragraph</button>
+    </div>
+    <!-- OUTPUT -->
+    <div class="card">
+      <h2>Generated Methods Paragraph</h2>
+      <div class="out-box" id="m-output">Your paragraph will appear here after you click "Generate Paragraph."</div>
+      <button class="copy-btn" onclick="copyPara()">Copy to Clipboard</button>
+      <p style="font-size:.76em;color:#888;margin-top:6px">Paste directly into your manuscript's Results section under the heading "Outlier Detection and Management."</p>
+    </div>
+  </div>
+
+  <!-- TRANSPARENCY CHECKLIST -->
+  <div class="card" style="margin-top:4px">
+    <h2>Transparency Checklist — Before Submitting Your Manuscript</h2>
+    <p style="font-size:.87em;color:#555;margin-bottom:12px">Check off each item to confirm your outlier reporting meets the standards described in Aguinis (2025).</p>
+    <ul class="trans-list" id="trans-list">
+      <li id="tl1"><input type="checkbox" onchange="tlToggle(this,'tl1')"><label>I defined the type of outlier I was looking for <em>before</em> identifying it</label></li>
+      <li id="tl2"><input type="checkbox" onchange="tlToggle(this,'tl2')"><label>My identification technique is <em>congruent</em> with my outlier definition (e.g., I did not use SD analysis to detect influential outliers)</label></li>
+      <li id="tl3"><input type="checkbox" onchange="tlToggle(this,'tl3')"><label>I used both <em>single-construct</em> and <em>multiple-construct</em> identification techniques for error/interesting outliers</label></li>
+      <li id="tl4"><input type="checkbox" onchange="tlToggle(this,'tl4')"><label>I used <em>context-appropriate</em> identification techniques for influential outliers: DFFITSᵢ / Cook's D / DFBETASᵢⱼ (regression); gCDᵢ and Δθ̂ⱼᵢ (SEM); Cᵢ (MLM)</label></li>
+      <li id="tl5"><input type="checkbox" onchange="tlToggle(this,'tl5')"><label>I <em>verified the cause</em> of each flagged data point before classifying it as an error outlier</label></li>
+      <li id="tl6"><input type="checkbox" onchange="tlToggle(this,'tl6')"><label>I considered whether flagged cases might be <em>interesting outliers</em> worth studying</label></li>
+      <li id="tl7"><input type="checkbox" onchange="tlToggle(this,'tl7')"><label>I reported results <em>both with and without</em> any outlier handling technique</label></li>
+      <li id="tl8"><input type="checkbox" onchange="tlToggle(this,'tl8')"><label>I explained any <em>differences in results</em> across the two versions</label></li>
+      <li id="tl9"><input type="checkbox" onchange="tlToggle(this,'tl9')"><label>I included a dedicated <strong>"Outlier Detection and Management"</strong> description in my manuscript's Results section</label></li>
+    </ul>
+    <div id="trans-progress" style="margin-top:12px;font-size:.86em;color:#1a3a5c;font-weight:600"></div>
+  </div>
+</div>
+
+<!-- ══════════════════ SCRIPTS ══════════════════ -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
+<script>
+/* ─── TAB SWITCHING ─── */
+function showTab(i){
+  document.querySelectorAll('.tab-body').forEach((t,j)=>t.classList.toggle('on',j===i));
+  document.querySelectorAll('.tb').forEach((t,j)=>t.classList.toggle('on',j===i));
+}
+/* ─── HANDLE PANEL SWITCHING ─── */
+function showHPanel(i){
+  document.querySelectorAll('.h-panel').forEach((p,j)=>p.classList.toggle('on',j===i));
+  document.querySelectorAll('.h-tab').forEach((t,j)=>t.classList.toggle('on',j===i));
+}
+/* ─── INF CONTEXT SWITCHING ─── */
+const infContent={
+  reg:`<div class="info-box"><strong>Regression — Model Fit Outliers:</strong> Remove each remaining candidate case and check whether R² changes substantially. A meaningful drop suggests the case is a model fit outlier.</div>
+       <div class="info-box"><strong>Regression — Prediction Outliers:</strong> Compute DFFITSᵢ (cutoff: ±2√((k+1)/n)), Cook's Dᵢ (cutoff: compare to F distribution, df=(k+1, n−k−1), α=.50), and DFBETASᵢⱼ (cutoff: ±2/√n). Use the Cutoffs Calculator in Tab 3 for exact values. Create an index plot of each statistic — cases exceeding the cutoff are prediction outliers.</div>`,
+  sem:`<div class="info-box"><strong>SEM — Model Fit Outliers:</strong> Remove each candidate case and compare χ², CFI, and RMSEA to the full-sample values. A meaningful change in fit indices indicates a model fit outlier.</div>
+       <div class="info-box"><strong>SEM — Prediction Outliers:</strong> Compute the generalized Cook's Dᵢ (gCDᵢ) for global prediction influence (available in R via the <code>semdiag</code> package). For influence on specific parameters, compute single parameter influence Δθ̂ⱼᵢ for each parameter j and each case i. Create index plots; flag cases that stand out from the bulk of the distribution.</div>`,
+  mlm:`<div class="info-box"><strong>MLM — Top-Down Approach:</strong> Begin at the highest level (e.g., organizations). Remove each highest-level unit and check whether AIC and BIC change substantially — these are model fit outliers at Level 2. Then, within identified outlier groups, apply regression-level prediction diagnostics (DFFITSᵢ, Cook's Dᵢ, DFBETASᵢⱼ) for Level 1 units.</div>
+       <div class="info-box"><strong>MLM — Prediction Outliers:</strong> Compute the average squared deviation (Cᵢ) for each highest-level group j. Cᵢ captures combined influence on both fixed and random parameters. Use an index plot; consult software implementations in MLwiN, R, or Stata. Also compute deletion standardized multivariate residuals for Level 2 units (cutoff: χ²(df=n_j, α/J)).</div>`
+};
+function showInfCtx(ctx){
+  ['reg','sem','mlm'].forEach(c=>{
+    document.getElementById('inf-'+c).classList.toggle('pri',c===ctx);
+  });
+  document.getElementById('inf-ctx-box').innerHTML=infContent[ctx]||'';
+}
+/* ─── TECHNIQUES DATA (39 entries) ─── */
+const TECHS=[
+ // Single-construct
+ {n:"Box plot",cat:"Single-construct",d:"Visual display of median, quartiles, and whiskers; cases beyond whiskers are flagged.",type:["error"],ctx:["general"]},
+ {n:"Stem-and-leaf plot",cat:"Single-construct",d:"Visual display similar to histogram; distant cases on the 'leaves' are flagged.",type:["error"],ctx:["general"]},
+ {n:"Schematic plot analysis",cat:"Single-construct",d:"Like a box plot applied to effect sizes; used to flag outlying studies in meta-analyses.",type:["error"],ctx:["meta"]},
+ {n:"Standard deviation (SD) analysis",cat:"Single-construct",d:"Flag cases beyond ±2.24 SD from the mean (two-tailed α = .05, assuming normality).",type:["error"],ctx:["general"]},
+ {n:"Percentage analysis",cat:"Single-construct",d:"Flag cases in the top 2.5% and bottom 2.5% of a distribution (two-tailed α = .05).",type:["error"],ctx:["general"]},
+ // Multiple-construct
+ {n:"Scatter plot",cat:"Multiple-construct",d:"Visual display of two variables; isolated points or nonlinear trends signal potential outliers.",type:["error"],ctx:["general"]},
+ {n:"q-q plot (quantile-quantile)",cat:"Multiple-construct",d:"Plots sample quantiles vs. theoretical quantiles; deviations from the diagonal indicate outliers.",type:["error"],ctx:["general"]},
+ {n:"p-p plot (probability-probability)",cat:"Multiple-construct",d:"Plots cumulative probabilities of sample vs. theoretical distribution; departures signal outliers.",type:["error"],ctx:["general"]},
+ {n:"Standardized residual",cat:"Multiple-construct",d:"Measures residual outlyingness only (not predictor outlyingness). Less preferred than studentized deleted residual.",type:["error"],ctx:["regression","sem"]},
+ {n:"Studentized residual",cat:"Multiple-construct",d:"Measures both residual and predictor outlyingness; better than standardized residual.",type:["error"],ctx:["regression"]},
+ {n:"Standardized deleted residual",cat:"Multiple-construct",d:"Like standardized residual but the focal case is excluded from the calculation.",type:["error"],ctx:["regression"]},
+ {n:"Studentized deleted residual (jackknife)",cat:"Multiple-construct",d:"Preferred residual-based technique. Excludes the focal case from both coefficient and SE estimation. Also called externally studentized residual.",type:["error"],ctx:["regression","sem"]},
+ {n:"Euclidean distance",cat:"Multiple-construct",d:"Geometric distance between two points in multivariate space. Simple but does not correct for variable correlations.",type:["error"],ctx:["general"]},
+ {n:"Mahalanobis distance",cat:"Multiple-construct",d:"Distance from the multivariate centroid, correcting for correlations among predictors. Preferred over Euclidean distance.",type:["error"],ctx:["regression","sem","mlm"]},
+ {n:"K-clustering / hat matrix",cat:"Multiple-construct",d:"Identifies candidate subsets for multi-case outlier diagnostics using clustering or hat matrix rows.",type:["error"],ctx:["regression"]},
+ {n:"2D/3D plots of principal components",cat:"Multiple-construct",d:"Projects data onto principal component axes; isolated points in 2D or 3D space are potential outliers.",type:["error"],ctx:["general"]},
+ {n:"Autocorrelation function (ACF) plot",cat:"Multiple-construct",d:"Time series technique; large spikes in the ACF indicate potential outliers disrupting temporal structure.",type:["error"],ctx:["timeseries"]},
+ {n:"Time plot",cat:"Multiple-construct",d:"Plots values against time; isolated spikes or dips are potential time-series outliers.",type:["error"],ctx:["timeseries"]},
+ {n:"Extreme studentized deviate (Grubbs)",cat:"Multiple-construct",d:"Grubbs statistic = (mean − query value) / SD. Tests whether the most extreme case is a significant outlier.",type:["error"],ctx:["general"]},
+ {n:"Hosmer-Lemeshow goodness-of-fit",cat:"Multiple-construct",d:"Chi-square test based on observed vs. expected frequencies; used in logistic regression to flag outlying cases.",type:["error"],ctx:["regression"]},
+ {n:"Leverage values",cat:"Multiple-construct",d:"Diagonal of the hat matrix (hᵢᵢ). Measures predictor-space outlyingness. Cutoffs: 2(k+1)/n (large samples), 3(k+1)/n (small samples).",type:["error","prediction"],ctx:["regression","sem"]},
+ {n:"Centered leverage values",cat:"Multiple-construct",d:"Centered version of leverage; reported by SPSS. Cutoffs: 2k/n (large), 3k/n (small).",type:["error","prediction"],ctx:["regression"]},
+ {n:"Deletion standardized multivariate residual",cat:"Multiple-construct",d:"Used in MLM to detect Level-2 (group-level) outliers. Cutoff: χ²(df = n_j, α/J).",type:["error","prediction"],ctx:["mlm"]},
+ // Influence techniques
+ {n:"Cook's Dᵢ",cat:"Influence",d:"Global influence of case i on all regression coefficients. Cutoff: compare to F distribution, df=(k+1, n−k−1) at α=.50 (the median F value).",type:["prediction"],ctx:["regression"]},
+ {n:"Modified Cook's Dᵢ",cat:"Influence",d:"Like Cook's Dᵢ but uses standardized deleted residuals (rather than standardized residuals) for greater accuracy.",type:["prediction"],ctx:["regression"]},
+ {n:"Generalized Cook's Dᵢ (gCDᵢ)",cat:"Influence",d:"SEM equivalent of Cook's D. Measures the global influence of case i on all model parameters simultaneously. Available in R (semdiag).",type:["prediction"],ctx:["sem"]},
+ {n:"DFFITSᵢ",cat:"Influence",d:"Scaled difference in fitted value when case i is removed. Cutoff: ±2√((k+1)/n). Measures global prediction influence.",type:["prediction"],ctx:["regression"]},
+ {n:"DFBETASᵢⱼ",cat:"Influence",d:"Scaled change in coefficient j when case i is removed. Cutoff: ±2/√n. Measures specific influence on one coefficient.",type:["prediction"],ctx:["regression"]},
+ {n:"Chi-squared difference test",cat:"Influence",d:"SEM model fit comparison. Remove case i; test whether Δχ² is significant. Used to detect model fit outliers.",type:["modelfit"],ctx:["sem"]},
+ {n:"Single parameter influence (Δθ̂ⱼᵢ)",cat:"Influence",d:"SEM: change in a specific parameter θⱼ when case i is removed. Analogous to DFBETASᵢⱼ in regression.",type:["prediction"],ctx:["sem"]},
+ {n:"Average squared deviation (Cᵢ)",cat:"Influence",d:"MLM: combined influence of group j on both fixed and random parameter estimates. Create an index plot to identify outlying groups.",type:["prediction"],ctx:["mlm"]},
+ {n:"SAMD (Sample-Adjusted Meta-Analytic Deviancy)",cat:"Influence",d:"Meta-analysis: measures how much a study deviates from the sample-adjusted mean effect size.",type:["prediction"],ctx:["meta"]},
+ {n:"Analysis with and without",cat:"Influence",d:"Run the analysis including and excluding the candidate case. If results change substantially, the case is influential.",type:["modelfit","prediction"],ctx:["general"]},
+ {n:"Nearest neighbor techniques",cat:"Influence",d:"K-nearest, PAM, CLARANS, dragon method. Cases far from their nearest neighbors are potential outliers.",type:["error"],ctx:["general"]},
+ {n:"Nonparametric methods",cat:"Influence",d:"Smoothed curves fitted to data; cases far from the smoothed curve (lack of linear trend) signal potential outliers.",type:["error"],ctx:["general"]},
+ {n:"Parametric methods",cat:"Influence",d:"Convex peeling, ellipsoidal peeling, iterative deletion, trimming, LMS, LTS, M-estimation. Multiple approaches for outlier-robust estimation.",type:["error","prediction"],ctx:["regression"]},
+ {n:"Semiparametric methods",cat:"Influence",d:"Kernel-based density estimation; cases in low-density regions of the distribution are flagged as potential outliers.",type:["error"],ctx:["general"]},
+ {n:"Iterative outlier identification",cat:"Influence",d:"Time-series technique. Iteratively estimates residual SD, flags cases exceeding the threshold, reestimates, and repeats.",type:["error"],ctx:["timeseries"]},
+ {n:"Independent component analysis (ICA)",cat:"Influence",d:"Time-series technique. Maximizes statistical independence of components; outlying components signal time-series anomalies.",type:["error"],ctx:["timeseries"]},
+];
+function filterTech(){
+  const q=document.getElementById('tech-search').value.toLowerCase();
+  const ctx=document.getElementById('tech-ctx').value;
+  const typ=document.getElementById('tech-type').value;
+  let shown=0;
+  document.querySelectorAll('#tech-tbody tr').forEach(r=>{
+    const match=(!q||r.dataset.name.includes(q)||r.dataset.desc.includes(q))&&
+                 (!ctx||r.dataset.ctx.includes(ctx))&&
+                 (!typ||r.dataset.type.includes(typ));
+    r.style.display=match?'':'none';
+    if(match)shown++;
+  });
+  document.getElementById('no-tech').style.display=shown?'none':'block';
+}
+function buildTechTable(){
+  const tb=document.getElementById('tech-tbody');
+  tb.innerHTML='';
+  const typeLabel={error:'<span class="badge b-err">Error/Interesting</span>',modelfit:'<span class="badge b-mf">Infl. — Model Fit</span>',prediction:'<span class="badge b-pred">Infl. — Prediction</span>'};
+  const ctxLabel={regression:'Regression',sem:'SEM',mlm:'MLM',meta:'Meta-Analysis',timeseries:'Time Series',general:'General'};
+  TECHS.forEach((t,i)=>{
+    const tr=document.createElement('tr');
+    tr.dataset.name=(t.n+' '+t.d).toLowerCase();
+    tr.dataset.desc=t.d.toLowerCase();
+    tr.dataset.ctx=t.ctx.join(',');
+    tr.dataset.type=t.type.join(',');
+    tr.innerHTML=`<td>${i+1}</td><td><strong>${t.n}</strong></td><td><small>${t.cat}</small></td><td style="max-width:340px">${t.d}</td><td>${t.type.map(x=>typeLabel[x]||'').join('')}</td><td>${t.ctx.map(c=>'<small>'+ctxLabel[c]+'</small>').join(', ')}</td>`;
+    tb.appendChild(tr);
+  });
+}
+
+/* ─── CHECKLIST HELPERS ─── */
+function ckToggle(cb,id){document.getElementById(id).classList.toggle('ck',cb.checked)}
+function tlToggle(cb,id){
+  document.getElementById(id).classList.toggle('ck',cb.checked);
+  updateTransProgress();
+}
+function updateTransProgress(){
+  const total=document.querySelectorAll('.trans-list input').length;
+  const done=document.querySelectorAll('.trans-list input:checked').length;
+  document.getElementById('trans-progress').textContent=done===total?`✔ All ${total} items checked — your manuscript is transparent!`:`${done}/${total} items checked`;
+}
+
+/* ─── STATISTICAL FUNCTIONS ─── */
+function lnGamma(x){
+  const g=7,c=[0.99999999999980993,676.5203681218851,-1259.1392167224028,771.32342877765313,-176.61502916214059,12.507343278686905,-0.13857109526572012,9.9843695780195716e-6,1.5056327351493116e-7];
+  if(x<0.5)return Math.log(Math.PI/Math.sin(Math.PI*x))-lnGamma(1-x);
+  x-=1;let a=c[0];const t=x+g+0.5;
+  for(let i=1;i<g+2;i++)a+=c[i]/(x+i);
+  return 0.5*Math.log(2*Math.PI)+(x+0.5)*Math.log(t)-t+Math.log(a);
+}
+function betaInc(x,a,b){
+  if(x<=0)return 0;if(x>=1)return 1;
+  if(x>(a+1)/(a+b+2))return 1-betaInc(1-x,b,a);
+  const lbeta=lnGamma(a)+lnGamma(b)-lnGamma(a+b);
+  const front=Math.exp(a*Math.log(x)+b*Math.log(1-x)-lbeta)/a;
+  const FPMIN=1e-30;
+  let c2=1,d=1-(a+b)*x/(a+1);
+  if(Math.abs(d)<FPMIN)d=FPMIN;d=1/d;let h=d;
+  for(let m=1;m<=200;m++){
+    let m2=2*m;
+    let aa=m*(b-m)*x/((a+m2-1)*(a+m2));
+    d=1+aa*d;if(Math.abs(d)<FPMIN)d=FPMIN;
+    c2=1+aa/c2;if(Math.abs(c2)<FPMIN)c2=FPMIN;
+    d=1/d;h*=d*c2;
+    aa=-(a+m)*(a+b+m)*x/((a+m2)*(a+m2+1));
+    d=1+aa*d;if(Math.abs(d)<FPMIN)d=FPMIN;
+    c2=1+aa/c2;if(Math.abs(c2)<FPMIN)c2=FPMIN;
+    d=1/d;const del=d*c2;h*=del;
+    if(Math.abs(del-1)<1e-10)break;
+  }
+  return front*h;
+}
+function erf(x){
+  const t=1/(1+0.3275911*Math.abs(x));
+  const y=1-(((((1.061405429*t-1.453152027)*t)+1.421413741)*t-0.284496736)*t+0.254829592)*t*Math.exp(-x*x);
+  return x>=0?y:-y;
+}
+function normInv(p){
+  const a=[-3.969683028665376e+01,2.209460984245205e+02,-2.759285104469687e+02,1.383577518672690e+02,-3.066479806614716e+01,2.506628277459239e+00];
+  const b=[-5.447609879822406e+01,1.615858368580409e+02,-1.556989798598866e+02,6.680131188771972e+01,-1.328068155288572e+01];
+  const c=[-7.784894002430293e-03,-3.223964580411365e-01,-2.400758277161838e+00,-2.549732539343734e+00,4.374664141464968e+00,2.938163982698783e+00];
+  const d=[7.784695709041462e-03,3.224671290700398e-01,2.445134137142996e+00,3.754408661907416e+00];
+  const plo=0.02425,phi=1-plo;let q,r;
+  if(p<plo){q=Math.sqrt(-2*Math.log(p));return(((((c[0]*q+c[1])*q+c[2])*q+c[3])*q+c[4])*q+c[5])/((((d[0]*q+d[1])*q+d[2])*q+d[3])*q+1);}
+  else if(p<=phi){q=p-0.5;r=q*q;return(((((a[0]*r+a[1])*r+a[2])*r+a[3])*r+a[4])*r+a[5])*q/(((((b[0]*r+b[1])*r+b[2])*r+b[3])*r+b[4])*r+1);}
+  else{q=Math.sqrt(-2*Math.log(1-p));return-(((((c[0]*q+c[1])*q+c[2])*q+c[3])*q+c[4])*q+c[5])/((((d[0]*q+d[1])*q+d[2])*q+d[3])*q+1);}
+}
+function chiSqInv(p,df){
+  if(df<=0||p<=0)return 0;if(p>=1)return Infinity;
+  const z=normInv(p),h=2/(9*df);
+  return Math.max(0,df*Math.pow(1-h+z*Math.sqrt(h),3));
+}
+function tCDF(t,df){
+  const x=df/(df+t*t);const p=0.5*betaInc(x,df/2,0.5);return t>=0?1-p:p;
+}
+function tInv(p,df){
+  if(p<=0)return -1e9;if(p>=1)return 1e9;if(p===0.5)return 0;
+  let lo=-500,hi=500;
+  for(let i=0;i<80;i++){const mid=(lo+hi)/2;if(tCDF(mid,df)<p)lo=mid;else hi=mid;if(hi-lo<1e-9)break;}
+  return(lo+hi)/2;
+}
+function fCDF(f,d1,d2){
+  if(f<=0)return 0;const x=d1*f/(d1*f+d2);return betaInc(x,d1/2,d2/2);
+}
+function fInv(p,d1,d2){
+  if(p<=0)return 0;if(p>=1)return 1e9;
+  let lo=0,hi=Math.max(chiSqInv(p,d1)/d1*5,20);
+  while(fCDF(hi,d1,d2)<p)hi*=2;
+  for(let i=0;i<100;i++){const mid=(lo+hi)/2;if(fCDF(mid,d1,d2)<p)lo=mid;else hi=mid;if(hi-lo<1e-9)break;}
+  return(lo+hi)/2;
+}
+function fmt(v,dec=4){return isNaN(v)||!isFinite(v)?'—':v.toFixed(dec);}
+
+/* ─── CUTOFF CALCULATOR ─── */
+function calcCutoffs(){
+  const n=parseInt(document.getElementById('ci-n').value)||150;
+  const k=parseInt(document.getElementById('ci-k').value)||3;
+  const alpha=parseFloat(document.getElementById('ci-alpha').value)||.05;
+  const ctx=document.getElementById('ci-ctx').value;
+  const isMLM=ctx==='mlm';
+  document.getElementById('mlm-extra').style.display=isMLM?'block':'none';
+  const J=isMLM?(parseInt(document.getElementById('ci-J').value)||30):1;
+  const nj=isMLM?(parseInt(document.getElementById('ci-nj').value)||5):1;
+  const p=k; // p = number of predictors = k
+  const aOverN=alpha/n;
+  const large=n>50;
+
+  // Leverage
+  const levL=2*(k+1)/n, levS=3*(k+1)/n;
+  // Centered leverage
+  const clevL=2*k/n, clevS=3*k/n;
+  // DFFITSi
+  const dffits=2*Math.sqrt((k+1)/n);
+  // DFBETASij
+  const dfbetas=2/Math.sqrt(n);
+  // Cook's D cutoff (median of F(k+1, n-k-1))
+  const cookF=n-k-1>0?fInv(0.50,k+1,n-k-1):NaN;
+  // Studentized deleted residuals (two-tailed Bonferroni)
+  const df_t=n-k-1;
+  const t_05=df_t>0?tInv(1-aOverN/2,df_t):NaN;
+  const t_01=df_t>0?tInv(1-(alpha*.01/alpha)/n/2,df_t):NaN; // at alpha=.01
+  const t_05n=df_t>0?tInv(1-(.05/n)/2,df_t):NaN;
+  const t_01n=df_t>0?tInv(1-(.01/n)/2,df_t):NaN;
+  // Mahalanobis large-sample (chi-square)
+  const mah_chi05=chiSqInv(1-.05/n,p);
+  const mah_chi01=chiSqInv(1-.01/n,p);
+  // Mahalanobis small-sample (F-based)
+  function mahF(al){
+    const fval=n-p-1>0?fInv(1-al/n,p,n-p-1):NaN;
+    return p*Math.pow(n-1,2)*fval/(n*(n-p-1+p*fval));
+  }
+  const mah_f05=mahF(.05);
+  const mah_f01=mahF(.01);
+  // MLM deletion standardized multivariate residual
+  const mlm_chi05=isMLM?chiSqInv(1-.05/J,nj):NaN;
+  const mlm_chi01=isMLM?chiSqInv(1-.01/J,nj):NaN;
+
+  const cards=[
+    {h:'SD Analysis',fm:'±2.24 SD (fixed)',vals:[{l:'Cutoff',v:'±2.24 SD (fixed)'}],cn:'Assumes approximately normal distribution. Cases beyond ±2.24 SD are flagged (α = .05, two-tailed).',sw:'Any statistical software; SPSS: Explore → Boxplot; R: scale()'},
+    {h:'Percentage Analysis',fm:'Top/Bottom 2.5%',vals:[{l:'Flag',v:'Top 2.5% and bottom 2.5%'}],cn:'Cases in the most extreme 2.5% on each tail (α = .05, two-tailed). No computation needed — simply rank cases.',sw:'Any software'},
+    {h:'Leverage Values (hᵢᵢ)',fm:`2(k+1)/n = ${fmt(levL,4)} (large-n)\n3(k+1)/n = ${fmt(levS,4)} (small-n)`,vals:[{l:large?'Cutoff (large n)':'Cutoff (small n)',v:fmt(large?levL:levS,4)},{l:'Other size',v:fmt(large?levS:levL,4)}],cn:`Large-sample cutoff (n > 50): 2(k+1)/n. Small-sample cutoff (n ≤ 50): 3(k+1)/n. Cases above the cutoff have predictor-space outlyingness.`,sw:'R: hatvalues(model); SPSS: Regression → Save → Leverage; SAS: PROC REG / option INFLUENCE'},
+    {h:'Centered Leverage',fm:`2k/n = ${fmt(clevL,4)} (large-n)\n3k/n = ${fmt(clevS,4)} (small-n)`,vals:[{l:large?'Cutoff (large n)':'Cutoff (small n)',v:fmt(large?clevL:clevS,4)},{l:'Other size',v:fmt(large?clevS:clevL,4)}],cn:'Centered version of leverage; reported by SPSS as "Leverage Value" after centering. Same interpretation.',sw:'SPSS: Regression → Save → Leverage (centered)'},
+    {h:'Mahalanobis Distance',fm:`χ²(df=${p}, α/n) [large-n]\nF-based formula [small-n]`,vals:[{l:'χ² cutoff (α=.05)',v:fmt(mah_chi05,3)},{l:'χ² cutoff (α=.01)',v:fmt(mah_chi01,3)},{l:'F-based cutoff (α=.05)',v:fmt(mah_f05,3)},{l:'F-based cutoff (α=.01)',v:fmt(mah_f01,3)}],cn:`p = number of variables = k = ${k}. Bonferroni-corrected (α/n). Large-sample: compare to χ²(df=p). Small-sample: use F-based formula from Aguinis (2025).`,sw:'R: mahalanobis(); SPSS: Regression → Save → Mahalanobis Distance; SAS: PROC ROBUSTREG'},
+    {h:'Studentized Deleted Residuals',fm:`t(df=${Math.max(df_t,0)}, α/n) — Bonferroni`,vals:[{l:'Cutoff (α=.05)',v:`±${fmt(t_05n,3)}`},{l:'Cutoff (α=.01)',v:`±${fmt(t_01n,3)}`}],cn:`df = n − k − 1 = ${df_t}. Bonferroni correction divides α by n. Cases outside the cutoff have large residuals relative to the model fitted without them.`,sw:'R: rstudent(model); SPSS: Regression → Save → Studentized Deleted Residuals; SAS: r.student'},
+    {h:'DFFITSᵢ',fm:`±2√((k+1)/n) = ±${fmt(dffits,4)}`,vals:[{l:'Cutoff',v:`±${fmt(dffits,4)}`}],cn:'Cases exceeding this cutoff have global influence on the predicted values. Values can be positive or negative.',sw:'R: dffits(model); SAS: PROC REG / DFFITS; available in most regression software'},
+    {h:"Cook's Dᵢ",fm:`F(df₁=${k+1}, df₂=${Math.max(n-k-1,1)}) at α=.50`,vals:[{l:'Cutoff (F median)',v:fmt(cookF,4)}],cn:`Cases with Cook's D exceeding the median of F(${k+1}, ${Math.max(n-k-1,1)}) are influential. This is a significance-based threshold — not a fixed constant.`,sw:"R: cooks.distance(model); SPSS: Regression → Save → Cook's D; SAS: PROC REG / COOKD"},
+    {h:'DFBETASᵢⱼ',fm:`±2/√n = ±${fmt(dfbetas,4)}`,vals:[{l:'Cutoff',v:`±${fmt(dfbetas,4)}`}],cn:`Measures the influence of case i on a SPECIFIC coefficient j. Computed separately for each predictor. Cases exceeding the cutoff substantially change coefficient j when removed.`,sw:'R: dfbetas(model); SAS: PROC REG / DFBETAS; available in most regression packages'},
+  ];
+  if(isMLM){
+    cards.push({h:'MLM Deletion Std. Multivariate Residual',fm:`χ²(df=n_j=${nj}, α/J)`,vals:[{l:'Cutoff (α=.05)',v:fmt(mlm_chi05,3)},{l:'Cutoff (α=.01)',v:fmt(mlm_chi01,3)}],cn:`For each group j with n_j = ${nj} members. Bonferroni-corrected by number of groups J = ${J}. Cutoff: χ²(df=${nj}) at α/J = ${fmt(.05/J,5)}.`,sw:'MLwiN; R (nlme/lme4 with custom diagnostics); Stata'});
+  }
+  if(ctx==='sem'){
+    cards.push({h:'gCDᵢ — Generalized Cook\'s D (SEM)',fm:'Index plot; flag cases that stand out',vals:[{l:'Decision rule',v:'Visual index plot'}],cn:'No closed-form cutoff. Compute gCDᵢ for all cases, plot against case number, and flag cases that stand clearly apart from the bulk of the distribution.',sw:"R: semdiag package (Zhu et al., 2012); Mplus does not compute this natively"});
+  }
+
+  const grid=document.getElementById('cutoff-grid');
+  grid.innerHTML='<div class="cg">'+cards.map(c=>`
+    <div class="cc">
+      <h4>${c.h}</h4>
+      <span class="fm">${c.fm.replace(/\n/g,'<br>')}</span>
+      ${c.vals.map(v=>`<div><span style="font-size:.78em;color:#888">${v.l}:</span> <span class="val2">${v.v}</span></div>`).join('')}
+      <div class="cn">${c.cn}</div>
+      <div class="sw"><strong>Software:</strong> ${c.sw}</div>
+    </div>`).join('')+'</div>';
+}
+
+/* ─── DECISION TREE ─── */
+const TREE_STEPS=[
+  {id:'approach',phase:'Setup',title:'Select Your Analytic Approach',desc:'Your approach determines which influential outlier techniques and cutoffs are relevant. This choice customizes guidance throughout the tool.',type:'choice',
+   opts:[{l:'Regression (OLS, logistic, etc.)',v:'regression',next:'err1'},{l:'Structural Equation Modeling (SEM)',v:'sem',next:'err1'},{l:'Multilevel Modeling (MLM/HLM)',v:'mlm',next:'err1'},{l:'Other / Not decided yet',v:'other',next:'err1'}]},
+  {id:'err1',phase:'Phase 1 — Error Outliers',title:'Step 1: Apply Identification Techniques',type:'info',
+   content:`<div class="info-box"><strong>Use single-construct techniques:</strong> Apply a box plot and SD analysis (flag beyond ±2.24 SD) or percentage analysis (flag top/bottom 2.5%) to each variable. These flag univariate extreme cases.</div>
+   <div class="info-box"><strong>Use multiple-construct techniques:</strong> Apply a scatter plot or q-q plot visually. Then compute (a) leverage values or Mahalanobis distance for predictor-space outlyingness, and (b) studentized deleted residuals for residual outlyingness. Use the <strong>Cutoffs Calculator</strong> (Tab 3) to determine your exact cutoffs.</div>
+   <div class="warn-box"><strong>Key principle — Congruence:</strong> The identification technique must match your definition of the outlier. For error outliers, single-construct and distance-based techniques are appropriate. Do not use influence statistics (Cook's D, DFFITSᵢ) to detect error outliers.</div>`,
+   next:'err2'},
+  {id:'err2',phase:'Phase 1 — Error Outliers',title:'Step 2: Did any cases exceed the cutoffs?',type:'choice',
+   opts:[{l:'Yes — one or more cases are flagged',v:'yes',next:'err3'},{l:'No — no cases exceeded cutoffs',next:'int1'}]},
+  {id:'err3',phase:'Phase 1 — Error Outliers',title:'Step 3: Investigate Each Flagged Case',desc:'For each flagged case, ask: Is there an identifiable data error that explains why this case is extreme?',type:'choice',
+   opts:[{l:'✔ Yes — confirmed data error (coding, entry, wrong population, impossible value)',v:'yes',next:'err-handle'},{l:'✘ No — cannot confirm a data error',v:'no',next:'int-flag'},{l:'→ Done investigating all flagged cases',next:'int1'}]},
+  {id:'err-handle',phase:'Phase 1 — Error Outliers',title:'Handle the Error Outlier',type:'action',
+   content:`<div class="good-box"><strong>Action 1:</strong> Correct the value to its true value if possible (e.g., contact the respondent, check original source data), OR remove the case from the dataset.</div>
+   <div class="good-box"><strong>Action 2:</strong> Document the nature of the error for your manuscript: Was it a coding error? Data entry error? Case from the wrong population? Impossible value?</div>
+   <div class="warn-box"><strong>IRB note:</strong> If your protocol requires anonymization, keep data collection diaries to enable retrospective investigation.</div>`,
+   next:'err3',nextLabel:'Check next case'},
+  {id:'int-flag',phase:'Phase 2 — Interesting Outliers',title:'Potential Interesting Outlier Noted',type:'info',
+   content:`<div class="info-box">This case could not be confirmed as an error. It becomes a <strong>potential interesting outlier</strong>. Continue investigating all other flagged cases — then assess interesting outliers as a group.</div>`,
+   next:'err3',nextLabel:'Back to investigate next flagged case'},
+  {id:'int1',phase:'Phase 2 — Interesting Outliers',title:'Assess Interesting Outliers',desc:'Any flagged case that was NOT confirmed as a data error is a potential interesting outlier. Interesting outliers may contain valuable substantive knowledge.',type:'choice',
+   opts:[{l:'I have potential interesting outliers to assess',v:'yes',next:'int2'},{l:'No potential interesting outliers identified',next:'inf1'}]},
+  {id:'int2',phase:'Phase 2 — Interesting Outliers',title:'Is this case an actual interesting outlier?',desc:'Does this case contain unexpected or extreme substantive behavior that goes beyond the current theoretical framework and could itself be worth studying?',type:'choice',
+   opts:[{l:'✔ Yes — substantively interesting',v:'yes',next:'int-handle'},{l:'✘ No — not substantively interesting',v:'no',next:'int3'},{l:'→ Done assessing all potential interesting outliers',next:'inf1'}]},
+  {id:'int-handle',phase:'Phase 2 — Interesting Outliers',title:'Study the Interesting Outlier',type:'action',
+   content:`<div class="good-box"><strong>Quantitative approach:</strong> Compare the interesting outlier(s) to non-outliers on theoretically relevant characteristics. Use statistical tests to identify what distinguishes them.</div>
+   <div class="good-box"><strong>Qualitative approach:</strong> Use a case study approach to examine the unique attributes of the extreme case in depth. Both approaches can be combined.</div>
+   <div class="bad-box"><strong>Do NOT simply delete interesting outliers.</strong> Interesting outliers may represent the most important cases in your sample — cases that existing theory cannot explain and that deserve focused investigation.</div>`,
+   next:'int2',nextLabel:'Assess next case'},
+  {id:'int3',phase:'Phase 2 — Interesting Outliers',title:'Case Not Interesting — Continue',type:'info',
+   content:`<div class="info-box">This case is not a confirmed error and not substantively interesting. It remains a candidate for assessment as a potential <strong>influential outlier</strong>. Continue assessing other potential interesting outliers, then proceed to Phase 3.</div>`,
+   next:'int2',nextLabel:'Assess next potential interesting outlier'},
+  {id:'inf1',phase:'Phase 3 — Influential Outliers',title:'Step 1: Check for Model Fit Outliers',type:'info',
+   content:`<div id="inf1-ctx"></div>
+   <div class="warn-box"><strong>What to do:</strong> For each remaining candidate case (not confirmed as error or interesting), temporarily remove it from the dataset and refit the model. If model fit changes substantially, it is a model fit outlier.</div>`,
+   next:'inf2'},
+  {id:'inf2',phase:'Phase 3 — Influential Outliers',title:'Step 2: Did removal change model fit?',type:'choice',
+   opts:[{l:'Yes — model fit changed substantially',v:'yes',next:'inf-mf'},{l:'No — model fit unchanged',next:'inf3'}]},
+  {id:'inf-mf',phase:'Phase 3 — Influential Outliers',title:'Model Fit Outlier — Handle It',type:'action',
+   content:`<div class="good-box">This case is an influential outlier affecting model fit. Proceed to handling options:<br>
+   (1) <strong>Respecify</strong> the model (add terms to explain the outlier's behavior)<br>
+   (2) <strong>Delete</strong> the case (and report results both with and without)<br>
+   (3) Use a <strong>robust estimation approach</strong></div>
+   <div class="banner" style="margin-top:10px"><strong>Always report results with AND without</strong><p>This is the transparency requirement. Results must be compared and any differences explained.</p></div>`,
+   next:'inf3',nextLabel:'Proceed to prediction diagnostics'},
+  {id:'inf3',phase:'Phase 3 — Influential Outliers',title:'Step 3: Apply Prediction Diagnostics',type:'info',
+   content:`<div id="inf3-ctx"></div>
+   <div class="info-box">Use the <strong>Cutoffs Calculator</strong> (Tab 3) to compute your exact cutoff values based on your n and k. Create an index plot of each statistic — plot the statistic on the y-axis and case number on the x-axis. Cases that stand out are flagged.</div>`,
+   next:'inf4'},
+  {id:'inf4',phase:'Phase 3 — Influential Outliers',title:'Step 4: Did any cases exceed prediction cutoffs?',type:'choice',
+   opts:[{l:'Yes — cases exceed cutoffs',v:'yes',next:'inf-handle'},{l:'No — no prediction outliers identified',next:'complete'}]},
+  {id:'inf-handle',phase:'Phase 3 — Influential Outliers',title:'Handle Prediction Outlier',type:'action',
+   content:`<div class="info-box">Apply one or more of the three handling options (see Tab 4 → Influential Outliers for full details):<br><br>
+   <strong>1. Respecify</strong> — Add terms (nonlinear terms, moderators, cross-level interactions) that may account for the outlier.<br>
+   <strong>2. Delete</strong> — Remove the case and report results with and without.<br>
+   <strong>3. Robust approaches</strong> — LAD, LTS, M-estimation, Bayesian, two-stage robust, IRLS, GEE, bootstrapping (n>150).</div>
+   <div class="banner" style="margin-top:10px"><strong>Always report results with AND without the handling technique</strong><p>Explain any differences in findings across the two versions.</p></div>`,
+   next:'complete',nextLabel:'Complete analysis'},
+  {id:'complete',phase:'Complete',title:'Outlier Analysis Complete!',type:'complete',
+   content:`<div class="good-box" style="font-size:.95em;padding:14px">✔ You have worked through all three phases of outlier detection and management per Aguinis (2025).</div>
+   <div class="info-box"><strong>Final step — Write your methods section:</strong> Go to Tab 5 to generate a publication-ready paragraph describing your full outlier analysis. Include it in your manuscript as an "Outlier Detection and Management" section in the Results.</div>
+   <div style="margin-top:14px;font-size:.87em;color:#555;line-height:1.6">
+   <strong>Summary of principles completed:</strong><br>
+   ✔ Transparency — described all procedures in detail<br>
+   ✔ Congruence — used identification techniques matching the outlier definition<br>
+   ✔ Sequencing — addressed Error → Interesting → Influential in order<br>
+   ✔ Dual reporting — will report results with and without handling technique
+   </div>`},
+];
+const infCtxContent={
+  regression:{fit:'Check whether R² changes substantially when each candidate case is removed.',pred:'Compute <strong>DFFITSᵢ</strong>, <strong>Cook\'s Dᵢ</strong>, and <strong>DFBETASᵢⱼ</strong>. Use the Cutoffs Calculator (Tab 3) for your exact cutoff values.'},
+  sem:{fit:'Compare χ², CFI, and RMSEA before and after removing each candidate case. Meaningful changes indicate a model fit outlier.',pred:'Compute <strong>gCDᵢ</strong> (global prediction influence, available in R via semdiag) and <strong>Δθ̂ⱼᵢ</strong> (specific parameter influence). Create index plots.'},
+  mlm:{fit:'Use the <strong>top-down approach</strong>: begin at the highest level (groups). Remove each group and check whether AIC/BIC changes substantially.',pred:'Compute <strong>Cᵢ</strong> (average squared deviation) for each group j. Create an index plot. Then within outlier groups, apply regression-level diagnostics for Level-1 units.'},
+  other:{fit:'Compare model fit statistics before and after removing each candidate case.',pred:'Apply the most appropriate influence statistics for your analytic approach.'}
+};
+let treeState={step:'approach',history:[],approach:'regression'};
+const sidebarSteps=[
+  {id:'approach',label:'Select Analytic Approach'},
+  {id:'err1',label:'Error — Apply Techniques'},
+  {id:'err2',label:'Error — Any Flagged?'},
+  {id:'err3',label:'Error — Investigate Cases'},
+  {id:'int1',label:'Interesting — Assess'},
+  {id:'inf1',label:'Influential — Model Fit'},
+  {id:'inf3',label:'Influential — Prediction'},
+  {id:'complete',label:'Complete!'},
+];
+function renderTree(){
+  const step=TREE_STEPS.find(s=>s.id===treeState.step)||TREE_STEPS[0];
+  const prog=Math.round((TREE_STEPS.findIndex(s=>s.id===treeState.step)+1)/TREE_STEPS.length*100);
+  // Sidebar
+  const sb=document.getElementById('sidebar-steps');
+  sb.innerHTML=sidebarSteps.map(ss=>{
+    const idx=TREE_STEPS.findIndex(s=>s.id===ss.id);
+    const curIdx=TREE_STEPS.findIndex(s=>s.id===treeState.step);
+    const done=idx<curIdx;const cur=idx===curIdx;
+    return`<div class="s-item"><div class="s-num ${done?'s-done':cur?'s-cur':'s-pend'}">${done?'✔':idx+1}</div><div class="s-lbl ${cur?'cur':''}">${ss.label}</div></div>`;
+  }).join('');
+  // Panel
+  const p=document.getElementById('tree-panel');
+  let html=`<div class="prog-bar"><div class="prog-fill" style="width:${prog}%"></div></div>
+  <div class="t-phase">${step.phase}</div>
+  <div class="t-title">${step.title}</div>`;
+  if(step.desc)html+=`<div class="t-desc" style="margin-bottom:12px">${step.desc}</div>`;
+  if(step.content){
+    html+=step.content;
+    // Inject context-specific content for inf1 and inf3
+    if(step.id==='inf1'){
+      const ctx=infCtxContent[treeState.approach]||infCtxContent.other;
+      setTimeout(()=>{const el=document.getElementById('inf1-ctx');if(el)el.innerHTML=`<div class="info-box"><strong>Your approach (${treeState.approach}): Model Fit Check</strong><br>${ctx.fit}</div>`;},10);
+    }
+    if(step.id==='inf3'){
+      const ctx=infCtxContent[treeState.approach]||infCtxContent.other;
+      setTimeout(()=>{const el=document.getElementById('inf3-ctx');if(el)el.innerHTML=`<div class="info-box"><strong>Your approach (${treeState.approach}): Prediction Diagnostics</strong><br>${ctx.pred}</div>`;},10);
+    }
+  }
+  if(step.type==='choice'){
+    html+=`<div class="t-opts">`;
+    step.opts.forEach(o=>{
+      html+=`<button class="t-btn" onclick="treeChoose('${o.next||''}','${o.v||''}')">${o.l}</button>`;
+    });
+    html+=`</div>`;
+  } else if(step.type==='info'||step.type==='action'){
+    html+=`<div class="t-opts"><button class="t-btn pri" onclick="treeGo('${step.next}')">${step.nextLabel||'Continue →'}</button></div>`;
+  } else if(step.type==='complete'){
+    html+=`<div class="t-opts"><button class="t-btn done" onclick="showTab(4)">→ Go to Write Methods Section</button><button class="t-btn pri" onclick="treeReset()">Start Over</button></div>`;
+  }
+  if(treeState.history.length>0)html+=`<div style="margin-top:14px"><button class="t-btn back" onclick="treeBack()">← Back</button></div>`;
+  p.innerHTML=html;
+  // reinit inf context buttons if needed
+  if(step.id==='inf1'||step.id==='inf3'){
+    const ctx=infCtxContent[treeState.approach]||infCtxContent.other;
+    const elId=step.id==='inf1'?'inf1-ctx':'inf3-ctx';
+    const el=document.getElementById(elId);
+    if(el)el.innerHTML=`<div class="info-box"><strong>Your approach (${treeState.approach}): ${step.id==='inf1'?'Model Fit Check':'Prediction Diagnostics'}</strong><br>${step.id==='inf1'?ctx.fit:ctx.pred}</div>`;
+  }
+}
+function treeChoose(next,val){
+  if(val==='regression'||val==='sem'||val==='mlm'||val==='other')treeState.approach=val;
+  treeState.history.push(treeState.step);
+  treeState.step=next;
+  renderTree();
+}
+function treeGo(next){treeState.history.push(treeState.step);treeState.step=next;renderTree();}
+function treeBack(){treeState.step=treeState.history.pop();renderTree();}
+function treeReset(){treeState={step:'approach',history:[],approach:'regression'};renderTree();}
+
+/* ─── METHODS SECTION GENERATOR ─── */
+function toggleIntSection(){
+  const v=document.getElementById('m-int').value;
+  document.getElementById('int-section').style.display=v==='yes'?'block':'none';
+}
+function toggleDiffSection(){
+  const v=document.getElementById('m-differ').value;
+  document.getElementById('diff-section').style.display=v==='yes'?'block':'none';
+}
+document.addEventListener('DOMContentLoaded',()=>{
+  document.getElementById('m-infhandle').addEventListener('change',function(){
+    document.getElementById('robust-specify').style.display=this.value==='robust'?'block':'none';
+  });
+  document.getElementById('m-inthandle').addEventListener('change',function(){
+    document.getElementById('int-warn').style.display=this.value==='none'?'block':'none';
+  });
+});
+function getChecked(containerSelector){
+  return Array.from(document.querySelectorAll(containerSelector+' input:checked')).map(c=>c.value);
+}
+function generateParagraph(){
+  const approach=document.getElementById('m-approach').value;
+  const approachLabel={regression:'regression',sem:'structural equation modeling (SEM)',mlm:'multilevel modeling (MLM)',other:'the primary analytic approach'};
+  const errTechs=getChecked('#m-errtech');
+  const nErr=parseInt(document.getElementById('m-nerr').value)||0;
+  const errHandle=document.getElementById('m-errhandle').value;
+  const errNature=document.getElementById('m-errnature').value.trim();
+  const hasInt=document.getElementById('m-int').value==='yes';
+  const intHandle=hasInt?document.getElementById('m-inthandle').value:'';
+  const nInt=hasInt?(parseInt(document.getElementById('m-nint').value)||0):0;
+  const infTechs=getChecked('#m-inftech');
+  const nInf=parseInt(document.getElementById('m-ninf').value)||0;
+  const infHandle=document.getElementById('m-infhandle').value;
+  const robustType=document.getElementById('m-robust').value.trim();
+  const differ=document.getElementById('m-differ').value;
+  const diffText=document.getElementById('m-difftext').value.trim();
+
+  const handleMap={corrected:'corrected to their true values',removed:'removed from the dataset',both:'corrected where possible and otherwise removed',none:'not applicable'};
+  const intHandleMap={quant:'studied quantitatively by comparing them to non-outliers on theoretically relevant characteristics',qual:'examined qualitatively using a case study approach',both:'studied both quantitatively (compared to non-outliers on theoretically relevant characteristics) and qualitatively (case study approach)',none:'noted but not separately studied (we acknowledge this falls short of best practice recommendations)'};
+  const infHandleMap={none:'no cases exceeded the cutoffs for influential outlier status',respecify:'we respecified the model',delete:'we deleted the influential outlier(s)',robust:'we used robust estimation'};
+
+  let para='Outlier Detection and Management\n\n';
+  para+=`Following Aguinis (2025), we employed a sequential three-phase procedure to identify and manage outliers. The two overarching principles guiding this procedure were transparency (i.e., full disclosure of all identification and handling decisions) and congruence (i.e., using identification techniques consistent with the type of outlier being defined).\n\n`;
+
+  // Error outliers
+  para+=`Phase 1: Error Outliers. `;
+  if(errTechs.length>0){
+    para+=`To identify potential error outliers, we used ${errTechs.join(', ')}. `;
+  } else {
+    para+=`To identify potential error outliers, we applied both single-construct and multiple-construct identification techniques. `;
+  }
+  if(nErr===0){
+    para+=`No error outliers were identified. `;
+  } else {
+    para+=`We identified ${nErr} error outlier${nErr>1?'s':''}, which ${nErr>1?'were':'was'} ${handleMap[errHandle]||'handled appropriately'}. `;
+    if(errNature){para+=`The nature of the error${nErr>1?'s':''} was as follows: ${errNature}. `;}
+  }
+  para+='\n\n';
+
+  // Interesting outliers
+  para+=`Phase 2: Interesting Outliers. `;
+  if(!hasInt||nInt===0){
+    para+=`No flagged cases met the criteria for interesting outlier status (i.e., no unconfirmed cases were identified as containing unexpected or valuable substantive information). `;
+  } else {
+    const intDescMap={quant:'compared them to non-outliers on theoretically relevant characteristics',qual:'examined them using a case study approach to identify their distinctive attributes',both:'examined them both quantitatively (comparing them to non-outliers) and qualitatively (case study approach)',none:'noted their presence'};
+    para+=`We identified ${nInt} potential interesting outlier${nInt>1?'s':''} — case${nInt>1?'s':''} that could not be confirmed as data errors and that exhibited extreme scores that may contain substantive information beyond the scope of the current theoretical framework. We ${intDescMap[intHandle]||'investigated'} the${nInt>1?'se':''} case${nInt>1?'s':''}. `;
+  }
+  para+='\n\n';
+
+  // Influential outliers
+  para+=`Phase 3: Influential Outliers. `;
+  if(infTechs.length>0){
+    para+=`To assess influential outliers, we used ${infTechs.join(', ')} appropriate for ${approachLabel[approach]||'our analytic approach'}. `;
+  } else {
+    para+=`We used influence diagnostics appropriate for ${approachLabel[approach]||'our analytic approach'} to assess influential outliers. `;
+  }
+  if(nInf===0||infHandle==='none'){
+    para+=`No cases exceeded the cutoffs for influential outlier status. All analyses are therefore reported based on the full sample. `;
+  } else {
+    para+=`We identified ${nInf} influential outlier${nInf>1?'s':''}. `;
+    if(infHandle==='respecify'){para+=`We respecified the model to account for the outlier's behavior. Results of both the original and respecified model are reported below. `;}
+    else if(infHandle==='delete'){para+=`We deleted ${nInf>1?'these cases':'this case'} from the analyses. In accordance with best practice recommendations (Aguinis, 2025), we report results both with and without the ${nInf>1?'deleted cases':'deleted case'}. `;}
+    else if(infHandle==='robust'){para+=`We addressed the outlier using ${robustType||'a robust estimation approach'}. Results are reported both with the standard and robust estimation approach. `;}
+    if(differ==='no'){para+=`Results were substantively similar regardless of whether the outlier-handling technique was applied. `;}
+    else if(differ==='yes'&&diffText){para+=`Results differed depending on whether the outlier-handling technique was applied: ${diffText}. We interpret results with appropriate caution given this sensitivity. `;}
+    else if(differ==='yes'){para+=`Results differed somewhat depending on whether the outlier-handling technique was applied; both sets of results are reported and interpreted accordingly. `;}
+  }
+  para+='\n\n';
+  para+=`Reference: Aguinis, H. (2025). Research methodology: Best practices for rigorous, credible, and impactful research. SAGE.`;
+
+  document.getElementById('m-output').textContent=para;
+}
+function copyPara(){
+  const txt=document.getElementById('m-output').textContent;
+  if(navigator.clipboard){navigator.clipboard.writeText(txt);}
+  else{const ta=document.createElement('textarea');ta.value=txt;document.body.appendChild(ta);ta.select();document.execCommand('copy');document.body.removeChild(ta);}
+  const btn=document.querySelector('.copy-btn');btn.textContent='Copied!';setTimeout(()=>btn.textContent='Copy to Clipboard',2000);
+}
+
+/* ─── CHART.JS VISUALIZATION ─── */
+function buildChart(){
+  const ctx=document.getElementById('inflChart').getContext('2d');
+  new Chart(ctx,{
+    type:'bar',
+    data:{
+      labels:['Case 12','Case 37','Case 89'],
+      datasets:[
+        {label:"Cook's Dᵢ (normalized)",data:[0.82,1.45,0.28],backgroundColor:'rgba(26,58,92,.75)',borderRadius:4},
+        {label:'DFFITSᵢ (absolute)',data:[1.10,0.65,0.95],backgroundColor:'rgba(74,159,212,.75)',borderRadius:4},
+        {label:'DFBETASᵢⱼ — β₁ (absolute)',data:[0.31,1.20,0.18],backgroundColor:'rgba(39,174,96,.75)',borderRadius:4},
+      ]
+    },
+    options:{
+      responsive:true,plugins:{legend:{position:'top'},tooltip:{callbacks:{label:ctx=>`${ctx.dataset.label}: ${ctx.raw}`}},
+      title:{display:true,text:'Example: Three cases across three influence measures (hypothetical data)',font:{size:12}}},
+      scales:{y:{beginAtZero:true,title:{display:true,text:'Standardized value'}},x:{title:{display:true,text:'Case number'}}},
+    }
+  });
+}
+
+/* ─── INIT ─── */
+window.addEventListener('DOMContentLoaded',()=>{
+  buildTechTable();
+  calcCutoffs();
+  renderTree();
+  showInfCtx('reg');
+  buildChart();
+  updateTransProgress();
+  document.getElementById('ci-ctx').addEventListener('change',calcCutoffs);
+  // Watch for influential context to set cutoff tab
+  document.getElementById('ci-alpha').addEventListener('change',calcCutoffs);
+  ['ci-n','ci-k','ci-J','ci-nj'].forEach(id=>{
+    const el=document.getElementById(id);if(el)el.addEventListener('input',calcCutoffs);
+  });
+});
+</script>
+<!-- Begin Countercentral code v 7.0 --> 
+<span id="wts2576"></span> 
+<script>var wts=document.createElement('script');wts.async=true; 
+wts.src='https://server2.countercentral.com/log7.js';document.head.appendChild(wts); 
+wts.onload = function(){ wtslog7(2576,1); }; 
+</script><noscript><a href="https://www.countercentral.com"> 
+<img src="https://server2.countercentral.com/7/1/2576.png"  
+alt="Countercentral web traffic analysis"></a></noscript> 
+<!-- End Countercentral code v 7.0 --> 
+</body>
+</html>

@@ -1,0 +1,891 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Moderation Study Design and Audit Tool</title>
+<style>
+:root{
+  --bg:#f4f7fb;
+  --panel:#ffffff;
+  --ink:#162033;
+  --muted:#5a667d;
+  --line:#d9e1ec;
+  --accent:#1b5f9e;
+  --accent2:#0b7a75;
+  --soft:#eaf2fb;
+  --green:#167a3a;
+  --green-bg:#e7f5ed;
+  --yellow:#946200;
+  --yellow-bg:#fff5d8;
+  --red:#b42318;
+  --red-bg:#fde8e7;
+  --shadow:0 12px 30px rgba(22,32,51,.10);
+  --radius:18px;
+}
+*{box-sizing:border-box}
+body{
+  margin:0;
+  background:linear-gradient(180deg,#edf5ff 0%,var(--bg) 24%,#f8fafc 100%);
+  color:var(--ink);
+  font-family:Arial, Helvetica, sans-serif;
+  line-height:1.48;
+}
+a{color:var(--accent)}
+header{
+  padding:34px 24px 24px;
+  border-bottom:1px solid var(--line);
+  background:linear-gradient(135deg,#10233f,#1b5f9e 58%,#0b7a75);
+  color:#fff;
+}
+.header-inner{max-width:1220px;margin:auto;display:grid;gap:12px}
+h1{font-size:clamp(30px,4vw,48px);line-height:1.04;margin:0;letter-spacing:-.04em}
+.subtitle{font-size:clamp(16px,2vw,20px);max-width:920px;margin:0;color:#e7f1ff}
+.credit{font-size:13px;margin:4px 0 0;color:#e7f1ff;max-width:980px}
+.credit a{color:#fff;text-decoration:underline;text-underline-offset:3px}
+.shell{max-width:1220px;margin:22px auto;padding:0 18px;display:grid;grid-template-columns:280px 1fr;gap:18px;align-items:start}
+nav{
+  position:sticky;top:12px;background:rgba(255,255,255,.92);backdrop-filter:blur(8px);
+  border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow);padding:12px;
+}
+.nav-title{font-weight:800;margin:6px 8px 12px;font-size:14px;color:#334155;letter-spacing:.02em;text-transform:uppercase}
+.navbtn{
+  width:100%;text-align:left;border:0;background:transparent;color:#233047;padding:10px 11px;border-radius:12px;
+  cursor:pointer;font-weight:700;font-size:14px;margin:1px 0;display:flex;justify-content:space-between;gap:8px;align-items:center;
+}
+.navbtn:hover,.navbtn:focus{background:#eef6ff;outline:2px solid transparent}
+.navbtn.active{background:var(--accent);color:#fff}
+.main{display:grid;gap:16px}
+.section{display:none;background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow);padding:22px}
+.section.active{display:block}
+.section h2{font-size:26px;line-height:1.15;margin:0 0 6px;letter-spacing:-.02em}
+.section h3{font-size:18px;margin:20px 0 8px}
+.lead{color:var(--muted);margin:0 0 18px;max-width:900px}
+.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
+.grid3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}
+.grid4{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px}
+.card{border:1px solid var(--line);background:#fff;border-radius:16px;padding:16px;margin:12px 0}
+.card.soft{background:#f8fbff}
+.card h3:first-child,.card h4:first-child{margin-top:0}
+label{display:block;font-weight:800;font-size:13px;color:#31425c;margin:0 0 6px}
+input,select,textarea{
+  width:100%;border:1px solid #cbd5e1;background:#fff;color:var(--ink);border-radius:12px;padding:10px 11px;font:inherit;font-size:14px;
+}
+textarea{min-height:96px;resize:vertical}
+input:focus,select:focus,textarea:focus{outline:3px solid rgba(27,95,158,.18);border-color:var(--accent)}
+.form-row{margin-bottom:13px}
+.hint{font-size:12px;color:var(--muted);margin-top:5px}
+.output{background:#f7fafc;border:1px solid var(--line);border-left:5px solid var(--accent);padding:14px;border-radius:13px;margin:14px 0;white-space:pre-wrap}
+.codebox{font-family:"Courier New",monospace;background:#111827;color:#e5e7eb;border-radius:12px;padding:12px;overflow:auto;font-size:13px}
+.badge{display:inline-flex;align-items:center;gap:7px;border-radius:999px;font-weight:800;font-size:12px;padding:5px 9px;border:1px solid transparent}
+.badge.green{background:var(--green-bg);color:var(--green);border-color:#b7e0c5}
+.badge.yellow{background:var(--yellow-bg);color:var(--yellow);border-color:#f1d28b}
+.badge.red{background:var(--red-bg);color:var(--red);border-color:#f6b5b0}
+.badge.blue{background:#e8f1ff;color:#154c85;border-color:#bad5f2}
+.status-row{display:flex;gap:10px;align-items:flex-start;flex-wrap:wrap;margin:8px 0}
+.meter{height:14px;border-radius:999px;background:#e5e7eb;overflow:hidden;border:1px solid #cbd5e1}
+.meter>span{display:block;height:100%;width:0;background:linear-gradient(90deg,#b42318,#946200,#167a3a);transition:width .25s ease}
+.balancebar{height:18px;border-radius:999px;overflow:hidden;border:1px solid #cbd5e1;display:flex;background:#f1f5f9}
+.balancebar span:first-child{background:#1b5f9e}.balancebar span:nth-child(2){background:#0b7a75}.balancebar span:nth-child(3){background:#9b5de5}.balancebar span:nth-child(4){background:#d97706}
+.checkrow{display:flex;gap:10px;align-items:flex-start;margin:9px 0;color:#334155}
+.checkrow input{width:auto;margin-top:3px}
+.btnrow{display:flex;gap:10px;flex-wrap:wrap;margin-top:14px}
+button.primary,button.secondary,button.danger{
+  border:0;border-radius:12px;padding:10px 14px;font-weight:800;cursor:pointer;font-size:14px;
+}
+button.primary{background:var(--accent);color:#fff}
+button.secondary{background:#e8f1ff;color:#154c85;border:1px solid #bad5f2}
+button.danger{background:var(--red-bg);color:var(--red);border:1px solid #f6b5b0}
+button.primary:hover,button.secondary:hover,button.danger:hover{filter:brightness(.97)}
+.small{font-size:12px;color:var(--muted)}
+.kpi-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}
+.kpi{border:1px solid var(--line);border-radius:16px;padding:14px;background:#fff}
+.kpi .num{font-size:25px;font-weight:900;letter-spacing:-.03em}
+.kpi .label{font-size:12px;color:var(--muted);font-weight:800;text-transform:uppercase;letter-spacing:.04em}
+.risk-card{display:grid;grid-template-columns:1.2fr auto;gap:12px;align-items:center;border:1px solid var(--line);border-radius:14px;padding:12px;margin:8px 0;background:#fff}
+.recs{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.phase{border:1px solid var(--line);border-radius:14px;padding:12px;background:#f9fbfe}
+.phase strong{display:block;margin-bottom:6px;color:#263b5d}
+svg{max-width:100%;height:auto}
+.diagram-wrap,.plot-wrap{border:1px solid var(--line);border-radius:16px;background:#ffffff;padding:10px;margin-top:12px;overflow:auto}
+details{border:1px solid var(--line);border-radius:13px;padding:10px 12px;background:#fbfdff;margin:10px 0}
+summary{font-weight:800;cursor:pointer}
+.tip{position:relative;display:inline-flex;align-items:center;justify-content:center;width:18px;height:18px;border-radius:50%;background:#e2ecf8;color:#154c85;font-size:12px;font-weight:900;margin-left:4px;vertical-align:middle;cursor:help}
+.tip:hover:after,.tip:focus:after{content:attr(data-tip);position:absolute;z-index:5;bottom:130%;left:50%;transform:translateX(-50%);min-width:260px;max-width:340px;background:#111827;color:#fff;border-radius:10px;padding:9px 10px;font-size:12px;font-weight:500;line-height:1.35;box-shadow:0 8px 20px rgba(0,0,0,.25)}
+.table{width:100%;border-collapse:collapse;font-size:14px;margin:10px 0;border:1px solid var(--line);border-radius:12px;overflow:hidden}
+.table th,.table td{border-bottom:1px solid var(--line);padding:10px;text-align:left;vertical-align:top}.table th{background:#eef6ff}.table tr:last-child td{border-bottom:0}
+.print-only{display:none}
+@media (max-width:980px){.shell{grid-template-columns:1fr}nav{position:static}.grid,.grid3,.grid4,.kpi-grid,.recs{grid-template-columns:1fr}.section{padding:18px}.navbtn{display:inline-flex;width:auto}.nav-scroll{display:flex;flex-wrap:wrap;gap:4px}}
+@media print{
+  body{background:#fff}.shell{display:block;max-width:none}.section{display:block !important;box-shadow:none;border:0;border-bottom:1px solid #ddd;border-radius:0;page-break-inside:avoid}nav,.no-print{display:none !important}header{background:#fff;color:#111;border-bottom:2px solid #111}.subtitle,.credit,.credit a{color:#111}.print-only{display:block}.main{gap:0}.btnrow{display:none}
+}
+</style>
+</head>
+<body>
+<header>
+  <div class="header-inner">
+    <h1>Moderation Study Design and Audit Tool</h1>
+    <p class="subtitle">A practical tool for designing, testing, interpreting, and reporting moderation hypotheses.</p>
+    <p class="credit">Based on Aguinis, H. 2025. <em>Research methodology: Best practices for rigorous, credible, and impactful research</em>. SAGE. <a href="https://collegepublishing.sagepub.com/products/research-methodology-1-280088">https://collegepublishing.sagepub.com/products/research-methodology-1-280088</a></p>
+  </div>
+</header>
+<div class="shell">
+  <nav class="no-print" aria-label="Tool sections">
+    <div class="nav-title">Modules</div>
+    <div class="nav-scroll">
+      <button class="navbtn active" data-target="setup">Study Setup</button>
+      <button class="navbtn" data-target="concept">Conceptual Model</button>
+      <button class="navbtn" data-target="measure">Measurement Quality</button>
+      <button class="navbtn" data-target="range">Range Restriction</button>
+      <button class="navbtn" data-target="cat">Categorical Moderator Balance</button>
+      <button class="navbtn" data-target="power">Statistical Power Planning</button>
+      <button class="navbtn" data-target="continuous">Continuous Moderator Decisions</button>
+      <button class="navbtn" data-target="centering">Product-Term and Centering Guidance</button>
+      <button class="navbtn" data-target="interpret">Full-Model Interpretation</button>
+      <button class="navbtn" data-target="plot">Simple Slopes and Interaction Plot</button>
+      <button class="navbtn" data-target="checklist">Moderation Reporting Checklist</button>
+      <button class="navbtn" data-target="risk">Risk Dashboard</button>
+      <button class="navbtn" data-target="export">Export / Print Report</button>
+    </div>
+  </nav>
+  <main class="main">
+    <section id="setup" class="section active">
+      <h2>Study Setup</h2>
+      <p class="lead">Define the basic X, Y, and Z structure, the substantive field, the unit of analysis, and the expected form of the interaction. Moderation exists when the magnitude or direction of the X→Y relationship depends on Z.</p>
+      <div class="grid">
+        <div class="form-row"><label for="rq">Research question</label><textarea id="rq" placeholder="Example: Does environmental dynamism change the relationship between strategic orientation and firm performance?"></textarea></div>
+        <div class="form-row"><label for="title">Short study title</label><input id="title" placeholder="Example: Dynamism as a boundary condition for strategic orientation" /></div>
+        <div class="form-row"><label for="xvar">Antecedent X <span class="tip" tabindex="0" data-tip="X is the focal antecedent or predictor whose relationship with Y is expected to vary across levels or categories of Z.">?</span></label><input id="xvar" value="Strategic orientation" /></div>
+        <div class="form-row"><label for="yvar">Outcome Y <span class="tip" tabindex="0" data-tip="Y is the criterion or outcome whose predicted value changes as a function of X, Z, and the XZ product term.">?</span></label><input id="yvar" value="Firm performance" /></div>
+        <div class="form-row"><label for="zvar">Moderator Z <span class="tip" tabindex="0" data-tip="Z is the condition under which the X-to-Y relationship becomes stronger, weaker, more positive, more negative, or reverses.">?</span></label><input id="zvar" value="Environmental dynamism" /></div>
+        <div class="form-row"><label for="ztype">Type of Z</label><select id="ztype"><option>Continuous</option><option>Dichotomous</option><option>Nominal categorical</option><option>Ordinal categorical</option><option>Mixed/unclear</option></select></div>
+        <div class="form-row"><label for="direction">Theory predicts the X→Y relationship will be</label><select id="direction"><option>stronger</option><option>weaker</option><option>more positive</option><option>more negative</option><option>reversed</option></select></div>
+        <div class="form-row"><label for="zcontrast">When Z is</label><input id="zcontrast" value="higher" placeholder="higher / lower / present / Category A" /></div>
+        <div class="form-row"><label for="zbase">Than when Z is</label><input id="zbase" value="lower" placeholder="lower / higher / absent / Category B" /></div>
+        <div class="form-row"><label for="formtype">Expected interaction form</label><select id="formtype"><option>Ordinal/noncrossover</option><option>Disordinal/crossover</option><option>Unclear</option></select></div>
+        <div class="form-row"><label for="nplan">Planned sample size</label><input id="nplan" type="number" min="0" value="300" /></div>
+        <div class="form-row"><label for="field">Study context / field</label><input id="field" value="Strategic management" /></div>
+        <div class="form-row"><label for="unit">Unit of analysis</label><input id="unit" value="Firm" /></div>
+        <div class="form-row"><label for="source">Data source</label><select id="source"><option>Survey</option><option>Archival</option><option>Experimental</option><option>Longitudinal</option><option>Panel</option><option>Multi-source</option><option>Other</option></select></div>
+        <div class="form-row"><label for="controls">Will controls be included?</label><select id="controls"><option>Yes</option><option>No</option><option>Unclear</option></select></div>
+      </div>
+      <div class="output" id="hypothesisOut"></div>
+      <details>
+        <summary>Technical details</summary>
+        <p>For a continuous Z, the usual moderated regression equation is:</p>
+        <div class="codebox">Y = b0 + b1X + b2Z + b3XZ + e</div>
+        <p>The XZ product term carries the moderation effect. For a categorical Z, the analysis compares the X→Y relationship across categories or groups. Rigorous design requires strong theory, reliable measurement, adequate ranges of X and Z, sufficient power, correct treatment of continuous moderators, full-model interpretation, and complete reporting.</p>
+      </details>
+      <div class="card soft"><strong>Example variables:</strong> environmental dynamism, firm resources, strategic orientation, TMT characteristics, entrepreneurial orientation, innovation, ownership type, and firm performance.</div>
+    </section>
+
+    <section id="concept" class="section">
+      <h2>Conceptual Model</h2>
+      <p class="lead">Use the visual model to confirm that Z is a true boundary condition for the X→Y relationship and that the hypothesis is about variation in the X→Y slope.</p>
+      <div class="grid3">
+        <div class="form-row"><label for="diagX">X label</label><input id="diagX" placeholder="Uses X from setup if blank" /></div>
+        <div class="form-row"><label for="diagY">Y label</label><input id="diagY" placeholder="Uses Y from setup if blank" /></div>
+        <div class="form-row"><label for="diagZ">Z label</label><input id="diagZ" placeholder="Uses Z from setup if blank" /></div>
+      </div>
+      <div class="diagram-wrap" id="diagram"></div>
+      <div class="card">
+        <h3>Model clarity audit</h3>
+        <div class="grid">
+          <div class="form-row"><label for="clarity1">Is Z theoretically a condition under which the X→Y effect changes?</label><select id="clarity1"><option>Not answered</option><option>Yes</option><option>Partly</option><option>No</option></select></div>
+          <div class="form-row"><label for="clarity2">Is the hypothesized moderation directional?</label><select id="clarity2"><option>Not answered</option><option>Yes</option><option>Partly</option><option>No</option></select></div>
+          <div class="form-row"><label for="clarity3">Is Z temporally or logically prior to the interaction being tested?</label><select id="clarity3"><option>Not answered</option><option>Yes</option><option>Partly</option><option>No</option></select></div>
+          <div class="form-row"><label for="clarity4">Is the interpretation about variation in the X→Y slope?</label><select id="clarity4"><option>Not answered</option><option>Yes</option><option>Partly</option><option>No</option></select></div>
+          <div class="form-row"><label for="clarity5">Are focal values or categories of Z meaningful in context?</label><select id="clarity5"><option>Not answered</option><option>Yes</option><option>Partly</option><option>No</option></select></div>
+        </div>
+        <div class="output" id="clarityOut"></div>
+      </div>
+    </section>
+
+    <section id="measure" class="section">
+      <h2>Measurement Quality</h2>
+      <p class="lead">Measurement error in X and Z can bias the product-term test downward and increase false-negative conclusions. This calculator estimates product-term reliability for standardized X and Z.</p>
+      <div class="grid4">
+        <div class="form-row"><label for="relX">Reliability of X <span class="tip" tabindex="0" data-tip="Reliability is the proportion of observed score variance attributable to true-score variance. Enter a value from 0 to 1.">?</span></label><input id="relX" type="number" min="0" max="1" step="0.01" value="0.70" /></div>
+        <div class="form-row"><label for="relZ">Reliability of Z</label><input id="relZ" type="number" min="0" max="1" step="0.01" value="0.70" /></div>
+        <div class="form-row"><label for="corrXZ">Correlation between X and Z</label><input id="corrXZ" type="number" min="-1" max="1" step="0.01" value="0.00" /></div>
+        <div class="form-row"><label for="relY">Reliability of Y (optional)</label><input id="relY" type="number" min="0" max="1" step="0.01" placeholder="optional" /></div>
+      </div>
+      <div class="output" id="relOut"></div>
+      <details>
+        <summary>Formula and interpretation</summary>
+        <div class="codebox">Reliability_XZ = (r_XZ² + reliability_X × reliability_Z) / (r_XZ² + 1)</div>
+        <p>When X and Z are both .70 reliable and their correlation is near zero, the product-term reliability is approximately .49. Outcome measurement error does not bias unstandardized regression coefficients, but it can reduce explained variance.</p>
+      </details>
+      <div class="card"><h3>Measurement reporting checklist</h3><div id="measureChecks"></div></div>
+    </section>
+
+    <section id="range" class="section">
+      <h2>Range Restriction</h2>
+      <p class="lead">If the sample does not include sufficient variation in X, Z, or Y, a true interaction can look smaller or nonsignificant. Use this audit before interpreting a small or null result.</p>
+      <div class="grid4">
+        <div class="form-row"><label for="xObsMin">Observed X min</label><input id="xObsMin" type="number" step="any" /></div>
+        <div class="form-row"><label for="xObsMax">Observed X max</label><input id="xObsMax" type="number" step="any" /></div>
+        <div class="form-row"><label for="xPopMin">Plausible X min</label><input id="xPopMin" type="number" step="any" /></div>
+        <div class="form-row"><label for="xPopMax">Plausible X max</label><input id="xPopMax" type="number" step="any" /></div>
+        <div class="form-row"><label for="zObsMin">Observed Z min</label><input id="zObsMin" type="number" step="any" /></div>
+        <div class="form-row"><label for="zObsMax">Observed Z max</label><input id="zObsMax" type="number" step="any" /></div>
+        <div class="form-row"><label for="zPopMin">Plausible Z min</label><input id="zPopMin" type="number" step="any" /></div>
+        <div class="form-row"><label for="zPopMax">Plausible Z max</label><input id="zPopMax" type="number" step="any" /></div>
+        <div class="form-row"><label for="xSampleSD">Observed sample SD for X</label><input id="xSampleSD" type="number" step="any" /></div>
+        <div class="form-row"><label for="xPopSD">Estimated population SD for X</label><input id="xPopSD" type="number" step="any" /></div>
+        <div class="form-row"><label for="zSampleSD">Observed sample SD for Z</label><input id="zSampleSD" type="number" step="any" /></div>
+        <div class="form-row"><label for="zPopSD">Estimated population SD for Z</label><input id="zPopSD" type="number" step="any" /></div>
+      </div>
+      <div class="output" id="rangeOut"></div>
+      <details>
+        <summary>Recommendations</summary>
+        <p>Design sampling to capture the full range of X, Z, and Y when possible. When the full range is not feasible, report sample and estimated population variances. When moderation is small or nonsignificant, explicitly evaluate range restriction as a plausible alternative explanation.</p>
+      </details>
+    </section>
+
+    <section id="cat" class="section">
+      <h2>Categorical Moderator Balance</h2>
+      <p class="lead">For categorical moderators, total N can be misleading. Highly unequal subgroup sizes reduce moderator variance and can reduce power.</p>
+      <div class="grid4">
+        <div class="form-row"><label for="g1">Group 1 cases</label><input id="g1" type="number" min="0" value="50" /></div>
+        <div class="form-row"><label for="g2">Group 2 cases</label><input id="g2" type="number" min="0" value="50" /></div>
+        <div class="form-row"><label for="g3">Group 3 cases (optional)</label><input id="g3" type="number" min="0" /></div>
+        <div class="form-row"><label for="g4">Group 4 cases (optional)</label><input id="g4" type="number" min="0" /></div>
+      </div>
+      <div class="balancebar" aria-label="Group balance" id="balanceBar"><span></span><span></span><span></span><span></span></div>
+      <div class="output" id="catOut"></div>
+      <div class="card soft"><strong>Reference examples:</strong> 20/80 split = lower variance and lower power; 35/65 split = improved variance; 50/50 split = maximum variance for a two-group moderator.</div>
+      <div class="form-row"><label for="oversampleJust">Justification if oversampling smaller groups</label><textarea id="oversampleJust" placeholder="Explain power benefits and representativeness tradeoffs."></textarea></div>
+    </section>
+
+    <section id="power" class="section">
+      <h2>Statistical Power Planning</h2>
+      <p class="lead">This worksheet provides rule-based decision support, not an exact power analysis. Use it before collecting data and as a diagnostic when moderation is not found.</p>
+      <div class="grid4">
+        <div class="form-row"><label for="powerN">Planned sample size</label><input id="powerN" type="number" min="0" value="300" /></div>
+        <div class="form-row"><label for="effectSize">Expected moderation effect size</label><select id="effectSize"><option>Very small</option><option selected>Small</option><option>Medium</option><option>Large</option><option>Custom ΔR²</option></select></div>
+        <div class="form-row"><label for="deltaR2">Custom ΔR²</label><input id="deltaR2" type="number" min="0" max="1" step="0.001" placeholder="e.g., .02" /></div>
+        <div class="form-row"><label for="predictors">Number of predictors and controls</label><input id="predictors" type="number" min="1" value="6" /></div>
+        <div class="form-row"><label for="powerRelX">Reliability of X</label><input id="powerRelX" type="number" min="0" max="1" step="0.01" value="0.70" /></div>
+        <div class="form-row"><label for="powerRelZ">Reliability of Z</label><input id="powerRelZ" type="number" min="0" max="1" step="0.01" value="0.70" /></div>
+        <div class="form-row"><label for="rangeLikely">Range restriction likely?</label><select id="rangeLikely"><option>No</option><option>Unclear</option><option>Yes</option></select></div>
+        <div class="form-row"><label for="unbalancedLikely">Categorical Z unbalanced?</label><select id="unbalancedLikely"><option>No/not categorical</option><option>Unclear</option><option>Yes</option></select></div>
+        <div class="form-row"><label for="desiredPower">Desired power</label><input id="desiredPower" type="number" min="0" max="1" step="0.01" value="0.80" /></div>
+        <div class="form-row"><label for="alpha">Alpha level</label><input id="alpha" type="number" min="0" max="1" step="0.01" value="0.05" /></div>
+      </div>
+      <div class="output" id="powerOut"></div>
+      <details>
+        <summary>Post-result diagnostic for nonsignificant findings</summary>
+        <p>Before concluding that moderation is absent, evaluate whether insufficient power, measurement error, range restriction, or subgroup imbalance could explain the nonsignificant result.</p>
+      </details>
+    </section>
+
+    <section id="continuous" class="section">
+      <h2>Continuous Moderator Decisions</h2>
+      <p class="lead">Continuous moderators should ordinarily remain continuous. Splitting continuous Z into arbitrary groups discards information, reduces statistical power, and attenuates moderation effects.</p>
+      <div class="grid">
+        <div class="form-row"><label for="natContinuous">Is Z naturally continuous?</label><select id="natContinuous"><option>Not answered</option><option>Yes</option><option>No</option><option>Unclear</option></select></div>
+        <div class="form-row"><label for="splitPlan">Planning to split Z into “high” and “low” groups?</label><select id="splitPlan"><option>No</option><option>Yes</option><option>Unclear</option></select></div>
+        <div class="form-row"><label for="medianPlan">Planning a median split?</label><select id="medianPlan"><option>No</option><option>Yes</option><option>Unclear</option></select></div>
+        <div class="form-row"><label for="convertPlan">Converting a continuous scale into categories?</label><select id="convertPlan"><option>No</option><option>Yes</option><option>Unclear</option></select></div>
+      </div>
+      <div class="output" id="continuousOut"></div>
+      <div class="card soft"><strong>Recommended alternatives:</strong> retain Z as continuous; use the XZ product term; probe simple slopes at meaningful values of Z; plot predicted values across substantively meaningful values; use region-of-significance logic conceptually when appropriate and when the necessary model uncertainty information is available.</div>
+    </section>
+
+    <section id="centering" class="section">
+      <h2>Product-Term and Centering Guidance</h2>
+      <p class="lead">The full moderation model includes X, Z, and XZ together. Mean-centering can help interpret lower-order coefficients, but it does not change the test of the interaction effect.</p>
+      <div class="grid">
+        <div class="form-row"><label for="centeringPurpose">Primary purpose</label><select id="centeringPurpose"><option>Testing the interaction coefficient only</option><option>Interpreting lower-order coefficients</option><option>Both testing and interpreting</option><option>Unclear</option></select></div>
+        <div class="form-row"><label for="zeroMeaning">Do X and Z have meaningful zero points?</label><select id="zeroMeaning"><option>Unclear</option><option>Yes</option><option>No</option></select></div>
+        <div class="form-row"><label for="zeroRange">Is zero within the observed range for both X and Z?</label><select id="zeroRange"><option>Unclear</option><option>Yes</option><option>No</option></select></div>
+        <div class="form-row"><label for="centerReason">Are you centering because you believe it fixes the interaction test?</label><select id="centerReason"><option>No</option><option>Yes</option><option>Unclear</option></select></div>
+      </div>
+      <div class="grid">
+        <div class="card"><h3>Uncentered model</h3><div class="codebox">Y = b0 + b1X + b2Z + b3XZ + e</div></div>
+        <div class="card"><h3>Mean-centered model</h3><div class="codebox">Y = b0 + b1(X−X̄) + b2(Z−Z̄) + b3[(X−X̄)(Z−Z̄)] + e</div></div>
+      </div>
+      <div class="output" id="centeringOut"></div>
+    </section>
+
+    <section id="interpret" class="section">
+      <h2>Full-Model Interpretation</h2>
+      <p class="lead">Interpret the interaction coefficient and lower-order coefficients from the full model that includes X, Z, and XZ. When an interaction exists, X does not have one uniform effect on Y.</p>
+      <div class="grid4">
+        <div class="form-row"><label for="b1">b1 for X</label><input id="b1" type="number" step="any" value="0.30" /></div>
+        <div class="form-row"><label for="b2">b2 for Z</label><input id="b2" type="number" step="any" value="0.10" /></div>
+        <div class="form-row"><label for="b3">b3 for XZ</label><input id="b3" type="number" step="any" value="0.15" /></div>
+        <div class="form-row"><label for="pB3">p-value for b3</label><input id="pB3" type="number" step="any" min="0" max="1" value="0.03" /></div>
+        <div class="form-row"><label for="ciB3">Or CI for b3</label><input id="ciB3" placeholder="e.g., [.03, .27]" /></div>
+        <div class="form-row"><label for="centeredVars">Were X and Z centered?</label><select id="centeredVars"><option>Yes</option><option>No</option><option>Unclear</option></select></div>
+        <div class="form-row"><label for="probeZ">Values of Z to probe</label><input id="probeZ" value="-1, 0, 1" /></div>
+        <div class="form-row"><label for="partialRiskQ">Will any lower-order claim rely on a model that omits XZ?</label><select id="partialRiskQ"><option>No</option><option>Yes</option><option>Unclear</option></select></div>
+      </div>
+      <div class="output" id="interpOut"></div>
+    </section>
+
+    <section id="plot" class="section">
+      <h2>Simple Slopes and Interaction Plot</h2>
+      <p class="lead">Enter model coefficients and meaningful values of Z. The tool computes predicted Y and simple slopes using Yhat = b0 + b1X + b2Z + b3XZ.</p>
+      <div class="grid4">
+        <div class="form-row"><label for="plotB0">Intercept b0</label><input id="plotB0" type="number" step="any" value="0" /></div>
+        <div class="form-row"><label for="plotB1">b1 for X</label><input id="plotB1" type="number" step="any" value="0.30" /></div>
+        <div class="form-row"><label for="plotB2">b2 for Z</label><input id="plotB2" type="number" step="any" value="0.10" /></div>
+        <div class="form-row"><label for="plotB3">b3 for XZ</label><input id="plotB3" type="number" step="any" value="0.15" /></div>
+        <div class="form-row"><label for="zLow">Low value of Z</label><input id="zLow" type="number" step="any" value="-1" /></div>
+        <div class="form-row"><label for="zMed">Medium value of Z</label><input id="zMed" type="number" step="any" value="0" /></div>
+        <div class="form-row"><label for="zHigh">High value of Z</label><input id="zHigh" type="number" step="any" value="1" /></div>
+        <div class="form-row"><label for="plotXMin">Minimum plotted X</label><input id="plotXMin" type="number" step="any" value="-1" /></div>
+        <div class="form-row"><label for="plotXMax">Maximum plotted X</label><input id="plotXMax" type="number" step="any" value="1" /></div>
+        <div class="form-row"><label for="obsXMinPlot">Observed X min (optional)</label><input id="obsXMinPlot" type="number" step="any" /></div>
+        <div class="form-row"><label for="obsXMaxPlot">Observed X max (optional)</label><input id="obsXMaxPlot" type="number" step="any" /></div>
+        <div class="form-row"><label for="labelLow">Low-Z label</label><input id="labelLow" value="Low Z" /></div>
+        <div class="form-row"><label for="labelMed">Medium-Z label</label><input id="labelMed" value="Medium Z" /></div>
+        <div class="form-row"><label for="labelHigh">High-Z label</label><input id="labelHigh" value="High Z" /></div>
+      </div>
+      <div class="plot-wrap" id="plotSvg"></div>
+      <div class="output" id="slopesOut"></div>
+    </section>
+
+    <section id="checklist" class="section">
+      <h2>Moderation Reporting Checklist</h2>
+      <p class="lead">Complete this checklist before submission, preregistration, or reviewer response.</p>
+      <div class="kpi-grid"><div class="kpi"><div class="num" id="checkPct">0%</div><div class="label">Completed</div></div><div class="kpi"><div class="num" id="checkDone">0</div><div class="label">Items done</div></div><div class="kpi"><div class="num" id="checkTotal">0</div><div class="label">Total items</div></div><div class="kpi"><div class="num" id="checkStatus">—</div><div class="label">Status</div></div></div>
+      <div id="checklistBox"></div>
+    </section>
+
+    <section id="risk" class="section">
+      <h2>Risk Dashboard</h2>
+      <p class="lead">The dashboard summarizes study risk across seven recurring problems in moderation assessment. A lower score indicates fewer unresolved issues currently detected by the tool.</p>
+      <div class="kpi-grid">
+        <div class="kpi"><div class="num" id="overallRisk">0</div><div class="label">Overall risk score</div><div class="meter"><span id="riskMeter"></span></div></div>
+        <div class="kpi"><div class="num" id="riskLevel">—</div><div class="label">Risk level</div></div>
+        <div class="kpi"><div class="num" id="redCount">0</div><div class="label">Red indicators</div></div>
+        <div class="kpi"><div class="num" id="yellowCount">0</div><div class="label">Yellow indicators</div></div>
+      </div>
+      <div id="riskRows"></div>
+      <h3>Targeted recommendations</h3>
+      <div class="recs" id="recommendations"></div>
+    </section>
+
+    <section id="export" class="section">
+      <h2>Export / Print Report</h2>
+      <p class="lead">Generate a structured report for a research plan, preregistration, methods section, or reviewer response.</p>
+      <div class="btnrow">
+        <button class="primary" id="genReport" type="button">Generate Report</button>
+        <button class="secondary" id="copyReport" type="button">Copy Report to Clipboard</button>
+        <button class="secondary" id="printReport" type="button">Print / Save as PDF</button>
+        <button class="danger" id="resetTool" type="button">Reset Tool</button>
+        <button class="danger" id="clearSaved" type="button">Clear Saved Data</button>
+      </div>
+      <textarea id="reportText" style="min-height:520px;margin-top:16px" placeholder="Click Generate Report."></textarea>
+      <p class="small">All inputs are stored only in this browser through localStorage. Nothing is collected or transmitted.</p>
+    </section>
+  </main>
+</div>
+<script>
+(function(){
+'use strict';
+const STORAGE_KEY = 'moderationStudyDesignTool.v1';
+const $ = id => document.getElementById(id);
+const val = id => ($(id) ? $(id).value : '');
+const set = (id, html) => { if($(id)) $(id).innerHTML = html; };
+const num = (id, fallback=NaN) => { const v = parseFloat(val(id)); return Number.isFinite(v) ? v : fallback; };
+const esc = s => String(s ?? '').replace(/[&<>"']/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
+const fmt = (n, d=2) => Number.isFinite(n) ? n.toFixed(d) : '—';
+const pct = n => Number.isFinite(n) ? (n*100).toFixed(0)+'%' : '—';
+function cleanName(id, fallback){ return esc((val(id) || fallback || '').trim()); }
+function plainName(id, fallback){ return (val(id) || fallback || '').trim(); }
+function badge(label, cls){ return `<span class="badge ${cls}">${label}</span>`; }
+function riskClass(points){ if(points >= 70) return 'red'; if(points >= 35) return 'yellow'; return 'green'; }
+function riskName(points){ if(points >= 85) return 'Severe'; if(points >= 70) return 'High'; if(points >= 35) return 'Moderate'; return 'Low'; }
+function fieldFilled(ids){ return ids.every(id => val(id) !== ''); }
+
+const measureChecklist = [
+  'Report reliability for X.',
+  'Report reliability for Z.',
+  'Report reliability for all multi-item scales.',
+  'Discuss implications of reliability for product-term tests.',
+  'Pay special attention to reliability when the hypothesized moderation effect is not found.'
+];
+const checklistSections = {
+  'A. Theory and hypothesis': [
+    'Clear explanation of why Z changes the X→Y relationship.',
+    'Direction and form of moderation specified.',
+    'Focal values or categories of Z are substantively meaningful.'
+  ],
+  'B. Measurement': [
+    'Reliability of X reported.',
+    'Reliability of Z reported.',
+    'Product-term reliability considered.',
+    'Measurement error discussed, especially if moderation is not found.'
+  ],
+  'C. Sampling and distributions': [
+    'Full range of X considered.',
+    'Full range of Z considered.',
+    'Sample/population variance comparison reported if relevant.',
+    'Range restriction discussed if moderation is small or nonsignificant.'
+  ],
+  'D. Categorical moderator design': [
+    'Subgroup sample sizes reported.',
+    'Subgroup imbalance evaluated.',
+    'Oversampling decisions justified if used.'
+  ],
+  'E. Power': [
+    'A priori power considered.',
+    'Sample size justified for expected moderation effect.',
+    'Post-result power/risk diagnostics discussed for nonsignificant moderation.'
+  ],
+  'F. Continuous moderator treatment': [
+    'Continuous moderators retained as continuous.',
+    'No artificial median split or arbitrary categorization.',
+    'Any categorization is theoretically and empirically justified.'
+  ],
+  'G. Model specification': [
+    'X, Z, and XZ included in the full model.',
+    'Controls justified.',
+    'Product term constructed correctly.',
+    'Centering decision explained accurately.'
+  ],
+  'H. Interpretation': [
+    'Interaction coefficient interpreted correctly.',
+    'Simple slopes computed at meaningful moderator values.',
+    'Interaction plotted.',
+    'First-order effects interpreted only from the full model.',
+    'No conclusions drawn from partial models that omit product terms.'
+  ],
+  'I. Reporting': [
+    'Regression table includes lower-order and product terms.',
+    'Effect size or incremental variance explained is reported where appropriate.',
+    'Plot and simple-slope interpretation included.',
+    'Limitations related to reliability, range, power, and subgroup balance are acknowledged.'
+  ]
+};
+
+function initStaticChecks(){
+  set('measureChecks', measureChecklist.map((t,i)=>`<label class="checkrow"><input type="checkbox" id="mcheck${i}"> <span>${esc(t)}</span></label>`).join(''));
+  let html=''; let n=0;
+  Object.entries(checklistSections).forEach(([sec,items])=>{
+    html += `<div class="card"><h3>${esc(sec)}</h3>`;
+    items.forEach((t)=>{ html += `<label class="checkrow"><input type="checkbox" id="rcheck${n}"> <span>${esc(t)}</span></label>`; n++; });
+    html += `</div>`;
+  });
+  set('checklistBox', html);
+}
+
+function saveState(){
+  const data = {};
+  document.querySelectorAll('input,select,textarea').forEach(el=>{
+    if(!el.id) return;
+    data[el.id] = el.type === 'checkbox' ? el.checked : el.value;
+  });
+  try{ localStorage.setItem(STORAGE_KEY, JSON.stringify(data)); }catch(e){}
+}
+function loadState(){
+  try{
+    const data = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}');
+    Object.keys(data).forEach(id=>{
+      const el=$(id); if(!el) return;
+      if(el.type === 'checkbox') el.checked = !!data[id]; else el.value = data[id];
+    });
+  }catch(e){}
+}
+
+function updateSetup(){
+  const x = cleanName('xvar','X'); const y = cleanName('yvar','Y'); const z = cleanName('zvar','Z');
+  const d = esc(val('direction') || 'stronger'); const hi = esc(val('zcontrast') || 'higher'); const lo = esc(val('zbase') || 'lower');
+  set('hypothesisOut', `<strong>Plain-language hypothesis template</strong>\nThe relationship between ${x} and ${y} will be ${d} when ${z} is ${hi} than when ${z} is ${lo}.\n\n<strong>Model equation for continuous Z</strong>\nY = b0 + b1X + b2Z + b3XZ + e\n\n<strong>Current setup</strong>\nZ type: ${esc(val('ztype'))}; expected form: ${esc(val('formtype'))}; planned N: ${esc(val('nplan'))}; field: ${esc(val('field'))}; unit: ${esc(val('unit'))}; data source: ${esc(val('source'))}.`);
+  if(!val('diagX')) $('diagX').placeholder = plainName('xvar','X');
+  if(!val('diagY')) $('diagY').placeholder = plainName('yvar','Y');
+  if(!val('diagZ')) $('diagZ').placeholder = plainName('zvar','Z');
+}
+
+function updateDiagram(){
+  const x = cleanName('diagX', plainName('xvar','X'));
+  const y = cleanName('diagY', plainName('yvar','Y'));
+  const z = cleanName('diagZ', plainName('zvar','Z'));
+  const svg = `<svg viewBox="0 0 760 330" role="img" aria-label="Moderation model showing Z affecting the path from X to Y">
+    <defs><marker id="arrow" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto"><path d="M2,2 L10,6 L2,10 Z" fill="#1b5f9e"></path></marker></defs>
+    <rect x="40" y="35" width="680" height="260" rx="22" fill="#f8fbff" stroke="#d9e1ec"></rect>
+    <rect x="90" y="145" width="180" height="72" rx="16" fill="#e8f1ff" stroke="#1b5f9e" stroke-width="2"></rect>
+    <text x="180" y="174" text-anchor="middle" font-size="22" font-weight="800" fill="#162033">X</text>
+    <text x="180" y="199" text-anchor="middle" font-size="14" fill="#334155">${x}</text>
+    <rect x="490" y="145" width="180" height="72" rx="16" fill="#e7f5ed" stroke="#0b7a75" stroke-width="2"></rect>
+    <text x="580" y="174" text-anchor="middle" font-size="22" font-weight="800" fill="#162033">Y</text>
+    <text x="580" y="199" text-anchor="middle" font-size="14" fill="#334155">${y}</text>
+    <path d="M275 181 L480 181" stroke="#1b5f9e" stroke-width="4" marker-end="url(#arrow)"></path>
+    <text x="378" y="165" text-anchor="middle" font-size="14" font-weight="800" fill="#1b5f9e">effect varies by Z</text>
+    <rect x="290" y="56" width="180" height="72" rx="16" fill="#fff5d8" stroke="#946200" stroke-width="2"></rect>
+    <text x="380" y="85" text-anchor="middle" font-size="22" font-weight="800" fill="#162033">Z</text>
+    <text x="380" y="110" text-anchor="middle" font-size="14" fill="#334155">${z}</text>
+    <path d="M380 130 C380 152 380 162 380 175" stroke="#946200" stroke-width="3" stroke-dasharray="7 6" marker-end="url(#arrow)"></path>
+    <text x="380" y="262" text-anchor="middle" font-size="13" fill="#5a667d">Core question: when, how, and why does the X→Y relationship change across Z?</text>
+  </svg>`;
+  set('diagram', svg);
+}
+
+function updateClarity(){
+  const ids = ['clarity1','clarity2','clarity3','clarity4','clarity5'];
+  let score=0, answered=0, reds=0;
+  ids.forEach(id=>{ const v=val(id); if(v!=='Not answered') answered++; if(v==='Yes') score+=2; if(v==='Partly') score+=1; if(v==='No') reds++; });
+  const max=ids.length*2; const p=score/max;
+  let cls='yellow', label='Needs work';
+  if(answered===0){ cls='yellow'; label='Not assessed'; }
+  else if(reds>0 || p<.5){ cls='red'; label='High conceptual risk'; }
+  else if(p<.8){ cls='yellow'; label='Moderate conceptual risk'; }
+  else { cls='green'; label='Conceptually clear'; }
+  const msg = `${badge(label,cls)}\nScore: ${score}/${max}. ${reds>0?'At least one audit item is marked No. Revise the theory before collecting or analyzing data.':'Use the audit to make the hypothesis directional and slope-focused.'}`;
+  set('clarityOut', msg);
+}
+
+function measurementCalc(){
+  const rx = num('relX'), rz = num('relZ'), r = num('corrXZ'), ry = num('relY');
+  if(!Number.isFinite(rx) || !Number.isFinite(rz) || !Number.isFinite(r)) return {risk:50, product:NaN, text:'Enter reliability of X, reliability of Z, and correlation between X and Z.'};
+  const bounded = Math.max(-1, Math.min(1, r));
+  const prod = (bounded*bounded + rx*rz) / (bounded*bounded + 1);
+  let points=0, notes=[];
+  if(rx < .70 || rz < .70){ points += 35; notes.push('Reliability of X or Z is below .70, so the product term is likely to be substantially unreliable.'); }
+  if(prod < .60){ points += 45; notes.push('Computed product-term reliability is below .60. Treat this as high risk.'); }
+  else if(prod < .70){ points += 35; notes.push('Computed product-term reliability is below .70. Interpret null or small effects cautiously.'); }
+  else if(prod < .80){ points += 15; notes.push('Computed product-term reliability is adequate but not strong.'); }
+  if(Math.abs(rx-.70)<.011 && Math.abs(rz-.70)<.011 && Math.abs(bounded)<.05){ notes.push('With X and Z both near .70 reliable and r_XZ near zero, the product-term reliability is approximately .49.'); }
+  if(Number.isFinite(ry) && ry < .70){ notes.push('Y reliability is below .70. This does not bias unstandardized coefficients, but it can attenuate explained variance.'); points += 10; }
+  if(!notes.length) notes.push('No major measurement warning detected from the entered values.');
+  points = Math.min(100, points);
+  return {risk:points, product:prod, text:`${badge(riskName(points)+' measurement risk', riskClass(points))}\nProduct-term reliability = ${fmt(prod,3)}\n\n${notes.map(n=>'• '+n).join('\n')}\n\nRequired reporting: report reliability for X, Z, and all multi-item scales; discuss implications for product-term tests, especially when moderation is not found.`};
+}
+function updateMeasurement(){ const r = measurementCalc(); set('relOut', r.text); }
+
+function rangePct(obsMin, obsMax, popMin, popMax){
+  if([obsMin,obsMax,popMin,popMax].some(v=>!Number.isFinite(v)) || popMax===popMin) return NaN;
+  return ((obsMax-obsMin)/(popMax-popMin))*100;
+}
+function rangeCalc(){
+  const xp = rangePct(num('xObsMin'),num('xObsMax'),num('xPopMin'),num('xPopMax'));
+  const zp = rangePct(num('zObsMin'),num('zObsMax'),num('zPopMin'),num('zPopMax'));
+  const xr = (Number.isFinite(num('xSampleSD')) && Number.isFinite(num('xPopSD')) && num('xPopSD')>0) ? num('xSampleSD')/num('xPopSD') : NaN;
+  const zr = (Number.isFinite(num('zSampleSD')) && Number.isFinite(num('zPopSD')) && num('zPopSD')>0) ? num('zSampleSD')/num('zPopSD') : NaN;
+  let points=0, notes=[];
+  [['X',xp],['Z',zp]].forEach(([name,p])=>{
+    if(Number.isFinite(p)){
+      if(p < 60){points += 35; notes.push(`${name} captures only ${fmt(p,1)}% of the plausible range.`)}
+      else if(p < 80){points += 25; notes.push(`${name} captures ${fmt(p,1)}% of the plausible range; potential range restriction.`)}
+      else if(p < 100){points += 8; notes.push(`${name} captures ${fmt(p,1)}% of the plausible range.`)}
+    }
+  });
+  [['X',xr],['Z',zr]].forEach(([name,r])=>{
+    if(Number.isFinite(r)){
+      if(r < .70){points += 30; notes.push(`${name} sample SD / population SD = ${fmt(r,2)}; likely restriction in variance.`)}
+      else if(r < .85){points += 18; notes.push(`${name} sample SD / population SD = ${fmt(r,2)}; possible attenuation.`)}
+    }
+  });
+  if(!notes.length) notes.push(fieldFilled(['xObsMin','xObsMax','xPopMin','xPopMax','zObsMin','zObsMax','zPopMin','zPopMax']) ? 'No major range warning detected from the entered values.' : 'Enter observed and plausible population ranges to evaluate restriction.');
+  points=Math.min(100,points);
+  const text = `${badge(riskName(points)+' range risk', riskClass(points))}\nX range captured: ${Number.isFinite(xp)?fmt(xp,1)+'%':'—'}\nZ range captured: ${Number.isFinite(zp)?fmt(zp,1)+'%':'—'}\nX sample SD / population SD: ${fmt(xr,2)}\nZ sample SD / population SD: ${fmt(zr,2)}\n\n${notes.map(n=>'• '+n).join('\n')}\n\nRange restriction can reduce power, make moderation effects appear smaller, and cause true effects to go undetected.`;
+  return {risk:points,text,xp,zp,xr,zr};
+}
+function updateRange(){ set('rangeOut', rangeCalc().text); }
+
+function catCalc(){
+  const groups = [num('g1',0),num('g2',0),num('g3',0),num('g4',0)].filter(v=>Number.isFinite(v) && v>0);
+  const total = groups.reduce((a,b)=>a+b,0);
+  const spans = $('balanceBar') ? $('balanceBar').querySelectorAll('span') : [];
+  spans.forEach((s,i)=>{ const w = total>0 && groups[i] ? (groups[i]/total*100) : 0; s.style.width = w+'%'; s.title = groups[i] ? `Group ${i+1}: ${groups[i]} (${w.toFixed(1)}%)` : ''; });
+  let points=0, notes=[]; let variance=NaN, p=NaN;
+  if(total>0 && groups.length>=2){
+    const minp = Math.min(...groups.map(g=>g/total)); const maxp = Math.max(...groups.map(g=>g/total));
+    if(groups.length===2){ p = groups[0]/total; variance = total*p*(1-p)/(total-1); }
+    if(minp < .15){ points=90; notes.push('At least one group is below 15% of N. This is severe imbalance risk.'); }
+    else if(minp < .25){ points=72; notes.push('At least one group is below 25% of N. Unequal subgroup sizes can sharply reduce power.'); }
+    else if(minp < .35){ points=45; notes.push('Subgroup balance is improved but still not close to equal allocation.'); }
+    else { points=15; notes.push('Group sizes are reasonably balanced.'); }
+    if(maxp > .80) notes.push('A large total N does not guarantee adequate power when one category dominates the sample.');
+  } else { points=40; notes.push('Enter at least two groups to evaluate categorical balance.'); }
+  const text = `${badge(riskName(points)+' subgroup-balance risk', riskClass(points))}\nTotal N = ${total || '—'}\nTwo-group p = ${Number.isFinite(p)?fmt(p,3):'—'}\nTwo-group S²Z = ${Number.isFinite(variance)?fmt(variance,4):'—'}\n\n${notes.map(n=>'• '+n).join('\n')}\n\nOversampling smaller groups can improve power, but justify the representativeness tradeoff.`;
+  return {risk:points,text,total,p,variance};
+}
+function updateCat(){ set('catOut', catCalc().text); }
+
+function powerCalc(){
+  const n = num('powerN', num('nplan',0));
+  const effect = val('effectSize');
+  const rx = num('powerRelX', num('relX',.7));
+  const rz = num('powerRelZ', num('relZ',.7));
+  const predictors = num('predictors',0);
+  const desired = num('desiredPower',.8), alpha = num('alpha',.05);
+  let points=0, notes=[];
+  const effectBase = {'Very small':45,'Small':30,'Medium':15,'Large':0,'Custom ΔR²':25}[effect] ?? 25;
+  points += effectBase;
+  const d = num('deltaR2');
+  if(effect === 'Custom ΔR²' && Number.isFinite(d)){
+    if(d < .005) points += 35;
+    else if(d < .02) points += 25;
+    else if(d < .05) points += 10;
+  }
+  if(n < 150){points += 35; notes.push('N is very small for an interaction test in many applied settings.');}
+  else if(n < 250){points += 25; notes.push('N is likely modest for detecting small moderation effects.');}
+  else if(n < 500){points += 12; notes.push('N may be acceptable for larger effects but still risky for small effects.');}
+  else notes.push('N is comparatively stronger, but measurement, range, and balance still matter.');
+  if(rx < .70 || rz < .70){points += 25; notes.push('Reliability below .70 increases risk of false-negative conclusions.');}
+  if(val('rangeLikely')==='Yes'){points += 25; notes.push('Likely range restriction reduces power and attenuates observed effects.');}
+  if(val('rangeLikely')==='Unclear'){points += 10; notes.push('Range restriction is unclear; document ranges and variances.');}
+  if(val('unbalancedLikely')==='Yes'){points += 25; notes.push('Unbalanced categorical groups can reduce power even with large total N.');}
+  if(val('unbalancedLikely')==='Unclear'){points += 10; notes.push('Subgroup balance is unclear; report subgroup sample sizes.');}
+  if(predictors > 10){points += 15; notes.push('Many predictors and controls can reduce precision; justify all controls.');}
+  if(desired < .80) notes.push('Desired power below .80 should be justified.');
+  if(alpha < .05) notes.push('A more stringent alpha increases required sample size.');
+  notes.unshift('This is a rule-based risk classification, not an exact power calculation.');
+  points = Math.min(100, Math.max(0, points));
+  const text = `${badge(riskName(points)+' power risk', riskClass(points))}\nRule-based score: ${points}/100\n\n${notes.map(n=>'• '+n).join('\n')}\n\nA priori power analysis is necessary before collecting data. Moderation effects are often small and require larger samples than main effects.`;
+  return {risk:points,text};
+}
+function updatePower(){ set('powerOut', powerCalc().text); }
+
+function continuousCalc(){
+  const natural = val('natContinuous'); const split=val('splitPlan'); const median=val('medianPlan'); const conv=val('convertPlan');
+  let points=0, notes=[];
+  if(natural==='Yes' && (split==='Yes' || median==='Yes' || conv==='Yes')){
+    points=95; notes.push('Do not artificially dichotomize continuous moderators. This discards information, reduces statistical power, and attenuates moderation effects.');
+  } else if(split==='Unclear' || median==='Unclear' || conv==='Unclear' || natural==='Unclear'){
+    points=45; notes.push('Clarify whether Z will be retained as continuous and how it will be probed.');
+  } else if(natural==='Yes'){
+    points=5; notes.push('Z is naturally continuous and no arbitrary categorization is currently planned.');
+  } else {
+    points=15; notes.push('If Z is inherently categorical, report subgroup sizes and justify category definitions.');
+  }
+  return {risk:points,text:`${badge(riskName(points)+' artificial-categorization risk', riskClass(points))}\n${notes.map(n=>'• '+n).join('\n')}\n\nPreferred workflow: retain continuous Z, estimate the XZ product term, probe simple slopes, and plot predicted values at meaningful values of Z.`};
+}
+function updateContinuous(){ set('continuousOut', continuousCalc().text); }
+
+function centeringCalc(){
+  const purpose=val('centeringPurpose'), zero=val('zeroMeaning'), range=val('zeroRange'), reason=val('centerReason');
+  let points=0, notes=[];
+  if(reason==='Yes'){ points=80; notes.push('Centering does not fix the test of the interaction effect. The interaction test is unchanged by mean-centering.'); }
+  if(purpose==='Testing the interaction coefficient only'){ notes.push('Centering is not necessary for the test of moderation. Include X, Z, and XZ in the same model.'); }
+  if(purpose==='Interpreting lower-order coefficients' || purpose==='Both testing and interpreting'){ notes.push('Mean-centering is useful when you want lower-order coefficients to refer to effects at the mean of the other variable.'); }
+  if(zero==='Yes' && range==='Yes'){ notes.push('Because zero is meaningful and observed, uncentered lower-order coefficients may be substantively meaningful.'); }
+  if(zero==='No' || range==='No'){ notes.push('Because zero is arbitrary or outside the observed range, consider centering or using meaningful focal values.'); }
+  if(purpose==='Unclear' || reason==='Unclear') { points=Math.max(points,40); notes.push('Clarify the centering rationale before analysis and reporting.'); }
+  if(points===0) points=10;
+  return {risk:points,text:`${badge(riskName(points)+' product-term/centering risk', riskClass(points))}\n${notes.map(n=>'• '+n).join('\n')}\n\nAlways estimate the full model with X, Z, and XZ together when testing moderation.`};
+}
+function updateCentering(){ set('centeringOut', centeringCalc().text); }
+
+function updateInterpretation(){
+  const b1=num('b1'), b2=num('b2'), b3=num('b3'), p=num('pB3');
+  const x=cleanName('xvar','X'), y=cleanName('yvar','Y'), z=cleanName('zvar','Z');
+  const probes = val('probeZ').split(',').map(s=>parseFloat(s.trim())).filter(Number.isFinite);
+  let lines=[];
+  if(Number.isFinite(b3)) lines.push(`b3 = ${fmt(b3,3)}. Interpret b3 as the change in the ${x}→${y} slope for a one-unit increase in ${z}.`);
+  if(Number.isFinite(p)) lines.push(p < .05 ? `The entered p-value (${fmt(p,3)}) is below .05; the product-term coefficient would usually be described as statistically distinguishable from zero at that alpha level.` : `The entered p-value (${fmt(p,3)}) is not below .05; examine power, reliability, range restriction, and subgroup balance before concluding no moderation.`);
+  if(val('ciB3')) lines.push(`Entered CI for b3: ${esc(val('ciB3'))}. If the interval excludes zero, it supports a nonzero interaction under the stated confidence level.`);
+  if(Number.isFinite(b1) && Number.isFinite(b3) && probes.length){
+    lines.push('Simple slopes for X at entered Z values:');
+    probes.forEach(zv=> lines.push(`• Z = ${fmt(zv,2)}: slope = b1 + b3Z = ${fmt(b1 + b3*zv,3)}`));
+  }
+  lines.push('Do not interpret first-order effects from a model that omits XZ when an interaction is hypothesized or present. Lower-order effects should be interpreted from the full model including X, Z, and XZ.');
+  const partial = val('partialRiskQ');
+  if(partial==='Yes') lines.push('Red flag: revise the analysis plan so lower-order claims do not rely on a model that omits the product term.');
+  else if(partial==='Unclear') lines.push('Clarify the source of all lower-order interpretations before reporting results.');
+  set('interpOut', lines.join('\n'));
+}
+
+function yhat(b0,b1,b2,b3,x,z){ return b0+b1*x+b2*z+b3*x*z; }
+function updatePlot(){
+  const b0=num('plotB0',0), b1=num('plotB1',0), b2=num('plotB2',0), b3=num('plotB3',0);
+  let xmin=num('plotXMin',-1), xmax=num('plotXMax',1); if(xmin===xmax){ xmax=xmin+1; }
+  const zvals=[num('zLow',-1),num('zMed',0),num('zHigh',1)];
+  const labels=[val('labelLow')||'Low Z',val('labelMed')||'Medium Z',val('labelHigh')||'High Z'];
+  const lines = zvals.map((z,i)=>({z,label:labels[i],y1:yhat(b0,b1,b2,b3,xmin,z),y2:yhat(b0,b1,b2,b3,xmax,z),slope:b1+b3*z}));
+  let ys=[]; lines.forEach(l=>{ys.push(l.y1,l.y2)}); let ymin=Math.min(...ys), ymax=Math.max(...ys); if(ymin===ymax){ymin-=1;ymax+=1;} const pad=(ymax-ymin)*.12; ymin-=pad; ymax+=pad;
+  const W=680,H=380,L=70,T=28,PW=540,PH=285;
+  const sx=x=>L+(x-xmin)/(xmax-xmin)*PW; const sy=y=>T+PH-(y-ymin)/(ymax-ymin)*PH;
+  const colors=['#1b5f9e','#0b7a75','#b45309'];
+  let svg=`<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Interaction plot with three simple-slope lines">`;
+  svg += `<rect x="0" y="0" width="${W}" height="${H}" fill="#fff"></rect><rect x="${L}" y="${T}" width="${PW}" height="${PH}" fill="#f8fbff" stroke="#d9e1ec"></rect>`;
+  for(let i=0;i<=4;i++){ const x=L+i*PW/4, y=T+i*PH/4; svg+=`<line x1="${x}" y1="${T}" x2="${x}" y2="${T+PH}" stroke="#e5e7eb"></line><line x1="${L}" y1="${y}" x2="${L+PW}" y2="${y}" stroke="#e5e7eb"></line>`; }
+  svg += `<line x1="${L}" y1="${T+PH}" x2="${L+PW}" y2="${T+PH}" stroke="#334155" stroke-width="1.5"></line><line x1="${L}" y1="${T}" x2="${L}" y2="${T+PH}" stroke="#334155" stroke-width="1.5"></line>`;
+  svg += `<text x="${L+PW/2}" y="${H-18}" text-anchor="middle" font-size="13" fill="#334155">X</text><text x="16" y="${T+PH/2}" transform="rotate(-90 16 ${T+PH/2})" text-anchor="middle" font-size="13" fill="#334155">Predicted Y</text>`;
+  svg += `<text x="${L}" y="${T+PH+20}" text-anchor="middle" font-size="12" fill="#5a667d">${fmt(xmin,2)}</text><text x="${L+PW}" y="${T+PH+20}" text-anchor="middle" font-size="12" fill="#5a667d">${fmt(xmax,2)}</text>`;
+  svg += `<text x="${L-8}" y="${sy(ymin)}" text-anchor="end" font-size="12" fill="#5a667d">${fmt(ymin,2)}</text><text x="${L-8}" y="${sy(ymax)}" text-anchor="end" font-size="12" fill="#5a667d">${fmt(ymax,2)}</text>`;
+  lines.forEach((l,i)=>{ svg += `<line x1="${sx(xmin)}" y1="${sy(l.y1)}" x2="${sx(xmax)}" y2="${sy(l.y2)}" stroke="${colors[i]}" stroke-width="4" stroke-linecap="round"></line><circle cx="${sx(xmin)}" cy="${sy(l.y1)}" r="4" fill="${colors[i]}"></circle><circle cx="${sx(xmax)}" cy="${sy(l.y2)}" r="4" fill="${colors[i]}"></circle><text x="${L+PW+16}" y="${T+24+i*24}" font-size="13" fill="${colors[i]}" font-weight="800">${esc(l.label)}</text>`; });
+  svg += `</svg>`;
+  set('plotSvg', svg);
+  let out=[];
+  lines.forEach(l=> out.push(`${l.label}: simple slope = ${fmt(l.slope,3)}; predicted Y at X min = ${fmt(l.y1,3)}, at X max = ${fmt(l.y2,3)}.`));
+  const signs = lines.map(l=>Math.sign(l.slope));
+  if(signs.includes(-1) && signs.includes(1)) out.push('Warning: simple slopes differ in sign across Z values, suggesting a possible crossover/disordinal pattern.');
+  const startOrder = lines.map(l=>l.y1).join('|'), endOrder = lines.map(l=>l.y2).join('|');
+  const lowHighStart = Math.sign(lines[2].y1 - lines[0].y1), lowHighEnd = Math.sign(lines[2].y2 - lines[0].y2);
+  if(lowHighStart !== 0 && lowHighEnd !== 0 && lowHighStart !== lowHighEnd) out.push('Warning: plotted lines cross within the displayed X range.');
+  const oxmin=num('obsXMinPlot'), oxmax=num('obsXMaxPlot');
+  if(Number.isFinite(oxmin) && Number.isFinite(oxmax) && (xmin<oxmin || xmax>oxmax)) out.push('Warning: plotted X values extend beyond the entered observed X range, so part of the plot may involve extrapolation.');
+  set('slopesOut', out.join('\n'));
+}
+
+function updateChecklist(){
+  const boxes = Array.from(document.querySelectorAll('#checklistBox input[type="checkbox"]'));
+  const done = boxes.filter(b=>b.checked).length; const total = boxes.length; const pctDone = total ? done/total : 0;
+  set('checkPct', Math.round(pctDone*100)+'%'); set('checkDone', done); set('checkTotal', total);
+  set('checkStatus', pctDone>=.9?'Ready':pctDone>=.65?'Close':'Incomplete');
+}
+
+function gatherRisks(){
+  const m=measurementCalc(), r=rangeCalc(), c=catCalc(), p=powerCalc(), a=continuousCalc(), cent=centeringCalc();
+  let partial=10;
+  if(val('partialRiskQ')==='Yes') partial=90; else if(val('partialRiskQ')==='Unclear') partial=50;
+  return [
+    {name:'Measurement error risk', score:m.risk, fix:'Fix before data collection', action:'Increase reliability of X and Z, report reliability, and address product-term reliability in the design and manuscript.'},
+    {name:'Range restriction risk', score:r.risk, fix:'Fix before data collection', action:'Broaden sampling or document sample and population ranges/variances.'},
+    {name:'Unequal categorical subgroup risk', score:c.risk, fix:'Fix before data collection', action:'Plan subgroup sample sizes, consider justified oversampling, and report subgroup Ns.'},
+    {name:'Statistical power risk', score:p.risk, fix:'Fix before data collection', action:'Conduct a priori power analysis and increase N or improve design conditions where possible.'},
+    {name:'Artificial categorization risk', score:a.risk, fix:'Fix before analysis', action:'Retain continuous Z and probe simple slopes at meaningful values.'},
+    {name:'Product-term/centering misconception risk', score:cent.risk, fix:'Fix before analysis', action:'Include X, Z, and XZ together; explain centering as an interpretive decision, not a fix for the interaction test.'},
+    {name:'Partial-model interpretation risk', score:partial, fix:'Fix before interpretation', action:'Interpret lower-order effects from the full model and discuss simple slopes when X interacts with Z.'}
+  ];
+}
+function updateRisk(){
+  const risks=gatherRisks(); const overall=Math.round(risks.reduce((a,b)=>a+b.score,0)/risks.length);
+  set('overallRisk', overall); set('riskLevel', riskName(overall)); $('riskMeter').style.width=overall+'%';
+  set('redCount', risks.filter(r=>riskClass(r.score)==='red').length); set('yellowCount', risks.filter(r=>riskClass(r.score)==='yellow').length);
+  set('riskRows', risks.map(r=>`<div class="risk-card"><div><strong>${esc(r.name)}</strong><div class="small">${esc(r.action)}</div></div><div>${badge(riskName(r.score),riskClass(r.score))} <strong>${Math.round(r.score)}</strong></div></div>`).join(''));
+  const phases = ['Fix before data collection','Fix before analysis','Fix before interpretation','Fix before manuscript submission'];
+  const recHtml = phases.map(ph=>{
+    const list = risks.filter(r=>r.fix===ph && r.score>=35).map(r=>`<li>${esc(r.name)}: ${esc(r.action)}</li>`);
+    if(ph==='Fix before manuscript submission') list.push('<li>Complete the reporting checklist and acknowledge remaining limitations related to reliability, range, power, and subgroup balance.</li>');
+    return `<div class="phase"><strong>${ph}</strong><ul>${list.length?list.join(''):'<li>No major issue currently detected.</li>'}</ul></div>`;
+  }).join('');
+  set('recommendations', recHtml);
+}
+
+function generateReport(){
+  updateAll(false);
+  const x=plainName('xvar','X'), y=plainName('yvar','Y'), z=plainName('zvar','Z');
+  const m=measurementCalc(), r=rangeCalc(), c=catCalc(), p=powerCalc(), a=continuousCalc(), cent=centeringCalc();
+  const risks=gatherRisks(); const overall=Math.round(risks.reduce((aa,b)=>aa+b.score,0)/risks.length);
+  const boxes=Array.from(document.querySelectorAll('#checklistBox input[type="checkbox"]')); const done=boxes.filter(b=>b.checked).length; const total=boxes.length;
+  const hypo = `The relationship between ${x} and ${y} will be ${val('direction')} when ${z} is ${val('zcontrast')} than when ${z} is ${val('zbase')}.`;
+  const report = [
+    'MODERATION STUDY DESIGN AND AUDIT REPORT',
+    'Generated locally in the browser; no data are transmitted.',
+    '',
+    '1. Study title / research question',
+    plainName('title','[not entered]'),
+    plainName('rq','[not entered]'),
+    '',
+    '2. X, Y, and Z definitions',
+    `X: ${x}`,
+    `Y: ${y}`,
+    `Z: ${z}`,
+    `Z type: ${val('ztype')}`,
+    `Field/context: ${val('field')}`,
+    `Unit of analysis: ${val('unit')}`,
+    `Data source: ${val('source')}`,
+    `Controls included: ${val('controls')}`,
+    '',
+    '3. Moderation hypothesis',
+    hypo,
+    `Expected form: ${val('formtype')}`,
+    '',
+    '4. Model equation',
+    'Y = b0 + b1X + b2Z + b3XZ + e',
+    'The product-term coefficient b3 represents the change in the X→Y slope for a one-unit increase in Z.',
+    '',
+    '5. Measurement reliability audit',
+    `Product-term reliability: ${fmt(m.product,3)}`,
+    `Risk classification: ${riskName(m.risk)} (${Math.round(m.risk)}/100)`,
+    stripTags(m.text),
+    '',
+    '6. Range restriction audit',
+    `X range captured: ${Number.isFinite(r.xp)?fmt(r.xp,1)+'%':'not entered'}`,
+    `Z range captured: ${Number.isFinite(r.zp)?fmt(r.zp,1)+'%':'not entered'}`,
+    `X sample SD / population SD: ${fmt(r.xr,2)}`,
+    `Z sample SD / population SD: ${fmt(r.zr,2)}`,
+    `Risk classification: ${riskName(r.risk)} (${Math.round(r.risk)}/100)`,
+    '',
+    '7. Categorical moderator balance audit',
+    `Total group N entered: ${c.total || 'not entered'}`,
+    `Two-group p: ${Number.isFinite(c.p)?fmt(c.p,3):'not applicable'}`,
+    `Two-group S²Z: ${Number.isFinite(c.variance)?fmt(c.variance,4):'not applicable'}`,
+    `Risk classification: ${riskName(c.risk)} (${Math.round(c.risk)}/100)`,
+    `Oversampling justification: ${plainName('oversampleJust','[not entered]')}`,
+    '',
+    '8. Power-planning risk summary',
+    `Planned N: ${plainName('powerN', plainName('nplan','[not entered]'))}`,
+    `Expected interaction effect size: ${val('effectSize')}`,
+    `Desired power: ${val('desiredPower')}; alpha: ${val('alpha')}`,
+    `Risk classification: ${riskName(p.risk)} (${Math.round(p.risk)}/100)`,
+    'This classification is rule-based and does not replace exact a priori power analysis.',
+    '',
+    '9. Centering and product-term decision',
+    `Primary purpose: ${val('centeringPurpose')}`,
+    `Meaningful zero points: ${val('zeroMeaning')}`,
+    `Zero within observed range: ${val('zeroRange')}`,
+    `Risk classification: ${riskName(cent.risk)} (${Math.round(cent.risk)}/100)`,
+    '',
+    '10. Simple slopes and plotting plan',
+    `Probe values of Z: ${plainName('probeZ','[not entered]')}`,
+    stripTags($('slopesOut').innerText || '[plot not generated]'),
+    '',
+    '11. Reporting checklist completion status',
+    `${done} of ${total} checklist items completed (${total?Math.round(done/total*100):0}%).`,
+    '',
+    '12. Remaining risks and recommended fixes',
+    `Overall risk score: ${overall}/100 (${riskName(overall)}).`,
+    ...risks.filter(rr=>rr.score>=35).map(rr=>`- ${rr.name}: ${riskName(rr.score)}. ${rr.fix}. ${rr.action}`),
+    '',
+    '13. Source credit',
+    'Based on Aguinis, H. 2025. Research methodology: Best practices for rigorous, credible, and impactful research. SAGE. https://collegepublishing.sagepub.com/products/research-methodology-1-280088'
+  ].join('\n');
+  $('reportText').value = report;
+  saveState();
+}
+function stripTags(s){ return String(s||'').replace(/<[^>]+>/g,'').replace(/\n{3,}/g,'\n\n').trim(); }
+
+function updateAll(doSave=true){
+  updateSetup(); updateDiagram(); updateClarity(); updateMeasurement(); updateRange(); updateCat(); updatePower(); updateContinuous(); updateCentering(); updateInterpretation(); updatePlot(); updateChecklist(); updateRisk();
+  if(doSave) saveState();
+}
+
+function initNav(){
+  document.querySelectorAll('.navbtn').forEach(btn=>{
+    btn.addEventListener('click',()=>{
+      document.querySelectorAll('.navbtn').forEach(b=>b.classList.remove('active'));
+      document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
+      btn.classList.add('active'); $(btn.dataset.target).classList.add('active');
+      window.scrollTo({top:0,behavior:'smooth'});
+    });
+  });
+}
+function initButtons(){
+  $('genReport').addEventListener('click', generateReport);
+  $('copyReport').addEventListener('click',()=>{
+    if(!$('reportText').value) generateReport();
+    const txt=$('reportText').value;
+    if(navigator.clipboard && window.isSecureContext){ navigator.clipboard.writeText(txt); }
+    else { $('reportText').select(); document.execCommand('copy'); }
+  });
+  $('printReport').addEventListener('click',()=>{ if(!$('reportText').value) generateReport(); window.print(); });
+  function wipe(){ try{ localStorage.removeItem(STORAGE_KEY); }catch(e){} location.reload(); }
+  $('resetTool').addEventListener('click',()=>{ if(confirm('Reset all inputs and reload the tool?')) wipe(); });
+  $('clearSaved').addEventListener('click',()=>{ if(confirm('Clear saved browser data for this tool?')) wipe(); });
+}
+
+initStaticChecks(); loadState(); initNav(); initButtons();
+document.addEventListener('input',()=>updateAll(true));
+document.addEventListener('change',()=>updateAll(true));
+updateAll(false);
+})();
+</script>
+<!-- Begin Countercentral code v 7.0 --> 
+<span id="wts2576"></span> 
+<script>var wts=document.createElement('script');wts.async=true; 
+wts.src='https://server2.countercentral.com/log7.js';document.head.appendChild(wts); 
+wts.onload = function(){ wtslog7(2576,1); }; 
+</script><noscript><a href="https://www.countercentral.com"> 
+<img src="https://server2.countercentral.com/7/1/2576.png"  
+alt="Countercentral web traffic analysis"></a></noscript> 
+<!-- End Countercentral code v 7.0 --> 
+</body>
+</html>

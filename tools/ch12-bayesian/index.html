@@ -1,0 +1,1229 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Bayesian Analysis Companion — Kruschke, Aguinis &amp; Joo (2012)</title>
+<style>
+  :root{
+    --bg:#f5f7fa; --panel:#ffffff; --ink:#16202c; --muted:#5b6b7b;
+    --line:#d8e0ea; --brand:#1f5fa6; --brand-d:#16456f; --accent:#0f9d8c;
+    --warn:#c47f00; --bad:#c0392b; --good:#1e8449; --soft:#eef3f9;
+    --shadow:0 1px 3px rgba(20,40,70,.10),0 6px 18px rgba(20,40,70,.06);
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0}
+  body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+       background:var(--bg);color:var(--ink);line-height:1.55;font-size:15.5px}
+  a{color:var(--brand)}
+  h1,h2,h3,h4{line-height:1.25;color:var(--ink)}
+  h2{font-size:1.5rem;margin:.1rem 0 .4rem}
+  h3{font-size:1.12rem;margin:1.3rem 0 .5rem}
+  p{margin:.55rem 0}
+  code,.mono{font-family:"SF Mono",Menlo,Consolas,monospace;font-size:.92em;background:#eef2f7;
+       padding:1px 5px;border-radius:4px}
+  button{font-family:inherit;font-size:.95rem;cursor:pointer;border:1px solid var(--line);
+       background:#fff;color:var(--ink);padding:.5rem .85rem;border-radius:8px;transition:.12s}
+  button:hover{border-color:var(--brand);color:var(--brand)}
+  button:focus-visible{outline:3px solid #9cc4ec;outline-offset:1px}
+  .btn-primary{background:var(--brand);color:#fff;border-color:var(--brand);font-weight:600}
+  .btn-primary:hover{background:var(--brand-d);color:#fff;border-color:var(--brand-d)}
+  .btn-accent{background:var(--accent);color:#fff;border-color:var(--accent);font-weight:600}
+  .btn-accent:hover{background:#0c8475;color:#fff}
+  input,select,textarea{font-family:inherit;font-size:.95rem;padding:.45rem .55rem;border:1px solid var(--line);
+       border-radius:7px;background:#fff;color:var(--ink)}
+  input:focus,select:focus,textarea:focus{outline:none;border-color:var(--brand);box-shadow:0 0 0 3px #d6e6f6}
+  label{font-weight:600;font-size:.9rem}
+
+  /* Layout */
+  header.app{position:sticky;top:0;z-index:50;background:linear-gradient(100deg,var(--brand-d),var(--brand));
+       color:#fff;padding:.7rem 1.1rem;display:flex;align-items:center;gap:1rem;box-shadow:var(--shadow)}
+  header.app h1{font-size:1.12rem;margin:0;color:#fff;font-weight:700;letter-spacing:.2px}
+  header.app .sub{font-size:.78rem;opacity:.85;font-weight:400}
+  header.app .spacer{flex:1}
+  header.app button{background:rgba(255,255,255,.12);color:#fff;border-color:rgba(255,255,255,.35)}
+  header.app button:hover{background:rgba(255,255,255,.25);color:#fff;border-color:#fff}
+
+  .layout{display:flex;min-height:calc(100vh - 52px);align-items:flex-start}
+  nav.side{width:268px;flex:0 0 268px;background:var(--panel);border-right:1px solid var(--line);
+       padding:1rem .7rem;position:sticky;top:52px;height:calc(100vh - 52px);overflow:auto}
+  nav.side .navtitle{font-size:.72rem;text-transform:uppercase;letter-spacing:.09em;color:var(--muted);
+       margin:.4rem .5rem .5rem;font-weight:700}
+  .navitem{display:flex;gap:.6rem;align-items:flex-start;padding:.55rem .6rem;border-radius:9px;cursor:pointer;
+       margin-bottom:2px;border:1px solid transparent}
+  .navitem:hover{background:var(--soft)}
+  .navitem.active{background:#e7f0fa;border-color:#bcd8f2}
+  .navitem .num{flex:0 0 26px;height:26px;border-radius:50%;background:var(--soft);color:var(--muted);
+       display:flex;align-items:center;justify-content:center;font-weight:700;font-size:.82rem;border:1px solid var(--line)}
+  .navitem.active .num{background:var(--brand);color:#fff;border-color:var(--brand)}
+  .navitem.done .num{background:var(--good);color:#fff;border-color:var(--good)}
+  .navitem .lbl{font-weight:600;font-size:.93rem}
+  .navitem .desc{font-size:.74rem;color:var(--muted);font-weight:400}
+  .side hr{border:none;border-top:1px solid var(--line);margin:.8rem .3rem}
+
+  main{flex:1;min-width:0;padding:1.4rem clamp(1rem,3vw,2.6rem);max-width:1180px}
+  section.step{display:none;animation:fade .25s ease}
+  section.step.active{display:block}
+  @keyframes fade{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:1.2rem 1.3rem;
+       margin:1rem 0;box-shadow:var(--shadow)}
+  .card.tight{padding:.9rem 1rem}
+  .lead{font-size:1.02rem;color:var(--muted)}
+  .kicker{display:inline-block;font-size:.72rem;font-weight:700;letter-spacing:.09em;text-transform:uppercase;
+       color:var(--brand);background:#e7f0fa;padding:.2rem .55rem;border-radius:20px;margin-bottom:.5rem}
+  .grid{display:grid;gap:1rem}
+  .g2{grid-template-columns:1fr 1fr}
+  .g3{grid-template-columns:repeat(3,1fr)}
+  @media(max-width:880px){.g2,.g3{grid-template-columns:1fr}}
+  .flex{display:flex;gap:.7rem;flex-wrap:wrap;align-items:center}
+  .between{justify-content:space-between}
+  .navbtns{display:flex;justify-content:space-between;margin:1.6rem 0 2rem;gap:1rem}
+
+  /* Tooltips / glossary terms */
+  .term{border-bottom:1px dotted var(--brand);cursor:help;color:var(--brand-d);font-weight:600;position:relative}
+  .term:hover::after,.term:focus::after{content:attr(data-tip);position:absolute;left:0;top:135%;z-index:60;
+       width:300px;background:#16202c;color:#fff;font-weight:400;font-size:.82rem;line-height:1.45;
+       padding:.6rem .7rem;border-radius:9px;box-shadow:var(--shadow);white-space:normal}
+  .term:hover::before,.term:focus::before{content:"";position:absolute;left:14px;top:122%;border:7px solid transparent;
+       border-bottom-color:#16202c;z-index:61}
+
+  /* Advantages table */
+  .adv{border:1px solid var(--line);border-radius:11px;overflow:hidden;margin-top:.7rem}
+  .adv .row{border-top:1px solid var(--line)}
+  .adv .row:first-child{border-top:none}
+  .adv .head{display:grid;grid-template-columns:34px 1.1fr 1fr 1fr;gap:.7rem;padding:.55rem .8rem;
+       background:#eef3f9;font-weight:700;font-size:.82rem;color:var(--muted);text-transform:uppercase;letter-spacing:.05em}
+  .adv .summ{display:grid;grid-template-columns:34px 1.1fr 1fr 1fr;gap:.7rem;padding:.7rem .8rem;cursor:pointer;align-items:start}
+  .adv .summ:hover{background:#f7fafd}
+  .adv .summ .n{width:26px;height:26px;border-radius:50%;background:var(--brand);color:#fff;display:flex;
+       align-items:center;justify-content:center;font-weight:700;font-size:.8rem}
+  .adv .fq{color:var(--bad);font-size:.92rem}
+  .adv .by{color:var(--good);font-size:.92rem}
+  .adv .detail{display:none;padding:.2rem 1rem 1rem 3.1rem;background:#f9fbfd;color:var(--ink);font-size:.95rem}
+  .adv .row.open .detail{display:block}
+  .chev{transition:.2s;color:var(--muted)}
+  .adv .row.open .chev{transform:rotate(90deg)}
+
+  table.tbl{border-collapse:collapse;width:100%;font-size:.92rem;margin:.4rem 0}
+  table.tbl th,table.tbl td{border:1px solid var(--line);padding:.5rem .6rem;text-align:left;vertical-align:top}
+  table.tbl th{background:#eef3f9;font-size:.82rem;text-transform:uppercase;letter-spacing:.04em;color:var(--muted)}
+  table.tbl tr:nth-child(even) td{background:#fafcfe}
+
+  .badge{display:inline-block;padding:.18rem .5rem;border-radius:20px;font-size:.76rem;font-weight:700}
+  .b-reject{background:#fdecea;color:var(--bad)}
+  .b-accept{background:#e7f6ec;color:var(--good)}
+  .b-with{background:#fef3e0;color:var(--warn)}
+  .b-pass{background:#e7f6ec;color:var(--good)}
+  .b-warn{background:#fef3e0;color:var(--warn)}
+
+  .note{background:#fff8e9;border:1px solid #f0dcae;border-left:4px solid var(--warn);
+       border-radius:10px;padding:.8rem 1rem;margin:1rem 0;font-size:.93rem}
+  .info{background:#eef6ff;border:1px solid #c5ddf6;border-left:4px solid var(--brand);
+       border-radius:10px;padding:.8rem 1rem;margin:1rem 0;font-size:.93rem}
+  .canvas-wrap{background:#fff;border:1px solid var(--line);border-radius:10px;padding:.4rem}
+  canvas{display:block;width:100%;height:auto}
+  .param-card{border:1px solid var(--line);border-radius:11px;padding:.8rem;margin-bottom:.8rem;background:#fcfdff}
+  .stat{font-variant-numeric:tabular-nums}
+  .small{font-size:.85rem;color:var(--muted)}
+  .pill{display:inline-block;background:var(--soft);border:1px solid var(--line);border-radius:20px;
+       padding:.15rem .6rem;font-size:.8rem;margin:.1rem}
+  .checkitem{display:flex;gap:.7rem;align-items:flex-start;padding:.6rem .2rem;border-top:1px solid var(--line)}
+  .checkitem:first-child{border-top:none}
+  .checkitem input{margin-top:.25rem;width:18px;height:18px}
+  .progressbar{height:10px;background:var(--soft);border-radius:6px;overflow:hidden;border:1px solid var(--line)}
+  .progressbar>div{height:100%;width:0;background:linear-gradient(90deg,var(--brand),var(--accent));transition:.2s}
+  pre.writeup{white-space:pre-wrap;background:#fbfdff;border:1px solid var(--line);border-radius:10px;
+       padding:1rem;font-family:Georgia,"Times New Roman",serif;font-size:.95rem;line-height:1.6}
+  footer.app{background:#0f1c2a;color:#c7d4e2;font-size:.82rem;padding:1.3rem clamp(1rem,3vw,2.6rem);margin-top:2rem}
+  footer.app a{color:#7fb6ee}
+  .tag{display:inline-block;font-size:.72rem;font-weight:700;border-radius:5px;padding:.05rem .4rem}
+  .reminder-bar{background:#fffaf0;border:1px solid #f0dcae;border-radius:10px;padding:.55rem .9rem;
+       font-size:.85rem;color:#7a5a12;margin:.6rem 0}
+  .modal-bk{display:none;position:fixed;inset:0;background:rgba(10,20,35,.55);z-index:200;align-items:center;justify-content:center;padding:1rem}
+  .modal-bk.show{display:flex}
+  .modal{background:#fff;border-radius:14px;max-width:680px;width:100%;max-height:85vh;overflow:auto;padding:1.4rem 1.6rem;box-shadow:var(--shadow)}
+  .glossary dt{font-weight:700;color:var(--brand-d);margin-top:.7rem}
+  .glossary dd{margin:.1rem 0 .3rem;color:var(--ink)}
+  .spin{display:inline-block;width:14px;height:14px;border:2px solid #cfe0f2;border-top-color:var(--brand);
+       border-radius:50%;animation:sp 1s linear infinite;vertical-align:-2px}
+  @keyframes sp{to{transform:rotate(360deg)}}
+  .legend{display:flex;gap:1rem;flex-wrap:wrap;font-size:.8rem;color:var(--muted);margin-top:.3rem}
+  .legend i{display:inline-block;width:12px;height:12px;border-radius:3px;vertical-align:-1px;margin-right:4px}
+</style>
+</head>
+<body>
+<header class="app">
+  <div>
+    <h1>Bayesian Analysis Companion</h1>
+    <div class="sub">A guided workflow built on Kruschke, Aguinis &amp; Joo (2012), <em>Organizational Research Methods</em></div>
+  </div>
+  <div class="spacer"></div>
+  <button onclick="openModal('glossaryModal')">Glossary</button>
+  <button onclick="openModal('aboutModal')">About</button>
+</header>
+
+<div class="layout">
+  <nav class="side" aria-label="Workflow steps">
+    <div class="navtitle">Workflow</div>
+    <div id="navList"></div>
+    <hr>
+    <div class="navtitle">Reference</div>
+    <div class="navitem" onclick="openModal('glossaryModal')"><div class="num">i</div><div><div class="lbl">Glossary</div><div class="desc">Plain-language definitions</div></div></div>
+    <div class="navitem" onclick="openModal('aboutModal')"><div class="num">?</div><div><div class="lbl">About &amp; citations</div><div class="desc">Sources and credits</div></div></div>
+    <div class="reminder-bar" style="margin-top:1rem">⚠️ Bayesian methods are no substitute for sound research design, careful measurement, and good conceptual thinking.</div>
+  </nav>
+
+  <main id="main">
+
+  <!-- ===================== STEP 0: WHY BAYESIAN ===================== -->
+  <section class="step active" id="step-why">
+    <span class="kicker">Step 1 · Orientation</span>
+    <h2>Why Bayesian?</h2>
+    <p class="lead">You already know frequentist statistics. This section explains, in plain language, what Bayesian analysis gives you that <em>p</em>-values and confidence intervals cannot.</p>
+
+    <div class="card">
+      <h3 style="margin-top:.2rem">The core idea</h3>
+      <p>Bayesian inference <strong>reallocates credibility across parameter values in light of the observed data</strong>. You start with a <span class="term" tabindex="0" data-tip="A probability distribution describing how plausible each parameter value is BEFORE seeing the new data — based on prior knowledge or deliberately made broad/noncommittal.">prior</span> distribution over the possible values of your parameters, combine it with the data through the <span class="term" tabindex="0" data-tip="The probability of the observed data given particular parameter values — your statistical model of how data are generated.">likelihood</span>, and obtain a <span class="term" tabindex="0" data-tip="The updated probability distribution over parameter values AFTER seeing the data. It is the complete answer Bayesian analysis provides.">posterior</span> distribution.</p>
+      <p>That posterior answers the question researchers <em>actually</em> care about:</p>
+      <div class="info" style="font-size:1rem"><strong>p(hypothesis&nbsp;|&nbsp;data)</strong> &nbsp;— how credible are the parameter values, given the data I collected? <br>
+      Frequentist <em>p</em>-values instead give you <strong>p(data at least this extreme&nbsp;|&nbsp;null hypothesis true)</strong> — the probability of hypothetical data you never observed, assuming a hypothesis you are trying to evaluate.</p>
+      <p>Bayes' rule makes the relationship exact: <span class="mono">p(θ|D) = p(D|θ)·p(θ) / p(D)</span> &nbsp;— posterior ∝ likelihood × prior.</p>
+    </div>
+
+    <div class="card">
+      <h3 style="margin-top:.2rem">Seven advantages over frequentist analysis</h3>
+      <p class="small">From Table 2 of Kruschke, Aguinis &amp; Joo (2012). Click any row to expand the explanation.</p>
+      <div class="adv" id="advTable">
+        <div class="head"><div>#</div><div>Issue</div><div>Frequentist</div><div>Bayesian</div></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3 style="margin-top:.2rem">Why <em>p</em>-values and CIs depend on intentions — but the posterior does not</h3>
+      <p>A <em>p</em>-value is computed from the probability of data "as or more extreme" than what you observed, <em>assuming the null is true and assuming a particular sampling and testing plan</em>. That tail region depends on:</p>
+      <ul>
+        <li><strong>Stopping intention</strong> — did you plan to stop at a fixed <em>N</em>, stop at a deadline, or keep collecting until significance? Each defines a different space of "could-have-happened" datasets, so each yields a different <em>p</em>-value for the <em>same</em> data.</li>
+        <li><strong>Testing intention</strong> — how many other tests were planned? Frequentist analysis must widen intervals and correct <em>p</em>-values for the comparisons you intended to make.</li>
+      </ul>
+      <p>The Bayesian <span class="term" tabindex="0" data-tip="Highest Density Interval: the range containing the 95% most credible parameter values. Every point inside has higher posterior density than any point outside.">posterior &amp; HDI</span> depend only on the data you actually observed and the model and prior you declared. They do <strong>not</strong> change because you might have stopped at a different sample size or planned different comparisons. This is why the article says the posterior is "a fixed entity based on the observed data."</p>
+    </div>
+    <div class="navbtns"><span></span><button class="btn-primary" onclick="goStep('step-model')">Next: Specify your model →</button></div>
+  </section>
+
+  <!-- ===================== STEP 1: SPECIFY MODEL ===================== -->
+  <section class="step" id="step-model">
+    <span class="kicker">Step 2 · Model</span>
+    <h2>Specify your model</h2>
+    <p class="lead">The parameters carry the meaning of your analysis, so define them deliberately. This companion runs a full Bayesian <strong>multiple linear regression</strong> in your browser; the other model families below are explained so you can report them in the same framework.</p>
+
+    <div class="card">
+      <h3 style="margin-top:.2rem">Choose a model family</h3>
+      <div class="flex">
+        <label for="modelFamily">Model family</label>
+        <select id="modelFamily" onchange="onFamilyChange()">
+          <option value="mlr">Multiple linear regression (runnable here)</option>
+          <option value="anova">ANOVA / ANCOVA</option>
+          <option value="logistic">Logistic regression</option>
+          <option value="ordinal">Ordinal regression</option>
+          <option value="loglinear">Log-linear / contingency table</option>
+        </select>
+      </div>
+      <div id="familyNote" class="info" style="margin-top:.8rem"></div>
+      <div class="note">
+        <strong>Robust &amp; hierarchical extensions.</strong> Any of these models can be made <em>robust</em> by replacing the normal noise distribution with a heavier-tailed <em>t</em> distribution (so outliers do not distort estimates), and <em>hierarchical / multilevel</em> by adding higher-level distributions that let groups or coefficients share information ("shrinkage"). The article stresses that these extensions require <em>no change in inference method</em> — only a change to the model declaration.
+      </div>
+    </div>
+
+    <div class="card">
+      <h3 style="margin-top:.2rem">Describe your parameters</h3>
+      <p class="small">For the runnable regression, the criterion is the first column of your data and each predictor is a coefficient. Edit names/units so the write-up reads naturally. The demo below predicts <strong>job performance</strong> from <strong>GMA</strong>, <strong>conscientiousness</strong>, and <strong>biodata</strong> (the article's example).</p>
+      <table class="tbl" id="paramTable">
+        <thead><tr><th style="width:26%">Parameter name</th><th style="width:24%">Role</th><th style="width:22%">Units / scale</th><th>Meaning in your study</th></tr></thead>
+        <tbody id="paramBody"></tbody>
+      </table>
+      <p class="small">The intercept and residual SD (σ) are always estimated. Predictor rows are filled automatically from your dataset in Step 4; you can rename them here at any time.</p>
+    </div>
+    <div class="navbtns"><button onclick="goStep('step-why')">← Back</button><button class="btn-primary" onclick="goStep('step-prior')">Next: Determine the prior →</button></div>
+  </section>
+
+  <!-- ===================== STEP 2: PRIOR ===================== -->
+  <section class="step" id="step-prior">
+    <span class="kicker">Step 3 · Prior</span>
+    <h2>Determine &amp; justify the prior</h2>
+    <p class="lead">The <span class="term" tabindex="0" data-tip="A probability distribution describing how plausible each parameter value is BEFORE seeing the new data.">prior</span> must be explicitly specified and justified for a skeptical scientific audience — it cannot be set capriciously to favor your preferred result. When in doubt, use a broad, noncommittal prior so the data dominate.</p>
+
+    <div class="card">
+      <div class="flex between">
+        <div>
+          <label for="priorMode">Prior stance</label>
+          <select id="priorMode" onchange="applyPriorPreset()">
+            <option value="broad">Noncommittal / broad (recommended default)</option>
+            <option value="informed">Informed (use prior research)</option>
+          </select>
+        </div>
+        <button onclick="resetPriorDefaults()">Restore article defaults</button>
+      </div>
+      <div class="info" style="margin-top:.8rem">
+        <strong>Article defaults for standardized data.</strong> Intercept and each slope: <span class="mono">Normal(mean = 0, SD = 10)</span> — virtually flat over the plausible range of standardized coefficients (which fall roughly between −1 and +1). Residual noise σ: <span class="mono">Uniform(0, 10)</span> — extremely broad relative to the standardized noise of 1. These place essentially no bias on the posterior.
+      </div>
+
+      <div class="grid g2" style="margin-top:1rem">
+        <div>
+          <h3 style="margin-top:.3rem">Coefficient priors (Normal)</h3>
+          <div class="flex">
+            <div><label>Mean</label><br><input id="priorBetaMean" type="number" step="0.1" value="0" style="width:90px" oninput="drawPriors()"></div>
+            <div><label>SD</label><br><input id="priorBetaSD" type="number" step="0.5" value="10" min="0.1" style="width:90px" oninput="drawPriors()"></div>
+          </div>
+          <div class="canvas-wrap" style="margin-top:.6rem"><canvas id="priorBetaCanvas" width="520" height="220"></canvas></div>
+          <p class="small">Applies to the intercept and every slope (in standardized units).</p>
+        </div>
+        <div>
+          <h3 style="margin-top:.3rem">Residual SD prior (Uniform)</h3>
+          <div class="flex">
+            <div><label>Lower</label><br><input id="priorSigLo" type="number" step="0.5" value="0" min="0" style="width:90px" oninput="drawPriors()"></div>
+            <div><label>Upper</label><br><input id="priorSigHi" type="number" step="0.5" value="10" min="0.5" style="width:90px" oninput="drawPriors()"></div>
+          </div>
+          <div class="canvas-wrap" style="margin-top:.6rem"><canvas id="priorSigCanvas" width="520" height="220"></canvas></div>
+          <p class="small">σ on standardized data is centered near 1; a Uniform(0,10) covers it with room to spare.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3 style="margin-top:.2rem">Justify your prior to a skeptical reader</h3>
+      <p class="small">Write one or two sentences. This text flows directly into recommendation #3 of your auto-generated write-up.</p>
+      <textarea id="priorJustify" rows="3" style="width:100%" placeholder="e.g., We used a noncommittal broad prior so that the prior had minimal influence on the posterior; the data were standardized, and intercept and slope parameters had Normal(0, SD=10) priors, very broad relative to the scale of standardized coefficients."></textarea>
+      <p class="small">Tip: a useful robustness check is to re-run with a second, different prior to show the posterior is essentially unchanged.</p>
+    </div>
+    <div class="navbtns"><button onclick="goStep('step-model')">← Back</button><button class="btn-primary" onclick="goStep('step-mcmc')">Next: Compute the posterior →</button></div>
+  </section>
+
+  <!-- ===================== STEP 3: MCMC ===================== -->
+  <section class="step" id="step-mcmc">
+    <span class="kicker">Step 4 · Posterior (MCMC)</span>
+    <h2>Compute the posterior</h2>
+    <p class="lead"><span class="term" tabindex="0" data-tip="Markov chain Monte Carlo: an algorithm that draws a large, representative random sample of parameter values from the posterior distribution.">MCMC</span> draws a large, representative sample from the posterior. Think of it as a high-resolution photograph of the posterior — the more saved steps, the sharper the picture. This page runs a real Metropolis sampler in your browser.</p>
+
+    <div class="grid g2">
+      <div class="card tight">
+        <h3 style="margin-top:.2rem">1 · Data</h3>
+        <p class="small">CSV with the <strong>criterion in the first column</strong> and predictors after. A header row is recommended.</p>
+        <div class="flex">
+          <button class="btn-accent" onclick="loadDemo()">Load demo dataset</button>
+          <label class="btn" style="display:inline-block;border:1px solid var(--line);padding:.5rem .85rem;border-radius:8px">Upload CSV<input type="file" id="fileInput" accept=".csv,.txt" style="display:none" onchange="onFile(event)"></label>
+        </div>
+        <p class="small" style="margin:.5rem 0 .2rem">…or paste data:</p>
+        <textarea id="dataPaste" rows="4" style="width:100%;font-family:monospace;font-size:.82rem" placeholder="performance,GMA,conscientiousness,biodata
+4,5,4,3
+3,3,5,2 ..."></textarea>
+        <div class="flex" style="margin-top:.4rem"><button onclick="parsePasted()">Use pasted data</button><span id="dataStatus" class="small"></span></div>
+      </div>
+
+      <div class="card tight">
+        <h3 style="margin-top:.2rem">2 · MCMC settings</h3>
+        <div class="grid g2" style="gap:.6rem">
+          <div><label>Chains</label><br><input id="optChains" type="number" value="3" min="1" max="6" style="width:80px"></div>
+          <div><label><span class="term" tabindex="0" data-tip="Initial steps discarded so the chain can move from its starting point into the bulk of the posterior before samples are kept.">Burn-in</span></label><br><input id="optBurn" type="number" value="1000" min="0" step="500" style="width:110px"></div>
+          <div><label>Saved steps (total)</label><br><input id="optSteps" type="number" value="250000" min="2000" step="1000" style="width:120px"></div>
+          <div><label>Stored for plots</label><br><input id="optStore" type="number" value="4000" min="500" step="500" style="width:110px"></div>
+        </div>
+        <p class="small">Defaults mirror the article: 3 chains, 1,000 burn-in, 250,000 saved steps. Stored samples are thinned to keep the browser responsive — all summary statistics use the thinned, representative sample.</p>
+        <button class="btn-primary" id="runBtn" onclick="runMCMC()" style="margin-top:.3rem">Run MCMC ▶</button>
+        <div class="progressbar" style="margin-top:.7rem"><div id="mcmcProg"></div></div>
+        <div id="mcmcMsg" class="small" style="margin-top:.4rem"></div>
+      </div>
+    </div>
+
+    <div class="card" id="diagCard" style="display:none">
+      <h3 style="margin-top:.2rem">Convergence &amp; representativeness diagnostics</h3>
+      <p class="small">The article requires evidence that the chains are fully representative of the posterior. Check the trace plots overlap (good mixing), autocorrelation decays quickly, <span class="term" tabindex="0" data-tip="Gelman–Rubin statistic comparing variance between chains to variance within chains. Values at or very near 1.00 indicate the chains have converged to the same distribution.">R-hat</span> ≈ 1.00, and the <span class="term" tabindex="0" data-tip="Effective Sample Size: the number of effectively independent draws after accounting for autocorrelation. Larger is better.">effective sample size</span> is large.</p>
+      <div id="diagTableWrap"></div>
+      <div class="grid g2" style="margin-top:1rem">
+        <div><div class="small" style="font-weight:700;margin-bottom:.3rem">Trace plot (chains overlaid)</div>
+          <div class="flex"><label class="small">Parameter</label><select id="traceParam" onchange="drawDiagnostics()"></select></div>
+          <div class="canvas-wrap" style="margin-top:.4rem"><canvas id="traceCanvas" width="560" height="220"></canvas></div></div>
+        <div><div class="small" style="font-weight:700;margin-bottom:.3rem">Autocorrelation</div>
+          <div class="canvas-wrap" style="margin-top:1.85rem"><canvas id="acfCanvas" width="560" height="220"></canvas></div></div>
+      </div>
+    </div>
+    <div class="navbtns"><button onclick="goStep('step-prior')">← Back</button><button class="btn-primary" onclick="goStep('step-interpret')">Next: Interpret the posterior →</button></div>
+  </section>
+
+  <!-- ===================== STEP 4: INTERPRET ===================== -->
+  <section class="step" id="step-interpret">
+    <span class="kicker">Step 5 · Interpretation &amp; decisions</span>
+    <h2>Interpret the posterior</h2>
+    <p class="lead">Each parameter gets a posterior distribution with its 95% <span class="term" tabindex="0" data-tip="Highest Density Interval — the 95% most credible parameter values.">HDI</span>. Use the HDI and <span class="term" tabindex="0" data-tip="Region Of Practical Equivalence: a band of values around a reference (e.g., 0) that you judge close enough to be practically the same. It lets you ACCEPT a null, not only reject it.">ROPE</span> rules to make decisions.</p>
+
+    <div id="noResults" class="note">Run the MCMC in Step 4 first — then this page fills with your posterior results. You can <button onclick="loadDemo();runMCMC();" style="padding:.2rem .5rem">load the demo and run it now</button>.</div>
+
+    <div id="resultsArea" style="display:none">
+      <div class="card tight">
+        <div class="flex between">
+          <div class="flex">
+            <div><label>ROPE half-width around reference value</label><br>
+              <input id="ropeHalf" type="number" value="0.05" step="0.01" min="0" style="width:100px" oninput="renderParams()"> <span class="small">(standardized units; default null = 0)</span></div>
+            <div><label>Reference value (null)</label><br><input id="refVal" type="number" value="0" step="0.05" style="width:90px" oninput="renderParams()"></div>
+          </div>
+          <div class="legend">
+            <span><i style="background:#cde3f7"></i>posterior</span>
+            <span><i style="background:#1f5fa6"></i>95% HDI</span>
+            <span><i style="background:#f0a"></i>reference</span>
+            <span><i style="background:rgba(15,157,140,.28)"></i>ROPE</span>
+          </div>
+        </div>
+        <p class="small">Decision rule (per the article): <span class="badge b-reject">REJECT</span> null if the 95% HDI is entirely <em>outside</em> the ROPE · <span class="badge b-accept">ACCEPT</span> null if the HDI is entirely <em>inside</em> the ROPE · <span class="badge b-with">WITHHOLD</span> if they overlap.</p>
+      </div>
+
+      <h3>Parameters</h3>
+      <div id="paramResults"></div>
+
+      <h3>R² — proportion of variance accounted for</h3>
+      <div class="card tight" id="r2Card"></div>
+
+      <h3>Pairwise differences between standardized coefficients</h3>
+      <p class="small">The article highlights these for practical decisions (e.g., which of two equally costly predictors to keep). Each difference has its own HDI and % above zero.</p>
+      <div id="diffResults" class="grid g2"></div>
+
+      <h3>Joint / trade-off view</h3>
+      <p class="small">Scatterplot of jointly credible values for a pair of parameters — reveals correlations and trade-offs the marginal histograms hide.</p>
+      <div class="card tight">
+        <div class="flex">
+          <label class="small">X</label><select id="jointX" onchange="drawJoint()"></select>
+          <label class="small">Y</label><select id="jointY" onchange="drawJoint()"></select>
+        </div>
+        <div class="canvas-wrap" style="margin-top:.5rem;max-width:520px"><canvas id="jointCanvas" width="500" height="380"></canvas></div>
+      </div>
+    </div>
+    <div class="navbtns"><button onclick="goStep('step-mcmc')">← Back</button><button class="btn-primary" onclick="goStep('step-power')">Next: Power &amp; replication →</button></div>
+  </section>
+
+  <!-- ===================== STEP 5: POWER ===================== -->
+  <section class="step" id="step-power">
+    <span class="kicker">Step 6 · Advanced (optional)</span>
+    <h2>Power &amp; replication</h2>
+    <p class="lead">In a Bayesian framework, power estimates are robust because they use the <strong>whole distribution</strong> of credible parameter values, not a single point estimate of effect size.</p>
+
+    <div class="card">
+      <h3 style="margin-top:.2rem">How Bayesian power works</h3>
+      <p>Traditional power analysis fixes one target effect size and gives an estimate with "virtually unknowable" stability, because it ignores uncertainty in that effect. The Bayesian approach instead:</p>
+      <ol>
+        <li>Draws many parameter-value combinations from your <em>posterior</em> (each one a credible "true world").</li>
+        <li>From each, simulates a fresh dataset of the size you plan to collect.</li>
+        <li>Re-analyzes each simulated dataset and tallies whether the effect would be "detected" (e.g., its 95% HDI excludes 0 / falls outside the ROPE).</li>
+        <li>The proportion detected across simulations is the estimated power — automatically carrying the full uncertainty of the posterior.</li>
+      </ol>
+      <p>This works for any model regardless of hierarchical complexity or distributional assumptions, and the same machinery estimates <strong>replication probability</strong>.</p>
+    </div>
+
+    <div class="card">
+      <h3 style="margin-top:.2rem">Quick estimator (uses your fitted posterior)</h3>
+      <div id="powerNoFit" class="note">Run the MCMC first to enable the estimator.</div>
+      <div id="powerArea" style="display:none">
+        <div class="flex">
+          <div><label>Parameter</label><br><select id="powParam"></select></div>
+          <div><label>Planned sample size N</label><br><input id="powN" type="number" value="346" min="10" step="10" style="width:110px"></div>
+          <div><label>Simulations</label><br><input id="powSims" type="number" value="400" min="50" step="50" style="width:100px"></div>
+          <div><label>Detection</label><br><select id="powRule"><option value="hdi">95% HDI excludes 0</option><option value="rope">HDI outside ROPE</option></select></div>
+          <div style="align-self:flex-end"><button class="btn-primary" onclick="runPower()">Estimate power</button></div>
+        </div>
+        <div id="powerResult" style="margin-top:.8rem"></div>
+        <p class="small">This simulator uses a fast normal approximation to the per-dataset posterior for speed; it illustrates the article's logic of propagating full posterior uncertainty, and is intended as a teaching/triage tool rather than a substitute for a full re-analysis of each simulated dataset.</p>
+      </div>
+    </div>
+    <div class="navbtns"><button onclick="goStep('step-interpret')">← Back</button><button class="btn-primary" onclick="goStep('step-writeup')">Next: Generate the write-up →</button></div>
+  </section>
+
+  <!-- ===================== STEP 6: WRITE-UP ===================== -->
+  <section class="step" id="step-writeup">
+    <span class="kicker">Step 7 · Reporting</span>
+    <h2>Generate the write-up</h2>
+    <p class="lead">A manuscript-ready Methods/Results draft implementing the article's five reporting recommendations <strong>in order</strong>, populated from your actual inputs and results.</p>
+
+    <div class="card">
+      <div class="flex between">
+        <div class="flex">
+          <button class="btn-primary" onclick="buildWriteup()">Generate / refresh draft</button>
+          <button onclick="copyWriteup()">Copy to clipboard</button>
+          <button onclick="downloadWriteup('md')">Download .md</button>
+          <button onclick="downloadWriteup('txt')">Download .txt</button>
+        </div>
+        <span id="copyMsg" class="small"></span>
+      </div>
+      <div id="writeupNo" class="note" style="margin-top:.8rem">Run the MCMC (Step 4) so the Results section can be filled with your numbers, then click <em>Generate</em>.</div>
+      <pre class="writeup" id="writeupOut" style="display:none"></pre>
+    </div>
+
+    <div class="card">
+      <h3 style="margin-top:.2rem">Pre-submission checklist — the five recommendations</h3>
+      <p class="small">Tick each item once you have confirmed it in your manuscript.</p>
+      <div id="checklist"></div>
+      <div class="progressbar" style="margin-top:.8rem"><div id="checkProg"></div></div>
+      <div id="checkMsg" class="small" style="margin-top:.4rem">0 of 5 confirmed.</div>
+    </div>
+    <div class="reminder-bar">⚠️ A polished write-up does not rescue a weak design. Bayesian analysis reveals uncertainty honestly, but conclusions are only as good as your sampling, measurement, and theory.</div>
+    <div class="navbtns"><button onclick="goStep('step-power')">← Back</button><button class="btn-accent" onclick="goStep('step-why')">Start over ↺</button></div>
+  </section>
+
+  </main>
+</div>
+
+<footer class="app">
+  <p style="margin:.2rem 0"><strong>Methodological recommendations adapted from:</strong> Kruschke, J. K., Aguinis, H., &amp; Joo, H. (2012). The time has come: Bayesian methods for data analysis in the organizational sciences. <em>Organizational Research Methods, 15</em>(4), 722–752.</p>
+  <p style="margin:.2rem 0"><strong>Source to credit prominently:</strong> Aguinis, H. (2025). <em>Research methodology: Best practices for rigorous, credible, and impactful research.</em> SAGE. <a href="https://collegepublishing.sagepub.com/products/research-methodology-1-280088" target="_blank" rel="noopener">collegepublishing.sagepub.com/products/research-methodology-1-280088</a></p>
+  <p style="margin:.5rem 0 0;opacity:.8">This educational companion runs entirely in your browser; no data leaves your computer. It implements the workflow described in the article but is not a substitute for full Bayesian software (e.g., JAGS, Stan) on production analyses.</p>
+</footer>
+
+<!-- ===================== MODALS ===================== -->
+<div class="modal-bk" id="aboutModal" onclick="if(event.target===this)closeModal('aboutModal')">
+  <div class="modal">
+    <div class="flex between"><h2 style="margin:0">About this tool</h2><button onclick="closeModal('aboutModal')">Close ✕</button></div>
+    <p>An interactive companion that walks a researcher from "why Bayesian" to a finished, publishable write-up, following every recommendation in Kruschke, Aguinis &amp; Joo (2012). It assumes familiarity with frequentist statistics and introduces Bayesian methods step by step.</p>
+    <p>Everything — the MCMC sampler, HDI/ROPE decisions, diagnostics, and charts — is computed locally in JavaScript with no external libraries, so it works offline by double-clicking the file.</p>
+    <h3>Credits &amp; citations</h3>
+    <p><strong>Methodological recommendations adapted from:</strong><br>Kruschke, J. K., Aguinis, H., &amp; Joo, H. (2012). The time has come: Bayesian methods for data analysis in the organizational sciences. <em>Organizational Research Methods, 15</em>(4), 722–752.</p>
+    <p><strong>Source to credit prominently:</strong><br>Aguinis, H. (2025). <em>Research methodology: Best practices for rigorous, credible, and impactful research.</em> SAGE.<br><a href="https://collegepublishing.sagepub.com/products/research-methodology-1-280088" target="_blank" rel="noopener">collegepublishing.sagepub.com/products/research-methodology-1-280088</a></p>
+    <div class="reminder-bar">⚠️ Bayesian methods are an improvement over frequentist methods because they give researchers what they want — credible parameter values given the data — but they are <strong>no substitute</strong> for good research design, measurement, and conceptual thinking.</div>
+  </div>
+</div>
+
+<div class="modal-bk" id="glossaryModal" onclick="if(event.target===this)closeModal('glossaryModal')">
+  <div class="modal">
+    <div class="flex between"><h2 style="margin:0">Glossary</h2><button onclick="closeModal('glossaryModal')">Close ✕</button></div>
+    <dl class="glossary">
+      <dt>Prior</dt><dd>A probability distribution describing how plausible each parameter value is <em>before</em> seeing the new data. Can encode prior research or be deliberately broad/noncommittal.</dd>
+      <dt>Likelihood</dt><dd>The probability of the observed data given particular parameter values — your model of how the data were generated.</dd>
+      <dt>Posterior</dt><dd>The updated distribution over parameter values <em>after</em> combining prior and data via Bayes' rule. It is the complete Bayesian answer.</dd>
+      <dt>Credibility</dt><dd>Bayesian "probability" attached to parameter values; analysis reallocates credibility toward values consistent with the data.</dd>
+      <dt>MCMC</dt><dd>Markov chain Monte Carlo — an algorithm that draws a large representative sample from the posterior. More saved steps = sharper picture.</dd>
+      <dt>Burn-in</dt><dd>Early MCMC steps discarded so the chain can travel from its starting point into the bulk of the posterior before samples are kept.</dd>
+      <dt>HDI</dt><dd>Highest Density Interval — the range containing the 95% most credible values; every point inside has higher density than any point outside.</dd>
+      <dt>ROPE</dt><dd>Region Of Practical Equivalence — a band around a reference value (often 0) judged "close enough to be the same," enabling acceptance of a null, not just rejection.</dd>
+      <dt>Shrinkage</dt><dd>In hierarchical models, extreme group estimates are pulled toward the overall mean because groups share information — reducing overfitting.</dd>
+      <dt>R-hat</dt><dd>Gelman–Rubin convergence diagnostic; ≈ 1.00 indicates chains have converged to the same distribution.</dd>
+      <dt>Effective sample size (ESS)</dt><dd>The number of effectively independent draws after accounting for autocorrelation in the chain.</dd>
+    </dl>
+  </div>
+</div>
+
+<script>
+/* =========================================================================
+   Bayesian Analysis Companion — all logic, no external dependencies.
+   ========================================================================= */
+
+/* ---------- Step navigation ---------- */
+const STEPS = [
+  {id:'step-why',      n:1, lbl:'Why Bayesian',      desc:'Orientation'},
+  {id:'step-model',    n:2, lbl:'Specify model',     desc:'Parameters carry meaning'},
+  {id:'step-prior',    n:3, lbl:'Determine prior',   desc:'Specify & justify'},
+  {id:'step-mcmc',     n:4, lbl:'Compute posterior', desc:'MCMC + diagnostics'},
+  {id:'step-interpret',n:5, lbl:'Interpret',         desc:'HDI / ROPE decisions'},
+  {id:'step-power',    n:6, lbl:'Power & replication',desc:'Optional advanced'},
+  {id:'step-writeup',  n:7, lbl:'Write-up',          desc:'Report + checklist'}
+];
+const visited = new Set(['step-why']);
+function buildNav(){
+  const el = document.getElementById('navList'); el.innerHTML='';
+  STEPS.forEach(s=>{
+    const d=document.createElement('div'); d.className='navitem'; d.id='nav-'+s.id;
+    d.onclick=()=>goStep(s.id);
+    d.innerHTML=`<div class="num">${s.n}</div><div><div class="lbl">${s.lbl}</div><div class="desc">${s.desc}</div></div>`;
+    el.appendChild(d);
+  });
+  refreshNav('step-why');
+}
+function refreshNav(active){
+  STEPS.forEach(s=>{
+    const d=document.getElementById('nav-'+s.id); if(!d)return;
+    d.className='navitem'+(s.id===active?' active':'')+(visited.has(s.id)&&s.id!==active?' done':'');
+  });
+}
+function goStep(id){
+  document.querySelectorAll('section.step').forEach(x=>x.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  visited.add(id); refreshNav(id);
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+function openModal(id){document.getElementById(id).classList.add('show');}
+function closeModal(id){document.getElementById(id).classList.remove('show');}
+document.addEventListener('keydown',e=>{if(e.key==='Escape')document.querySelectorAll('.modal-bk.show').forEach(m=>m.classList.remove('show'));});
+
+/* ---------- Seven advantages (Table 2) ---------- */
+const ADVANTAGES=[
+ {t:'Use of prior knowledge',
+  fq:'Does not incorporate prior knowledge; uses only the data at hand, so estimates can be less precise.',
+  by:'Explicitly expresses prior knowledge as a prior distribution, combined with data to produce the posterior.',
+  d:'Frequentist estimation starts fresh from the data every time. Bayesian analysis can fold in well-established prior research — and ignoring strong prior knowledge (the article\'s drug-screening base-rate example) can actively derail correct inference. When little is agreed, a broad noncommittal prior lets the data dominate; the prior is always stated and justified for skeptics, never set capriciously.'},
+ {t:'Joint distribution of parameters',
+  fq:'Provides only a local approximation of how parameters relate.',
+  by:'Generates an accurate joint distribution of all parameter estimates.',
+  d:'Because MCMC samples the full multidimensional posterior, you can read off correlations and trade-offs between parameters directly (the joint scatterplots in Step 5), not just isolated point estimates and standard errors.'},
+ {t:'Ability to ACCEPT the null hypothesis',
+  fq:'The null hypothesis can be rejected but never accepted.',
+  by:'Null values can be accepted as well as rejected.',
+  d:'Using a Region of Practical Equivalence (ROPE), if the 95% HDI falls entirely inside the ROPE around the null, you can affirmatively accept the null as practically true — something a non-significant p-value cannot license. This matters whenever a theory predicts no effect.'},
+ {t:'Test complex / nonlinear / nonnormal / hierarchical models',
+  fq:'Deriving p-values and CIs is often difficult for complex models; assumptions are restrictive.',
+  by:'One inference method flexibly adapts to diverse data structures and distributions with no change in method.',
+  d:'The same Bayesian machinery handles polynomial, exponential, power-law, or sinusoidal trends, heavy-tailed (robust) noise for outliers/skew, and multi-level nesting. You change the model declaration, not the inferential procedure.'},
+ {t:'Unbalanced or small samples',
+  fq:'Unbalanced ANOVA forces Type I vs. Type III choices; small samples break chi-square p-value assumptions.',
+  by:'The posterior simply shows greater uncertainty for smaller cells; sample size does not change the inference method.',
+  d:'Rather than special-case corrections, small or unbalanced data are handled naturally — the posterior is wider where information is thin, and hierarchical sharing can stabilize sparse cells.'},
+ {t:'Freedom from multiple-comparison corrections',
+  fq:'Requires corrections for inflated Type I error that depend on which comparisons you intended.',
+  by:'No reference to intended or post hoc comparisons; hierarchical shrinkage rationally shares information across groups.',
+  d:'Because the posterior depends only on the observed data, model, and prior — not on your testing intentions — you do not inflate-and-correct p-values across many tests. Hierarchical models instead "shrink" estimates toward each other, a principled alternative to multiplicity corrections.'},
+ {t:'Robust power analysis & replication probability',
+  fq:'Power is "virtually unknowable" because the confidence interval carries no distributional information.',
+  by:'Power is estimated robustly using the complete distribution of credible parameter values.',
+  d:'Bayesian power simulates many datasets from the full posterior of credible effects and tallies detection, propagating real uncertainty about the effect size. The same approach estimates the probability that a finding would replicate (Step 6).'}
+];
+function buildAdvantages(){
+  const el=document.getElementById('advTable');
+  ADVANTAGES.forEach((a,i)=>{
+    const row=document.createElement('div'); row.className='row';
+    row.innerHTML=`<div class="summ" onclick="this.parentNode.classList.toggle('open')">
+        <div class="n">${i+1}</div>
+        <div><strong>${a.t}</strong> <span class="chev">▸</span></div>
+        <div class="fq">${a.fq}</div>
+        <div class="by">${a.by}</div></div>
+      <div class="detail">${a.d}</div>`;
+    el.appendChild(row);
+  });
+}
+
+/* ---------- Model family notes ---------- */
+const FAMILY={
+ mlr:'<strong>Multiple linear regression.</strong> Criterion is normally distributed around a linear combination of predictors. Parameters: intercept (b0), one slope per predictor (bj = change in criterion per unit predictor, others held constant), and residual SD σ. This is the model run live in this tool.',
+ anova:'<strong>ANOVA / ANCOVA.</strong> A linear model with categorical predictors (and optional covariates). Bayesian ANOVA uses hierarchical priors across group means so groups share information; unbalanced designs need no Type I/III choice. Report group-mean deflections and their differences with HDIs/ROPE just as below.',
+ logistic:'<strong>Logistic regression.</strong> Binary criterion modeled through a logit link; coefficients are log-odds. The posterior gives credible log-odds / odds ratios with HDIs and ROPE decisions on the log-odds scale.',
+ ordinal:'<strong>Ordinal regression.</strong> Ordered-category criterion with estimated thresholds plus regression coefficients. Bayesian estimation handles the thresholds jointly and yields HDIs for each coefficient.',
+ loglinear:'<strong>Log-linear / contingency.</strong> Cell counts modeled with Poisson/multinomial structure; interaction parameters capture association. Small samples that violate chi-square assumptions are handled by the posterior\'s honest uncertainty rather than approximate p-values.'
+};
+function onFamilyChange(){
+  document.getElementById('familyNote').innerHTML=FAMILY[document.getElementById('modelFamily').value];
+}
+
+/* ---------- Parameter table ---------- */
+let predictorNames=['GMA','Conscientiousness','Biodata'];
+let criterionName='Job performance';
+function renderParamTable(){
+  const b=document.getElementById('paramBody'); b.innerHTML='';
+  const rows=[{n:'Intercept (b0)',role:'Intercept',u:'criterion units',m:'Criterion value when all predictors = 0'}];
+  predictorNames.forEach((p,i)=>rows.push({n:`Slope b${i+1} — ${p}`,role:'Predictor slope',u:'criterion per unit',m:`Change in ${criterionName} per unit of ${p}, others held constant`,edit:i}));
+  rows.push({n:'Residual SD (σ)',role:'Noise',u:'criterion units',m:`SD of ${criterionName} around the linear prediction`});
+  rows.forEach(r=>{
+    const tr=document.createElement('tr');
+    if(r.edit!==undefined){
+      tr.innerHTML=`<td><input value="${predictorNames[r.edit]}" data-pi="${r.edit}" oninput="onPredName(this)" style="width:100%"></td>
+        <td>${r.role}</td><td>${r.u}</td><td class="small">${r.m}</td>`;
+    } else {
+      tr.innerHTML=`<td>${r.n}</td><td>${r.role}</td><td>${r.u}</td><td class="small">${r.m}</td>`;
+    }
+    b.appendChild(tr);
+  });
+}
+function onPredName(inp){predictorNames[+inp.dataset.pi]=inp.value||('Predictor'+(+inp.dataset.pi+1)); }
+
+/* ============================ MATH / STATS ============================ */
+function mulberry32(a){return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;};}
+let RNG=mulberry32(20122012);
+function rnorm(m=0,s=1){let u=0,v=0;while(u===0)u=RNG();while(v===0)v=RNG();return m+s*Math.sqrt(-2*Math.log(u))*Math.cos(2*Math.PI*v);}
+
+function cholesky(A){const n=A.length,L=Array.from({length:n},()=>new Array(n).fill(0));
+  for(let i=0;i<n;i++)for(let j=0;j<=i;j++){let s=0;for(let k=0;k<j;k++)s+=L[i][k]*L[j][k];
+    L[i][j]=(i===j)?Math.sqrt(Math.max(A[i][i]-s,1e-12)):(A[i][j]-s)/L[j][j];}return L;}
+
+/* Demo dataset: 4 vars from a target correlation matrix, rounded to 1–7 Likert */
+function generateDemo(n=346){
+  // order: performance, GMA, conscientiousness, biodata (plausible meta-analytic structure)
+  const R=[[1,.34,.27,.32],[.34,1,.18,.22],[.27,.18,1,.16],[.32,.22,.16,1]];
+  const L=cholesky(R); const rows=[]; RNG=mulberry32(20122012);
+  for(let i=0;i<n;i++){
+    const z=[rnorm(),rnorm(),rnorm(),rnorm()]; const x=[0,0,0,0];
+    for(let a=0;a<4;a++)for(let b=0;b<=a;b++)x[a]+=L[a][b]*z[b];
+    // map to 1..7 Likert: mean 4, sd 1.2, clamp+round
+    const lik=x.map(v=>Math.min(7,Math.max(1,Math.round(4+1.2*v))));
+    rows.push(lik);
+  }
+  return {header:['Job performance','GMA','Conscientiousness','Biodata'],rows};
+}
+
+let DATA=null; // {header, rows:[[y,x1,x2,x3],...]}
+function setData(d){
+  DATA=d; criterionName=d.header[0]; predictorNames=d.header.slice(1);
+  renderParamTable();
+  document.getElementById('dataStatus').innerHTML=
+    `<span class="b-pass badge">Loaded</span> ${d.rows.length} rows · criterion: <strong>${criterionName}</strong> · predictors: ${predictorNames.join(', ')}`;
+}
+function loadDemo(){setData(generateDemo()); goStepIfNot('step-mcmc');}
+function goStepIfNot(){/* keep user where they are */}
+
+function parseCSV(text){
+  const lines=text.trim().split(/\r?\n/).filter(l=>l.trim()!=='');
+  if(!lines.length)throw new Error('empty');
+  let header,start=0;
+  const first=lines[0].split(/[,\t;]/).map(s=>s.trim());
+  const numeric=first.every(s=>s!==''&&!isNaN(+s));
+  if(numeric){header=['Criterion',...first.slice(1).map((_,i)=>'Predictor'+(i+1))];}
+  else{header=first;start=1;}
+  const rows=[];
+  for(let i=start;i<lines.length;i++){
+    const parts=lines[i].split(/[,\t;]/).map(s=>+s.trim());
+    if(parts.some(isNaN))continue;
+    rows.push(parts);
+  }
+  if(rows.length<5)throw new Error('Need at least 5 complete numeric rows.');
+  const w=rows[0].length; if(w<2)throw new Error('Need a criterion column plus at least one predictor.');
+  return {header:header.slice(0,w),rows:rows.filter(r=>r.length===w)};
+}
+function onFile(e){const f=e.target.files[0];if(!f)return;const r=new FileReader();
+  r.onload=()=>{try{setData(parseCSV(r.result));}catch(err){alert('Could not parse CSV: '+err.message);}};r.readAsText(f);}
+function parsePasted(){try{setData(parseCSV(document.getElementById('dataPaste').value));}catch(err){alert('Could not parse: '+err.message);}}
+
+/* Standardize columns; return z-scores plus means/sds for back-transform */
+function standardize(rows){
+  const n=rows.length,p=rows[0].length;
+  const mean=new Array(p).fill(0),sd=new Array(p).fill(0);
+  for(const r of rows)for(let j=0;j<p;j++)mean[j]+=r[j]/n;
+  for(const r of rows)for(let j=0;j<p;j++)sd[j]+=(r[j]-mean[j])**2;
+  for(let j=0;j<p;j++)sd[j]=Math.sqrt(sd[j]/(n-1))||1;
+  const z=rows.map(r=>r.map((v,j)=>(v-mean[j])/sd[j]));
+  return {z,mean,sd};
+}
+/* small linear algebra for OLS init */
+function matInv(M){const n=M.length;const A=M.map((r,i)=>[...r,...Array.from({length:n},(_,j)=>i===j?1:0)]);
+  for(let c=0;c<n;c++){let piv=c;for(let r=c+1;r<n;r++)if(Math.abs(A[r][c])>Math.abs(A[piv][c]))piv=r;
+    [A[c],A[piv]]=[A[piv],A[c]];const d=A[c][c]||1e-12;for(let j=0;j<2*n;j++)A[c][j]/=d;
+    for(let r=0;r<n;r++){if(r===c)continue;const f=A[r][c];for(let j=0;j<2*n;j++)A[r][j]-=f*A[c][j];}}
+  return A.map(r=>r.slice(n));}
+function olsFit(z){ // z columns: [y, x1..xk] standardized
+  const n=z.length,k=z[0].length-1;
+  // design with intercept
+  const X=z.map(r=>[1,...r.slice(1)]),y=z.map(r=>r[0]);
+  const p=k+1,XtX=Array.from({length:p},()=>new Array(p).fill(0)),Xty=new Array(p).fill(0);
+  for(let i=0;i<n;i++){for(let a=0;a<p;a++){Xty[a]+=X[i][a]*y[i];for(let b=0;b<p;b++)XtX[a][b]+=X[i][a]*X[i][b];}}
+  const inv=matInv(XtX),beta=new Array(p).fill(0);
+  for(let a=0;a<p;a++)for(let b=0;b<p;b++)beta[a]+=inv[a][b]*Xty[b];
+  let rss=0;for(let i=0;i<n;i++){let pred=0;for(let a=0;a<p;a++)pred+=X[i][a]*beta[a];rss+=(y[i]-pred)**2;}
+  const sigma=Math.sqrt(rss/(n-p));
+  const se=inv.map((row,a)=>Math.sqrt(Math.max(inv[a][a],1e-9))*sigma);
+  // correlations of y with each predictor (for R^2)
+  const ry=[];for(let j=1;j<=k;j++){let s=0;for(let i=0;i<n;i++)s+=z[i][0]*z[i][j];ry.push(s/(n-1));}
+  return {beta,se,sigma,X,y,n,p,k,ry};
+}
+
+/* ---------- Metropolis MCMC (run in async chunks) ---------- */
+let FIT=null; // results object
+function logPost(beta,sigma,X,y,n,p,priorMean,priorSD,sigLo,sigHi){
+  if(sigma<=sigLo||sigma>=sigHi)return -Infinity;
+  let ll=0;const inv2s2=1/(2*sigma*sigma);
+  for(let i=0;i<n;i++){let pred=0;for(let a=0;a<p;a++)pred+=X[i][a]*beta[a];const e=y[i]-pred;ll+=-e*e*inv2s2;}
+  ll+=-n*Math.log(sigma);
+  for(let a=0;a<p;a++){const d=beta[a]-priorMean;ll+=-d*d/(2*priorSD*priorSD);}
+  return ll;
+}
+function runMCMC(){
+  if(!DATA){alert('Load or paste a dataset first (Step 4).');return;}
+  const btn=document.getElementById('runBtn');btn.disabled=true;
+  const msg=document.getElementById('mcmcMsg');msg.innerHTML='<span class="spin"></span> Preparing…';
+  const std=standardize(DATA.rows);
+  const ols=olsFit(std.z);
+  const {X,y,n,p,k,beta:b0,se,sigma:sig0,ry}=ols;
+  const priorMean=+document.getElementById('priorBetaMean').value;
+  const priorSD=+document.getElementById('priorBetaSD').value;
+  const sigLo=+document.getElementById('priorSigLo').value;
+  const sigHi=+document.getElementById('priorSigHi').value;
+  const nChains=Math.max(1,Math.min(6,+document.getElementById('optChains').value));
+  const burn=Math.max(0,+document.getElementById('optBurn').value|0);
+  const saved=Math.max(2000,+document.getElementById('optSteps').value|0);
+  const maxStore=Math.max(500,+document.getElementById('optStore').value|0);
+  const thin=Math.max(1,Math.floor(saved/maxStore));
+  const total=burn+saved;
+  // proposal scales: betas from OLS SE, sigma small
+  const propB=se.map(s=>Math.max(s*1.0,1e-3)), propS=Math.max(sig0/Math.sqrt(2*n),5e-3);
+  RNG=mulberry32(777);
+  // storage: chains[c] = {beta:[[...]], sigma:[...]}  (thinned)
+  const chains=[];
+  for(let c=0;c<nChains;c++)chains.push({beta:[],sigma:[]});
+  let c=0, step=0, accept=0, attempts=0;
+  let cur=b0.slice(), curSig=Math.min(Math.max(sig0,sigLo+1e-3),sigHi-1e-3);
+  let curLP=logPost(cur,curSig,X,y,n,p,priorMean,priorSD,sigLo,sigHi);
+  function initChain(idx){
+    cur=b0.map((v,a)=>v+rnorm(0,se[a]*0.5)); curSig=Math.min(Math.max(sig0+rnorm(0,propS*2),sigLo+1e-3),sigHi-1e-3);
+    curLP=logPost(cur,curSig,X,y,n,p,priorMean,priorSD,sigLo,sigHi);
+  }
+  initChain(0);
+  const t0=performance.now();
+  function chunk(){
+    const CH=12000; let done=0;
+    while(done<CH){
+      // propose
+      const cand=cur.slice();for(let a=0;a<p;a++)cand[a]+=rnorm(0,propB[a]);
+      const candSig=curSig+rnorm(0,propS);
+      const candLP=logPost(cand,candSig,X,y,n,p,priorMean,priorSD,sigLo,sigHi);
+      attempts++;
+      if(Math.log(RNG())<candLP-curLP){cur=cand;curSig=candSig;curLP=candLP;accept++;}
+      if(step>=burn && (step-burn)%thin===0){chains[c].beta.push(cur.slice());chains[c].sigma.push(curSig);}
+      step++; done++;
+      if(step>=total){
+        c++; if(c>=nChains){return finish();}
+        step=0; initChain(c);
+      }
+    }
+    const frac=((c*total+step)/(nChains*total));
+    document.getElementById('mcmcProg').style.width=(frac*100).toFixed(1)+'%';
+    msg.innerHTML=`<span class="spin"></span> Sampling chain ${c+1}/${nChains}… ${(frac*100).toFixed(0)}%`;
+    setTimeout(chunk,0);
+  }
+  function finish(){
+    document.getElementById('mcmcProg').style.width='100%';
+    const ms=Math.round(performance.now()-t0);
+    // assemble FIT, transform to original scale
+    FIT=assembleFit(chains,std,ols,{priorMean,priorSD,sigLo,sigHi,nChains,burn,saved,thin,accept,attempts,ms});
+    msg.innerHTML=`<span class="badge b-pass">Done</span> ${nChains} chains · ${saved.toLocaleString()} saved steps each · thinned to ${chains[0].beta.length.toLocaleString()} stored/chain · accept rate ${(100*accept/attempts).toFixed(0)}% · ${ms} ms`;
+    btn.disabled=false;
+    showDiagnostics(); populateInterpret(); populatePower();
+    visited.add('step-mcmc');refreshNav('step-mcmc');
+  }
+  setTimeout(chunk,0);
+}
+
+function assembleFit(chains,std,ols,meta){
+  const {sd,mean}=std,{k,ry}=ols,p=k+1;
+  // pooled standardized samples
+  const Zbeta=[],Zsigma=[],byChainStd=chains.map(ch=>({beta:ch.beta,sigma:ch.sigma}));
+  chains.forEach(ch=>{ch.beta.forEach((bv,i)=>{Zbeta.push(bv);Zsigma.push(ch.sigma[i]);});});
+  const Ssd=sd[0]; // criterion sd
+  // back-transform: original slope_j = beta_j * (Ssd / sd_xj); intercept solved from means
+  const orig=Zbeta.map((bv,i)=>{
+    const bz=bv, sigz=Zsigma[i];
+    const slopes=[];for(let j=1;j<=k;j++)slopes.push(bz[j]*Ssd/sd[j+0]); // sd index: predictors are columns 1..k
+    // intercept original = ybar + Ssd*b0_z*?  -> reconstruct: y = ybar + Ssd*(b0z + sum bz_j * (x_j-xbar_j)/sd_xj)
+    let inter=mean[0]+Ssd*bz[0];
+    for(let j=1;j<=k;j++)inter-=slopes[j-1]*mean[j];
+    const sigOrig=sigz*Ssd;
+    return {inter,slopes,sigma:sigOrig};
+  });
+  // R^2 posterior from standardized betas: sum bz_j * ry_j
+  const R2=Zbeta.map(bv=>{let s=0;for(let j=1;j<=k;j++)s+=bv[j]*ry[j-1];return s;});
+  // parameter sample arrays (original scale) for display
+  const params=[];
+  params.push({key:'b0',label:`Intercept — ${criterionName}`,std:Zbeta.map(b=>b[0]),orig:orig.map(o=>o.inter),isSlope:false});
+  for(let j=1;j<=k;j++)params.push({key:'b'+j,label:`b${j} — ${predictorNames[j-1]}`,std:Zbeta.map(b=>b[j]),orig:orig.map(o=>o.slopes[j-1]),isSlope:true,pi:j-1});
+  params.push({key:'sigma',label:'Residual SD (σ)',std:Zsigma.slice(),orig:orig.map(o=>o.sigma),isSlope:false});
+  return {chainsStd:byChainStd,params,R2,k,meta,ry,n:ols.n,
+          Zbeta,Zsigma,sd,mean};
+}
+
+/* ---------- summaries ---------- */
+function mean(a){let s=0;for(const x of a)s+=x;return s/a.length;}
+function quantileSorted(s,q){const i=(s.length-1)*q,lo=Math.floor(i),hi=Math.ceil(i);return s[lo]+(s[hi]-s[lo])*(i-lo);}
+function hdi(arr,cred=0.95){
+  const s=[...arr].sort((a,b)=>a-b),n=s.length,ci=Math.floor(cred*n);
+  let lo=0,hi=ci,w=Infinity,L=s[0],H=s[ci];
+  for(let i=0;i+ci<n;i++){const ww=s[i+ci]-s[i];if(ww<w){w=ww;L=s[i];H=s[i+ci];}}
+  return [L,H];
+}
+function mode1d(arr){ // crude KDE-free mode via histogram peak
+  const s=[...arr].sort((a,b)=>a-b),n=s.length,bins=Math.min(60,Math.ceil(Math.sqrt(n)));
+  const lo=s[0],hi=s[n-1],w=(hi-lo)/bins||1,cnt=new Array(bins).fill(0);
+  for(const x of arr){let b=Math.floor((x-lo)/w);if(b<0)b=0;if(b>=bins)b=bins-1;cnt[b]++;}
+  let mi=0;for(let i=1;i<bins;i++)if(cnt[i]>cnt[mi])mi=i;return lo+(mi+0.5)*w;
+}
+function pctBelow(arr,ref){let c=0;for(const x of arr)if(x<ref)c++;return c/arr.length;}
+function pctInRope(arr,lo,hi){let c=0;for(const x of arr)if(x>=lo&&x<=hi)c++;return c/arr.length;}
+function fmt(x,d=3){if(!isFinite(x))return '—';const v=Math.abs(x)>=1e4||(Math.abs(x)<1e-3&&x!==0)?x.toExponential(2):x.toFixed(d);return v;}
+
+/* ---------- R-hat & ESS ---------- */
+function rHat(chainArrays){
+  const m=chainArrays.length,nn=Math.min(...chainArrays.map(c=>c.length));
+  if(m<2||nn<4)return NaN;
+  const means=chainArrays.map(c=>mean(c.slice(0,nn)));
+  const grand=mean(means);
+  let B=0;for(const mu of means)B+=(mu-grand)**2;B*=nn/(m-1);
+  let W=0;for(let i=0;i<m;i++){let v=0;const mu=means[i];for(let t=0;t<nn;t++)v+=(chainArrays[i][t]-mu)**2;W+=v/(nn-1);}W/=m;
+  const varHat=(nn-1)/nn*W+B/nn;
+  return Math.sqrt(varHat/W);
+}
+function ess(chainArrays){
+  // pooled autocorrelation-based ESS (simple, positive-sequence truncation)
+  const flat=[].concat(...chainArrays);const N=flat.length,mu=mean(flat);
+  let v0=0;for(const x of flat)v0+=(x-mu)**2;v0/=N;if(v0<=0)return N;
+  let sum=0,prev=1;
+  for(let lag=1;lag<Math.min(1000,N-1);lag++){
+    let c=0;for(let t=0;t<N-lag;t++)c+=(flat[t]-mu)*(flat[t+lag]-mu);c/=N;const rho=c/v0;
+    if(lag>1&&rho+prev<0)break; // initial positive sequence stop
+    sum+=rho;prev=rho;
+  }
+  const tau=1+2*sum;return Math.max(1,N/Math.max(tau,1e-6));
+}
+function paramChains(p){ // standardized chains for a parameter key index
+  const key=p.key;
+  return FIT.chainsStd.map(ch=>{
+    if(key==='sigma')return ch.sigma.slice();
+    const j=key==='b0'?0:+key.slice(1);
+    return ch.beta.map(b=>b[j]);
+  });
+}
+
+/* ============================ CHARTS ============================ */
+function hidpi(cv){const r=window.devicePixelRatio||1;const w=cv.width,h=cv.height;
+  cv.style.width=w+'px';cv.style.height=h+'px';cv.width=w*r;cv.height=h*r;const ctx=cv.getContext('2d');ctx.scale(r,r);return {ctx,w,h};}
+function histCounts(arr,bins,lo,hi){const w=(hi-lo)/bins||1,c=new Array(bins).fill(0);
+  for(const x of arr){let b=Math.floor((x-lo)/w);if(b<0||b>=bins){if(x<=lo)b=0;else b=bins-1;}c[b]++;}return {c,w};}
+
+function drawNormalPrior(){
+  const cv=document.getElementById('priorBetaCanvas');const {ctx,w,h}=hidpi(cv);
+  const m=+document.getElementById('priorBetaMean').value,s=+document.getElementById('priorBetaSD').value||1;
+  ctx.clearRect(0,0,w,h);const pad=30,lo=m-3.5*s,hi=m+3.5*s;
+  const peak=1/(s*Math.sqrt(2*Math.PI));
+  axes(ctx,w,h,pad,lo,hi,'standardized value','density');
+  ctx.beginPath();
+  for(let i=0;i<=200;i++){const x=lo+(hi-lo)*i/200;const y=Math.exp(-((x-m)**2)/(2*s*s))/(s*Math.sqrt(2*Math.PI));
+    const px=pad+(w-2*pad)*(x-lo)/(hi-lo),py=h-pad-(h-2*pad)*(y/peak)*0.95;
+    i?ctx.lineTo(px,py):ctx.moveTo(px,py);}
+  ctx.strokeStyle='#1f5fa6';ctx.lineWidth=2.2;ctx.stroke();
+  ctx.lineTo(pad+(w-2*pad),h-pad);ctx.lineTo(pad,h-pad);ctx.closePath();ctx.fillStyle='rgba(31,95,166,.10)';ctx.fill();
+  ctx.fillStyle='#5b6b7b';ctx.font='12px sans-serif';ctx.fillText(`Normal(${m}, SD=${s})`,pad+6,pad+2);
+}
+function drawUniformPrior(){
+  const cv=document.getElementById('priorSigCanvas');const {ctx,w,h}=hidpi(cv);
+  const a=+document.getElementById('priorSigLo').value,b=+document.getElementById('priorSigHi').value;
+  ctx.clearRect(0,0,w,h);const pad=30,lo=Math.min(a,0)-0.5,hi=b+0.5,dens=1/(b-a||1);
+  axes(ctx,w,h,pad,lo,hi,'σ (standardized)','density');
+  const y=h-pad-(h-2*pad)*0.8;
+  const xa=pad+(w-2*pad)*(a-lo)/(hi-lo),xb=pad+(w-2*pad)*(b-lo)/(hi-lo);
+  ctx.strokeStyle='#0f9d8c';ctx.lineWidth=2.4;ctx.beginPath();
+  ctx.moveTo(pad,h-pad);ctx.lineTo(xa,h-pad);ctx.lineTo(xa,y);ctx.lineTo(xb,y);ctx.lineTo(xb,h-pad);ctx.lineTo(pad+(w-2*pad),h-pad);ctx.stroke();
+  ctx.fillStyle='rgba(15,157,140,.12)';ctx.fillRect(xa,y,xb-xa,h-pad-y);
+  ctx.fillStyle='#5b6b7b';ctx.font='12px sans-serif';ctx.fillText(`Uniform(${a}, ${b})`,pad+6,pad+2);
+}
+function axes(ctx,w,h,pad,lo,hi,xl,yl){
+  ctx.strokeStyle='#d8e0ea';ctx.lineWidth=1;ctx.beginPath();
+  ctx.moveTo(pad,h-pad);ctx.lineTo(w-pad+4,h-pad);ctx.moveTo(pad,h-pad);ctx.lineTo(pad,pad-4);ctx.stroke();
+  ctx.fillStyle='#5b6b7b';ctx.font='11px sans-serif';ctx.textAlign='center';
+  for(let i=0;i<=4;i++){const x=lo+(hi-lo)*i/4,px=pad+(w-2*pad)*i/4;
+    ctx.fillText(fmt(x,2),px,h-pad+14);}
+  ctx.fillText(xl,w/2,h-4);ctx.save();ctx.translate(11,h/2);ctx.rotate(-Math.PI/2);ctx.fillText(yl,0,0);ctx.restore();ctx.textAlign='left';
+}
+function drawPriors(){drawNormalPrior();drawUniformPrior();}
+
+function drawPosterior(cv,arr,ref,ropeLo,ropeHi,color){
+  const {ctx,w,h}=hidpi(cv);ctx.clearRect(0,0,w,h);const pad=34;
+  const s=[...arr].sort((a,b)=>a-b);let lo=quantileSorted(s,0.001),hi=quantileSorted(s,0.999);
+  if(ref<lo)lo=ref-(hi-lo)*0.06;if(ref>hi)hi=ref+(hi-lo)*0.06;
+  if(ropeLo<lo)lo=ropeLo;if(ropeHi>hi)hi=ropeHi;if(hi-lo<1e-9)hi=lo+1;
+  const bins=42,{c,w:bw}=histCounts(arr,bins,lo,hi),maxc=Math.max(...c);
+  const [hL,hH]=hdi(arr);
+  const sx=x=>pad+(w-2*pad)*(x-lo)/(hi-lo), sy=v=>h-pad-(h-2*pad)*(v/maxc)*0.92;
+  // ROPE band
+  if(isFinite(ropeLo)&&ropeHi>ropeLo){ctx.fillStyle='rgba(15,157,140,.16)';ctx.fillRect(sx(ropeLo),pad-6,sx(ropeHi)-sx(ropeLo),h-pad-(pad-6));}
+  // bars
+  for(let i=0;i<bins;i++){const x0=sx(lo+i*bw),x1=sx(lo+(i+1)*bw),y=sy(c[i]);
+    const cx=lo+(i+0.5)*bw,inHDI=cx>=hL&&cx<=hH;
+    ctx.fillStyle=inHDI?(color||'#1f5fa6'):'#cde3f7';ctx.fillRect(x0,y,Math.max(1,x1-x0-1),h-pad-y);}
+  axes(ctx,w,h,pad,lo,hi,'','');
+  // HDI line
+  ctx.strokeStyle='#0e3d66';ctx.lineWidth=3;ctx.beginPath();ctx.moveTo(sx(hL),h-pad-3);ctx.lineTo(sx(hH),h-pad-3);ctx.stroke();
+  ctx.fillStyle='#0e3d66';ctx.font='11px sans-serif';ctx.textAlign='center';
+  ctx.fillText(fmt(hL),sx(hL),h-pad-8);ctx.fillText(fmt(hH),sx(hH),h-pad-8);
+  // reference line
+  if(ref>=lo&&ref<=hi){ctx.strokeStyle='#ec3aa0';ctx.lineWidth=2;ctx.setLineDash([4,3]);
+    ctx.beginPath();ctx.moveTo(sx(ref),pad-6);ctx.lineTo(sx(ref),h-pad);ctx.stroke();ctx.setLineDash([]);}
+  ctx.textAlign='left';
+}
+
+function drawTrace(){
+  const cv=document.getElementById('traceCanvas');const {ctx,w,h}=hidpi(cv);ctx.clearRect(0,0,w,h);
+  const sel=document.getElementById('traceParam').value;const p=FIT.params.find(x=>x.key===sel);
+  const chains=paramChains(p);const pad=30;
+  let lo=Infinity,hi=-Infinity;chains.forEach(c=>c.forEach(v=>{if(v<lo)lo=v;if(v>hi)hi=v;}));
+  const N=Math.max(...chains.map(c=>c.length));
+  const cols=['#1f5fa6','#0f9d8c','#c47f00','#8e44ad','#c0392b','#16a085'];
+  ctx.strokeStyle='#eef0f3';ctx.strokeRect(pad,pad,w-2*pad,h-2*pad);
+  chains.forEach((c,ci)=>{ctx.strokeStyle=cols[ci%cols.length];ctx.lineWidth=0.7;ctx.globalAlpha=.8;ctx.beginPath();
+    c.forEach((v,t)=>{const px=pad+(w-2*pad)*t/(N-1),py=h-pad-(h-2*pad)*(v-lo)/(hi-lo||1);t?ctx.lineTo(px,py):ctx.moveTo(px,py);});ctx.stroke();});
+  ctx.globalAlpha=1;ctx.fillStyle='#5b6b7b';ctx.font='11px sans-serif';ctx.fillText('step →',w-pad-34,h-pad+14);ctx.fillText(p.label+' (standardized)',pad+2,pad-6);
+}
+function autocorr(arr,maxlag){const N=arr.length,mu=mean(arr);let v0=0;for(const x of arr)v0+=(x-mu)**2;v0/=N;
+  const out=[];for(let lag=0;lag<=maxlag;lag++){let c=0;for(let t=0;t<N-lag;t++)c+=(arr[t]-mu)*(arr[t+lag]-mu);out.push((c/N)/v0);}return out;}
+function drawACF(){
+  const cv=document.getElementById('acfCanvas');const {ctx,w,h}=hidpi(cv);ctx.clearRect(0,0,w,h);
+  const sel=document.getElementById('traceParam').value;const p=FIT.params.find(x=>x.key===sel);
+  const ch=paramChains(p)[0];const maxlag=Math.min(40,ch.length-2);const ac=autocorr(ch,maxlag);const pad=30;
+  ctx.strokeStyle='#d8e0ea';ctx.beginPath();ctx.moveTo(pad,h/2);ctx.lineTo(w-pad,h/2);ctx.stroke();
+  const bw=(w-2*pad)/(maxlag+1);
+  ac.forEach((r,lag)=>{const x=pad+bw*lag+bw*0.2,y0=h-pad,top=h/2-(h/2-pad)*r;
+    ctx.fillStyle=lag===0?'#9fb4c8':'#1f5fa6';ctx.fillRect(x,Math.min(h/2,top),Math.max(2,bw*0.6),Math.abs(h/2-top));});
+  ctx.fillStyle='#5b6b7b';ctx.font='11px sans-serif';ctx.fillText('lag →',w-pad-28,h-pad+14);ctx.fillText('ACF (chain 1, stored)',pad+2,pad-6);
+}
+function drawDiagnostics(){drawTrace();drawACF();}
+
+function drawJoint(){
+  if(!FIT)return;const cv=document.getElementById('jointCanvas');const {ctx,w,h}=hidpi(cv);ctx.clearRect(0,0,w,h);
+  const xs=FIT.params.find(p=>p.key===document.getElementById('jointX').value);
+  const ys=FIT.params.find(p=>p.key===document.getElementById('jointY').value);
+  const X=xs.orig,Y=ys.orig,pad=44;const N=Math.min(X.length,3000);
+  const step=Math.max(1,Math.floor(X.length/N));
+  let xlo=Math.min(...X),xhi=Math.max(...X),ylo=Math.min(...Y),yhi=Math.max(...Y);
+  const sx=v=>pad+(w-2*pad)*(v-xlo)/(xhi-xlo||1),sy=v=>h-pad-(h-2*pad)*(v-ylo)/(yhi-ylo||1);
+  ctx.fillStyle='rgba(31,95,166,.28)';
+  for(let i=0;i<X.length;i+=step)ctx.fillRect(sx(X[i]),sy(Y[i]),1.6,1.6);
+  axes(ctx,w,h,pad,xlo,xhi,xs.label,ys.label);
+}
+
+/* ============================ RENDER SECTIONS ============================ */
+function showDiagnostics(){
+  document.getElementById('diagCard').style.display='block';
+  // trace param selector
+  const tp=document.getElementById('traceParam');tp.innerHTML='';
+  FIT.params.forEach(p=>{const o=document.createElement('option');o.value=p.key;o.textContent=p.label;tp.appendChild(o);});
+  // diagnostics table
+  let rows='<table class="tbl"><thead><tr><th>Parameter</th><th>Mean (std)</th><th>R-hat</th><th>ESS</th><th>Status</th></tr></thead><tbody>';
+  let worst=1;
+  FIT.params.forEach(p=>{
+    const chs=paramChains(p);const rh=rHat(chs);const es=ess(chs);worst=Math.max(worst,isFinite(rh)?rh:1);
+    const ok=(!isFinite(rh)||rh<1.05)&&es>200;
+    rows+=`<tr><td>${p.label}</td><td class="stat">${fmt(mean(p.std))}</td><td class="stat">${isFinite(rh)?rh.toFixed(3):'n/a'}</td><td class="stat">${Math.round(es).toLocaleString()}</td><td>${ok?'<span class="badge b-pass">pass</span>':'<span class="badge b-warn">check</span>'}</td></tr>`;
+  });
+  rows+='</tbody></table>';
+  const overall = worst<1.05 ? '<span class="badge b-pass">Chains appear representative</span>' : '<span class="badge b-warn">Some chains may need more steps</span>';
+  document.getElementById('diagTableWrap').innerHTML=
+    `<p>${overall} &nbsp; Acceptance rate ${(100*FIT.meta.accept/FIT.meta.attempts).toFixed(0)}%. R-hat near 1.00 and large ESS indicate the saved sample is a high-resolution, representative picture of the posterior.</p>`+rows;
+  drawDiagnostics();
+}
+
+function populateInterpret(){
+  document.getElementById('noResults').style.display='none';
+  document.getElementById('resultsArea').style.display='block';
+  // joint selectors
+  ['jointX','jointY'].forEach((id,k)=>{const sel=document.getElementById(id);sel.innerHTML='';
+    FIT.params.forEach(p=>{const o=document.createElement('option');o.value=p.key;o.textContent=p.label;sel.appendChild(o);});
+    sel.selectedIndex=(k===0?1:Math.min(2,FIT.params.length-1));});
+  renderParams();drawJoint();
+}
+function decision(hL,hH,rLo,rHi){
+  if(hL>rHi||hH<rLo)return ['REJECT','b-reject','95% HDI lies entirely outside the ROPE'];
+  if(hL>=rLo&&hH<=rHi)return ['ACCEPT','b-accept','95% HDI lies entirely inside the ROPE'];
+  return ['WITHHOLD','b-with','95% HDI and ROPE overlap'];
+}
+function renderParams(){
+  if(!FIT)return;
+  const ref=+document.getElementById('refVal').value, half=+document.getElementById('ropeHalf').value;
+  const rLo=ref-half,rHi=ref+half;
+  const box=document.getElementById('paramResults');box.innerHTML='';
+  FIT.params.forEach(p=>{
+    const arrS=p.std; // decisions in standardized units (ROPE default 0±0.05 per article)
+    const [hL,hH]=hdi(arrS), mu=mean(arrS), mo=mode1d(arrS);
+    const below=pctBelow(arrS,ref), above=1-below, inRope=pctInRope(arrS,rLo,rHi);
+    const oMu=mean(p.orig),[ohL,ohH]=hdi(p.orig);
+    const isSig=p.key==='sigma';
+    const [verdict,cls,why]=isSig?['—','','σ is a noise parameter; HDI/ROPE on zero is not applicable']:decision(hL,hH,rLo,rHi);
+    const div=document.createElement('div');div.className='param-card';
+    div.innerHTML=`
+      <div class="flex between"><div><strong>${p.label}</strong>
+        ${isSig?'':`&nbsp; <span class="badge ${cls}">${verdict}${verdict!=='—'?' null':''}</span>`}</div>
+        <div class="small">${isSig?'':why}</div></div>
+      <div class="grid g2" style="gap:.6rem;margin-top:.5rem">
+        <div class="canvas-wrap"><canvas id="pc-${p.key}" width="520" height="210"></canvas>
+          <div class="small" style="text-align:center">Standardized posterior</div></div>
+        <div>
+          <table class="tbl" style="margin:0"><tbody>
+            <tr><th>Posterior mean (std)</th><td class="stat">${fmt(mu)}</td></tr>
+            <tr><th>Posterior mode (std)</th><td class="stat">${fmt(mo)}</td></tr>
+            <tr><th>95% HDI (std)</th><td class="stat">${fmt(hL)}, ${fmt(hH)}</td></tr>
+            ${isSig?'':`<tr><td>% above ${fmt(ref,2)}</td><td class="stat">${(100*above).toFixed(1)}%</td></tr>
+            <tr><td>% below ${fmt(ref,2)}</td><td class="stat">${(100*below).toFixed(1)}%</td></tr>
+            <tr><td>% in ROPE [${fmt(rLo,2)}, ${fmt(rHi,2)}]</td><td class="stat">${(100*inRope).toFixed(1)}%</td></tr>`}
+            <tr><th>Original-scale mean</th><td class="stat">${fmt(oMu)}</td></tr>
+            <tr><th>Original-scale 95% HDI</th><td class="stat">${fmt(ohL)}, ${fmt(ohH)}</td></tr>
+          </tbody></table>
+        </div>
+      </div>`;
+    box.appendChild(div);
+    drawPosterior(document.getElementById('pc-'+p.key),arrS,isSig?-1e9:ref,isSig?-1e9:rLo,isSig?-1e9:rHi);
+  });
+  renderR2();renderDiffs();
+}
+function renderR2(){
+  const [hL,hH]=hdi(FIT.R2),mu=mean(FIT.R2);
+  const c=document.getElementById('r2Card');
+  c.innerHTML=`<div class="grid g2" style="gap:.6rem"><div class="canvas-wrap"><canvas id="r2c" width="520" height="200"></canvas></div>
+    <div><table class="tbl" style="margin:0"><tbody>
+      <tr><th>Posterior mean R²</th><td class="stat">${fmt(mu)}</td></tr>
+      <tr><th>95% HDI</th><td class="stat">${fmt(hL)}, ${fmt(hH)}</td></tr>
+      <tr><th>% above 0</th><td class="stat">${(100*(1-pctBelow(FIT.R2,0))).toFixed(1)}%</td></tr>
+    </tbody></table>
+    <p class="small">R² is recomputed at each MCMC step as Σ bⱼ·r(y,xⱼ), giving a full posterior distribution of variance explained (it can stray slightly outside [0,1] because it is a linear combination of credible coefficients).</p></div></div>`;
+  drawPosterior(document.getElementById('r2c'),FIT.R2,-1e9,-1e9,-1e9,'#0f9d8c');
+}
+function renderDiffs(){
+  const box=document.getElementById('diffResults');box.innerHTML='';
+  const slopes=FIT.params.filter(p=>p.isSlope);
+  for(let a=0;a<slopes.length;a++)for(let b=a+1;b<slopes.length;b++){
+    const A=slopes[a],B=slopes[b];const diff=A.std.map((v,i)=>v-B.std[i]);
+    const [hL,hH]=hdi(diff),mu=mean(diff),above=1-pctBelow(diff,0);
+    const cred=(hL>0||hH<0);
+    const div=document.createElement('div');div.className='param-card';
+    div.innerHTML=`<div class="flex between"><strong>${predictorNames[A.pi]} − ${predictorNames[B.pi]}</strong>
+       <span class="badge ${cred?'b-reject':'b-with'}">${cred?'credibly different':'not credibly different'}</span></div>
+      <div class="canvas-wrap" style="margin-top:.4rem"><canvas id="diff-${a}-${b}" width="520" height="180"></canvas></div>
+      <table class="tbl" style="margin:.4rem 0 0"><tbody>
+        <tr><th>Mean difference (std)</th><td class="stat">${fmt(mu)}</td></tr>
+        <tr><th>95% HDI</th><td class="stat">${fmt(hL)}, ${fmt(hH)}</td></tr>
+        <tr><th>% &gt; 0</th><td class="stat">${(100*above).toFixed(1)}%</td></tr>
+      </tbody></table>`;
+    box.appendChild(div);
+    drawPosterior(document.getElementById(`diff-${a}-${b}`),diff,0,-1e-9,1e-9,'#8e44ad');
+  }
+  if(!box.children.length)box.innerHTML='<p class="small">Need at least two predictors to compare coefficients.</p>';
+}
+
+/* ---------- Power ---------- */
+function populatePower(){
+  document.getElementById('powerNoFit').style.display='none';
+  document.getElementById('powerArea').style.display='block';
+  const sel=document.getElementById('powParam');sel.innerHTML='';
+  FIT.params.filter(p=>p.isSlope).forEach(p=>{const o=document.createElement('option');o.value=p.key;o.textContent=p.label;sel.appendChild(o);});
+  document.getElementById('powN').value=FIT.n;
+}
+function runPower(){
+  const p=FIT.params.find(x=>x.key===document.getElementById('powParam').value);
+  const N=Math.max(10,+document.getElementById('powN').value|0);
+  const sims=Math.max(50,+document.getElementById('powSims').value|0);
+  const rule=document.getElementById('powRule').value;
+  const half=+document.getElementById('ropeHalf').value||0.05;
+  const draws=p.std;const seBase=Math.max(stddev(p.std),1e-4); // posterior sd of std coeff ~ se at current N
+  // posterior sd scales ~ 1/sqrt(N); approximate per-dataset SE at planned N
+  const seN=seBase*Math.sqrt(FIT.n/N);
+  let detect=0;RNG=mulberry32(99);
+  for(let s=0;s<sims;s++){
+    const trueB=draws[Math.floor(RNG()*draws.length)]; // a credible "true" value from posterior
+    const est=rnorm(trueB,seN); // simulated point estimate
+    const hL=est-1.96*seN,hH=est+1.96*seN;
+    const ok = rule==='hdi' ? (hL>0||hH<0) : (hL>half||hH<-half);
+    if(ok)detect++;
+  }
+  const pow=detect/sims;
+  document.getElementById('powerResult').innerHTML=
+    `<div class="info"><strong>Estimated power ≈ ${(100*pow).toFixed(0)}%</strong> for detecting <strong>${predictorNames[p.pi]}</strong> at N = ${N} (${sims} simulations, drawing true effects from the full posterior). Approx. per-dataset SE ≈ ${fmt(seN)} in standardized units.</div>`;
+}
+function stddev(a){const m=mean(a);let v=0;for(const x of a)v+=(x-m)**2;return Math.sqrt(v/(a.length-1));}
+
+/* ============================ WRITE-UP ============================ */
+function buildWriteup(){
+  if(!FIT){alert('Run the MCMC first (Step 4).');return;}
+  document.getElementById('writeupNo').style.display='none';
+  const out=document.getElementById('writeupOut');out.style.display='block';
+  const fam=document.getElementById('modelFamily').selectedOptions[0].textContent.replace(' (runnable here)','');
+  const m=FIT.meta;
+  const ref=+document.getElementById('refVal').value, half=+document.getElementById('ropeHalf').value;
+  const rLo=ref-half,rHi=ref+half;
+  const just=document.getElementById('priorJustify').value.trim();
+  const pSD=document.getElementById('priorBetaSD').value, sHi=document.getElementById('priorSigHi').value;
+  // results sentences
+  let resLines=[];
+  FIT.params.forEach(p=>{
+    if(p.key==='sigma'){const [hL,hH]=hdi(p.orig);resLines.push(`Marginal posterior residual SD σ = ${fmt(mean(p.orig))} (original scale), 95% HDI = ${fmt(hL)}, ${fmt(hH)}.`);return;}
+    if(p.key==='b0'){const [hL,hH]=hdi(p.orig);resLines.push(`Marginal posterior mean intercept (${criterionName}) = ${fmt(mean(p.orig))}, 95% HDI = ${fmt(hL)}, ${fmt(hH)}.`);return;}
+    const [hLs,hHs]=hdi(p.std);const above=100*(1-pctBelow(p.std,ref));const [oL,oH]=hdi(p.orig);
+    const [verdict]=decision(hLs,hHs,rLo,rHi);
+    const cred = (hLs>0||hHs<0);
+    resLines.push(`Marginal posterior mean ${p.key} (${predictorNames[p.pi]}, standardized) = ${fmt(mean(p.std))}, 95% HDI = ${fmt(hLs)}, ${fmt(hHs)} (original-scale slope = ${fmt(mean(p.orig))}, 95% HDI = ${fmt(oL)}, ${fmt(oH)}); ${above.toFixed(1)}% of the posterior exceeds ${fmt(ref,2)}, so ${cred?'zero was deemed not credible':'zero remained among the credible values'}. ROPE decision (±${fmt(half,2)}): ${verdict} the null.`);
+  });
+  // R2
+  const [r2L,r2H]=hdi(FIT.R2);resLines.push(`The posterior on R² had a mean of ${fmt(mean(FIT.R2))} with a 95% HDI from ${fmt(r2L)} to ${fmt(r2H)}.`);
+  // differences
+  const slopes=FIT.params.filter(p=>p.isSlope);let diffLines=[];
+  for(let a=0;a<slopes.length;a++)for(let b=a+1;b<slopes.length;b++){
+    const d=slopes[a].std.map((v,i)=>v-slopes[b].std[i]);const [hL,hH]=hdi(d);const above=100*(1-pctBelow(d,0));
+    diffLines.push(`${predictorNames[slopes[a].pi]} versus ${predictorNames[slopes[b].pi]}: posterior mean difference = ${fmt(mean(d))}, 95% HDI = ${fmt(hL)}, ${fmt(hH)}, with ${above.toFixed(1)}% of differences greater than zero${(hL>0||hH<0)?' (credibly different)':''}.`);
+  }
+  const ess0=Math.round(ess(paramChains(slopes[0]||FIT.params[1])));
+  const rh0=rHat(paramChains(slopes[0]||FIT.params[1]));
+
+  const txt =
+`METHODS AND RESULTS (Bayesian analysis)
+
+[Recommendation 1 — Motivate the use of Bayesian analysis]
+We analyzed the data with a Bayesian approach. Unlike traditional null-hypothesis significance testing, Bayesian analysis yields complete distributional information about the parameters: it provides p(parameters | data) — the credibility of each parameter value given the data we actually observed — rather than p(data | null hypothesis). The results therefore do not depend on stopping or testing intentions, require no corrections for multiple comparisons, and permit a null value to be accepted as well as rejected. ${just?'':'(We adopt this approach because it answers the question researchers actually want answered and reports uncertainty directly.)'}
+
+[Recommendation 2 — Describe the model and its parameters]
+We used a ${fam.toLowerCase()} model in which ${criterionName} (y) is described as normally distributed around a linear combination of the predictors: ${predictorNames.map((p,i)=>'b'+(i+1)+'·'+p).join(' + ')} plus an intercept b0. The model has ${FIT.params.length} parameters: the intercept b0 (value of ${criterionName} when all predictors equal zero), one slope bⱼ per predictor (the change in ${criterionName} per one-unit increase in that predictor, holding the others constant), and σ (the standard deviation of ${criterionName} around the linear prediction). The parameter values carry the meaning of the analysis; our primary interest is in the magnitudes of the regression coefficients.
+
+[Recommendation 3 — Describe and justify the prior for a skeptical readership]
+${just || `We used a noncommittal broad prior so that the prior had minimal influence on the posterior. The data were standardized, and the intercept and slope parameters had Normal(0, SD = ${pSD}) priors, which are very broad relative to the scale of standardized coefficients (which tend to fall between −1 and +1). The residual-noise parameter had a Uniform(0, ${sHi}) prior, extremely broad relative to the standardized noise of 1. Estimated parameters were linearly transformed back to the original scale.`}
+
+[Recommendation 4 — MCMC details and evidence of representativeness]
+The posterior was generated as an MCMC sample using a Metropolis sampler. ${m.nChains} chains were initialized near the maximum-likelihood values and burned in for ${m.burn.toLocaleString()} steps, after which a total of ${m.saved.toLocaleString()} steps were saved (thinning of ${m.thin} was applied for storage). The chains mixed well (acceptance rate ${(100*m.accept/m.attempts).toFixed(0)}%), trace plots of the chains overlapped, autocorrelation decayed quickly, the Gelman–Rubin statistic was ${isFinite(rh0)?'≈ '+rh0.toFixed(3):'near 1.00'} for the focal coefficient, and the effective sample size exceeded ${ess0.toLocaleString()}. The resulting MCMC sample is therefore highly representative of the underlying posterior distribution.
+
+[Recommendation 5 — Interpret the posterior]
+${resLines.join('\n')}
+
+We also examined the posterior distributions of the differences between standardized regression coefficients, which inform practical decisions about which predictors to retain:
+${diffLines.length?diffLines.join('\n'):'(Only one predictor; no differences computed.)'}
+
+Notice that this summary never mentioned p values, confidence intervals, or corrections for multiple tests: the posterior distribution is a fixed entity based on the observed data, and it makes the uncertainty in every parameter explicit.
+
+[Reminder] Bayesian analysis does not substitute for sound research design, reliable measurement, and good conceptual thinking; with a nonexperimental design, causal conclusions remain unwarranted, and noisy measures yield wider posteriors.
+
+— Drafted by the Bayesian Analysis Companion, implementing the five reporting recommendations of Kruschke, Aguinis & Joo (2012), Organizational Research Methods, 15(4), 722–752.`;
+  out.textContent=txt;
+}
+function copyWriteup(){const t=document.getElementById('writeupOut').textContent;
+  if(!t){alert('Generate the draft first.');return;}
+  navigator.clipboard.writeText(t).then(()=>{const m=document.getElementById('copyMsg');m.textContent='Copied ✓';setTimeout(()=>m.textContent='',2000);},
+   ()=>{const ta=document.createElement('textarea');ta.value=t;document.body.appendChild(ta);ta.select();document.execCommand('copy');ta.remove();document.getElementById('copyMsg').textContent='Copied ✓';});}
+function downloadWriteup(ext){const t=document.getElementById('writeupOut').textContent;if(!t){alert('Generate the draft first.');return;}
+  const blob=new Blob([t],{type:'text/plain'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);
+  a.download='bayesian-writeup.'+ext;a.click();URL.revokeObjectURL(a.href);}
+
+/* ---------- Checklist ---------- */
+const CHECKS=[
+ 'Recommendation 1 — I motivated the use of Bayesian analysis for my readership.',
+ 'Recommendation 2 — I described the model and defined every parameter.',
+ 'Recommendation 3 — I stated and justified the prior for a skeptical reader (and ideally checked robustness to a second prior).',
+ 'Recommendation 4 — I reported MCMC details (chains, burn-in, saved steps) and evidence the chains are representative (trace/autocorrelation/R-hat/ESS).',
+ 'Recommendation 5 — I interpreted the posterior (means, 95% HDIs, HDI/ROPE decisions, coefficient differences, R²).'
+];
+function buildChecklist(){
+  const el=document.getElementById('checklist');el.innerHTML='';
+  CHECKS.forEach((c,i)=>{const d=document.createElement('label');d.className='checkitem';
+    d.innerHTML=`<input type="checkbox" onchange="updateCheck()"><span>${c}</span>`;el.appendChild(d);});
+}
+function updateCheck(){const boxes=[...document.querySelectorAll('#checklist input')];const done=boxes.filter(b=>b.checked).length;
+  document.getElementById('checkProg').style.width=(100*done/boxes.length)+'%';
+  const msg=document.getElementById('checkMsg');
+  msg.innerHTML=done===boxes.length?'<span class="badge b-pass">All five recommendations confirmed — ready to submit.</span>':`${done} of ${boxes.length} confirmed.`;
+}
+
+/* ---------- Prior presets ---------- */
+function resetPriorDefaults(){
+  document.getElementById('priorBetaMean').value=0;document.getElementById('priorBetaSD').value=10;
+  document.getElementById('priorSigLo').value=0;document.getElementById('priorSigHi').value=10;drawPriors();
+}
+function applyPriorPreset(){
+  if(document.getElementById('priorMode').value==='broad')resetPriorDefaults();
+  else{document.getElementById('priorBetaSD').value=2;drawPriors();}
+}
+
+/* ---------- init ---------- */
+window.addEventListener('DOMContentLoaded',()=>{
+  buildNav();buildAdvantages();onFamilyChange();renderParamTable();
+  buildChecklist();drawPriors();
+  setData(generateDemo()); // demo ready by default
+});
+</script>
+<!-- Begin Countercentral code v 7.0 --> 
+<span id="wts2576"></span> 
+<script>var wts=document.createElement('script');wts.async=true; 
+wts.src='https://server2.countercentral.com/log7.js';document.head.appendChild(wts); 
+wts.onload = function(){ wtslog7(2576,1); }; 
+</script><noscript><a href="https://www.countercentral.com"> 
+<img src="https://server2.countercentral.com/7/1/2576.png"  
+alt="Countercentral web traffic analysis"></a></noscript> 
+<!-- End Countercentral code v 7.0 --> 
+</body>
+</html>

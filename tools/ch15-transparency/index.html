@@ -1,0 +1,565 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Methodological Transparency Companion</title>
+<style>
+  :root{
+    --bg:#f4f6f9; --panel:#ffffff; --ink:#1b2733; --muted:#5c6b7a;
+    --line:#e2e8f0; --brand:#1f4e79; --brand-2:#2f6fb0; --accent:#0f766e;
+    --good:#15803d; --good-bg:#e7f5ec; --na:#8a6d1f; --na-bg:#fbf3d9;
+    --shadow:0 1px 3px rgba(16,32,48,.08),0 1px 2px rgba(16,32,48,.06);
+    --radius:12px;
+  }
+  *{box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{margin:0;background:var(--bg);color:var(--ink);
+    font:16px/1.55 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;}
+  a{color:var(--brand-2)}
+  header.masthead{background:linear-gradient(135deg,var(--brand),var(--brand-2));color:#fff;padding:28px 20px;}
+  .wrap{max-width:1080px;margin:0 auto;padding:0 20px;}
+  header.masthead .wrap{padding:0 20px}
+  header.masthead h1{margin:0 0 6px;font-size:1.6rem;letter-spacing:.2px}
+  header.masthead p{margin:0;max-width:760px;color:#eaf1f8;font-size:.98rem}
+  .layout{display:grid;grid-template-columns:260px 1fr;gap:24px;max-width:1080px;margin:24px auto;padding:0 20px;align-items:start}
+  /* Sidebar nav */
+  nav.toc{position:sticky;top:16px;background:var(--panel);border:1px solid var(--line);
+    border-radius:var(--radius);box-shadow:var(--shadow);padding:14px;font-size:.9rem}
+  nav.toc h2{font-size:.72rem;text-transform:uppercase;letter-spacing:.09em;color:var(--muted);margin:6px 6px 8px}
+  nav.toc a{display:flex;justify-content:space-between;gap:8px;text-decoration:none;color:var(--ink);
+    padding:7px 8px;border-radius:8px}
+  nav.toc a:hover{background:#eef3f9}
+  nav.toc a .cnt{color:var(--muted);font-variant-numeric:tabular-nums;font-size:.82rem}
+  .toc-sec{margin-top:10px;padding-top:8px;border-top:1px solid var(--line)}
+  /* Overall score */
+  .scorecard{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);
+    box-shadow:var(--shadow);padding:16px 18px;margin-bottom:18px;display:flex;align-items:center;gap:18px;flex-wrap:wrap}
+  .ring{--pct:0;width:88px;height:88px;border-radius:50%;flex:0 0 auto;
+    background:conic-gradient(var(--accent) calc(var(--pct)*1%),#e6ecf2 0);
+    display:grid;place-items:center}
+  .ring > div{width:66px;height:66px;background:var(--panel);border-radius:50%;display:grid;place-items:center;
+    font-weight:700;font-size:1.15rem;color:var(--brand)}
+  .score-meta{flex:1;min-width:220px}
+  .score-meta strong{font-size:1.05rem}
+  .score-meta .sub{color:var(--muted);font-size:.9rem}
+  .continuum{margin-top:8px;font-size:.85rem;color:var(--muted);font-style:italic}
+  /* Toolbar */
+  .toolbar{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:18px}
+  .toolbar input[type=search]{flex:1;min-width:180px;padding:9px 12px;border:1px solid var(--line);
+    border-radius:9px;font-size:.92rem;background:var(--panel)}
+  .btn{border:1px solid var(--line);background:var(--panel);color:var(--ink);padding:8px 13px;
+    border-radius:9px;cursor:pointer;font-size:.88rem;box-shadow:var(--shadow)}
+  .btn:hover{background:#eef3f9}
+  .btn.primary{background:var(--brand);color:#fff;border-color:var(--brand)}
+  .btn.primary:hover{background:var(--brand-2)}
+  .btn.subtle{box-shadow:none;background:transparent}
+  label.togglebox{display:inline-flex;align-items:center;gap:7px;font-size:.88rem;color:var(--muted);
+    padding:8px 10px;border:1px solid var(--line);border-radius:9px;background:var(--panel);cursor:pointer}
+  /* Section */
+  section.group{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);
+    box-shadow:var(--shadow);margin-bottom:18px;overflow:hidden}
+  .group-head{display:flex;align-items:center;gap:14px;padding:15px 18px;cursor:pointer;user-select:none}
+  .group-head:hover{background:#f8fafc}
+  .group-head .caret{transition:transform .18s;color:var(--muted);font-size:.9rem}
+  .group.collapsed .caret{transform:rotate(-90deg)}
+  .group-head h3{margin:0;font-size:1.06rem;color:var(--brand);flex:1}
+  .group-head .kicker{display:block;font-size:.7rem;text-transform:uppercase;letter-spacing:.1em;color:var(--muted);font-weight:600;margin-bottom:2px}
+  .mini-meter{flex:0 0 130px;height:8px;background:#e6ecf2;border-radius:6px;overflow:hidden}
+  .mini-meter > span{display:block;height:100%;background:var(--accent);width:0}
+  .group-head .frac{font-size:.82rem;color:var(--muted);font-variant-numeric:tabular-nums;min-width:44px;text-align:right}
+  .group-body{padding:4px 18px 12px}
+  .group.collapsed .group-body{display:none}
+  /* Item */
+  .item{border-top:1px solid var(--line);padding:16px 0}
+  .item:first-child{border-top:none}
+  .item.addressed{}
+  .item-top{display:flex;gap:12px;align-items:flex-start}
+  .cbwrap{flex:0 0 auto;padding-top:2px}
+  .cbwrap input{width:20px;height:20px;accent-color:var(--accent);cursor:pointer}
+  .item-main{flex:1;min-width:0}
+  .item-num{display:inline-block;min-width:26px;font-weight:700;color:var(--brand);
+    font-variant-numeric:tabular-nums;margin-right:4px}
+  .rec{font-weight:600}
+  .item.addressed .rec{color:var(--good)}
+  .item.na .rec{color:var(--na)}
+  .cond-tag{display:inline-block;font-size:.68rem;text-transform:uppercase;letter-spacing:.06em;
+    background:#eef3f9;color:var(--brand-2);border-radius:20px;padding:2px 8px;margin-left:6px;vertical-align:middle;font-weight:700}
+  .why{margin:8px 0 0;padding:9px 12px;background:#f6f9fc;border-left:3px solid var(--brand-2);
+    border-radius:0 8px 8px 0;font-size:.9rem;color:#33475b}
+  .why b{color:var(--brand)}
+  .item-actions{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-top:10px}
+  .item-actions label.togglebox{font-size:.82rem;padding:5px 9px}
+  .na-reason{display:none;flex:1;min-width:160px;padding:6px 9px;border:1px solid var(--line);border-radius:8px;font-size:.85rem}
+  .item.na .na-reason{display:inline-block}
+  textarea.notes{margin-top:10px;width:100%;min-height:62px;resize:vertical;padding:9px 11px;
+    border:1px solid var(--line);border-radius:9px;font:inherit;font-size:.9rem;background:#fff}
+  textarea.notes::placeholder{color:#9aa8b6}
+  .item.na{opacity:.72}
+  .item.hidden{display:none}
+  .badge-state{font-size:.72rem;font-weight:700;border-radius:20px;padding:2px 9px;margin-left:8px}
+  .item.addressed .badge-state{background:var(--good-bg);color:var(--good)}
+  .item.na .badge-state{background:var(--na-bg);color:var(--na)}
+  .empty{padding:22px;text-align:center;color:var(--muted);font-style:italic}
+  /* Footer */
+  footer.credits{max-width:1080px;margin:10px auto 50px;padding:20px;background:var(--panel);
+    border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow);font-size:.88rem;color:#33475b}
+  footer.credits h4{margin:0 0 8px;color:var(--brand);font-size:.95rem}
+  footer.credits .primary-src{background:#f6f9fc;border-left:3px solid var(--accent);padding:10px 12px;border-radius:0 8px 8px 0;margin:0 0 12px}
+  footer.credits p{margin:6px 0}
+  .savenote{font-size:.78rem;color:var(--muted);margin-left:auto}
+  @media (max-width:820px){
+    .layout{grid-template-columns:1fr}
+    nav.toc{position:static}
+  }
+  /* Print */
+  @media print{
+    body{background:#fff}
+    header.masthead{color:#000;background:none;border-bottom:2px solid #000}
+    header.masthead p{color:#333}
+    nav.toc,.toolbar,.cbwrap input,.item-actions,.savenote,.btn{display:none !important}
+    .layout{display:block;margin:0;padding:0}
+    section.group,.scorecard,footer.credits{box-shadow:none;border:1px solid #ccc;break-inside:avoid}
+    .group.collapsed .group-body{display:block !important}
+    .item.hidden{display:block !important}
+    textarea.notes{border:1px solid #ccc;min-height:auto}
+    .why{background:#f5f5f5}
+    .item.na .na-reason{display:block}
+  }
+</style>
+</head>
+<body>
+<header class="masthead">
+  <div class="wrap">
+    <h1>Methodological Transparency Companion</h1>
+    <p>Document the choices, judgment calls, and decisions behind your study so others can reproduce your inferences. Transparency is a continuum: the more you disclose about what happens in the "research kitchen," the greater the inferential reproducibility, credibility, and replicability of your results. This is about <em>disclosure</em>, not judging whether a choice was right.</p>
+  </div>
+</header>
+
+<div class="layout">
+  <!-- Sidebar -->
+  <nav class="toc" aria-label="Sections">
+    <h2>Jump to</h2>
+    <div id="tocList"></div>
+  </nav>
+
+  <!-- Main -->
+  <main>
+    <div class="scorecard">
+      <div class="ring" id="ring" role="img" aria-label="Overall transparency progress"><div id="ringPct">0%</div></div>
+      <div class="score-meta">
+        <strong id="scoreText">0 of 44 addressed</strong>
+        <div class="sub" id="scoreSub">Mark items as addressed or not applicable to track progress.</div>
+        <div class="continuum">"The larger the number of recommendations implemented, the more likely the study will have greater inferential reproducibility."</div>
+      </div>
+    </div>
+
+    <div class="toolbar">
+      <input type="search" id="search" placeholder="Search recommendations and your notes…" aria-label="Search">
+      <label class="togglebox"><input type="checkbox" id="onlyOpen"> Show only unaddressed</label>
+      <button class="btn subtle" id="expandAll" type="button">Expand all</button>
+      <button class="btn subtle" id="collapseAll" type="button">Collapse all</button>
+      <button class="btn" id="exportMd" type="button">Export appendix (.md)</button>
+      <button class="btn" id="exportJson" type="button">Export data (.json)</button>
+      <button class="btn" id="importBtn" type="button">Import .json</button>
+      <button class="btn" id="printBtn" type="button">Print / PDF</button>
+      <button class="btn" id="resetBtn" type="button">Reset</button>
+      <input type="file" id="importFile" accept="application/json,.json" hidden>
+    </div>
+
+    <div id="content"></div>
+    <div class="empty" id="noResults" style="display:none">No items match your search or filter.</div>
+  </main>
+</div>
+
+<footer class="credits">
+  <h4>Source &amp; attribution</h4>
+  <div class="primary-src">
+    This tool operationalizes the recommendations synthesized in:<br>
+    <strong>Aguinis, H. 2025. <em>Research methodology: Best practices for rigorous, credible, and impactful research.</em> SAGE.</strong>
+    <a href="https://collegepublishing.sagepub.com/products/research-methodology-1-280088" target="_blank" rel="noopener">collegepublishing.sagepub.com</a>
+  </div>
+  <p>The 44 recommendations are drawn from:</p>
+  <p>Aguinis, H., Ramani, R. S., &amp; Alabduljader, N. 2018. What you see is what you get? Enhancing methodological transparency in management research. <em>Academy of Management Annals</em>, 12(1): 83–110.
+  <a href="https://doi.org/10.5465/annals.2016.0011" target="_blank" rel="noopener">https://doi.org/10.5465/annals.2016.0011</a></p>
+  <p class="savenote">Your entries are saved automatically in this browser (localStorage). They stay on this device.</p>
+</footer>
+
+<script>
+/* ---------- Data: all 44 recommendations ---------- */
+const DATA = [
+  { key:"authors", title:"A. Recommendations for Authors", groups:[
+    { key:"theory", kicker:"Stage 1", title:"Theory", items:[
+      {n:1, rec:"Specify the theoretical goal (e.g., creating a new theory; extending existing theory via a prescriptive/positivist approach; describing existing theory via an interpretive approach), the research strategy (inductive, deductive, abductive), and the epistemological orientation (e.g., constructivism, objectivism).",
+        why:"lets others use the same theoretical lens to evaluate how assumptions affect research goals and the conclusions drawn."},
+      {n:2, rec:"Specify the level of theory, measurement, and analysis (e.g., individual, dyadic, organizational).",
+        why:"lets others interpret implications for theory and judge whether results are influenced by (mis)alignment among the levels of theory, measurement, and analysis."},
+      {n:3, rec:"Acknowledge whether there was an expected a priori direction (e.g., positive, plateauing, curvilinear) derived from the theoretical framework. Identify and report post hoc hypotheses separately from a priori hypotheses. Report both supported and unsupported hypotheses.",
+        why:"lets others differentiate inductive from deductive tests of theory and gauge the precision, relevance, and boundaries of the theory tested."}
+    ]},
+    { key:"design", kicker:"Stage 2", title:"Research Design", items:[
+      {n:4, rec:"Describe the type of research design (e.g., passive observation, experimental); the data-collection procedure (e.g., surveys, interviews); the location of data collection (e.g., North America/China; at work/in a lab/at home); the sampling method (e.g., purposeful, snowball, convenience); and sample characteristics (e.g., students vs. full-time employees; employment status; hierarchical level; sex; age; race).",
+        why:"lets others determine the influence of design and sample on the research questions, inferences, and internal/external validity."},
+      {n:5, cond:true, rec:"If a power analysis was conducted (before initiating or after completing the study), report the results and explain if and how they affect interpretation of the study's results.",
+        why:"lets others draw independent conclusions about the effect of sample size on the ability to detect population effects (low power raises Type II error risk)."},
+      {n:6, cond:true, rec:"If common method variance was addressed, state the theoretical rationale, and the study-design (e.g., temporal separation, self- and other-report measures) or statistical remedies (e.g., Harman one-factor analysis) used.",
+        why:"lets others identify the influence of common-method-variance actions and remedies on error variance, which affects the size of obtained effects."},
+      {n:7, rec:"Provide an explanation of which control variables were included and which were excluded and why, how they influenced the variables of interest, and their psychometric properties (e.g., validity, reliability).",
+        why:"lets others determine independently whether conclusions were influenced by the choice of control variables (meaning shifts, model misspecification, construct validity)."}
+    ]},
+    { key:"measurement", kicker:"Stage 3", title:"Measurement", items:[
+      {n:8, rec:"Provide the conceptual definition of each construct; report all measures used; state how indicators (e.g., reflective, formative) correspond to each construct; and provide evidence of construct validity (e.g., correlation tables including all variables, results of item and factor analysis).",
+        why:"lets others draw independent conclusions about overall construct validity and discriminant validity of constructs and of measures."},
+      {n:9, cond:true, rec:"If scales were altered, report how and why (e.g., dropped items, changes in item referent), provide psychometric evidence for the altered scales (e.g., criterion-related validity), and report the exact items used in the revised scale.",
+        why:"lets others judge whether conclusions are due to scale alterations (e.g., cherry-picking items) and independently assess the validity of new/revised scales."},
+      {n:10, cond:true, rec:"If scores were aggregated, report measurement variability within and between units of analysis; the statistics used to justify aggregation (e.g., r_wg, ICC); and the results of all aggregation procedures.",
+        why:"lets others reach similar conclusions about the aggregated construct's meaning, since different aggregation indices convey distinct information."},
+      {n:11, cond:true, rec:"If range restriction or measurement error was assessed, specify the type of range restriction and give the rationale for correcting or not correcting; if corrected, identify how (type of correction, sequence, formulas); and report both observed effects and those corrected for range restriction and/or measurement error.",
+        why:"lets others recognize how the correction method may have over- or under-estimated effect sizes."}
+    ]},
+    { key:"analysis", kicker:"Stage 4", title:"Data Analysis", items:[
+      {n:12, rec:"Report the specific analytical method used and why it was chosen (e.g., EFA vs. CFA; repeated-measures ANOVA using conventional univariate tests vs. tests with adjusted degrees of freedom).",
+        why:"lets others independently verify whether the analytical approach influenced conclusions."},
+      {n:13, rec:"Report the software used, including version, and make coding rules (for qualitative data) and syntax for data analysis available.",
+        why:"lets others check whether assumptions of the procedure within the software used (e.g., REML vs. FIML) affect conclusions."},
+      {n:14, cond:true, rec:"If tests for outliers were conducted, report the methods and decision rules used to identify outliers; the steps (if any) taken to manage them (e.g., deletion, Winsorization, transformation); the rationale for those steps; and results with and without outliers.",
+        why:"lets others infer whether substantive conclusions (e.g., intercepts, slopes, model fit) would differ based on how outliers were defined, identified, and managed."}
+    ]},
+    { key:"reporting", kicker:"Stage 5", title:"Reporting of Results", items:[
+      {n:15, rec:"Report the results of missing-data analysis (e.g., sensitivity analysis); the method used to address missing data (e.g., imputation, deletion); information (even if speculative) as to why missing data occurred; the response rate; and, if conducted, the results of non-response analyses.",
+        why:"lets others have greater confidence that data were not cherry-picked, verify whether causes of missingness relate to variables of interest, and assess external validity."},
+      {n:16, rec:"Report the results of all tests of assumptions associated with the analytical method (e.g., normality, heteroscedasticity, independence, covariance among levels of repeated measures, homogeneity of treatment-difference variances, group-size differences in ANOVA).",
+        why:"lets others verify whether assumption violations influenced conclusions and tests of significance."},
+      {n:17, rec:"Report complete descriptive statistics (e.g., mean, standard deviation, maximum, minimum) for all variables, and correlation and (when appropriate) covariance matrices.",
+        why:"lets others confirm results support the authors' claims and gauge whether the sample size was sufficient."},
+      {n:18, rec:"Report effect-size estimates; confidence intervals for point estimates; and the information used to compute effect sizes (e.g., within-group variances, degrees of freedom of statistical tests).",
+        why:"lets others interpret the accuracy and practical significance of results and compare estimates across studies."},
+      {n:19, rec:"Report exact p-values to two decimal places; do not report p-values compared to cutoffs (e.g., p < .05 or p < .01).",
+        why:"lets others rule out whether conclusions are due to chance and judge the seriousness of Type I vs. Type II errors in context."},
+      {n:20, rec:"Use specific, unambiguous terms when reporting results: use \"statistically significant\" for tests of significance (avoid \"significant,\" \"marginally/almost significant,\" \"highly significant\"); identify the precise effect-size estimate used (e.g., Cohen's d, r, R², η², partial η², Cramer's V); and interpret effect sizes and confidence intervals relative to the study context, the effect-size measure, and other studies — do not use Cohen's (1988) categories as absolute, context-free benchmarks.",
+        why:"lets others understand that statistical significance concerns the probability of no relation (not effect size) and weigh effect sizes in context."},
+      {n:21, rec:"Report the total number of tests of significance conducted.",
+        why:"lets others evaluate conclusions, since multiple tests on the same dataset raise the probability of a statistically significant result due to chance."},
+      {n:22, rec:"Report and clearly identify both unstandardized and standardized coefficients.",
+        why:"lets others understand the relative size of relations (standardized) and the predictive power and substantive impact of explanatory variables (unstandardized)."}
+    ]}
+  ]},
+  { key:"gatekeepers", title:"B. Recommendations for Journals, Editors, and Reviewers", groups:[
+    { key:"certify", kicker:"B1", title:"Author certifications on the submission form", items:[
+      {n:23, rec:"Data have been provided to the journal, along with coding rules (for qualitative data) and syntax used for analyses; if data cannot be made available, authors explain why.",
+        why:"lets editors and reviewers verify results, check for errors, and reduce the chance of later retraction."},
+      {n:24, rec:"All authors had access to the data, and whether data analysis and results were verified by co-author(s).",
+        why:"lets gatekeepers confirm collective accountability for the reported results."},
+      {n:25, rec:"Authors reported all hypotheses tested, even those with statistically non-significant results.",
+        why:"lets others detect selective reporting and evaluate the full set of tests behind the conclusions."},
+      {n:26, cond:true, rec:"If a power analysis was conducted, its results were reported in the study.",
+        why:"lets others judge whether sample size was adequate to detect effects."},
+      {n:27, rec:"All measures used in the study were reported, along with evidence of validity and reliability.",
+        why:"lets others assess whether constructs were measured soundly."},
+      {n:28, rec:"The response rate for surveys and how missing data were handled were reported.",
+        why:"lets others gauge representativeness and the impact of missing data on conclusions."},
+      {n:29, rec:"Results of tests of assumptions of the statistical model were reported.",
+        why:"lets others verify whether assumption violations affected significance tests and inferences."},
+      {n:30, cond:true, rec:"If tests for outliers were conducted, the procedure used to identify and handle them was reported.",
+        why:"lets others judge whether outlier handling drove the substantive conclusions."},
+      {n:31, rec:"Justification of why particular control variables were included or excluded was made explicit, and results were reported with and without control variables.",
+        why:"lets others determine whether conclusions are an artifact of control-variable choices."},
+      {n:32, cond:true, rec:"If scores were aggregated, variability within and across units of analysis and the statistics used to justify aggregation were reported.",
+        why:"lets others confirm aggregation was justified and interpret the higher-level construct."},
+      {n:33, rec:"Effect sizes and confidence intervals around point estimates were reported.",
+        why:"lets others interpret the precision and practical significance of the results."},
+      {n:34, rec:"Implications of the observed effect size in the context of the study were explained.",
+        why:"lets others weigh the substantive importance of the findings, not just their significance."},
+      {n:35, rec:"Exact p-values (rather than p-values compared to significance cutoffs) were reported.",
+        why:"lets others assess chance explanations and detect reporting errors."},
+      {n:36, rec:"Precise, unambiguous terms were used when reporting results (e.g., \"split-half\" or \"coefficient alpha\" instead of \"internal consistency\"; \"statistically significant\" instead of \"significant,\" \"highly significant,\" or \"marginally significant\").",
+        why:"lets others understand exactly what was estimated and tested."},
+      {n:37, rec:"The implications of the study's limitations for its results were made explicit.",
+        why:"lets others calibrate how much trust to place in the conclusions."},
+      {n:38, rec:"Post hoc analyses were included in a separate section.",
+        why:"lets others distinguish confirmatory from exploratory, data-driven findings."}
+    ]},
+    { key:"reviewers", kicker:"B2", title:"Reviewer evaluation-form items", items:[
+      {n:39, rec:"Reviewers state their level of comfort with, and competence to evaluate, the methodology used in the manuscript they are reviewing.",
+        why:"lets editors weight reviews appropriately and route methods questions to qualified evaluators."},
+      {n:40, rec:"Reviewers identify limitations that impact the inferential reproducibility of the study.",
+        why:"lets the process surface threats to reproducibility before publication."},
+      {n:41, rec:"Reviewers evaluate whether authors have provided all information required on the manuscript submission form.",
+        why:"lets the process enforce transparency certifications rather than leaving them unchecked."}
+    ]},
+    { key:"process", kicker:"B3", title:"Review-process improvements", items:[
+      {n:42, rec:"Adopt a two-stage review process requiring pre-registration of hypotheses, sample size, and data-analysis plan, with the results and discussion sections withheld from reviewers until the first revise/reject decision is made.",
+        why:"lets the field reward sound design over statistically significant results and curb HARKing and p-hacking."},
+      {n:43, rec:"Use online supplements that include detailed information such as complete data, coding procedures, specific analyses, and correlation tables.",
+        why:"lets others access full detail without page-limit constraints, supporting both results and inferential reproducibility."},
+      {n:44, rec:"Institute a policy where some articles published each year are subject to communal audits, with data and programs made available and commentaries invited for publication.",
+        why:"lets the community independently check published work and strengthen accountability."}
+    ]}
+  ]}
+];
+
+/* ---------- State + persistence ---------- */
+const STORAGE_KEY = "transparencyCompanion.v1";
+let state = load();
+function load(){
+  try{ return JSON.parse(localStorage.getItem(STORAGE_KEY)) || {}; }
+  catch(e){ return {}; }
+}
+function save(){
+  try{ localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); }catch(e){}
+  flashSaved();
+}
+function itemState(n){
+  if(!state[n]) state[n] = {done:false, na:false, naReason:"", notes:""};
+  return state[n];
+}
+
+/* ---------- Build item flat list ---------- */
+const ALL_ITEMS = [];
+DATA.forEach(sec=>sec.groups.forEach(g=>g.items.forEach(it=>ALL_ITEMS.push({...it, group:g}))));
+const TOTAL = ALL_ITEMS.length; // 44
+
+/* ---------- Render ---------- */
+const content = document.getElementById("content");
+const tocList = document.getElementById("tocList");
+
+function render(){
+  content.innerHTML = "";
+  tocList.innerHTML = "";
+  DATA.forEach(sec=>{
+    const secLabel = document.createElement("div");
+    secLabel.className = "toc-sec";
+    secLabel.innerHTML = `<h2>${sec.title.replace(/^A\. |^B\. /,"")}</h2>`;
+    tocList.appendChild(secLabel);
+
+    sec.groups.forEach(g=>{
+      const gid = "g_"+g.key;
+      // TOC entry
+      const a = document.createElement("a");
+      a.href = "#"+gid;
+      a.innerHTML = `<span>${g.title}</span><span class="cnt" id="toccnt_${g.key}"></span>`;
+      tocList.appendChild(a);
+
+      // Section
+      const section = document.createElement("section");
+      section.className = "group";
+      section.id = gid;
+      section.innerHTML = `
+        <div class="group-head" data-group="${g.key}">
+          <span class="caret">▼</span>
+          <h3><span class="kicker">${sec.title.startsWith("A")?"Author · "+g.kicker:"Gatekeeper · "+g.kicker}</span>${g.title}</h3>
+          <div class="mini-meter"><span id="meter_${g.key}"></span></div>
+          <span class="frac" id="frac_${g.key}"></span>
+        </div>
+        <div class="group-body" id="body_${g.key}"></div>`;
+      content.appendChild(section);
+
+      const body = section.querySelector("#body_"+g.key);
+      g.items.forEach(it=>{
+        const st = itemState(it.n);
+        const el = document.createElement("div");
+        el.className = "item";
+        el.id = "item_"+it.n;
+        el.dataset.n = it.n;
+        el.innerHTML = `
+          <div class="item-top">
+            <div class="cbwrap">
+              <input type="checkbox" id="cb_${it.n}" aria-label="Mark recommendation ${it.n} addressed">
+            </div>
+            <div class="item-main">
+              <div><span class="item-num">${it.n}.</span><span class="rec">${escapeHtml(it.rec)}</span>${it.cond?'<span class="cond-tag">conditional</span>':''}<span class="badge-state" id="badge_${it.n}"></span></div>
+              <div class="why"><b>Why it matters —</b> improves inferential reproducibility by allowing others to ${escapeHtml(it.why)}</div>
+              <div class="item-actions">
+                <label class="togglebox"><input type="checkbox" id="na_${it.n}"> Not applicable</label>
+                <input type="text" class="na-reason" id="nar_${it.n}" placeholder="Reason it's not applicable (optional)">
+              </div>
+              <textarea class="notes" id="nt_${it.n}" placeholder="Draft the exact wording you'll put in the manuscript or supplement…"></textarea>
+            </div>
+          </div>`;
+        body.appendChild(el);
+
+        // wire
+        const cb = el.querySelector("#cb_"+it.n);
+        const na = el.querySelector("#na_"+it.n);
+        const nar = el.querySelector("#nar_"+it.n);
+        const nt = el.querySelector("#nt_"+it.n);
+        cb.checked = st.done; na.checked = st.na; nar.value = st.naReason; nt.value = st.notes;
+
+        cb.addEventListener("change",()=>{ st.done = cb.checked; if(cb.checked){st.na=false; na.checked=false;} save(); syncItem(it.n); updateMeters(); });
+        na.addEventListener("change",()=>{ st.na = na.checked; if(na.checked){st.done=false; cb.checked=false;} save(); syncItem(it.n); updateMeters(); });
+        nar.addEventListener("input",()=>{ st.naReason = nar.value; save(); });
+        nt.addEventListener("input",()=>{ st.notes = nt.value; save(); });
+
+        syncItem(it.n);
+      });
+
+      // collapse toggle
+      section.querySelector(".group-head").addEventListener("click",()=>section.classList.toggle("collapsed"));
+    });
+  });
+  updateMeters();
+}
+
+function syncItem(n){
+  const el = document.getElementById("item_"+n);
+  const st = itemState(n);
+  el.classList.toggle("addressed", st.done && !st.na);
+  el.classList.toggle("na", st.na);
+  const badge = document.getElementById("badge_"+n);
+  badge.textContent = st.na ? "Not applicable" : (st.done ? "Addressed" : "");
+}
+
+function updateMeters(){
+  let doneAll=0, applicableAll=0;
+  DATA.forEach(sec=>sec.groups.forEach(g=>{
+    let done=0, applicable=0;
+    g.items.forEach(it=>{
+      const st = itemState(it.n);
+      if(!st.na){ applicable++; if(st.done) done++; }
+    });
+    doneAll+=done; applicableAll+=applicable;
+    const pct = applicable? Math.round(done/applicable*100):0;
+    const meter=document.getElementById("meter_"+g.key);
+    if(meter) meter.style.width = pct+"%";
+    const frac=document.getElementById("frac_"+g.key);
+    if(frac) frac.textContent = done+"/"+applicable;
+    const tc=document.getElementById("toccnt_"+g.key);
+    if(tc) tc.textContent = done+"/"+applicable;
+  }));
+  const pctAll = applicableAll? Math.round(doneAll/applicableAll*100):0;
+  document.getElementById("ring").style.setProperty("--pct", pctAll);
+  document.getElementById("ringPct").textContent = pctAll+"%";
+  const naCount = TOTAL - applicableAll;
+  document.getElementById("scoreText").textContent = `${doneAll} of ${applicableAll} applicable addressed`;
+  document.getElementById("scoreSub").textContent =
+    `${TOTAL} recommendations total · ${naCount} marked not applicable · ${applicableAll-doneAll} still open`;
+}
+
+/* ---------- Search + filter ---------- */
+const searchBox = document.getElementById("search");
+const onlyOpen = document.getElementById("onlyOpen");
+function applyFilter(){
+  const q = searchBox.value.trim().toLowerCase();
+  const openOnly = onlyOpen.checked;
+  let anyVisible=false;
+  ALL_ITEMS.forEach(it=>{
+    const st = itemState(it.n);
+    const hay = (it.rec+" "+it.why+" "+(st.notes||"")).toLowerCase();
+    let show = true;
+    if(q && !hay.includes(q)) show=false;
+    if(openOnly && (st.done || st.na)) show=false;
+    const el=document.getElementById("item_"+it.n);
+    el.classList.toggle("hidden", !show);
+    if(show) anyVisible=true;
+  });
+  // hide groups with no visible items
+  DATA.forEach(sec=>sec.groups.forEach(g=>{
+    const section=document.getElementById("g_"+g.key);
+    const visible = g.items.some(it=>!document.getElementById("item_"+it.n).classList.contains("hidden"));
+    section.style.display = visible? "" : "none";
+  }));
+  document.getElementById("noResults").style.display = anyVisible? "none":"block";
+}
+searchBox.addEventListener("input", applyFilter);
+onlyOpen.addEventListener("change", applyFilter);
+
+/* ---------- Expand / collapse ---------- */
+document.getElementById("expandAll").addEventListener("click",()=>document.querySelectorAll("section.group").forEach(s=>s.classList.remove("collapsed")));
+document.getElementById("collapseAll").addEventListener("click",()=>document.querySelectorAll("section.group").forEach(s=>s.classList.add("collapsed")));
+
+/* ---------- Reset ---------- */
+document.getElementById("resetBtn").addEventListener("click",()=>{
+  if(confirm("Clear all checkboxes, notes, and not-applicable flags? This cannot be undone.")){
+    state={}; try{localStorage.removeItem(STORAGE_KEY);}catch(e){}
+    render(); applyFilter();
+  }
+});
+
+/* ---------- Export MD ---------- */
+document.getElementById("exportMd").addEventListener("click",()=>{
+  const lines=[];
+  lines.push("# Methodological Transparency Appendix");
+  lines.push("");
+  let done=0, applicable=0;
+  ALL_ITEMS.forEach(it=>{const st=itemState(it.n); if(!st.na){applicable++; if(st.done)done++;}});
+  lines.push(`**Progress:** ${done} of ${applicable} applicable recommendations addressed (${applicable?Math.round(done/applicable*100):0}%). ${TOTAL} total.`);
+  lines.push("");
+  DATA.forEach(sec=>{
+    lines.push(`## ${sec.title}`); lines.push("");
+    sec.groups.forEach(g=>{
+      lines.push(`### ${g.kicker} — ${g.title}`); lines.push("");
+      g.items.forEach(it=>{
+        const st=itemState(it.n);
+        const mark = st.na? "N/A" : (st.done? "x":" ");
+        lines.push(`- [${mark}] **${it.n}.** ${it.rec}`);
+        if(st.na && st.naReason) lines.push(`  - _Not applicable:_ ${st.naReason}`);
+        if(st.notes && st.notes.trim()) lines.push(`  - _Response:_ ${st.notes.trim().replace(/\n/g," ")}`);
+        lines.push("");
+      });
+    });
+  });
+  lines.push("---");
+  lines.push("Based on Aguinis, H. 2025. *Research methodology: Best practices for rigorous, credible, and impactful research.* SAGE. https://collegepublishing.sagepub.com/products/research-methodology-1-280088");
+  lines.push("");
+  lines.push("Recommendations from Aguinis, H., Ramani, R. S., & Alabduljader, N. 2018. What you see is what you get? Enhancing methodological transparency in management research. *Academy of Management Annals*, 12(1): 83–110. https://doi.org/10.5465/annals.2016.0011");
+  download("transparency-appendix.md", lines.join("\n"), "text/markdown");
+});
+
+/* ---------- Export JSON ---------- */
+document.getElementById("exportJson").addEventListener("click",()=>{
+  download("transparency-data.json", JSON.stringify({version:1, saved:new Date().toISOString(), items:state}, null, 2), "application/json");
+});
+
+/* ---------- Import JSON ---------- */
+document.getElementById("importBtn").addEventListener("click",()=>document.getElementById("importFile").click());
+document.getElementById("importFile").addEventListener("change",e=>{
+  const f=e.target.files[0]; if(!f) return;
+  const r=new FileReader();
+  r.onload=()=>{
+    try{
+      const parsed=JSON.parse(r.result);
+      const items = parsed.items || parsed;
+      if(typeof items!=="object") throw new Error("bad");
+      state = items; save(); render(); applyFilter();
+      alert("Imported successfully.");
+    }catch(err){ alert("Could not import: the file is not valid transparency data."); }
+    e.target.value="";
+  };
+  r.readAsText(f);
+});
+
+/* ---------- Print ---------- */
+document.getElementById("printBtn").addEventListener("click",()=>window.print());
+
+/* ---------- Helpers ---------- */
+function download(name, text, mime){
+  const blob=new Blob([text],{type:mime});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement("a"); a.href=url; a.download=name; document.body.appendChild(a); a.click();
+  setTimeout(()=>{document.body.removeChild(a); URL.revokeObjectURL(url);},100);
+}
+function escapeHtml(s){return s.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");}
+let savedTimer=null;
+function flashSaved(){
+  const el=document.querySelector(".savenote");
+  if(!el) return;
+  el.textContent="Saved ✓  — stored in this browser (localStorage).";
+  clearTimeout(savedTimer);
+  savedTimer=setTimeout(()=>{el.textContent="Your entries are saved automatically in this browser (localStorage). They stay on this device.";},1400);
+}
+
+/* ---------- Init ---------- */
+render();
+applyFilter();
+</script>
+<!-- Begin Countercentral code v 7.0 --> 
+<span id="wts2576"></span> 
+<script>var wts=document.createElement('script');wts.async=true; 
+wts.src='https://server2.countercentral.com/log7.js';document.head.appendChild(wts); 
+wts.onload = function(){ wtslog7(2576,1); }; 
+</script><noscript><a href="https://www.countercentral.com"> 
+<img src="https://server2.countercentral.com/7/1/2576.png"  
+alt="Countercentral web traffic analysis"></a></noscript> 
+<!-- End Countercentral code v 7.0 --> 
+</body>
+</html>

@@ -1,0 +1,1332 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cross-Level Interaction Workbench &mdash; Aguinis, Gottfredson &amp; Culpepper (2013)</title>
+<style>
+:root{
+  --bg:#f4f6f9; --panel:#ffffff; --ink:#1c2733; --muted:#5a6b7b; --line:#dce3ea;
+  --brand:#1f5f8b; --brand-d:#16456a; --accent:#0b8457; --warn:#b3541e; --warnbg:#fdf1e7;
+  --danger:#b02a37; --dangerbg:#fbecee; --okbg:#e9f6f0; --code:#0f2433; --codeink:#d6e6f2;
+  --chip:#eaf1f7; --shadow:0 1px 3px rgba(20,40,60,.08),0 6px 18px rgba(20,40,60,.06);
+  --radius:10px;
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+  background:var(--bg);color:var(--ink);line-height:1.55;font-size:15.5px;-webkit-font-smoothing:antialiased}
+h1,h2,h3,h4{line-height:1.25;color:var(--ink)}
+h2{font-size:1.5rem;margin:.1rem 0 .2rem}
+h3{font-size:1.18rem;margin:1.4rem 0 .5rem}
+h4{font-size:1.02rem;margin:1.1rem 0 .35rem}
+p{margin:.55rem 0}
+a{color:var(--brand)}
+code,kbd{font-family:"SF Mono",Menlo,Consolas,monospace;font-size:.9em}
+button{font-family:inherit}
+
+/* layout */
+.app{display:flex;min-height:100vh}
+.nav{width:280px;flex:0 0 280px;background:var(--brand-d);color:#dfeaf2;position:sticky;top:0;height:100vh;
+  overflow-y:auto;padding:0 0 30px}
+.nav .brand{padding:18px 18px 14px;border-bottom:1px solid rgba(255,255,255,.12)}
+.nav .brand b{display:block;font-size:1.05rem;color:#fff}
+.nav .brand span{font-size:.78rem;color:#a9c6db}
+.nav .group{padding:12px 10px 2px;font-size:.72rem;letter-spacing:.08em;text-transform:uppercase;color:#7fa9c7}
+.nav a.navlink{display:flex;align-items:center;gap:8px;padding:8px 16px;color:#cfe0ee;text-decoration:none;
+  font-size:.92rem;border-left:3px solid transparent;cursor:pointer}
+.nav a.navlink:hover{background:rgba(255,255,255,.06)}
+.nav a.navlink.active{background:rgba(255,255,255,.12);border-left-color:#6fb8e6;color:#fff;font-weight:600}
+.nav a.navlink .dot{width:8px;height:8px;border-radius:50%;background:#3c6b8f;flex:0 0 auto}
+.nav a.navlink.done .dot{background:#2ecf8f}
+.nav .navnum{font-size:.74rem;color:#8fb6d4;width:18px;flex:0 0 auto}
+
+.main{flex:1;min-width:0;display:flex;flex-direction:column}
+.topbar{position:sticky;top:0;z-index:30;background:var(--panel);border-bottom:1px solid var(--line);
+  display:flex;align-items:center;gap:10px;padding:9px 20px;flex-wrap:wrap}
+.topbar .ttl{font-weight:600;font-size:.95rem;color:var(--muted);margin-right:auto}
+.btn{border:1px solid var(--line);background:#fff;color:var(--ink);padding:7px 13px;border-radius:8px;
+  cursor:pointer;font-size:.86rem;font-weight:500;transition:.12s}
+.btn:hover{border-color:var(--brand);color:var(--brand)}
+.btn.primary{background:var(--brand);color:#fff;border-color:var(--brand)}
+.btn.primary:hover{background:var(--brand-d);color:#fff}
+.btn.small{padding:4px 9px;font-size:.78rem}
+
+.content{padding:26px 34px 80px;max-width:980px;width:100%}
+.section{display:none;animation:fade .25s ease}
+.section.active{display:block}
+@keyframes fade{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+
+.card{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);padding:20px 22px;
+  margin:16px 0;box-shadow:var(--shadow)}
+.lead{font-size:1.02rem;color:var(--muted)}
+.tag{display:inline-block;background:var(--chip);color:var(--brand-d);font-size:.72rem;font-weight:700;
+  letter-spacing:.04em;padding:3px 9px;border-radius:20px;text-transform:uppercase}
+.phasechip{display:inline-block;font-size:.72rem;font-weight:700;padding:3px 10px;border-radius:20px;color:#fff}
+.p-design{background:#3a7bb5}.p-conduct{background:#7a5ea8}.p-analyze{background:#0b8457}.p-interpret{background:#c5772a}.p-report{background:#4a5568}
+
+.whatwhy{background:var(--okbg);border-left:4px solid var(--accent);padding:11px 15px;border-radius:6px;margin:10px 0 18px}
+.whatwhy b{color:var(--brand-d)}
+.callout{border-left:4px solid var(--brand);background:#eef5fb;padding:11px 15px;border-radius:6px;margin:12px 0}
+.warn{border-left:4px solid var(--warn);background:var(--warnbg);padding:11px 15px;border-radius:6px;margin:12px 0}
+.danger{border-left:4px solid var(--danger);background:var(--dangerbg);padding:11px 15px;border-radius:6px;margin:12px 0}
+.danger b,.warn b{color:var(--warn)}.danger b{color:var(--danger)}
+
+label.fld{display:block;font-size:.82rem;font-weight:600;color:var(--muted);margin:10px 0 3px}
+input[type=text],input[type=number],select,textarea{width:100%;padding:8px 10px;border:1px solid var(--line);
+  border-radius:7px;font-size:.92rem;font-family:inherit;background:#fff;color:var(--ink)}
+input:focus,select:focus,textarea:focus{outline:2px solid #bcd9ef;border-color:var(--brand)}
+textarea{resize:vertical;min-height:62px}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px}
+@media(max-width:760px){.grid2,.grid3{grid-template-columns:1fr}}
+
+.eqbox{background:#f7fafc;border:1px solid var(--line);border-radius:8px;padding:14px 16px;margin:10px 0;
+  font-size:1.05rem;text-align:center;overflow-x:auto}
+.eqbox .term{cursor:help;border-bottom:1px dotted var(--brand);padding:1px 1px}
+.legend{font-size:.86rem;color:var(--muted);margin-top:8px}
+.legend div{margin:3px 0}
+sub{font-size:.7em}
+
+pre.code{background:var(--code);color:var(--codeink);padding:16px;border-radius:9px;overflow-x:auto;
+  font-size:.82rem;line-height:1.5;position:relative;white-space:pre;margin:10px 0}
+pre.code .cm{color:#7fa6c0}
+pre.code .kw{color:#7fd1b9}
+.copybar{display:flex;justify-content:flex-end;gap:6px;margin-bottom:-6px}
+
+table.tbl{width:100%;border-collapse:collapse;margin:12px 0;font-size:.86rem}
+table.tbl th,table.tbl td{border:1px solid var(--line);padding:7px 9px;text-align:left;vertical-align:top}
+table.tbl th{background:var(--chip);font-weight:600}
+table.tbl td input{padding:5px 6px;font-size:.82rem}
+.numcell{text-align:right;font-variant-numeric:tabular-nums}
+
+.quiz .opt{display:block;border:1px solid var(--line);border-radius:8px;padding:9px 12px;margin:6px 0;cursor:pointer}
+.quiz .opt:hover{border-color:var(--brand)}
+.quiz .opt.correct{background:var(--okbg);border-color:var(--accent)}
+.quiz .opt.wrong{background:var(--dangerbg);border-color:var(--danger)}
+.quiz .fb{font-size:.86rem;margin-top:6px}
+
+.toggle{display:inline-flex;border:1px solid var(--line);border-radius:8px;overflow:hidden;margin:6px 0}
+.toggle button{border:0;background:#fff;padding:7px 14px;cursor:pointer;font-size:.85rem;color:var(--muted)}
+.toggle button.on{background:var(--brand);color:#fff;font-weight:600}
+
+.pill{display:inline-block;background:var(--chip);border-radius:20px;padding:2px 10px;font-size:.8rem;margin:2px}
+.check{display:flex;align-items:flex-start;gap:9px;padding:7px 0;border-bottom:1px dashed var(--line)}
+.check input{margin-top:4px;width:16px;height:16px;flex:0 0 auto}
+.check label{font-size:.9rem}
+.check .risk{font-size:.8rem;color:var(--muted)}
+
+.copyout{background:#f7fafc;border:1px dashed var(--brand);border-radius:8px;padding:12px 14px;margin:8px 0;font-size:.92rem}
+.copyout em{color:var(--muted)}
+
+/* glossary */
+#glossaryPanel{position:fixed;top:0;right:-380px;width:360px;height:100vh;background:var(--panel);
+  box-shadow:-4px 0 24px rgba(0,0,0,.14);z-index:60;transition:right .25s;overflow-y:auto;padding:18px 20px}
+#glossaryPanel.open{right:0}
+#glossaryPanel h3{margin-top:0}
+.gloss-item{border-bottom:1px solid var(--line);padding:9px 0}
+.gloss-item b{color:var(--brand-d);font-size:1rem}
+.gloss-item span{display:block;font-size:.86rem;color:var(--muted)}
+.glossclose{position:absolute;top:14px;right:16px;border:0;background:none;font-size:1.4rem;cursor:pointer;color:var(--muted)}
+.tip{cursor:help;border-bottom:1px dotted var(--brand);color:var(--brand-d)}
+
+.bignav{display:grid;grid-template-columns:repeat(2,1fr);gap:14px;margin-top:16px}
+@media(max-width:760px){.bignav{grid-template-columns:1fr}}
+.phasecard{border:1px solid var(--line);border-radius:10px;padding:16px;cursor:pointer;transition:.15s;background:#fff}
+.phasecard:hover{box-shadow:var(--shadow);transform:translateY(-2px)}
+.phasecard h4{margin:.3rem 0}
+.phasecard ul{margin:.4rem 0 0;padding-left:18px;font-size:.86rem;color:var(--muted)}
+
+.svgwrap{background:#fff;border:1px solid var(--line);border-radius:8px;padding:6px}
+.muted{color:var(--muted)}
+.small{font-size:.84rem}
+.right{text-align:right}
+hr.soft{border:0;border-top:1px solid var(--line);margin:18px 0}
+.readyrow{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px dashed var(--line);font-size:.92rem}
+.readyrow .ic{width:22px;flex:0 0 auto;font-weight:700}
+.ok{color:var(--accent)}.miss{color:var(--danger)}
+footer.foot{border-top:1px solid var(--line);background:var(--panel);padding:18px 34px;font-size:.82rem;color:var(--muted)}
+.kbd{background:#eef2f6;border:1px solid var(--line);border-radius:4px;padding:1px 5px;font-size:.8rem}
+
+@media print{
+  .nav,.topbar,#glossaryToggleFab{display:none!important}
+  .section{display:block!important;page-break-after:always}
+  .main{display:block}.content{max-width:none}
+  .card{box-shadow:none;border:1px solid #ccc}
+  body{background:#fff;font-size:11pt}
+}
+</style>
+</head>
+<body>
+<div class="app">
+  <!-- ===== LEFT NAV ===== -->
+  <nav class="nav" id="nav" aria-label="Workbench navigation">
+    <div class="brand">
+      <b>Cross-Level Interaction Workbench</b>
+      <span>Operationalizing Aguinis, Gottfredson &amp; Culpepper (2013)</span>
+    </div>
+    <div class="group">Overview</div>
+    <a class="navlink" data-sec="start"><span class="dot"></span><span class="navnum">&#9733;</span> Start here</a>
+    <div class="group">Phase 1 &middot; Design</div>
+    <a class="navlink" data-sec="m1"><span class="dot"></span><span class="navnum">1</span> Define the effect</a>
+    <a class="navlink" data-sec="m2"><span class="dot"></span><span class="navnum">2</span> Statistical power</a>
+    <a class="navlink" data-sec="m3"><span class="dot"></span><span class="navnum">3</span> Moderator types</a>
+    <div class="group">Phase 2&ndash;3 &middot; Conduct &amp; Analyze</div>
+    <a class="navlink" data-sec="walk"><span class="dot"></span><span class="navnum">&#9776;</span> Model-building walkthrough</a>
+    <a class="navlink" data-sec="m4"><span class="dot"></span><span class="navnum">4</span> Centering helper</a>
+    <a class="navlink" data-sec="m5"><span class="dot"></span><span class="navnum">5</span> Graphing</a>
+    <div class="group">Phase 4 &middot; Interpret</div>
+    <a class="navlink" data-sec="m6"><span class="dot"></span><span class="navnum">6</span> Symmetry</a>
+    <a class="navlink" data-sec="m7"><span class="dot"></span><span class="navnum">7</span> Multiple interactions</a>
+    <a class="navlink" data-sec="m8"><span class="dot"></span><span class="navnum">8</span> Three+ levels</a>
+    <a class="navlink" data-sec="m9"><span class="dot"></span><span class="navnum">9</span> Practical significance</a>
+    <div class="group">Reporting</div>
+    <a class="navlink" data-sec="m10"><span class="dot"></span><span class="navnum">10</span> Reporting table</a>
+    <div class="group">Tools</div>
+    <a class="navlink" data-sec="rcode"><span class="dot"></span><span class="navnum">R</span> R code generator</a>
+    <a class="navlink" data-sec="ready"><span class="dot"></span><span class="navnum">&#10003;</span> Am I ready?</a>
+    <a class="navlink" data-sec="about"><span class="dot"></span><span class="navnum">&#9432;</span> About &amp; sources</a>
+  </nav>
+
+  <!-- ===== MAIN ===== -->
+  <div class="main">
+    <div class="topbar">
+      <span class="ttl" id="crumb">Start here</span>
+      <button class="btn small" onclick="openGlossary()">&#128214; Glossary</button>
+      <button class="btn small" onclick="exportJSON()">&#8615; Export inputs</button>
+      <button class="btn small" onclick="document.getElementById('importFile').click()">&#8613; Import</button>
+      <input type="file" id="importFile" accept="application/json" style="display:none" onchange="importJSON(event)">
+      <button class="btn small" onclick="window.print()">&#128424; Print / PDF</button>
+    </div>
+    <div class="content" id="content">
+<!-- ================= START HERE ================= -->
+<section class="section" id="sec-start">
+  <span class="tag">Overview</span>
+  <h2>Cross-Level Interaction Workbench</h2>
+  <p class="lead">A practical, offline workbench that walks you through designing, conducting, analyzing, interpreting, and reporting a cross-level interaction effect &mdash; operationalizing all ten best-practice recommendations of Aguinis, Gottfredson &amp; Culpepper (2013).</p>
+
+  <div class="card">
+    <h3 style="margin-top:0">Your study (used everywhere as the worked example)</h3>
+    <p class="small muted">Defaults reproduce the article's running example. Change any name or number and it flows into every module, the graphs, the reporting table, and the generated R code.</p>
+    <div class="grid3">
+      <div><label class="fld">Level-1 predictor (X)</label><input type="text" data-state="X"></div>
+      <div><label class="fld">Level-1 outcome (Y)</label><input type="text" data-state="Y"></div>
+      <div><label class="fld">Level-2 moderator (W)</label><input type="text" data-state="W"></div>
+      <div><label class="fld">Level-1 unit (lower)</label><input type="text" data-state="l1unit"></div>
+      <div><label class="fld">Level-2 unit (higher)</label><input type="text" data-state="l2unit"></div>
+      <div><label class="fld">Scale points (e.g. 7-pt Likert)</label><input type="text" data-state="scale"></div>
+      <div><label class="fld">Level-1 sample size (N individuals)</label><input type="number" data-state="N"></div>
+      <div><label class="fld">Level-2 sample size (J groups)</label><input type="number" data-state="J"></div>
+      <div style="display:flex;align-items:flex-end"><button class="btn" onclick="resetExample()">Reset to LMX example</button></div>
+    </div>
+    <div class="callout small" id="studySentence"></div>
+  </div>
+
+  <h3>The four phases (plus reporting)</h3>
+  <div class="bignav">
+    <div class="phasecard" onclick="go('m1')"><span class="phasechip p-design">Phase 1 &middot; Design</span>
+      <h4>Before you collect data</h4>
+      <ul><li>1 &mdash; Define the effect (&gamma;<sub>11</sub>, not &tau;<sub>11</sub>)</li><li>2 &mdash; Plan statistical power</li><li>3 &mdash; Choose the moderator type</li></ul></div>
+    <div class="phasecard" onclick="go('walk')"><span class="phasechip p-analyze">Phase 2&ndash;3 &middot; Conduct &amp; Analyze</span>
+      <h4>After you collect data</h4>
+      <ul><li>4-step model-building walkthrough + assumptions</li><li>4 &mdash; Centering / rescaling helper</li><li>5 &mdash; Graphing the interaction</li></ul></div>
+    <div class="phasecard" onclick="go('m6')"><span class="phasechip p-interpret">Phase 4 &middot; Interpret</span>
+      <h4>Make sense of results</h4>
+      <ul><li>6 &mdash; Symmetry of interpretation</li><li>7 &mdash; Multiple interactions</li><li>8 &mdash; Three+ levels</li><li>9 &mdash; Practical significance</li></ul></div>
+    <div class="phasecard" onclick="go('m10')"><span class="phasechip p-report">Reporting</span>
+      <h4>Write it up</h4>
+      <ul><li>10 &mdash; Fillable results table + paragraph</li><li>R code generator (all 4 steps + power + plot)</li><li>"Am I ready to submit?" review</li></ul></div>
+  </div>
+
+  <div class="whatwhy" style="margin-top:18px"><b>How to use this:</b> work top-to-bottom through the left nav. Each module states <b>what to do</b> and <b>why it matters</b> in one line, then gives you an interactive aid. Your entries are saved in-page; use <b>Export inputs</b> to save a JSON you can re-import later. Dotted terms open the <span class="tip" onclick="openGlossary()">glossary</span>.</p></div>
+</section>
+
+<!-- ================= MODULE 1 ================= -->
+<section class="section" id="sec-m1">
+  <span class="phasechip p-design">Phase 1 &middot; Design</span> <span class="tag">Recommendation 1</span>
+  <h2>Define the cross-level interaction effect</h2>
+  <div class="whatwhy"><b>Do:</b> identify the cross-level interaction as &gamma;<sub>11</sub>, the coefficient on the product of the L1 and L2 predictors in the combined equation. <b>Why:</b> people routinely mistake slope variance (&tau;<sub>11</sub>) for the interaction &mdash; but &tau;<sub>11</sub> only tells you a moderator search is <em>warranted</em>; it never identifies <em>which</em> moderator matters.</div>
+
+  <div class="card">
+    <h3 style="margin-top:0">Two ways to write the same effect</h3>
+    <div class="toggle">
+      <button id="eqL2" class="on" onclick="eqView('L2')">Level-2 slope-as-outcome</button>
+      <button id="eqC" onclick="eqView('C')">Combined equation</button>
+    </div>
+    <div id="eqArea"></div>
+  </div>
+
+  <div class="card">
+    <h3 style="margin-top:0">&gamma;<sub>11</sub> vs. &tau;<sub>11</sub> &mdash; the crucial distinction</h3>
+    <div class="grid2">
+      <div class="callout"><b>&gamma;<sub>11</sub> &mdash; the interaction effect.</b> A single number (a fixed effect). It answers: <em>does <span class="vW">leadership climate</span> explain the differences in the <span class="vX">LMX</span>&ndash;<span class="vY">empowerment</span> slope?</em> Positive &gamma;<sub>11</sub> &rarr; the slope is steeper in groups with higher W.</div>
+      <div class="warn"><b>&tau;<sub>11</sub> &mdash; slope variance.</b> Tells you only that slopes <em>differ</em> across groups &mdash; that heterogeneity exists. Like heterogeneity in meta-analysis, it signals that searching for a moderator is warranted, but it is <b>not</b> the interaction. Raudenbush &amp; Bryk call &gamma;<sub>11</sub> the "distributive effect."</div>
+    </div>
+  </div>
+
+  <div class="card quiz" id="quiz1">
+    <h3 style="margin-top:0">Self-check</h3>
+    <p><b>Q1.</b> A reviewer says "your &tau;<sub>11</sub> is significant, so you've shown the cross-level interaction." Are they right?</p>
+    <div class="opt" onclick="q('quiz1',this,false)">Yes &mdash; significant slope variance is the interaction effect.</div>
+    <div class="opt" onclick="q('quiz1',this,true)">No &mdash; &tau;<sub>11</sub> shows slopes vary, but the interaction is &gamma;<sub>11</sub>, the product-term coefficient that identifies <em>which</em> L2 variable explains that variance.</div>
+    <div class="fb"></div>
+    <p style="margin-top:16px"><b>Q2.</b> In the combined equation, which term carries the cross-level interaction?</p>
+    <div class="opt" onclick="q2('quiz1',this,false)">&gamma;<sub>01</sub>(W<sub>j</sub> &minus; W&#772;) &mdash; the L2 main effect.</div>
+    <div class="opt" onclick="q2('quiz1',this,true)">&gamma;<sub>11</sub>(X<sub>ij</sub> &minus; X&#772;<sub>j</sub>)(W<sub>j</sub> &minus; W&#772;) &mdash; the product of the centered L1 and L2 predictors.</div>
+    <div class="opt" onclick="q2('quiz1',this,false)">u<sub>1j</sub>(X<sub>ij</sub> &minus; X&#772;<sub>j</sub>) &mdash; the random slope term.</div>
+    <div class="fb2"></div>
+  </div>
+</section>
+
+<!-- ================= MODULE 2 ================= -->
+<section class="section" id="sec-m2">
+  <span class="phasechip p-design">Phase 1 &middot; Design</span> <span class="tag">Recommendation 2</span>
+  <h2>Statistical power &amp; design decisions</h2>
+  <div class="whatwhy"><b>Do:</b> plan sample sizes so the study can actually detect the interaction, using the Mathieu et al. (2012) Monte-Carlo approach. <b>Why:</b> published power for cross-level interactions averages only ~<b>.40</b> at &alpha;=.05 (and ~.22 at &alpha;=.01) &mdash; worse than a coin flip. Rules of thumb like "30/30" or "30/50" should be abandoned.</div>
+
+  <div class="card">
+    <h3 style="margin-top:0">What drives power here (from the article)</h3>
+    <p>Power to detect a cross-level interaction is driven mainly by three things: the <b>magnitude of the interaction</b> (&gamma;<sub>11</sub>), the <b>variance of L1 slopes</b> across groups (&tau;<sub>11</sub>), and the <b>L1 and L2 sample sizes</b>. You usually can't control the first two, but you can plan the sample. Critically, L1 sample size carries a roughly <b>3:2 premium</b> over L2 sample size for detecting the <em>interaction</em> &mdash; while L2 size matters most for cross-level <em>direct</em> effects. Match your allocation to which effects you most need to detect.</p>
+  </div>
+
+  <div class="card">
+    <h3 style="margin-top:0">Design-scenario planner</h3>
+    <p class="small muted">Enter the design parameters the power calculator needs. Then compare two scenarios (e.g., more people per group vs. more groups) side by side. These inputs feed the generated R code below.</p>
+    <div class="grid3">
+      <div><label class="fld">ICC of X (iccx)</label><input type="number" step="0.01" data-state="pw_iccx"></div>
+      <div><label class="fld">L1 effect of X on Y (g10)</label><input type="number" step="0.05" data-state="pw_g10"></div>
+      <div><label class="fld">Interaction magnitude (g11)</label><input type="number" step="0.01" data-state="pw_g11"></div>
+      <div><label class="fld">SD of L1 slopes (&radic;&tau;<sub>11</sub>)</label><input type="number" step="0.01" data-state="pw_sdslope"></div>
+      <div><label class="fld">Intercept variance (vu0j)</label><input type="number" step="0.01" data-state="pw_vu0j"></div>
+      <div><label class="fld">Within (residual) variance</label><input type="number" step="0.05" data-state="pw_vresid"></div>
+      <div><label class="fld">&alpha; (rejection level)</label><input type="number" step="0.01" data-state="pw_alpha"></div>
+      <div><label class="fld">Monte-Carlo reps</label><input type="number" step="100" data-state="pw_reps"></div>
+    </div>
+    <hr class="soft">
+    <div class="grid2">
+      <div>
+        <h4 style="margin-top:0">Scenario A</h4>
+        <label class="fld">L2 size (# groups)</label><input type="number" data-state="pw_A_l2n">
+        <label class="fld">Avg L1 per group</label><input type="number" data-state="pw_A_l1n">
+        <div class="copyout small" id="scenA"></div>
+      </div>
+      <div>
+        <h4 style="margin-top:0">Scenario B</h4>
+        <label class="fld">L2 size (# groups)</label><input type="number" data-state="pw_B_l2n">
+        <label class="fld">Avg L1 per group</label><input type="number" data-state="pw_B_l1n">
+        <div class="copyout small" id="scenB"></div>
+      </div>
+    </div>
+    <div class="callout small" id="scenCompare"></div>
+    <div class="warn small"><b>Important:</b> the values above show <em>total sample size</em> and design trade-offs only. The article provides <b>no closed-form power formula</b> for cross-level interactions &mdash; power must be obtained by simulation. Use the generated R code (Mathieu et al., 2012) or the online calculator to get the actual power number. In the article's own example, the design below yielded power = <b>.82</b>.</div>
+    <p><button class="btn" onclick="go('rcode')">&rarr; Get the ready-to-run power R code</button>
+       <a class="btn" href="https://mypage.iu.edu/~haguinis/crosslevel.html" target="_blank" rel="noopener">Open the Mathieu et al. (2012) calculator</a></p>
+  </div>
+
+  <div class="card">
+    <h3 style="margin-top:0">Post-hoc: the interaction was NOT detected &mdash; now what?</h3>
+    <p class="small muted">If your hypothesis test came back non-significant, report achieved power and state your conclusion honestly.</p>
+    <label class="fld">Achieved power (from the calculator, post-hoc)</label>
+    <input type="number" step="0.01" data-state="pw_achieved" placeholder="e.g. 0.45">
+    <div class="callout small" id="posthocVerdict"></div>
+  </div>
+</section>
+
+<!-- ================= MODULE 3 ================= -->
+<section class="section" id="sec-m3">
+  <span class="phasechip p-design">Phase 1 &middot; Design</span> <span class="tag">Recommendation 3</span>
+  <h2>Continuous vs. categorical Level-2 moderators</h2>
+  <div class="whatwhy"><b>Do:</b> decide your L2 moderator's type up front, because it changes how &gamma;<sub>11</sub> is interpreted. <b>Why:</b> a continuous W gives a "per-unit slope change"; a categorical W gives a "difference in slopes between groups." Same equation, different sentence.</div>
+
+  <div class="card">
+    <h3 style="margin-top:0">Pick your moderator type</h3>
+    <div class="toggle" id="modtype">
+      <button class="on" onclick="modType('cont')">Continuous</button>
+      <button onclick="modType('bin')">Binary (2 groups)</button>
+      <button onclick="modType('cat')">Categorical (k&gt;2)</button>
+      <button onclick="modType('std')">Standardized</button>
+    </div>
+    <div id="modtypeBody"></div>
+  </div>
+
+  <div class="card" id="catBuilder" style="display:none">
+    <h3 style="margin-top:0">Dummy-coding setup (k &gt; 2 categories)</h3>
+    <p class="small muted">With k categories you create k&minus;1 dummy codes, each compared against the same reference category. Each dummy gets its own interaction coefficient.</p>
+    <label class="fld">How many categories (k)?</label>
+    <input type="number" min="3" max="8" data-state="cat_k" style="max-width:120px">
+    <label class="fld">Reference category (coded 0 on all dummies)</label>
+    <input type="text" data-state="cat_ref" placeholder="e.g. Texas">
+    <div id="catDummies"></div>
+  </div>
+</section>
+<!-- ================= MODEL-BUILDING WALKTHROUGH ================= -->
+<section class="section" id="sec-walk">
+  <span class="phasechip p-analyze">Phase 2&ndash;3 &middot; Conduct &amp; Analyze</span> <span class="tag">Model building</span>
+  <h2>The four-step model-building walkthrough</h2>
+  <div class="whatwhy"><b>Do:</b> build the model in four steps &mdash; Null &rarr; Random-Intercept Fixed-Slope &rarr; Random-Intercept Random-Slope &rarr; Cross-Level Interaction. <b>Why:</b> each step answers a distinct question and sets up the next; skipping steps hides where the variance lives.</div>
+
+  <div class="card">
+    <h3 style="margin-top:0">FIML or REML?</h3>
+    <div class="grid2">
+      <div class="callout small"><b><span class="tip" onclick="openGlossary()">FIML</span> &mdash; full information ML.</b> Deviance reflects both fixed coefficients and variance components. <b>Use it to compare models that differ in fixed effects</b> (e.g., Step 2 vs Step 4) and for the deviance tests in Table 1.</div>
+      <div class="callout small"><b><span class="tip" onclick="openGlossary()">REML</span> &mdash; restricted ML.</b> Deviance reflects variance components only; gives less biased variance estimates. <b>Use it for final variance estimates</b> and it is also valid for testing whether &tau;<sub>11</sub> is nonzero.</div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h4 style="margin-top:0">Step 1 &mdash; Null model + ICC</h4>
+    <div class="eqbox">Y<sub>ij</sub> = &gamma;<sub>00</sub> + u<sub>0j</sub> + r<sub>ij</sub></div>
+    <p class="small">No predictors yet &mdash; intercepts are allowed to vary across <span class="vl2">teams</span>. Then compute the <span class="tip" onclick="openGlossary()">ICC</span>.</p>
+    <div class="grid3">
+      <div><label class="fld">&tau;<sub>00</sub> (intercept variance)</label><input type="number" step="0.001" data-state="t00_null"></div>
+      <div><label class="fld">&sigma;&sup2; (within variance)</label><input type="number" step="0.001" data-state="s2_null"></div>
+      <div style="display:flex;align-items:flex-end"><div class="copyout small" id="iccBox" style="margin:0;width:100%"></div></div>
+    </div>
+    <p class="small muted">Interpretation: ICC is the proportion of outcome variance between groups (and the expected correlation of two cases in one group). ICC near 0 &rarr; single-level OLS may suffice. ICC &gt; 0, even ~.10, justifies multilevel modeling; in management studies ICCs typically run .15&ndash;.30.</p>
+  </div>
+
+  <div class="card">
+    <h4 style="margin-top:0">Step 2 &mdash; Random-Intercept Fixed-Slope (RIFSM)</h4>
+    <div class="eqbox">Y<sub>ij</sub> = &gamma;<sub>00</sub> + &gamma;<sub>10</sub>(X<sub>ij</sub>&minus;X&#772;<sub>j</sub>) + &gamma;<sub>01</sub>(W<sub>j</sub>&minus;W&#772;) + u<sub>0j</sub> + r<sub>ij</sub></div>
+    <p class="small">Adds the L1 predictor and the L2 predictor as direct effects. &gamma;<sub>01</sub> is the cross-level <em>direct</em> effect of <span class="vW">W</span>; it explains part of &tau;<sub>00</sub>. Slopes are still fixed (assumed equal across groups).</p>
+  </div>
+
+  <div class="card">
+    <h4 style="margin-top:0">Step 3 &mdash; Random-Intercept Random-Slope (RIRSM): is &tau;<sub>11</sub> &ne; 0?</h4>
+    <div class="eqbox">Y<sub>ij</sub> = &gamma;<sub>00</sub> + &gamma;<sub>10</sub>(X<sub>ij</sub>&minus;X&#772;<sub>j</sub>) + &gamma;<sub>01</sub>(W<sub>j</sub>&minus;W&#772;) + u<sub>0j</sub> + u<sub>1j</sub>(X<sub>ij</sub>&minus;X&#772;<sub>j</sub>) + r<sub>ij</sub></div>
+    <p class="small">Now slopes vary too (variance &tau;<sub>11</sub>, plus the intercept-slope covariance &tau;<sub>01</sub>). Before hunting a moderator, test whether slopes really vary. Use these three tools &mdash; not a naive Wald CI:</p>
+    <div class="grid3">
+      <div class="callout small"><b>1. Nonparametric residual bootstrap CI</b> (Carpenter, Goldstein &amp; Rasbash, 2003). Resample residuals (e.g., 1,500 reps); if the 95% CI for &tau;<sub>11</sub> excludes 0, slopes vary. In the example: CI = <b>[.004, .046]</b>.</div>
+      <div class="callout small"><b>2. &minus;2 log-likelihood (deviance) test</b> comparing Step 3 vs Step 2 (FIML). In the example: 1477.6 &minus; 1469.5 = <b>8.1, p&lt;.05</b>.</div>
+      <div class="callout small"><b>3. Crainiceanu&ndash;Ruppert / RLRsim</b> mixture-of-chi-squares simulation &mdash; superior Type-I control. In the example: <b>p = .0013</b>.</div>
+    </div>
+    <div class="danger small"><b>Do not</b> build a Wald CI (estimate &plusmn;1.96&times;SE) around a variance component. Standard errors for variances are unreliable, and variances are non-negative so the normal-symmetry assumption fails.</div>
+    <div class="warn small"><b>Underpowered &tau;<sub>11</sub> test?</b> These tests use degrees of freedom from the (usually small) number of <span class="vl2">groups</span>, so they are often underpowered. The default position is: if &tau;<sub>11</sub> is not different from 0, don't search for specific interactions. <b>However</b>, to balance Type I and Type II error, you <em>may</em> proceed to the interaction test even when the null of no slope variance is retained &mdash; but only with a <b>strong theory-based rationale</b>, and you must <b>explicitly acknowledge</b> that &tau;<sub>11</sub> was not significant so others can attempt replication.</div>
+  </div>
+
+  <div class="card">
+    <h4 style="margin-top:0">Step 4 &mdash; Cross-Level Interaction model</h4>
+    <div class="eqbox">Y<sub>ij</sub> = &gamma;<sub>00</sub> + &gamma;<sub>01</sub>(W<sub>j</sub>&minus;W&#772;) + &gamma;<sub>10</sub>(X<sub>ij</sub>&minus;X&#772;<sub>j</sub>) + <b style="color:var(--brand)">&gamma;<sub>11</sub>(X<sub>ij</sub>&minus;X&#772;<sub>j</sub>)(W<sub>j</sub>&minus;W&#772;)</b> + u<sub>0j</sub> + u<sub>1j</sub>(X<sub>ij</sub>&minus;X&#772;<sub>j</sub>) + r<sub>ij</sub></div>
+    <p class="small">Adds the product term. <b>&gamma;<sub>11</sub> is the cross-level interaction effect.</b></p>
+    <div class="callout small"><b>Retain X even if its direct effect was non-significant.</b> Standard interaction practice is to keep the lower-level term. A non-significant &gamma;<sub>10</sub> at Step 2 can become non-zero once W is added and centered; leaving X out forces &gamma;<sub>10</sub>=0 at the centering point of W, distorting the model. So keep X in Step 4 regardless of its earlier significance.</div>
+  </div>
+
+  <div class="card">
+    <h3 style="margin-top:0">Assumptions checklist</h3>
+    <p class="small muted">Multilevel modeling carries OLS-like assumptions. Violations risk model misspecification and grossly wrong standard errors. Tick each as you check it (saved with your inputs).</p>
+    <div id="assumpList"></div>
+  </div>
+</section>
+
+<!-- ================= MODULE 4 ================= -->
+<section class="section" id="sec-m4">
+  <span class="phasechip p-analyze">Phase 2&ndash;3 &middot; Conduct &amp; Analyze</span> <span class="tag">Recommendation 4</span>
+  <h2>Centering / rescaling decision helper</h2>
+  <div class="whatwhy"><b>Do:</b> in most cross-level interaction tests, <b>group-mean center</b> the L1 predictor. <b>Why:</b> it yields the "unconflated" within-group estimate and minimizes spurious interactions. But the choice must follow your theory &mdash; record a justification.</div>
+
+  <div class="card">
+    <h3 style="margin-top:0">Answer two questions about your theory</h3>
+    <label class="fld">1. Does your hypothesis concern how a case <em>deviates from its group's average</em> on X (e.g., frog-pond / social-comparison effects)?</label>
+    <div class="toggle"><button id="c_dev_y" class="on" onclick="setC('dev','y')">Yes, deviation from group average</button><button id="c_dev_n" onclick="setC('dev','n')">No / unsure</button></div>
+    <label class="fld">2. Does X have a <em>meaningful, true zero</em> (a ratio scale, e.g., return on assets), or is zero impossible/meaningless (most Likert OB/HR measures)?</label>
+    <div class="toggle"><button id="c_zero_n" class="on" onclick="setC('zero','n')">No meaningful zero (typical)</button><button id="c_zero_y" onclick="setC('zero','y')">Yes, meaningful zero</button></div>
+    <div class="callout" id="centerRec" style="margin-top:14px"></div>
+  </div>
+
+  <div class="card">
+    <h3 style="margin-top:0">Why each option behaves as it does</h3>
+    <table class="tbl">
+      <tr><th>Approach</th><th>What it does</th><th>When appropriate</th></tr>
+      <tr><td><b>Group-mean centering</b><br>(within-cluster)</td><td>Subtracts each group's own mean. Makes L1 predictor uncorrelated with L2 predictors &rarr; "unconflated" within-group estimate; minimizes spurious cross-level interactions (Hofmann &amp; Gavin, 1998; Preacher et al., 2010).</td><td><b>Default</b> for cross-level interaction tests, especially when theory is about deviations from a group average.</td></tr>
+      <tr><td><b>Grand-mean centering</b></td><td>Subtracts the overall mean. For the L1 predictor, &gamma;<sub>11</sub> <em>conflates</em> within- and between-group effects unless across-group variance is explicitly controlled (a "mixed bag").</td><td>When theory concerns <em>raw differences</em> between L1 entities rather than deviations from a group average &mdash; and only with across-group variance controlled.</td></tr>
+      <tr><td><b>No centering (raw)</b></td><td>Intercept = predicted Y at X = 0.</td><td>Usually <b>not recommended</b> &mdash; uninterpretable when 0 is not a meaningful scale value (most OB/HR/strategy measures).</td></tr>
+    </table>
+    <p class="small muted">Note (Bliese, 2002): spurious cross-level interactions are rare, so grand-mean-centered variables can be used <em>as long as you also run a group-mean-centered model to check</em> for spurious effects.</p>
+  </div>
+
+  <div class="card">
+    <h3 style="margin-top:0">Record your theory-based justification (required)</h3>
+    <textarea data-state="center_just" placeholder="e.g. Our hypothesis concerns how an individual's LMX relative to their team's average relates to empowerment (a social-comparison process), so we group-mean center X. W is left in its original metric / grand-mean centered because..."></textarea>
+    <div class="small muted" id="centerJustState"></div>
+  </div>
+</section>
+
+<!-- ================= MODULE 5 ================= -->
+<section class="section" id="sec-m5">
+  <span class="phasechip p-analyze">Phase 2&ndash;3 &middot; Conduct &amp; Analyze</span> <span class="tag">Recommendation 5</span>
+  <h2>Graphing the cross-level interaction</h2>
+  <div class="whatwhy"><b>Do:</b> plot simple slopes of <span class="vY">Y</span> on <span class="vX">X</span> at low / mean / high values of <span class="vW">W</span> to show the interaction's nature and direction. <b>Why:</b> a graph reveals the <em>shape</em> of moderation &mdash; but it must never be used to judge how <em>large</em> or <em>important</em> the effect is.</div>
+
+  <div class="card">
+    <h3 style="margin-top:0">Coefficients &amp; ranges for the plot</h3>
+    <div class="grid3">
+      <div><label class="fld">&gamma;<sub>00</sub> (intercept)</label><input type="number" step="0.01" data-state="g_g00"></div>
+      <div><label class="fld">&gamma;<sub>10</sub> (L1 slope)</label><input type="number" step="0.01" data-state="g_g10"></div>
+      <div><label class="fld">&gamma;<sub>01</sub> (L2 direct)</label><input type="number" step="0.01" data-state="g_g01"></div>
+      <div><label class="fld">&gamma;<sub>11</sub> (interaction)</label><input type="number" step="0.01" data-state="g_g11"></div>
+      <div><label class="fld">SD of X</label><input type="number" step="0.1" data-state="g_sdx"></div>
+      <div><label class="fld">SD of W</label><input type="number" step="0.1" data-state="g_sdw"></div>
+      <div><label class="fld">Scale min (Y)</label><input type="number" step="0.5" data-state="g_ymin"></div>
+      <div><label class="fld">Scale max (Y)</label><input type="number" step="0.5" data-state="g_ymax"></div>
+    </div>
+    <div style="margin-top:12px">
+      <span class="small muted">Y-axis range:</span>
+      <div class="toggle"><button id="ax_full" class="on" onclick="axisMode('full')">Full scale (honest)</button><button id="ax_red" onclick="axisMode('red')">Compressed (zoomed)</button></div>
+    </div>
+    <div id="axisWarn"></div>
+    <div class="svgwrap" id="plotWrap" style="margin-top:10px"></div>
+    <p class="small muted">Three lines: simple slope of Y on X at W = &minus;1 SD, mean, and +1 SD. Slope at a given W = &gamma;<sub>10</sub> + &gamma;<sub>11</sub>&middot;W; intercept = &gamma;<sub>00</sub> + &gamma;<sub>01</sub>&middot;W.</p>
+  </div>
+
+  <div class="card">
+    <h3 style="margin-top:0">Regions of significance</h3>
+    <p class="small">Beyond plotting at &plusmn;1 SD, you can identify the <b>region of significance</b> &mdash; the range of W values over which the simple slope of Y on X is statistically significant. The article points to the Preacher, Curran &amp; Bauer (2006) online tools (SAS / SPSS / R) for computing and plotting both simple slopes and regions of significance.</p>
+    <a class="btn" href="https://quantpsy.org/interact/hlm2.htm" target="_blank" rel="noopener">Open Preacher, Curran &amp; Bauer (2006) tools</a>
+  </div>
+
+  <div class="card">
+    <h3 style="margin-top:0">Copyable plotting code</h3>
+    <div class="toggle"><button id="plt_r" class="on" onclick="pltLang('r')">R</button><button id="plt_spss" onclick="pltLang('spss')">SPSS</button><button id="plt_sas" onclick="pltLang('sas')">SAS</button></div>
+    <div class="copybar"><button class="btn small" onclick="copyEl('pltCode')">Copy</button></div>
+    <pre class="code" id="pltCode"></pre>
+  </div>
+</section>
+<!-- ================= MODULE 6 ================= -->
+<section class="section" id="sec-m6">
+  <span class="phasechip p-interpret">Phase 4 &middot; Interpret</span> <span class="tag">Recommendation 6</span>
+  <h2>Symmetry of interpretation</h2>
+  <div class="whatwhy"><b>Do:</b> choose which variable is "the moderator" on conceptual grounds &mdash; usually the L2 contextual variable. <b>Why:</b> &gamma;<sub>11</sub> is mathematically identical whether you say W moderates X&rarr;Y or X moderates W&rarr;Y. The number doesn't change; only the framing does.</div>
+
+  <div class="card">
+    <p>Because (X&minus;X&#772;<sub>j</sub>)(W&minus;W&#772;) = (W&minus;W&#772;)(X&minus;X&#772;<sub>j</sub>), the value of &gamma;<sub>11</sub> is the same either way. Convention in multilevel modeling is to treat the higher-level variable as the moderator, because it is conceptually natural to view the context as shaping a lower-level relationship.</p>
+  </div>
+
+  <div class="card">
+    <h3 style="margin-top:0">Generate both hypothesis phrasings for your variables</h3>
+    <label class="fld">Direction word (how higher W changes the slope)</label>
+    <input type="text" data-state="sym_dir" placeholder="stronger" style="max-width:240px">
+    <div class="copyout"><b>1a &mdash; L2 as moderator (conventional):</b><br><span id="hyp1a"></span></div>
+    <div class="copyout"><b>1b &mdash; L1 as moderator (equally valid):</b><br><span id="hyp1b"></span></div>
+    <p class="small muted">Your graphing and write-up choices follow from whichever framing you pick.</p>
+  </div>
+</section>
+
+<!-- ================= MODULE 7 ================= -->
+<section class="section" id="sec-m7">
+  <span class="phasechip p-interpret">Phase 4 &middot; Interpret</span> <span class="tag">Recommendation 7</span>
+  <h2>Multiple cross-level interactions</h2>
+  <div class="whatwhy"><b>Do:</b> when testing more than one cross-level interaction, put them all in <b>one</b> model so each is adjusted for the others. <b>Why:</b> separate models can upwardly bias each effect through their intercorrelations.</div>
+
+  <div class="card">
+    <p>Testing in one combined model is like running a proper omnibus test before follow-ups. Testing each interaction in its own model is like running follow-up comparisons with no omnibus &mdash; acceptable <em>only</em> with a strong theory-based rationale, and it inflates Type I error.</p>
+    <h4>Valid reasons to test separately (must be reported transparently)</h4>
+    <p class="small">Strong theory-based rationale &middot; the combined model will not converge &middot; the model crashes &middot; it runs out of degrees of freedom. If you test separately, state clearly (a) that you did, (b) why, and (c) the consequence &mdash; possible Type I error inflation requiring replication.</p>
+  </div>
+
+  <div class="card">
+    <h3 style="margin-top:0">Nonconvergence troubleshooting</h3>
+    <ol>
+      <li><b>Try different software.</b> Some algorithms converge where others don't.</li>
+      <li><b>Center your predictors.</b> Centering reduces correlations among random intercepts and slopes (Gelfand, Sahu &amp; Carlin, 1995).</li>
+      <li><b>Simplify the random-effects structure.</b> If the model is too complex for the data, reduce the random terms &mdash; this may be the only remedy.</li>
+    </ol>
+  </div>
+
+  <div class="card">
+    <h3 style="margin-top:0">Document your decision</h3>
+    <div class="toggle"><button id="multi_one" class="on" onclick="setMulti('one')">Combined model</button><button id="multi_sep" onclick="setMulti('sep')">Separate models</button></div>
+    <textarea data-state="multi_note" placeholder="If separate: state why (e.g. combined model failed to converge after simplifying random effects) and acknowledge the Type I error caveat."></textarea>
+    <div class="callout small" id="multiNote"></div>
+  </div>
+</section>
+
+<!-- ================= MODULE 8 ================= -->
+<section class="section" id="sec-m8">
+  <span class="phasechip p-interpret">Phase 4 &middot; Interpret</span> <span class="tag">Recommendation 8</span>
+  <h2>Three-or-more-level interactions</h2>
+  <div class="whatwhy"><b>Do:</b> extend the same two-way logic to three levels (e.g., individuals in teams in organizations, or repeated measures over time). <b>Why:</b> the procedure generalizes &mdash; but data demands grow steeply and <b>no validated power tool exists</b> for three-way cross-level interactions.</div>
+
+  <div class="card">
+    <p>A three-level model (individuals <em>i</em> in teams <em>j</em> in organizations <em>k</em>) adds an L3 residual (&nu;<sub>0k</sub>) and L3 variance components: intercept variance &phi;<sub>00</sub>, slope variance &phi;<sub>11</sub>, intercept-slope covariance &phi;<sub>01</sub>. The full model expands the two-level equation to include all first-order effects, all two-way cross-level interactions, and finally the three-way term (X&minus;X&#772;)(W&minus;W&#772;)(Q&minus;Q&#772;).</p>
+  </div>
+
+  <div class="card">
+    <h3 style="margin-top:0">Several ICCs become available</h3>
+    <table class="tbl">
+      <tr><th>Quantity</th><th>Formula</th><th>Meaning</th></tr>
+      <tr><td>Variance at L3</td><td>&phi;<sub>00</sub> / (&phi;<sub>00</sub> + &tau;<sub>00</sub> + &sigma;&sup2;)</td><td>Proportion of total variance due to the highest level.</td></tr>
+      <tr><td>Variance at L3 + L2</td><td>(&phi;<sub>00</sub> + &tau;<sub>00</sub>) / (&phi;<sub>00</sub> + &tau;<sub>00</sub> + &sigma;&sup2;)</td><td>Proportion due to the two upper levels combined.</td></tr>
+      <tr><td>Shared L3 within L2+L3</td><td>&phi;<sub>00</sub> / (&phi;<sub>00</sub> + &tau;<sub>00</sub>)</td><td>Of the upper-level variance, the share at L3.</td></tr>
+    </table>
+  </div>
+
+  <div class="warn"><b>Power &amp; data demands.</b> Capturing variation in L1/L2 intercepts and slopes <em>across L3 units</em> requires many higher-level units. Studies often abandon three-level interactions because there is too little school-to-school (etc.) variation. <b>Recommendation:</b> there is no validated three-way power tool, so use the two-level Mathieu et al. (2012) calculator on each component to get <em>some</em> evidence about detectability, and require a strong theory-based rationale for positing a three-way effect.</div>
+</section>
+
+<!-- ================= MODULE 9 ================= -->
+<section class="section" id="sec-m9">
+  <span class="phasechip p-interpret">Phase 4 &middot; Interpret</span> <span class="tag">Recommendation 9</span>
+  <h2>Practical significance / effect size</h2>
+  <div class="whatwhy"><b>Do:</b> report effect size as <b>both</b> predictive power (&gamma;<sub>11</sub> in the original metric) <b>and</b> explanatory power (variance-explained indices), and place them in substantive context. <b>Why:</b> each captures something different and each has limits; a graph must never be used to judge size.</div>
+
+  <div class="card">
+    <h3 style="margin-top:0">Option 1 &mdash; Predictive power: &gamma;<sub>11</sub> in the original metric</h3>
+    <p class="small">Directly interpretable in your scale's units, but <b>scale-dependent</b> &mdash; a 100-point outcome yields a much bigger &gamma;<sub>11</sub> than a 7-point one. Use caution comparing across studies with different scales.</p>
+    <div class="copyout small" id="es1"></div>
+  </div>
+
+  <div class="card">
+    <h3 style="margin-top:0">Option 2 &mdash; Explanatory power: slope variance explained by W</h3>
+    <p class="small">Scale-independent. Proportion of across-group slope variance explained by the moderator: (&tau;<sub>11</sub> &minus; &tau;<sub>11w</sub>) / &tau;<sub>11</sub>, where &tau;<sub>11</sub> is slope variance in the random-slope model (Step 3) and &tau;<sub>11w</sub> is the slope variance left unexplained after adding W (Step 4).</p>
+    <div class="grid3">
+      <div><label class="fld">&tau;<sub>11</sub> (Step 3 slope var.)</label><input type="number" step="0.001" data-state="es_t11"></div>
+      <div><label class="fld">&tau;<sub>11w</sub> (Step 4 residual slope var.)</label><input type="number" step="0.001" data-state="es_t11w"></div>
+      <div style="display:flex;align-items:flex-end"><div class="copyout small" id="es2" style="margin:0;width:100%"></div></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h3 style="margin-top:0">Option 3 &mdash; Pseudo R&sup2;</h3>
+    <p class="small">A familiar variance-explained index computed per step from the <em>fixed</em> part of the model only. Because it ignores random terms, it can change very little (or even decrease / go negative) when random coefficients are added &mdash; "now and then leads to unpleasant surprises" (Snijders &amp; Bosker, 2012). Report it, but interpret carefully. See Module 10's table for per-step values.</p>
+    <p class="small muted">Recommendation: report <b>all three</b> with statements about how each should be interpreted (full-disclosure / customer-centric reporting). References: Hox (2010); Roberts, Monaco, Stovall &amp; Foster (2011); Snijders &amp; Bosker (2012).</p>
+  </div>
+
+  <div class="callout"><b>Context over size.</b> A small proportion of variance explained does <em>not</em> automatically mean the effect is unimportant for theory or practice. Interpret every effect size within its substantive context &mdash; and never infer importance from how steep the lines look on a graph.</div>
+</section>
+
+<!-- ================= MODULE 10 ================= -->
+<section class="section" id="sec-m10">
+  <span class="phasechip p-report">Reporting</span> <span class="tag">Recommendation 10</span>
+  <h2>Reporting results</h2>
+  <div class="whatwhy"><b>Do:</b> report the full model-building sequence in one table (fixed effects with SEs, all variance components, ICC, deviance, # parameters, pseudo R&sup2;). <b>Why:</b> complete, standardized reporting lets readers verify, replicate, and meta-analyze your work &mdash; and recompute power.</div>
+
+  <div class="card">
+    <h3 style="margin-top:0">Fillable results table (templated on the article's Table 1)</h3>
+    <p class="small muted">Enter your values (defaults reproduce Table 1). Put SEs in the small boxes. Then export the table and the auto-generated paragraph.</p>
+    <div style="overflow-x:auto">
+    <table class="tbl" id="repTable">
+      <tr><th style="width:34%">Level &amp; parameter</th><th>Null (Step 1)</th><th>RIFSM (Step 2)</th><th>RIRSM (Step 3)</th><th>Cross-level (Step 4)</th></tr>
+    </table>
+    </div>
+    <div class="copybar"><button class="btn small" onclick="copyTableTSV()">Copy table (TSV)</button> <button class="btn small" onclick="resetTable()">Reset to Table 1</button></div>
+    <p class="small muted">Conventional notes: values in parentheses are standard errors; t = coefficient / SE; report *p&lt;.05, **p&lt;.01.</p>
+  </div>
+
+  <div class="card">
+    <h3 style="margin-top:0">Auto-generated plain-language results paragraph</h3>
+    <div class="copybar"><button class="btn small" onclick="copyEl('resultsPara')">Copy</button></div>
+    <div class="copyout" id="resultsPara"></div>
+  </div>
+
+  <div class="card">
+    <h3 style="margin-top:0">Reproducibility checklist</h3>
+    <div id="reproList"></div>
+  </div>
+</section>
+
+<!-- ================= R CODE GENERATOR ================= -->
+<section class="section" id="sec-rcode">
+  <span class="tag">Tool</span>
+  <h2>R code generator</h2>
+  <p class="lead">Annotated, copyable R built from your variable names and centering choice &mdash; all four model-building steps, the slope-variance tests, the power analysis, and the interaction plot. Faithful to the article's Appendix A &amp; B (lme4, RLRsim, residual bootstrap).</p>
+  <div class="callout small">Assumed data frame <code>exdata</code> with columns: <code>Y</code> (outcome), <code>Xc</code> (group-mean-centered X), <code>Wj</code> (L2 moderator), <code>l2id</code> (group id). Adjust paths/column names to your file.</div>
+
+  <div class="card">
+    <div class="toggle">
+      <button id="rc_steps" class="on" onclick="rcTab('steps')">4 model steps</button>
+      <button id="rc_power" onclick="rcTab('power')">Power analysis</button>
+      <button id="rc_plot" onclick="rcTab('plot')">Interaction plot</button>
+    </div>
+    <div class="copybar"><button class="btn small" onclick="copyEl('rcodeOut')">Copy</button></div>
+    <pre class="code" id="rcodeOut"></pre>
+  </div>
+</section>
+
+<!-- ================= READY ================= -->
+<section class="section" id="sec-ready">
+  <span class="tag">Tool</span>
+  <h2>Am I ready to submit?</h2>
+  <p class="lead">A design&rarr;reporting review that flags missing pieces. Nothing here leaves the page.</p>
+  <div class="card"><div id="readyList"></div>
+    <div class="callout" id="readyScore" style="margin-top:14px"></div>
+    <button class="btn" onclick="buildReady()">Re-check</button>
+  </div>
+  <div class="card">
+    <h3 style="margin-top:0">Progress tracker</h3>
+    <div id="progTrack"></div>
+  </div>
+</section>
+
+<!-- ================= ABOUT ================= -->
+<section class="section" id="sec-about">
+  <span class="tag">About</span>
+  <h2>About &amp; sources</h2>
+  <div class="card">
+    <h3 style="margin-top:0">What this is</h3>
+    <p>An offline, single-file teaching workbench that operationalizes the ten best-practice recommendations of Aguinis, Gottfredson &amp; Culpepper (2013) for estimating cross-level interaction effects with multilevel modeling. It guides you through Design &rarr; Conduct &rarr; Analyze &rarr; Interpret &rarr; Reporting using a worked example (LMX &rarr; empowerment, moderated by team leadership climate; 630 individuals in 105 teams) that you can replace with your own variables.</p>
+    <p class="small muted">All statistical claims are drawn from the source article; this tool invents no thresholds or procedures and preserves the article's nuances (e.g., proceeding past weak slope-variance evidence only with strong theory). It is an independent aid and does not reproduce the article's text.</p>
+  </div>
+  <div class="card">
+    <h3 style="margin-top:0">Primary methods source</h3>
+    <p>Aguinis, H., Gottfredson, R. K., &amp; Culpepper, S. A. (2013). Best-practice recommendations for estimating cross-level interaction effects using multilevel modeling. <em>Journal of Management, 39</em>(6), 1490&ndash;1528. <a href="https://doi.org/10.1177/0149206313478188" target="_blank" rel="noopener">https://doi.org/10.1177/0149206313478188</a></p>
+    <h3>Recommended companion resource</h3>
+    <p>Aguinis, H. (2025). <em>Research methodology: Best practices for rigorous, credible, and impactful research.</em> SAGE. <a href="https://collegepublishing.sagepub.com/products/research-methodology-1-280088" target="_blank" rel="noopener">collegepublishing.sagepub.com/products/research-methodology-1-280088</a></p>
+    <h3>Key tools referenced</h3>
+    <p class="small">Mathieu, Aguinis, Culpepper &amp; Chen (2012) power calculator &middot; Preacher, Curran &amp; Bauer (2006) interaction/regions-of-significance tools &middot; R packages lme4 &amp; RLRsim &middot; nonparametric residual bootstrap (Carpenter, Goldstein &amp; Rasbash, 2003) &middot; Crainiceanu &amp; Ruppert (2004) test.</p>
+  </div>
+  <div class="card">
+    <h3 style="margin-top:0">The ten recommendations at a glance</h3>
+    <ol class="small">
+      <li>Define the cross-level interaction as &gamma;<sub>11</sub> (product-term coefficient), not &tau;<sub>11</sub>.</li>
+      <li>Plan statistical power (Mathieu et al., 2012); abandon 30/30 and 30/50 rules.</li>
+      <li>Match interpretation to moderator type (continuous / categorical / standardized).</li>
+      <li>Group-mean center the L1 predictor in most cases; justify by theory.</li>
+      <li>Graph the interaction to show its nature &mdash; never its size.</li>
+      <li>Interpretation is symmetrical; usually frame L2 as the moderator.</li>
+      <li>Test multiple interactions in one model; report any separate testing transparently.</li>
+      <li>Extend to 3+ levels with the same logic; mind data &amp; power limits.</li>
+      <li>Report effect size as predictive AND explanatory power, in context.</li>
+      <li>Report the full model-building table (see Table 1 template).</li>
+    </ol>
+  </div>
+</section>
+<!--SECTIONS-->
+
+    </div>
+    <footer class="foot">
+      <b>Primary methods source:</b> Aguinis, H., Gottfredson, R. K., &amp; Culpepper, S. A. (2013). Best-practice
+      recommendations for estimating cross-level interaction effects using multilevel modeling. <em>Journal of
+      Management, 39</em>(6), 1490&ndash;1528.<br>
+      <b>Recommended companion resource:</b> Aguinis, H. (2025). <em>Research methodology: Best practices for rigorous,
+      credible, and impactful research.</em> SAGE.
+      <a href="https://collegepublishing.sagepub.com/products/research-methodology-1-280088" target="_blank" rel="noopener">collegepublishing.sagepub.com</a><br>
+      <span class="small">This workbench is an independent teaching aid that operationalizes the ten recommendations of the 2013 article. All statistical guidance is drawn from that article; nothing here replaces the original. Runs fully offline &mdash; no data leaves this page.</span>
+    </footer>
+  </div>
+</div>
+
+<!-- glossary panel -->
+<div id="glossaryPanel" aria-label="Glossary">
+  <button class="glossclose" onclick="closeGlossary()" aria-label="Close glossary">&times;</button>
+  <h3>Glossary &amp; symbol key</h3>
+  <p class="small muted">Plain-language definitions. Dotted terms throughout the tool open this panel.</p>
+  <div id="glossList"></div>
+</div>
+<button id="glossaryToggleFab" style="display:none"></button>
+
+<script>
+/* ============ GLOSSARY DATA ============ */
+const GLOSSARY = [
+ ["&gamma;<sub>00</sub> (gamma-zero-zero)","The overall (grand-mean) intercept &mdash; the predicted outcome for an average lower-level case in an average group. A fixed effect."],
+ ["&gamma;<sub>10</sub> (gamma-one-zero)","The average within-group slope &mdash; how much the Level-1 outcome changes per 1-unit rise in the Level-1 predictor, for a group at the centering value of the moderator. A fixed effect."],
+ ["&gamma;<sub>01</sub> (gamma-zero-one)","The cross-level DIRECT effect &mdash; how much group-average outcome changes per 1-unit rise in the Level-2 predictor. A fixed effect."],
+ ["&gamma;<sub>11</sub> (gamma-one-one)","THE cross-level INTERACTION effect &mdash; how much the Level-1 slope changes per 1-unit rise in the Level-2 moderator. This is the coefficient on the product term. A fixed effect."],
+ ["&tau;<sub>00</sub> (tau-zero-zero)","Variance of intercepts across groups &mdash; how much groups differ in their average outcome. A random effect / variance component."],
+ ["&tau;<sub>11</sub> (tau-one-one)","Variance of slopes across groups &mdash; how much the predictor&ndash;outcome relationship differs across groups. Signals that a search for moderators is warranted; it is NOT the interaction effect itself."],
+ ["&tau;<sub>01</sub> (tau-zero-one)","Covariance between intercepts and slopes across groups &mdash; e.g., do groups with higher averages also have steeper slopes?"],
+ ["&sigma;&sup2; (sigma-squared)","Within-group residual variance &mdash; variation in the outcome among cases inside the same group (analogous to MS-within in ANOVA)."],
+ ["u<sub>0j</sub>","Level-2 residual for group j's intercept &mdash; how far group j's average sits from the grand mean. Its variance is &tau;<sub>00</sub>."],
+ ["u<sub>1j</sub>","Level-2 residual for group j's slope &mdash; how far group j's slope sits from the average slope. Its variance is &tau;<sub>11</sub>."],
+ ["r<sub>ij</sub>","Level-1 residual &mdash; the difference between an individual's observed and predicted outcome. Its variance is &sigma;&sup2;."],
+ ["ICC (intraclass correlation)","&tau;<sub>00</sub> / (&tau;<sub>00</sub> + &sigma;&sup2;). Proportion of outcome variance that lies between groups; also the expected correlation of two cases in the same group. ICC &gt; 0 (even ~.10) justifies multilevel modeling."],
+ ["FIML","Full Information Maximum Likelihood. Fit reflects BOTH regression coefficients and variance components. Use it when comparing models that differ in fixed effects."],
+ ["REML","Restricted Maximum Likelihood. Fit reflects variance components only; gives less biased variance estimates. Use it for final variance estimates, not for comparing models that differ in fixed effects."],
+ ["Deviance (&minus;2 log-likelihood)","&minus;2 &times; log-likelihood. Lower = better fit. The difference between two nested models' deviances is tested for significance."],
+ ["Group-mean centering","Subtracting each group's own mean from the Level-1 predictor. Yields the 'unconflated' within-group estimate; the default for cross-level interaction tests."],
+ ["Grand-mean centering","Subtracting the overall mean from a predictor. For the L1 predictor this conflates within- and between-group effects unless across-group variance is controlled."],
+ ["Simple slope","The predictor&ndash;outcome slope computed at one specific value of the moderator (e.g., at &minus;1 SD, mean, +1 SD of W)."],
+ ["Pseudo R&sup2;","A variance-explained-style index based on the fixed part of the model only; useful but imperfect &mdash; it can behave oddly when random terms are added."],
+ ["Cross-level direct effect","Effect of a Level-2 predictor (W) on the Level-1 outcome (Y) &mdash; captured by &gamma;<sub>01</sub>."],
+ ["Cross-level interaction effect","Whether the strength of an L1 X&ndash;Y relationship changes as a function of L2 W &mdash; captured by &gamma;<sub>11</sub>."],
+ ["RIFSM","Random-Intercept Fixed-Slope Model (Step 2): intercepts vary across groups, slopes do not."],
+ ["RIRSM","Random-Intercept Random-Slope Model (Step 3): both intercepts and slopes vary across groups."]
+];
+</script>
+<script>
+/* ================= STATE ================= */
+const DEFAULTS = {
+  X:"LMX", Y:"empowerment", W:"leadership climate", l1unit:"individual", l2unit:"team",
+  scale:"7", N:630, J:105,
+  // power
+  pw_iccx:0.12, pw_g10:0.4, pw_g11:0.15, pw_sdslope:0.1, pw_vu0j:0.01, pw_vresid:0.8,
+  pw_alpha:0.05, pw_reps:1000, pw_A_l2n:105, pw_A_l1n:6, pw_B_l2n:50, pw_B_l1n:6, pw_achieved:"",
+  // moderator
+  cat_k:3, cat_ref:"Texas",
+  // walkthrough
+  t00_null:0.095, s2_null:0.714,
+  // centering
+  c_dev:"y", c_zero:"n", center_just:"",
+  // graph
+  g_g00:5.72, g_g10:0.269, g_g01:0.351, g_g11:0.104, g_sdx:1, g_sdw:1, g_ymin:1, g_ymax:7,
+  // symmetry
+  sym_dir:"stronger",
+  // multiple
+  multi_choice:"one", multi_note:"",
+  // effect size
+  es_t11:0.025, es_t11w:0.019,
+  // ui choices
+  eq_view:"L2", modtype:"cont", axis:"full", plt_lang:"r", rc_tab:"steps",
+  // checklists
+  assump:{}, repro:{}, visited:{}
+};
+let STATE = JSON.parse(JSON.stringify(DEFAULTS));
+
+/* reporting table default (Table 1) : [val, se]  se "" if none */
+const REP_DEF = {
+  g00:[["5.720","0.045"],["5.720","0.038"],["5.720","0.038"],["5.720","0.038"]],
+  g10:[["",""],["0.279","0.023"],["0.270","0.028"],["0.269","0.027"]],
+  g01:[["",""],["0.351","0.055"],["0.356","0.055"],["0.351","0.055"]],
+  g11:[["",""],["",""],["",""],["0.104","0.037"]],
+  s2:[["0.714",""],["0.563",""],["0.514",""],["0.516",""]],
+  t00:[["0.095",""],["0.060",""],["0.068",""],["0.068",""]],
+  t11:[["",""],["",""],["0.025",""],["0.019",""]],
+  t01:[["",""],["",""],["0.004",""],["-0.004",""]],
+  icc:[["0.117",""],["",""],["",""],["",""]],
+  ll:[["1637",""],["1478",""],["1469",""],["1462",""]],
+  np:[["3",""],["5",""],["7",""],["8",""]],
+  r2:[["0",""],[".23",""],[".23",""],[".24",""]]
+};
+let REP = JSON.parse(JSON.stringify(REP_DEF));
+const REP_ROWS = [
+ ["g00","Intercept (&gamma;<sub>00</sub>)"],["g10","L1 predictor (&gamma;<sub>10</sub>)"],
+ ["g01","L2 moderator (&gamma;<sub>01</sub>)"],["g11","Cross-level interaction (&gamma;<sub>11</sub>)"],
+ ["s2","Within-group variance (&sigma;&sup2;)"],["t00","Intercept variance (&tau;<sub>00</sub>)"],
+ ["t11","Slope variance (&tau;<sub>11</sub>)"],["t01","Intercept-slope cov. (&tau;<sub>01</sub>)"],
+ ["icc","ICC"],["ll","&minus;2 log-likelihood (FIML)"],["np","# estimated parameters"],["r2","Pseudo R&sup2;"]
+];
+
+/* ================= NAV ================= */
+const SECTIONS = ["start","m1","m2","m3","walk","m4","m5","m6","m7","m8","m9","m10","rcode","ready","about"];
+const CRUMB = {start:"Start here",m1:"1 · Define the effect",m2:"2 · Statistical power",m3:"3 · Moderator types",
+  walk:"Model-building walkthrough",m4:"4 · Centering helper",m5:"5 · Graphing",m6:"6 · Symmetry",
+  m7:"7 · Multiple interactions",m8:"8 · Three+ levels",m9:"9 · Practical significance",
+  m10:"10 · Reporting",rcode:"R code generator",ready:"Am I ready?",about:"About & sources"};
+function go(sec){
+  SECTIONS.forEach(s=>{ const el=document.getElementById("sec-"+s); if(el) el.classList.toggle("active",s===sec);});
+  document.querySelectorAll(".navlink").forEach(a=>a.classList.toggle("active",a.dataset.sec===sec));
+  document.getElementById("crumb").innerHTML=CRUMB[sec]||"";
+  STATE.visited[sec]=true; markDone(); refresh();
+  document.getElementById("content").scrollTop=0; window.scrollTo(0,0);
+}
+function markDone(){
+  document.querySelectorAll(".navlink").forEach(a=>{ if(STATE.visited[a.dataset.sec]) a.classList.add("done");});
+}
+
+/* ================= GLOSSARY ================= */
+function openGlossary(){document.getElementById("glossaryPanel").classList.add("open");}
+function closeGlossary(){document.getElementById("glossaryPanel").classList.remove("open");}
+function renderGlossary(){
+  document.getElementById("glossList").innerHTML = GLOSSARY.map(g=>
+    `<div class="gloss-item"><b>${g[0]}</b><span>${g[1]}</span></div>`).join("");
+}
+
+/* ================= BINDING ================= */
+function bindInputs(){
+  document.querySelectorAll("[data-state]").forEach(el=>{
+    const k=el.dataset.state;
+    if(STATE[k]!==undefined && STATE[k]!==null) el.value=STATE[k];
+    el.addEventListener("input",()=>{
+      let v=el.value;
+      if(el.type==="number" && v!=="") v=parseFloat(v);
+      STATE[k]=v; refresh();
+    });
+  });
+}
+
+/* ================= VARIABLE NAME PROPAGATION ================= */
+function setSpan(cls,txt){document.querySelectorAll("."+cls).forEach(e=>e.textContent=txt);}
+function vName(k){return (STATE[k]||"").toString();}
+function propagateNames(){
+  setSpan("vX",vName("X")); setSpan("vY",vName("Y")); setSpan("vW",vName("W"));
+  setSpan("vl2",vName("l2unit")); setSpan("vl1",vName("l1unit"));
+}
+
+/* ================= MODULE 1 : equations + quiz ================= */
+function eqView(v){STATE.eq_view=v;
+  document.getElementById("eqL2").classList.toggle("on",v==="L2");
+  document.getElementById("eqC").classList.toggle("on",v==="C");
+  renderEq();}
+function renderEq(){
+  const X=vName("X"),Y=vName("Y"),W=vName("W"),g2=vName("l2unit");
+  let html;
+  if(STATE.eq_view==="L2"){
+    html=`<div class="eqbox">&beta;<sub>1j</sub> = <span class="term" title="average slope across groups">&gamma;<sub>10</sub></span> + <span class="term" title="THE cross-level interaction effect">&gamma;<sub>11</sub></span>(W<sub>j</sub> &minus; W&#772;) + <span class="term" title="group j's slope residual">u<sub>1j</sub></span></div>
+    <div class="legend">
+      <div><b>&beta;<sub>1j</sub></b> = the ${X}&rarr;${Y} slope inside ${g2} <em>j</em> (it can differ across ${g2}s).</div>
+      <div><b>&gamma;<sub>10</sub></b> = the average slope across all ${g2}s.</div>
+      <div><b>&gamma;<sub>11</sub></b> = how much that slope changes for each 1-unit rise in ${W} &mdash; <b>the cross-level interaction</b>.</div>
+      <div><b>u<sub>1j</sub></b> = how far ${g2} <em>j</em>'s slope sits from the average (its variance is &tau;<sub>11</sub>).</div>
+      <div><b>W<sub>j</sub> &minus; W&#772;</b> = ${g2} <em>j</em>'s ${W}, centered on the overall mean.</div>
+    </div>`;
+  } else {
+    html=`<div class="eqbox">Y<sub>ij</sub> = &gamma;<sub>00</sub> + &gamma;<sub>01</sub>(W<sub>j</sub>&minus;W&#772;) + &gamma;<sub>10</sub>(X<sub>ij</sub>&minus;X&#772;<sub>j</sub>) + <span class="term" title="THE cross-level interaction effect" style="color:var(--brand);font-weight:700">&gamma;<sub>11</sub>(X<sub>ij</sub>&minus;X&#772;<sub>j</sub>)(W<sub>j</sub>&minus;W&#772;)</span> + u<sub>0j</sub> + u<sub>1j</sub>(X<sub>ij</sub>&minus;X&#772;<sub>j</sub>) + r<sub>ij</sub></div>
+    <div class="legend">
+      <div><b>Y<sub>ij</sub></b> = ${Y} for ${vName("l1unit")} <em>i</em> in ${g2} <em>j</em>.</div>
+      <div><b>&gamma;<sub>00</sub></b> = grand-mean intercept. <b>&gamma;<sub>01</sub></b> = direct effect of ${W}. <b>&gamma;<sub>10</sub></b> = average ${X} slope.</div>
+      <div><b>&gamma;<sub>11</sub></b> = coefficient on the PRODUCT of centered ${X} and centered ${W} &mdash; <b>the cross-level interaction</b>. Same number as in the L2 form.</div>
+      <div><b>u<sub>0j</sub>, u<sub>1j</sub></b> = random intercept/slope residuals (variances &tau;<sub>00</sub>, &tau;<sub>11</sub>). <b>r<sub>ij</sub></b> = L1 residual (variance &sigma;&sup2;).</div>
+    </div>`;
+  }
+  document.getElementById("eqArea").innerHTML=html;
+}
+function q(c,el,ok){ const box=document.getElementById(c);
+  box.querySelectorAll(".opt").forEach((o,i)=>{if(i<2){o.classList.remove("correct","wrong");}});
+  el.classList.add(ok?"correct":"wrong");
+  box.querySelector(".fb").innerHTML = ok
+    ? "<span class='ok'>&#10003; Correct.</span> &tau;<sub>11</sub> only signals that slopes vary (a moderator search is warranted). The interaction itself is &gamma;<sub>11</sub>."
+    : "<span class='miss'>&#10007; Not quite.</span> Significant &tau;<sub>11</sub> means slopes differ across groups &mdash; it does not identify which moderator explains them. The interaction is &gamma;<sub>11</sub>.";
+}
+function q2(c,el,ok){ const box=document.getElementById(c); const opts=box.querySelectorAll(".opt");
+  [opts[2],opts[3],opts[4]].forEach(o=>{if(o)o.classList.remove("correct","wrong");});
+  el.classList.add(ok?"correct":"wrong");
+  box.querySelector(".fb2").innerHTML = ok
+    ? "<span class='ok'>&#10003; Correct.</span> The interaction is the coefficient on the product of the centered L1 and L2 predictors."
+    : "<span class='miss'>&#10007; No.</span> That term is not the product of the two predictors. The interaction is &gamma;<sub>11</sub>(X&minus;X&#772;<sub>j</sub>)(W&minus;W&#772;).";
+}
+
+/* ================= MODULE 2 : power ================= */
+function powerScenarios(){
+  function block(l2,l1){ const tot=(l2*l1)||0;
+    return `Total sample = <b>${tot}</b> ${vName("l1unit")}s<br><span class="muted">${l1} ${vName("l1unit")}s &times; ${l2} ${vName("l2unit")}s</span>`; }
+  const a2=+STATE.pw_A_l2n,a1=+STATE.pw_A_l1n,b2=+STATE.pw_B_l2n,b1=+STATE.pw_B_l1n;
+  document.getElementById("scenA").innerHTML=block(a2,a1);
+  document.getElementById("scenB").innerHTML=block(b2,b1);
+  const ta=a2*a1, tb=b2*b1;
+  let msg="";
+  if(ta&&tb){
+    const dpeople=tb-ta, dgroups=b2-a2;
+    msg=`<b>Trade-off:</b> Scenario B has ${tb>ta?("+"+(tb-ta)):(tb-ta)} ${vName("l1unit")}s and ${b2-a2>0?("+"+(b2-a2)):(b2-a2)} ${vName("l2unit")}s vs. A. `;
+    msg+=`Remember the article's findings: for the <b>interaction</b>, L1 sample size carries a ~3:2 premium, but more ${vName("l2unit")}s help most for cross-level <em>direct</em> effects. Run the R code for each scenario to get actual power &mdash; neither total alone determines it.`;
+  } else { msg="Enter both scenarios to compare."; }
+  document.getElementById("scenCompare").innerHTML=msg;
+  // posthoc
+  const ph=document.getElementById("posthocVerdict"); const a=STATE.pw_achieved;
+  if(a===""||a===undefined||isNaN(a)){ ph.innerHTML="Enter achieved power to get a verdict."; }
+  else if(a>=0.8){ ph.innerHTML=`<span class="ok">&#10003; Power was sufficient (${(+a).toFixed(2)} &ge; .80).</span> A non-significant result is <b>conclusive</b> &mdash; you can have reasonable confidence the cross-level interaction does not exist in the population. Report the achieved power.`; }
+  else { ph.innerHTML=`<span class="miss">&#9888; Power was insufficient (${(+a).toFixed(2)} &lt; .80).</span> A non-significant result is <b>inconclusive</b>. Report the achieved power and state that the population effect may exist but went undetected. Do not claim the effect is absent.`; }
+}
+
+/* ================= MODULE 3 : moderator types ================= */
+function modType(t){STATE.modtype=t;
+  const map={cont:0,bin:1,cat:2,std:3};
+  document.querySelectorAll("#modtype button").forEach((b,i)=>b.classList.toggle("on",i===map[t]));
+  document.getElementById("catBuilder").style.display = (t==="cat")?"block":"none";
+  renderModType();
+}
+function renderModType(){
+  const X=vName("X"),Y=vName("Y"),W=vName("W"),g2=vName("l2unit");
+  let h="";
+  if(STATE.modtype==="cont"){
+    h=`<p><b>Continuous moderator.</b> &gamma;<sub>11</sub> is the change in the ${X}&rarr;${Y} slope for each <b>1-unit</b> increase in ${W}.</p>
+    <div class="copyout">&ldquo;For each one-point increase in ${W}, the within-${g2} relationship between ${X} and ${Y} changes by &gamma;<sub>11</sub> units (e.g., 0.104 in the worked example), becoming stronger as ${W} rises.&rdquo;</div>`;
+  } else if(STATE.modtype==="bin"){
+    h=`<p><b>Binary moderator (0/1).</b> &gamma;<sub>11</sub> is the <b>difference in slopes</b> between the group coded 1 and the group coded 0. Tip: a binary W is easiest to interpret if left uncentered.</p>
+    <div class="copyout">&ldquo;The ${X}&rarr;${Y} slope is &gamma;<sub>11</sub> units larger for ${g2}s coded 1 (e.g., new system) than for ${g2}s coded 0 (e.g., old system).&rdquo;</div>`;
+  } else if(STATE.modtype==="cat"){
+    h=`<p><b>Categorical, k &gt; 2.</b> Create <b>k&minus;1 dummy codes</b>, each compared with one reference category. Each dummy has its own interaction coefficient &gamma;<sub>11(m)</sub>, interpreted as the slope difference between that category and the reference.</p>`;
+  } else {
+    h=`<p><b>Standardized predictors.</b> If X, Y, and W are standardized (mean 0, SD 1), &gamma;<sub>11</sub> is the expected change in the ${X}&rarr;${Y} slope <b>in SD units</b> per <b>1-SD</b> increase in ${W}. (This is what Chen et al., 2007, did.)</p>
+    <div class="copyout">&ldquo;A one-standard-deviation increase in ${W} is associated with a &gamma;<sub>11</sub>-SD change in the standardized ${X}&rarr;${Y} slope.&rdquo;</div>`;
+  }
+  document.getElementById("modtypeBody").innerHTML=h;
+  if(STATE.modtype==="cat") renderDummies();
+}
+function renderDummies(){
+  const k=Math.max(3,Math.min(8,+STATE.cat_k||3)); const ref=STATE.cat_ref||"reference";
+  let rows="";
+  for(let m=1;m<=k-1;m++){
+    rows+=`<tr><td>W<sub>(${m})</sub></td><td>Category ${m+1} (coded 1) vs. ${ref} (coded 0)</td>
+    <td>&gamma;<sub>11(${m})</sub> = slope of ${vName("Y")} on ${vName("X")} is this many units larger in category ${m+1} than in ${ref}.</td></tr>`;
+  }
+  document.getElementById("catDummies").innerHTML=
+    `<table class="tbl"><tr><th>Dummy</th><th>Comparison</th><th>Interpretation of its &gamma;<sub>11</sub></th></tr>${rows}</table>
+     <div class="copyout small">Combined model adds ${k-1} product terms: &gamma;<sub>11(1)</sub>(X&minus;X&#772;<sub>j</sub>)(W<sub>(1)</sub>&minus;W&#772;<sub>(1)</sub>) + &hellip; + &gamma;<sub>11(${k-1})</sub>(X&minus;X&#772;<sub>j</sub>)(W<sub>(${k-1})</sub>&minus;W&#772;<sub>(${k-1})</sub>).</div>`;
+}
+
+/* ================= WALKTHROUGH : ICC + assumptions ================= */
+function calcICC(){
+  const t=+STATE.t00_null, s=+STATE.s2_null;
+  const box=document.getElementById("iccBox");
+  if(isNaN(t)||isNaN(s)||(t+s)===0){box.innerHTML="Enter &tau;<sub>00</sub> and &sigma;&sup2;.";return;}
+  const icc=t/(t+s);
+  let note = icc<0.05 ? "Low &mdash; single-level OLS may suffice, though even small ICCs can distort SEs."
+    : icc<0.10 ? "Modest, but multilevel modeling is still advisable."
+    : "ICC &ge; .10 &mdash; multilevel modeling is justified (management ICCs typically run .15&ndash;.30).";
+  box.innerHTML=`<b>ICC = ${icc.toFixed(3)}</b><br><span class="small">${(icc*100).toFixed(1)}% of ${vName("Y")} variance is between ${vName("l2unit")}s. ${note}</span>`;
+}
+const ASSUMPTIONS = [
+ ["Functional form correctly specified at each level","Risk: missing curvilinearity (e.g., inverted-U) &rarr; misleading effects. Check: residual plots; test polynomial terms."],
+ ["L1 residuals (r<sub>ij</sub>) normal, mean zero","Risk: invalid tests, biased SEs. Check: Q-Q plot / histogram of L1 residuals."],
+ ["L2 residuals (u<sub>0j</sub>, u<sub>1j</sub>) multivariate normal, mean zero","Risk: biased variance components &amp; SEs. Check: Q-Q plots of empirical Bayes residuals."],
+ ["Homoscedasticity of L1 residual variance (within &amp; between L2 units)","Risk: misspecified SEs. Check: plot residual spread by group / fitted values; consider models that relax this."],
+ ["L1 and L2 residuals uncorrelated","Risk: indicates crossover / cross-classification (e.g., influence from more than one leader). Check: theory + cross-classified models (Han, 2005)."],
+ ["No unmodeled cross-classification / crossover","Risk: overall model misspecification. Check: whether lower units belong to multiple higher units."]
+];
+function renderAssumptions(){
+  document.getElementById("assumpList").innerHTML = ASSUMPTIONS.map((a,i)=>
+    `<div class="check"><input type="checkbox" id="as${i}" ${STATE.assump[i]?"checked":""} onchange="STATE.assump[${i}]=this.checked">
+     <label for="as${i}"><b>${a[0]}</b><span class="risk">${a[1]}</span></label></div>`).join("");
+}
+
+/* ================= MODULE 4 : centering ================= */
+function setC(k,v){STATE["c_"+k]=v;
+  document.getElementById("c_dev_y").classList.toggle("on",STATE.c_dev==="y");
+  document.getElementById("c_dev_n").classList.toggle("on",STATE.c_dev==="n");
+  document.getElementById("c_zero_n").classList.toggle("on",STATE.c_zero==="n");
+  document.getElementById("c_zero_y").classList.toggle("on",STATE.c_zero==="y");
+  centerRec();}
+function centerRec(){
+  const dev=STATE.c_dev, zero=STATE.c_zero; let rec,why;
+  if(dev==="y"){ rec="Group-mean center the L1 predictor.";
+    why="Your theory is about deviation from the group average (a social-comparison / frog-pond process). Group-mean centering gives the unconflated within-group estimate and minimizes spurious cross-level interactions &mdash; the recommended default."; }
+  else if(zero==="y"){ rec="Grand-mean centering (or raw) may be appropriate &mdash; with across-group variance controlled.";
+    why="Your predictor has a meaningful zero and your theory concerns raw differences between L1 entities rather than deviations from a group average. If you grand-mean center the L1 predictor, control across-group variance so &gamma;<sub>11</sub> is not a 'mixed bag' of within- and between-group effects. Also run a group-mean-centered model to check for spurious interactions (Bliese, 2002)."; }
+  else { rec="Group-mean center the L1 predictor (safe default).";
+    why="Absent a specific theory about raw differences, group-mean centering is the recommended default for cross-level interaction tests: it yields the unconflated within-group estimate and minimizes spurious interactions. Not centering is usually uninterpretable when the scale has no meaningful zero."; }
+  document.getElementById("centerRec").innerHTML=`<b>Recommendation: ${rec}</b><br><span class="small">${why}</span>`;
+  const js=document.getElementById("centerJustState");
+  js.innerHTML = (STATE.center_just&&STATE.center_just.trim())? "<span class='ok'>&#10003; Justification recorded.</span>" : "<span class='miss'>&#9888; A theory-based justification is required before reporting.</span>";
+}
+
+/* ================= MODULE 5 : plot ================= */
+function axisMode(m){STATE.axis=m;
+  document.getElementById("ax_full").classList.toggle("on",m==="full");
+  document.getElementById("ax_red").classList.toggle("on",m==="red");
+  drawPlot();}
+function drawPlot(){
+  const g00=+STATE.g_g00,g10=+STATE.g_g10,g01=+STATE.g_g01,g11=+STATE.g_g11,
+        sdx=+STATE.g_sdx||1,sdw=+STATE.g_sdw||1;
+  const W=vName("W"),X=vName("X"),Y=vName("Y");
+  const Wvals=[-sdw,0,sdw], wlab=["&minus;1 SD ("+W+")","mean ("+W+")","+1 SD ("+W+")"];
+  const xs=[-sdx,sdx];
+  function yat(w,x){return g00+g01*w+(g10+g11*w)*x;}
+  let yvals=[]; Wvals.forEach(w=>xs.forEach(x=>yvals.push(yat(w,x))));
+  let ymin,ymax;
+  if(STATE.axis==="full"){ ymin=+STATE.g_ymin; ymax=+STATE.g_ymax; }
+  else { ymin=Math.min(...yvals)-0.15; ymax=Math.max(...yvals)+0.15; }
+  if(ymax<=ymin){ymax=ymin+1;}
+  const w=620,h=380,mL=64,mR=140,mT=18,mB=46, pw=w-mL-mR, ph=h-mT-mB;
+  function px(x){return mL + ((x-xs[0])/(xs[1]-xs[0]))*pw;}
+  function py(y){return mT + (1-((y-ymin)/(ymax-ymin)))*ph;}
+  const colors=["#b02a37","#1f5f8b","#0b8457"];
+  let g="";
+  // gridlines y
+  const ticks=5;
+  for(let i=0;i<=ticks;i++){ const yy=ymin+(ymax-ymin)*i/ticks; const Y2=py(yy);
+    g+=`<line x1="${mL}" y1="${Y2}" x2="${mL+pw}" y2="${Y2}" stroke="#eef2f6"/>`;
+    g+=`<text x="${mL-8}" y="${Y2+4}" text-anchor="end" font-size="11" fill="#5a6b7b">${yy.toFixed(1)}</text>`;}
+  // axes
+  g+=`<line x1="${mL}" y1="${mT}" x2="${mL}" y2="${mT+ph}" stroke="#1c2733"/>`;
+  g+=`<line x1="${mL}" y1="${mT+ph}" x2="${mL+pw}" y2="${mT+ph}" stroke="#1c2733"/>`;
+  // x ticks
+  [["low "+X,xs[0]],["mean",0],["high "+X,xs[1]]].forEach(t=>{ const X2=px(t[1]);
+    g+=`<text x="${X2}" y="${mT+ph+20}" text-anchor="middle" font-size="11" fill="#5a6b7b">${t[0]}</text>`;});
+  // lines
+  Wvals.forEach((wv,i)=>{ const x1=xs[0],x2=xs[1];
+    g+=`<line x1="${px(x1)}" y1="${py(yat(wv,x1))}" x2="${px(x2)}" y2="${py(yat(wv,x2))}" stroke="${colors[i]}" stroke-width="3"/>`;
+    g+=`<rect x="${mL+pw+14}" y="${mT+6+i*22}" width="16" height="4" fill="${colors[i]}"/>`;
+    g+=`<text x="${mL+pw+34}" y="${mT+12+i*22}" font-size="11" fill="#1c2733">${wlab[i]}</text>`;});
+  // axis labels
+  g+=`<text x="${mL+pw/2}" y="${h-6}" text-anchor="middle" font-size="12" fill="#1c2733">${X} (centered)</text>`;
+  g+=`<text transform="translate(16,${mT+ph/2}) rotate(-90)" text-anchor="middle" font-size="12" fill="#1c2733">${Y}</text>`;
+  document.getElementById("plotWrap").innerHTML=`<svg viewBox="0 0 ${w} ${h}" width="100%" style="max-width:660px">${g}</svg>`;
+  const warn=document.getElementById("axisWarn");
+  if(STATE.axis==="red"){ warn.innerHTML=`<div class="danger small"><b>&#9888; Compressed axis.</b> The Y-axis is zoomed to a narrow range, so the lines look steeper and more different. This is acceptable to <em>see</em> the interaction's shape &mdash; but you must <b>never</b> use a compressed axis to argue the effect is large or important. Switch to full scale before judging magnitude.</div>`;}
+  else { warn.innerHTML=`<div class="callout small">Full scale (${(+STATE.g_ymin)} to ${(+STATE.g_ymax)}) &mdash; honest depiction of magnitude.</div>`;}
+}
+
+/* ================= PLOTTING CODE ================= */
+function pltLang(l){STATE.plt_lang=l;
+  ["r","spss","sas"].forEach(x=>document.getElementById("plt_"+x).classList.toggle("on",x===l));
+  renderPltCode();}
+function renderPltCode(){
+  const g00=STATE.g_g00,g10=STATE.g_g10,g01=STATE.g_g01,g11=STATE.g_g11,Y=vName("Y"),X=vName("X");
+  let code;
+  if(STATE.plt_lang==="r"){
+    code=`<span class="cm"># Simple-slopes plot of the cross-level interaction (Aguinis et al., 2013, Fig. 3)</span>
+gammas <- fixef(lmm.fit4)        <span class="cm"># from the Step-4 model</span>
+Wjs <- c(-sd(exdata$Wj), 0, sd(exdata$Wj))   <span class="cm"># -1 SD, mean, +1 SD of W</span>
+xlb <- -sd(exdata$Xc); xub <- sd(exdata$Xc)
+ylb <- ${STATE.g_ymin}; yub <- ${STATE.g_ymax}              <span class="cm"># FULL scale - do not compress to claim importance</span>
+curve(0+1*x, xlb, xub, xlab="${X}", ylab="${Y}", type="n", ylim=c(ylb,yub))
+for(i in 1:length(Wjs)){
+  B0j <- gammas[1] + gammas[3]*Wjs[i]
+  B1j <- gammas[2] + gammas[4]*Wjs[i]
+  curve(B0j + B1j*x, xlb, xub, add=TRUE, lwd=2, lty=i)
+}
+legend(xlb, yub, legend=c("${vName("W")}","-1 SD","mean","+1 SD"), lty=c(0:3), bty="n")`;
+  } else if(STATE.plt_lang==="spss"){
+    code=`<span class="cm">* Simple-slopes plot. Replace coefficients with your Step-4 estimates.</span>
+<span class="cm">* g00=${g00}  g10=${g10}  g01=${g01}  g11=${g11}; sdW assumed 1.</span>
+COMPUTE Xc = X - grpmean_X.   <span class="cm">* group-mean-centered X</span>
+COMPUTE Wlo = -1.   /* -1 SD */
+COMPUTE Wmd =  0.   /* mean  */
+COMPUTE Whi =  1.   /* +1 SD */
+COMPUTE Yhat_lo = ${g00} + ${g01}*Wlo + (${g10} + ${g11}*Wlo)*Xc.
+COMPUTE Yhat_md = ${g00} + ${g01}*Wmd + (${g10} + ${g11}*Wmd)*Xc.
+COMPUTE Yhat_hi = ${g00} + ${g01}*Whi + (${g10} + ${g11}*Whi)*Xc.
+GRAPH /SCATTERPLOT(OVERLAY)=Xc Xc Xc WITH Yhat_lo Yhat_md Yhat_hi (PAIR).
+<span class="cm">* Keep the Y axis at the full scale (${STATE.g_ymin} to ${STATE.g_ymax}).</span>`;
+  } else {
+    code=`<span class="cm">* SAS: simple-slopes plot of the cross-level interaction;</span>
+data plot;
+  do Xc = -1 to 1 by 0.1;            <span class="cm">* X in SD units (centered);</span>
+    do W = -1, 0, 1;                 <span class="cm">* -1 SD, mean, +1 SD of W;</span>
+      Yhat = ${g00} + ${g01}*W + (${g10} + ${g11}*W)*Xc;  output;
+    end;
+  end;
+run;
+proc sgplot data=plot;
+  series x=Xc y=Yhat / group=W;
+  yaxis min=${STATE.g_ymin} max=${STATE.g_ymax} label="${Y}";   <span class="cm">* full scale;</span>
+  xaxis label="${X} (centered)";
+run;`;
+  }
+  document.getElementById("pltCode").innerHTML=code;
+}
+
+/* ================= MODULE 6 : symmetry ================= */
+function renderSym(){
+  const X=vName("X"),Y=vName("Y"),W=vName("W"),d=STATE.sym_dir||"stronger";
+  document.getElementById("hyp1a").innerHTML=
+    `The effect of ${X} on ${Y} will be moderated by ${W}, such that higher levels of ${W} lead to a <b>${d}</b> ${X}&ndash;${Y} relationship compared with lower levels of ${W}.`;
+  document.getElementById("hyp1b").innerHTML=
+    `The effect of ${W} on ${Y} will be moderated by ${X}, such that higher levels of ${X} lead to a <b>${d}</b> ${W}&ndash;${Y} relationship compared with lower levels of ${X}.`;
+}
+
+/* ================= MODULE 7 : multiple ================= */
+function setMulti(v){STATE.multi_choice=v;
+  document.getElementById("multi_one").classList.toggle("on",v==="one");
+  document.getElementById("multi_sep").classList.toggle("on",v==="sep");
+  renderMulti();}
+function renderMulti(){
+  const n=document.getElementById("multiNote");
+  if(STATE.multi_choice==="one"){ n.innerHTML="<span class='ok'>&#10003; Recommended.</span> Each interaction is adjusted for the others; no transparency caveat needed.";}
+  else { const has=STATE.multi_note&&STATE.multi_note.trim();
+    n.innerHTML= has? "<span class='ok'>&#10003; Rationale recorded.</span> Ensure your write-up states you tested separately, why, and the Type I error caveat (replication needed)."
+      : "<span class='miss'>&#9888;</span> Testing separately requires a recorded rationale and an explicit Type I error / replication caveat.";}
+}
+
+/* ================= MODULE 9 : effect size ================= */
+function renderES(){
+  const g11=REP.g11[3][0]||STATE.g_g11;
+  document.getElementById("es1").innerHTML=`Worked example: &gamma;<sub>11</sub> = <b>${g11}</b>. Interpretation: the ${vName("X")}&rarr;${vName("Y")} slope increases by ${g11} units per 1-unit rise in ${vName("W")}. Scale-dependent &mdash; compare across studies with caution.`;
+  const t=+STATE.es_t11,tw=+STATE.es_t11w;
+  const b=document.getElementById("es2");
+  if(isNaN(t)||isNaN(tw)||t===0){ b.innerHTML="Enter &tau;<sub>11</sub> and &tau;<sub>11w</sub>."; }
+  else { const p=(t-tw)/t; b.innerHTML=`<b>(&tau;<sub>11</sub>&minus;&tau;<sub>11w</sub>)/&tau;<sub>11</sub> = ${(p*100).toFixed(0)}%</b><br><span class="small">${vName("W")} explains ${(p*100).toFixed(0)}% of the across-${vName("l2unit")} slope variance. (Example: (.025&minus;.019)/.025 = 24%.)</span>`; }
+}
+
+/* ================= MODULE 10 : reporting table ================= */
+function buildRepTable(){
+  const t=document.getElementById("repTable");
+  // remove old rows except header
+  while(t.rows.length>1) t.deleteRow(1);
+  REP_ROWS.forEach(r=>{ const key=r[0]; const tr=t.insertRow();
+    const c0=tr.insertCell(); c0.innerHTML=r[1];
+    for(let s=0;s<4;s++){ const c=tr.insertCell();
+      const hasSE=["g00","g10","g01","g11"].includes(key);
+      c.innerHTML = hasSE
+        ? `<input type="text" style="width:46%" value="${REP[key][s][0]}" oninput="REP['${key}'][${s}][0]=this.value;repDerived()" placeholder="est"> <input type="text" style="width:40%" value="${REP[key][s][1]}" oninput="REP['${key}'][${s}][1]=this.value;repDerived()" placeholder="SE">`
+        : `<input type="text" value="${REP[key][s][0]}" oninput="REP['${key}'][${s}][0]=this.value;repDerived()">`;
+    }
+  });
+}
+function repDerived(){ renderResultsPara(); renderES(); }
+function resetTable(){ REP=JSON.parse(JSON.stringify(REP_DEF)); buildRepTable(); repDerived(); }
+function copyTableTSV(){
+  let out="Parameter\tNull\tRIFSM\tRIRSM\tCross-level\n";
+  REP_ROWS.forEach(r=>{ const key=r[0]; const lbl=r[1].replace(/<[^>]+>/g,"");
+    let line=lbl;
+    for(let s=0;s<4;s++){ const v=REP[key][s][0]||""; const se=REP[key][s][1]||"";
+      line+="\t"+(v + (se?(" ("+se+")"):"")); }
+    out+=line+"\n"; });
+  copyText(out,"Table copied as TSV (paste into Word/Excel).");
+}
+function renderResultsPara(){
+  const X=vName("X"),Y=vName("Y"),W=vName("W"),g2=vName("l2unit"),g1=vName("l1unit");
+  const icc=REP.icc[0][0], g11=REP.g11[3][0], g11se=REP.g11[3][1],
+        g10=REP.g10[3][0], g01=REP.g01[3][0], t11=REP.t11[2][0], r2=REP.r2[3][0];
+  const p=`We analyzed ${STATE.N} ${g1}s nested in ${STATE.J} ${g2}s using multilevel modeling, building the model in four steps. The null model yielded an ICC of ${icc||"___"}, indicating that ${icc?(Math.round(parseFloat(icc)*1000)/10):"___"}% of the variance in ${Y} lies between ${g2}s and justifying a multilevel approach. Adding ${X} (Level 1) and ${W} (Level 2) as direct effects (random-intercept fixed-slope model) showed both predicted ${Y} (&gamma;<sub>10</sub> = ${g10||"___"}, &gamma;<sub>01</sub> = ${g01||"___"}). The random-slope model indicated that the ${X}&ndash;${Y} slope varied across ${g2}s (&tau;<sub>11</sub> = ${t11||"___"}), tested with a nonparametric residual bootstrap CI, a &minus;2 log-likelihood comparison, and the Crainiceanu&ndash;Ruppert (RLRsim) test rather than a Wald interval. In the cross-level interaction model, ${W} significantly moderated the ${X}&ndash;${Y} relationship, &gamma;<sub>11</sub> = ${g11||"___"}${g11se?(" ("+g11se+")"):""}: the relationship was ${STATE.sym_dir||"stronger"} in ${g2}s with higher ${W}. ${X} was retained regardless of the significance of its direct effect. The model's pseudo R&sup2; was ${r2||"___"}; we also report the proportion of slope variance explained by ${W} and interpret all effect sizes within their substantive context (a graph was used only to show the interaction's form, not its magnitude).`;
+  document.getElementById("resultsPara").innerHTML=p;
+}
+const REPRO = [
+ ["Share the data file (or a faithful synthetic/restricted version)"],
+ ["Share fully annotated analysis code (e.g., the generated R)"],
+ ["Report the complete model-building table (all 4 steps)"],
+ ["State the centering choice and its theory-based justification"],
+ ["Report which slope-variance test(s) were used and their results"],
+ ["Report achieved power (especially if the interaction was non-significant)"],
+ ["Disclose whether multiple interactions were tested jointly or separately"]
+];
+function renderRepro(){
+  document.getElementById("reproList").innerHTML=REPRO.map((r,i)=>
+   `<div class="check"><input type="checkbox" id="rp${i}" ${STATE.repro[i]?"checked":""} onchange="STATE.repro[${i}]=this.checked;buildReady()">
+    <label for="rp${i}">${r[0]}</label></div>`).join("");
+}
+
+/* ================= R GENERATOR ================= */
+function rcTab(t){STATE.rc_tab=t;
+  ["steps","power","plot"].forEach(x=>document.getElementById("rc_"+x).classList.toggle("on",x===t));
+  renderRcode();}
+function renderRcode(){
+  let c;
+  if(STATE.rc_tab==="steps"){
+    c=`<span class="cm"># ===== Cross-level interaction: 4-step model build (lme4 / RLRsim) =====</span>
+<span class="cm"># Variables: Y=${vName("Y")}, X=${vName("X")} (group-mean-centered as Xc), W=${vName("W")} (Wj), group id=l2id</span>
+library(lme4); library(RLRsim)
+exdata <- read.csv("yourdata.csv")
+<span class="cm"># If not already centered, create group-mean-centered X (Recommendation 4):</span>
+exdata$Xc <- with(exdata, ave(${vName("X")=="LMX"?"X":"X"}, l2id, FUN=function(z) z - mean(z)))
+
+<span class="cm"># --- STEP 1: Null model + ICC ---</span>
+fit1 <- lmer(Y ~ (1|l2id), data=exdata, REML=FALSE)
+icc <- VarCorr(fit1)$l2id[1,1] / (VarCorr(fit1)$l2id[1,1] + attr(VarCorr(fit1),"sc")^2)
+icc
+
+<span class="cm"># --- STEP 2: Random-intercept fixed-slope (direct effects) ---</span>
+fit2 <- lmer(Y ~ Xc + I(Wj-mean(Wj)) + (1|l2id), data=exdata, REML=FALSE)
+summary(fit2)
+yhat2 <- model.matrix(fit2) %*% fixef(fit2); cor(yhat2, exdata$Y)^2   <span class="cm"># pseudo R2</span>
+
+<span class="cm"># --- STEP 3: Random-intercept random-slope; is tau11 != 0? ---</span>
+fit3 <- lmer(Y ~ Xc + I(Wj-mean(Wj)) + (Xc|l2id), data=exdata, REML=FALSE)
+summary(fit3); VarCorr(fit3)
+<span class="cm"># (a) Crainiceanu-Ruppert / RLRsim mixture test of the slope variance</span>
+exactRLRT(m = lmer(Y ~ Xc + I(Wj-mean(Wj)) + (0+Xc|l2id), data=exdata, REML=TRUE),
+          mA = fit3, m0 = fit2)
+<span class="cm"># (b) -2 log-likelihood (deviance) comparison Step 3 vs Step 2</span>
+anova(fit2, fit3)
+<span class="cm"># (c) Nonparametric residual bootstrap CI for tau11 (Carpenter et al., 2003)</span>
+<span class="cm">#     use bootMer or the article's REbootstrap() with ~1500 reps; CI should exclude 0.</span>
+<span class="cm"># DO NOT use a naive Wald CI (estimate +/- 1.96*SE) on a variance component.</span>
+
+<span class="cm"># --- STEP 4: Cross-level interaction (gamma11 = the effect) ---</span>
+<span class="cm"># Retain Xc even if its direct effect was non-significant.</span>
+fit4 <- lmer(Y ~ Xc * I(Wj-mean(Wj)) + (Xc|l2id), data=exdata, REML=FALSE)
+summary(fit4); VarCorr(fit4)
+yhat4 <- model.matrix(fit4) %*% fixef(fit4); cor(yhat4, exdata$Y)^2   <span class="cm"># pseudo R2</span>`;
+  } else if(STATE.rc_tab==="power"){
+    c=`<span class="cm"># ===== A-priori power for the cross-level interaction (Mathieu et al., 2012) =====</span>
+<span class="cm"># Online calculator: https://mypage.iu.edu/~haguinis/crosslevel.html</span>
+l2n   = ${num(STATE.pw_A_l2n)}   <span class="cm"># Level-2 sample size (# ${vName("l2unit")}s)</span>
+l1n   = ${num(STATE.pw_A_l1n)}   <span class="cm"># average Level-1 size per ${vName("l2unit")}</span>
+iccx  = ${num(STATE.pw_iccx)}    <span class="cm"># ICC1 for X</span>
+g00=0; g01=0; g02=0; g03=0       <span class="cm"># nuisance terms (set per your design)</span>
+g10   = ${num(STATE.pw_g10)}     <span class="cm"># Level-1 effect of X on Y</span>
+g11   = ${num(STATE.pw_g11)}     <span class="cm"># cross-level interaction magnitude</span>
+vu0j  = ${num(STATE.pw_vu0j)}    <span class="cm"># intercept variance</span>
+vu1j  = ${num(STATE.pw_sdslope)} <span class="cm"># SD of Level-1 slopes (sqrt of tau11)</span>
+vresid= ${num(STATE.pw_vresid)}  <span class="cm"># within (residual) variance</span>
+alpha = ${num(STATE.pw_alpha)};  REPS = ${num(STATE.pw_reps)}
+
+require(lme4)
+hlmmmr <- function(iccx,l2n,l1n,g00,g01,g02,g03,g10,g11,vu0j,vu1j,alpha){
+  Wj=rnorm(l2n,0,1); Xbarj=rnorm(l2n,0,sqrt(iccx))
+  b0=g00+g01*Xbarj+g02*Wj+g03*Xbarj*Wj+rnorm(l2n,0,sqrt(vu0j))
+  b1=g10+g11*Wj+rnorm(l2n,0,sqrt(vu1j))
+  dat=expand.grid(l1id=1:l1n,l2id=1:l2n)
+  dat$X=rnorm(l1n*l2n,0,sqrt(1-iccx))+Xbarj[dat[,2]]
+  dat$Wj=Wj[dat[,2]]
+  dat$Y=b0[dat$l2id]+b1[dat$l2id]*(dat$X-Xbarj[dat[,2]])+rnorm(l1n*l2n,0,sqrt(vresid))
+  dat$Xc=dat$X-Xbarj[dat[,2]]
+  fit=lmer(Y~Xc+Xbarj+Wj+Xbarj:Wj+Xc:Wj+(Xc|l2id),data=dat)
+  g=fixef(fit); se=sqrt(diag(vcov(fit)))
+  ifelse(abs(g[6]/se[6])>qt(1-alpha/2,l2n-4),1,0)
+}
+sim=replicate(REPS,hlmmmr(iccx,l2n,l1n,g00,g01,g02,g03,g10,g11,vu0j,vu1j,alpha))
+mean(sim)   <span class="cm"># estimated power (aim for >= .80; article's example design gave .82)</span>`;
+  } else {
+    renderPltCode();
+    c=document.getElementById("pltCode").innerHTML;
+  }
+  document.getElementById("rcodeOut").innerHTML=c;
+}
+function num(v){return (v===""||v===undefined||v===null)?0:v;}
+
+/* ================= READY REVIEW + PROGRESS ================= */
+const READY_ITEMS = [
+ ["Variables defined", ()=>vName("X")&&vName("Y")&&vName("W")],
+ ["Power justified (a-priori or achieved power entered)", ()=>STATE.pw_achieved!==""&&!isNaN(STATE.pw_achieved) || STATE.visited["m2"]],
+ ["Centering choice + theory-based justification recorded", ()=>STATE.center_just&&STATE.center_just.trim().length>10],
+ ["Assumptions checklist completed", ()=>Object.values(STATE.assump).filter(Boolean).length>=ASSUMPTIONS.length],
+ ["Slope-variance (τ₁₁) examined (Step 3 visited)", ()=>STATE.visited["walk"]],
+ ["Interaction graphed at full scale", ()=>STATE.visited["m5"]],
+ ["Effect sizes: predictive + explanatory recorded", ()=>!isNaN(STATE.es_t11)&&!isNaN(STATE.es_t11w)&&STATE.es_t11>0],
+ ["Multiple-interaction approach documented", ()=>STATE.multi_choice==="one"||(STATE.multi_note&&STATE.multi_note.trim().length>5)],
+ ["Full reporting table reviewed", ()=>STATE.visited["m10"]],
+ ["Reproducibility checklist completed", ()=>Object.values(STATE.repro).filter(Boolean).length>=REPRO.length]
+];
+function buildReady(){
+  let done=0;
+  const html=READY_ITEMS.map(it=>{ let ok=false; try{ok=!!it[1]();}catch(e){ok=false;} if(ok)done++;
+    return `<div class="readyrow"><span class="ic ${ok?'ok':'miss'}">${ok?'&#10003;':'&#9888;'}</span> ${it[0]}</div>`;}).join("");
+  const el=document.getElementById("readyList"); if(el) el.innerHTML=html;
+  const sc=document.getElementById("readyScore");
+  if(sc){ const pct=Math.round(done/READY_ITEMS.length*100);
+    sc.innerHTML = done===READY_ITEMS.length
+      ? "<b class='ok'>&#10003; All checks pass.</b> Your plan covers every recommendation &mdash; you're ready to write up."
+      : `<b>${done}/${READY_ITEMS.length} complete (${pct}%).</b> Address the &#9888; items above before submitting.`;}
+  renderProgress();
+}
+function renderProgress(){
+  const el=document.getElementById("progTrack"); if(!el) return;
+  const steps=[["start","Set up study"],["m1","R1 Define"],["m2","R2 Power"],["m3","R3 Moderator type"],
+    ["walk","Model build + assumptions"],["m4","R4 Centering"],["m5","R5 Graph"],["m6","R6 Symmetry"],
+    ["m7","R7 Multiple"],["m8","R8 3+ levels"],["m9","R9 Effect size"],["m10","R10 Reporting"]];
+  el.innerHTML=steps.map(s=>`<span class="pill">${STATE.visited[s[0]]?"&#10003; ":"&#9675; "}${s[1]}</span>`).join(" ");
+}
+
+/* ================= COPY / EXPORT / IMPORT ================= */
+function copyText(txt,msg){ const ta=document.createElement("textarea"); ta.value=txt; document.body.appendChild(ta);
+  ta.select(); try{document.execCommand("copy");}catch(e){} document.body.removeChild(ta);
+  if(msg) toast(msg); else toast("Copied.");}
+function copyEl(id){ const el=document.getElementById(id); copyText(el.innerText||el.textContent,"Copied to clipboard.");}
+function toast(m){ let t=document.getElementById("toast"); if(!t){t=document.createElement("div");t.id="toast";
+  t.style.cssText="position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:#1c2733;color:#fff;padding:10px 18px;border-radius:8px;z-index:99;font-size:.88rem;box-shadow:0 6px 20px rgba(0,0,0,.25)";
+  document.body.appendChild(t);} t.textContent=m; t.style.opacity="1";
+  clearTimeout(window._tt); window._tt=setTimeout(()=>t.style.opacity="0",1600);}
+function exportJSON(){ const data={STATE:STATE,REP:REP};
+  const blob=new Blob([JSON.stringify(data,null,2)],{type:"application/json"});
+  const a=document.createElement("a"); a.href=URL.createObjectURL(blob);
+  a.download="crosslevel-workbench-inputs.json"; a.click(); URL.revokeObjectURL(a.href);
+  toast("Inputs exported as JSON.");}
+function importJSON(ev){ const f=ev.target.files[0]; if(!f) return; const r=new FileReader();
+  r.onload=e=>{ try{ const d=JSON.parse(e.target.result);
+    if(d.STATE) STATE=Object.assign(JSON.parse(JSON.stringify(DEFAULTS)),d.STATE);
+    if(d.REP) REP=d.REP;
+    bindInputs(); buildRepTable(); refreshAll(); toast("Inputs imported.");
+  }catch(err){ toast("Could not read that file."); } };
+  r.readAsText(f); ev.target.value="";}
+function resetExample(){ STATE=JSON.parse(JSON.stringify(DEFAULTS)); REP=JSON.parse(JSON.stringify(REP_DEF));
+  bindInputs(); buildRepTable(); refreshAll(); toast("Reset to the LMX worked example.");}
+
+/* ================= REFRESH ================= */
+function refresh(){
+  propagateNames();
+  document.getElementById("studySentence").innerHTML =
+    `Worked example: does <b>${vName("X")}</b> (Level-1 predictor) predict <b>${vName("Y")}</b> (Level-1 outcome), moderated by <b>${vName("W")}</b> (Level-2 moderator)? ${STATE.N} ${vName("l1unit")}s nested in ${STATE.J} ${vName("l2unit")}s.`;
+  renderEq(); powerScenarios(); renderModType(); calcICC(); centerRec(); drawPlot();
+  renderPltCode(); renderSym(); renderMulti(); renderES(); renderResultsPara(); renderRcode(); buildReady();
+}
+function refreshAll(){ renderGlossary(); renderAssumptions(); renderRepro(); refresh(); }
+
+/* ================= INIT ================= */
+document.querySelectorAll(".navlink").forEach(a=>a.addEventListener("click",()=>go(a.dataset.sec)));
+document.addEventListener("keydown",e=>{ if(e.key==="Escape") closeGlossary(); });
+bindInputs();
+buildRepTable();
+renderGlossary(); renderAssumptions(); renderRepro();
+go("start");
+</script>
+<!-- Begin Countercentral code v 7.0 --> 
+<span id="wts2576"></span> 
+<script>var wts=document.createElement('script');wts.async=true; 
+wts.src='https://server2.countercentral.com/log7.js';document.head.appendChild(wts); 
+wts.onload = function(){ wtslog7(2576,1); }; 
+</script><noscript><a href="https://www.countercentral.com"> 
+<img src="https://server2.countercentral.com/7/1/2576.png"  
+alt="Countercentral web traffic analysis"></a></noscript> 
+<!-- End Countercentral code v 7.0 --> 
+</body>
+</html>

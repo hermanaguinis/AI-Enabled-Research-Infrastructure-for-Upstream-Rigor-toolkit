@@ -1,0 +1,714 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Meta-Analytic Structural Equation Modeling Study Builder</title>
+<style>
+  :root{
+    --bg:#f6f7fb;
+    --panel:#ffffff;
+    --ink:#172033;
+    --muted:#5f6878;
+    --line:#d9deea;
+    --accent:#1d5f8f;
+    --accent2:#0e7c66;
+    --warn:#946200;
+    --danger:#a23232;
+    --good:#176d39;
+    --soft-blue:#eaf3fb;
+    --soft-green:#eaf7f0;
+    --soft-yellow:#fff6df;
+    --soft-red:#faeaea;
+    --shadow:0 10px 24px rgba(23,32,51,.08);
+    --radius:16px;
+  }
+  *{box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{
+    margin:0;
+    font-family:Arial, Helvetica, sans-serif;
+    color:var(--ink);
+    background:linear-gradient(180deg,#eef3f8 0,#f8f9fc 240px,var(--bg) 100%);
+    line-height:1.45;
+  }
+  header.hero{
+    padding:22px clamp(16px,3vw,34px) 14px;
+    background:#ffffffcc;
+    border-bottom:1px solid var(--line);
+    position:sticky;
+    top:0;
+    z-index:10;
+    backdrop-filter:blur(10px);
+  }
+  .hero-row{display:flex;align-items:flex-start;justify-content:space-between;gap:18px;flex-wrap:wrap}
+  h1{font-size:clamp(22px,3vw,34px);margin:0 0 6px;letter-spacing:-.02em;color:#0d2f4a}
+  .subtitle{margin:0;color:var(--muted);max-width:980px;font-size:15px}
+  .button-row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+  button,.button-like{
+    border:1px solid var(--line);
+    background:#fff;
+    color:var(--ink);
+    border-radius:10px;
+    padding:9px 12px;
+    font-weight:700;
+    cursor:pointer;
+    box-shadow:0 1px 0 rgba(0,0,0,.03);
+  }
+  button:hover,.button-like:hover{border-color:#9bb3c6;background:#f7fbff}
+  button.primary{background:var(--accent);border-color:var(--accent);color:#fff}
+  button.success{background:var(--accent2);border-color:var(--accent2);color:#fff}
+  button.danger{background:#fff;border-color:#e2bbbb;color:var(--danger)}
+  button.small{padding:6px 8px;font-size:12px;border-radius:8px}
+  button:focus, input:focus, select:focus, textarea:focus{outline:3px solid rgba(29,95,143,.25);outline-offset:1px}
+  main{padding:18px clamp(12px,3vw,34px) 42px;max-width:1560px;margin:0 auto}
+  .dashboard{
+    display:grid;
+    grid-template-columns:repeat(9,minmax(120px,1fr));
+    gap:10px;
+    margin:0 0 14px;
+  }
+  .metric{
+    background:var(--panel);
+    border:1px solid var(--line);
+    border-radius:var(--radius);
+    padding:12px;
+    min-height:82px;
+    box-shadow:var(--shadow);
+  }
+  .metric .label{font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);font-weight:800}
+  .metric .value{font-size:20px;font-weight:800;margin-top:5px;color:#102844;word-break:break-word}
+  .metric .hint{font-size:12px;color:var(--muted);margin-top:3px}
+  .pill{display:inline-flex;align-items:center;gap:6px;border-radius:999px;padding:4px 8px;font-size:12px;font-weight:800;border:1px solid var(--line);white-space:nowrap}
+  .pill.good{background:var(--soft-green);color:var(--good);border-color:#b7dfc7}
+  .pill.warn{background:var(--soft-yellow);color:var(--warn);border-color:#ead08c}
+  .pill.bad{background:var(--soft-red);color:var(--danger);border-color:#ecc1c1}
+  .tabs{
+    display:flex;gap:8px;overflow-x:auto;padding:8px 0 14px;margin-bottom:4px;position:sticky;top:102px;background:linear-gradient(180deg,#f8f9fc 0,#f8f9fc 70%,transparent);z-index:9;
+  }
+  .tab-btn{white-space:nowrap;border-radius:999px;background:#fff}
+  .tab-btn.active{background:#0d2f4a;color:#fff;border-color:#0d2f4a}
+  .section{display:none}
+  .section.active{display:block}
+  .grid{display:grid;grid-template-columns:repeat(12,1fr);gap:14px}
+  .card{
+    background:var(--panel);
+    border:1px solid var(--line);
+    border-radius:var(--radius);
+    box-shadow:var(--shadow);
+    padding:16px;
+    margin-bottom:14px;
+  }
+  .card h2,.card h3{margin:0 0 8px;color:#0d2f4a;letter-spacing:-.01em}
+  .card h2{font-size:22px}.card h3{font-size:18px}.card h4{font-size:15px;margin:14px 0 6px;color:#233b55}
+  .span-12{grid-column:span 12}.span-8{grid-column:span 8}.span-7{grid-column:span 7}.span-6{grid-column:span 6}.span-5{grid-column:span 5}.span-4{grid-column:span 4}.span-3{grid-column:span 3}.span-2{grid-column:span 2}
+  .form-grid{display:grid;grid-template-columns:repeat(12,1fr);gap:12px;align-items:start}
+  label{font-size:13px;font-weight:800;color:#27374d;display:block;margin-bottom:4px}
+  .help{font-size:12px;color:var(--muted);margin-top:3px}
+  input[type="text"],input[type="number"],select,textarea{
+    width:100%;border:1px solid var(--line);border-radius:10px;padding:9px 10px;background:#fff;color:var(--ink);font-size:14px;
+  }
+  textarea{min-height:84px;resize:vertical}
+  input[type="checkbox"]{transform:translateY(1px);margin-right:6px}
+  .checklist{display:grid;gap:8px;margin:8px 0}
+  .check-row{background:#fbfcfe;border:1px solid var(--line);border-radius:10px;padding:8px;display:flex;gap:6px;align-items:flex-start}
+  .inline-check{display:flex;align-items:flex-start;gap:6px;font-size:13px;color:#27374d}
+  details{border:1px solid var(--line);border-radius:12px;background:#fbfcfe;padding:10px;margin:10px 0}
+  summary{cursor:pointer;font-weight:800;color:#0d2f4a}
+  .notice{border-radius:12px;padding:12px;margin:10px 0;border:1px solid var(--line);background:#fbfcfe}
+  .notice.good{background:var(--soft-green);border-color:#bae3c8}.notice.warn{background:var(--soft-yellow);border-color:#ead08c}.notice.bad{background:var(--soft-red);border-color:#ecc1c1}.notice.info{background:var(--soft-blue);border-color:#bcd6ea}
+  .table-wrap{overflow:auto;border:1px solid var(--line);border-radius:12px;background:#fff;margin-top:8px}
+  table{width:100%;border-collapse:collapse;font-size:13px}
+  th,td{border-bottom:1px solid var(--line);border-right:1px solid var(--line);padding:7px;vertical-align:top;text-align:left}
+  th{background:#eef3f8;color:#18324c;position:sticky;top:0;z-index:1;font-size:12px;text-transform:uppercase;letter-spacing:.03em}
+  tr:last-child td{border-bottom:0} td:last-child,th:last-child{border-right:0}
+  td input,td select,td textarea{min-width:90px;font-size:12px;padding:6px;border-radius:8px}
+  td textarea{min-height:50px}
+  .matrix th,.matrix td{text-align:center;min-width:90px}
+  .matrix input{text-align:center;width:78px;min-width:78px}
+  .cell-missing input{background:#fff6df;border-color:#d8ac47}.cell-bad input{background:#faeaea;border-color:#d59999}.cell-good input{background:#f4fff7;border-color:#b8e0c4}
+  .side-by-side{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  .progress{height:12px;border-radius:999px;background:#e7ebf3;overflow:hidden;border:1px solid var(--line)}
+  .progress span{display:block;height:100%;background:#1d5f8f;width:0%}
+  .svg-canvas{border:1px solid var(--line);background:#fbfcfe;border-radius:12px;width:100%;height:420px}
+  .report-box{background:#fff;border:1px solid var(--line);border-radius:12px;padding:12px;white-space:pre-wrap;min-height:120px}
+  .codebox{font-family:Consolas, Monaco, monospace;font-size:12px;background:#111827;color:#f6f7fb;border-radius:12px;padding:12px;white-space:pre;overflow:auto;min-height:120px}
+  .score-grid{display:grid;grid-template-columns:repeat(6,1fr);gap:10px}
+  .score-card{border:1px solid var(--line);border-radius:12px;padding:12px;background:#fbfcfe}
+  .score-card strong{font-size:24px;color:#102844;display:block}
+  .footer{font-size:12px;color:#4b5565;margin-top:24px;border-top:1px solid var(--line);padding-top:16px}
+  .sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
+  @media (max-width:1180px){.dashboard{grid-template-columns:repeat(3,1fr)}.score-grid{grid-template-columns:repeat(3,1fr)}.span-8,.span-7,.span-6,.span-5,.span-4,.span-3,.span-2{grid-column:span 12}.side-by-side{grid-template-columns:1fr}.tabs{top:126px}}
+  @media (max-width:720px){.dashboard{grid-template-columns:1fr}.score-grid{grid-template-columns:1fr}.hero-row{display:block}.button-row{margin-top:10px}.tabs{position:static}.form-grid{grid-template-columns:1fr}.form-grid > div{grid-column:auto!important}}
+  @media print{
+    header.hero,.tabs,.button-row button,.no-print{display:none!important}
+    body{background:#fff} main{max-width:none;padding:0}.section{display:block!important}.card{box-shadow:none;break-inside:avoid}.dashboard{grid-template-columns:repeat(3,1fr)}
+  }
+</style>
+</head>
+<body>
+<header class="hero">
+  <div class="hero-row">
+    <div>
+      <h1>Meta-Analytic Structural Equation Modeling Study Builder</h1>
+      <p class="subtitle">An offline, self-contained workflow for designing, auditing, documenting, and reporting MASEM studies that compare theoretical models, evaluate direct and mediated structures, organize meta-analytic correlations, prepare SEM input, and report decisions transparently.</p>
+    </div>
+    <div class="button-row" aria-label="File and export controls">
+      <button class="primary" onclick="saveState(true)">Save</button>
+      <button onclick="exportJSON()">Export JSON</button>
+      <label class="button-like" for="importFile">Import JSON</label><input id="importFile" type="file" accept="application/json,.json" class="sr-only" onchange="importJSON(event)">
+      <button onclick="exportReportHTML()">Export Report</button>
+      <button onclick="window.print()">Print / Save PDF</button>
+      <button class="danger" onclick="resetAll()">Reset</button>
+    </div>
+  </div>
+</header>
+<main>
+  <section class="dashboard" aria-label="Project dashboard">
+    <div class="metric"><div class="label">Project title</div><div class="value" id="dashTitle">Untitled</div><div class="hint" id="autosaveStatus">Not saved yet</div></div>
+    <div class="metric"><div class="label">Research domain</div><div class="value" id="dashDomain">—</div><div class="hint">Scope of evidence base</div></div>
+    <div class="metric"><div class="label">Constructs</div><div class="value" id="dashConstructs">0</div><div class="hint">Variables in model space</div></div>
+    <div class="metric"><div class="label">Models</div><div class="value" id="dashModels">0</div><div class="hint">Competing structures</div></div>
+    <div class="metric"><div class="label">Matrix cells</div><div class="value" id="dashCells">0 / 0</div><div class="hint">Completed off-diagonal cells</div></div>
+    <div class="metric"><div class="label">MASEM readiness</div><div class="value" id="dashReadiness">0</div><div class="hint" id="readinessLabel">Red: serious concern</div></div>
+    <div class="metric"><div class="label">Reporting transparency</div><div class="value" id="dashTransparency">0</div><div class="hint" id="transparencyLabel">Red: serious concern</div></div>
+    <div class="metric"><div class="label">Causality/endogeneity</div><div class="value" id="dashCaution">0</div><div class="hint" id="cautionLabel">Red: serious concern</div></div>
+    <div class="metric"><div class="label">Export</div><div class="value"><button class="small success" onclick="exportReportHTML()">Report</button></div><div class="hint">HTML report, JSON, print</div></div>
+  </section>
+
+  <nav class="tabs" aria-label="Workflow tabs">
+    <button class="tab-btn active" data-tab="overview" onclick="showTab('overview',this)">Overview</button>
+    <button class="tab-btn" data-tab="step1" onclick="showTab('step1',this)">Step 1: Models</button>
+    <button class="tab-btn" data-tab="step2" onclick="showTab('step2',this)">Step 2: Meta-analysis</button>
+    <button class="tab-btn" data-tab="step3" onclick="showTab('step3',this)">Step 3: SEM</button>
+    <button class="tab-btn" data-tab="step4" onclick="showTab('step4',this)">Step 4: Reporting</button>
+    <button class="tab-btn" data-tab="reviewer" onclick="showTab('reviewer',this)">Reviewer mode</button>
+    <button class="tab-btn" data-tab="report" onclick="showTab('report',this); renderFinalReport();">Final report</button>
+    <button class="tab-btn" data-tab="about" onclick="showTab('about',this)">About / credit</button>
+  </nav>
+
+  <section id="overview" class="section active">
+    <div class="grid">
+      <div class="card span-8">
+        <h2>Project setup</h2>
+        <div class="form-grid">
+          <div class="span-6"><label for="projectTitle">Project title</label><input id="projectTitle" data-path="project.title" type="text" placeholder="e.g., Strategic leadership and firm performance" /></div>
+          <div class="span-6"><label for="researchDomain">Research domain</label><input id="researchDomain" data-path="project.domain" type="text" placeholder="e.g., Strategic leadership, HRM, innovation" /></div>
+          <div class="span-12"><label for="projectPurpose">One-sentence purpose</label><textarea id="projectPurpose" data-path="project.purpose" placeholder="State what theoretical models, mediation chains, or alternative structures the MASEM will compare."></textarea></div>
+        </div>
+        <details open><summary>What this tool is designed to do</summary>
+          <p>MASEM combines meta-analysis and structural equation modeling. The practical value is that researchers can use accumulated findings to evaluate competing theoretical structures, direct-effect models, mediated models, alternative variable orderings, and model fit rather than relying only on bivariate effect-size summaries.</p>
+          <p>This tool does not estimate final SEM models. It prepares, audits, documents, and reports the decisions required before running SEM in R, Mplus, Amos, EQS, or similar software.</p>
+        </details>
+      </div>
+      <div class="card span-4">
+        <h2>Transparent scoring</h2>
+        <div class="score-grid" style="grid-template-columns:1fr 1fr;">
+          <div class="score-card"><span class="pill" id="pillAppropriate">Red</span><strong id="scoreAppropriate">0</strong><small>Appropriateness</small></div>
+          <div class="score-card"><span class="pill" id="pillData">Red</span><strong id="scoreData">0</strong><small>Data readiness</small></div>
+          <div class="score-card"><span class="pill" id="pillMatrix">Red</span><strong id="scoreMatrix">0</strong><small>Matrix completeness</small></div>
+          <div class="score-card"><span class="pill" id="pillModel">Red</span><strong id="scoreModel">0</strong><small>Model comparison</small></div>
+          <div class="score-card"><span class="pill" id="pillReport">Red</span><strong id="scoreReport">0</strong><small>Reporting</small></div>
+          <div class="score-card"><span class="pill" id="pillCausal">Red</span><strong id="scoreCausal">0</strong><small>Causal caution</small></div>
+        </div>
+      </div>
+      <div class="card span-12">
+        <h2>Four-step workflow and nine decision points</h2>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Step</th><th>Core task</th><th>Decision points implemented</th><th>Primary output</th></tr></thead>
+            <tbody>
+              <tr><td>1. Specify variables and conceptual models</td><td>Define research question, constructs, and competing direct or mediated models.</td><td>DP1: Variables, focal relationships, model status, mediation ordering, omitted-variable and endogeneity threats.</td><td>Construct map, model catalog, SVG model figure.</td></tr>
+              <tr><td>2. Meta-analytic procedures</td><td>Identify studies, code evidence, extract correlations, handle missing cells, harmonize sample size.</td><td>DP2: Missing correlations. DP3: Sample-size harmonization.</td><td>Search protocol, coding protocol, effect-size table, missing-cell documentation, harmonic mean.</td></tr>
+              <tr><td>3. Structural equation modeling</td><td>Build input matrix, screen positive definiteness, audit dependency, plan SEM syntax, compare model fit.</td><td>DP4: Positive-definiteness. DP5: Sample dependency. DP6: Fit indices. DP7: Suitable correlations.</td><td>Meta-analytic matrix, SEM planner, fit dashboard, suitability recommendations.</td></tr>
+              <tr><td>4. Reporting procedures</td><td>Report methods, matrices, coefficients, fit, limitations, and causal cautions.</td><td>DP8–DP9: MARS-style transparency plus MASEM-specific reporting requirements.</td><td>Readiness report, manuscript text, results tables, reviewer audit.</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="step1" class="section">
+    <div class="card">
+      <h2>Step 1. Specify variables and conceptual models</h2>
+      <p class="help">Goal: specify the variables, focal relationships, competing theoretical structures, and a priori versus post hoc model status before analyzing the matrix.</p>
+    </div>
+    <div class="grid">
+      <div class="card span-6">
+        <h3>Module 1. Research question and scope</h3>
+        <div class="form-grid">
+          <div class="span-12"><label for="rq">Research question</label><textarea id="rq" data-path="scope.question"></textarea></div>
+          <div class="span-12"><label for="theories">Theory or theories being tested</label><textarea id="theories" data-path="scope.theories"></textarea></div>
+          <div class="span-6"><label for="domainMaturity">Research domain maturity</label><select id="domainMaturity" data-path="scope.maturity"><option value="">Select</option><option>Mature with substantial prior evidence</option><option>Moderately developed</option><option>Emergent / sparse literature</option></select></div>
+          <div class="span-6"><label for="competingExist">Competing models exist?</label><select id="competingExist" data-path="scope.competing"><option value="">Select</option><option>Yes, clear competing theoretical models</option><option>Some alternatives exist</option><option>No, mostly one framework</option></select></div>
+          <div class="span-12"><label for="whyMasem">Why MASEM rather than ordinary meta-analysis?</label><textarea id="whyMasem" data-path="scope.whyMasem" placeholder="Explain why bivariate synthesis alone is insufficient."></textarea></div>
+          <div class="span-12"><label for="studyPurpose">Purpose</label><select id="studyPurpose" data-path="scope.purpose"><option value="">Select</option><option>Direct effects</option><option>Mediation</option><option>Competing models</option><option>Theoretical integration</option><option>Theory comparison</option><option>Model refinement</option></select></div>
+        </div>
+        <h4>MASEM appropriateness screener</h4>
+        <div id="appropriatenessScreener" class="notice info">Complete the fields above to generate a preliminary appropriateness assessment.</div>
+      </div>
+      <div class="card span-6">
+        <h3>Decision Point 1 checklist</h3>
+        <div id="dp1Checklist" class="checklist"></div>
+      </div>
+      <div class="card span-12">
+        <h3>Module 2. Construct and variable map</h3>
+        <div class="button-row no-print"><button onclick="addConstruct()">Add construct</button><button onclick="seedExampleConstructs()">Load small example</button></div>
+        <div id="constructList"></div>
+        <details><summary>Construct-alignment checklist guidance</summary>
+          <p>Each construct should be theoretically defined, operationally matched, measured consistently enough across studies, and bounded by explicit inclusion and exclusion criteria. A convenient surrogate should not quietly replace the focal construct.</p>
+        </details>
+      </div>
+      <div class="card span-12">
+        <h3>Module 3. Competing model builder</h3>
+        <div class="button-row no-print"><button onclick="addModel()">Add model</button><button onclick="addPathToSelectedModel()">Add path to selected model</button><button onclick="exportSVG()">Export SVG figure</button></div>
+        <div id="modelList"></div>
+        <div class="side-by-side">
+          <div>
+            <h4>Visual model builder</h4>
+            <div class="form-grid">
+              <div class="span-4"><label for="selectedModel">Selected model</label><select id="selectedModel" onchange="renderAll();saveState();"></select></div>
+              <div class="span-4"><label for="fromConstruct">From</label><select id="fromConstruct"></select></div>
+              <div class="span-4"><label for="toConstruct">To</label><select id="toConstruct"></select></div>
+              <div class="span-12"><label class="inline-check"><input type="checkbox" id="showCovariances" onchange="renderAll();saveState();"> Show covariance paths in SVG</label></div>
+            </div>
+            <svg id="modelSVG" class="svg-canvas" role="img" aria-label="Model diagram"></svg>
+          </div>
+          <div>
+            <h4>Warnings and disclosure prompts</h4>
+            <div class="notice warn">Clearly distinguish a priori models from post hoc models. Do not present post hoc models as confirmatory.</div>
+            <div class="notice info" id="observedOnlyWarning">Add constructs to determine whether the analysis should be described as full MASEM or meta-analytic path analysis.</div>
+            <div class="table-wrap"><table><thead><tr><th>Path</th><th>Rationale</th><th>Covariance?</th><th>Action</th></tr></thead><tbody id="pathTable"></tbody></table></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="step2" class="section">
+    <div class="card"><h2>Step 2. Meta-analytic procedures</h2><p class="help">Goal: create a defensible search strategy, coding protocol, effect-size extraction table, missing-correlation rationale, and SEM sample-size choice.</p></div>
+    <div class="grid">
+      <div class="card span-6">
+        <h3>Module 4. Search strategy and study identification</h3>
+        <div class="form-grid">
+          <div class="span-6"><label for="databases">Databases searched</label><textarea id="databases" data-path="search.databases"></textarea></div>
+          <div class="span-6"><label for="journals">Journals searched</label><textarea id="journals" data-path="search.journals"></textarea></div>
+          <div class="span-12"><label for="searchTerms">Search terms</label><textarea id="searchTerms" data-path="search.terms"></textarea></div>
+          <div class="span-4"><label for="timePeriod">Time period</label><input id="timePeriod" data-path="search.timePeriod" type="text"></div>
+          <div class="span-4"><label for="recordsIdentified">Records identified</label><input id="recordsIdentified" data-path="search.identified" type="number" min="0"></div>
+          <div class="span-4"><label for="recordsRetained">Studies retained</label><input id="recordsRetained" data-path="search.retained" type="number" min="0"></div>
+          <div class="span-6"><label for="inclusion">Inclusion criteria</label><textarea id="inclusion" data-path="search.inclusion"></textarea></div>
+          <div class="span-6"><label for="exclusion">Exclusion criteria</label><textarea id="exclusion" data-path="search.exclusion"></textarea></div>
+          <div class="span-6"><label for="unpublished">Treatment of unpublished studies</label><textarea id="unpublished" data-path="search.unpublished"></textarea></div>
+          <div class="span-6"><label for="authorContact">Contacting authors for missing correlations</label><textarea id="authorContact" data-path="search.authorContact"></textarea></div>
+          <div class="span-6"><label for="ancestry">Ancestry search strategy</label><textarea id="ancestry" data-path="search.ancestry"></textarea></div>
+          <div class="span-6"><label for="manualSearch">Manual reference search strategy</label><textarea id="manualSearch" data-path="search.manual"></textarea></div>
+          <div class="span-12"><label for="screeningSteps">Screening steps: title, abstract, method, results</label><textarea id="screeningSteps" data-path="search.screening"></textarea></div>
+        </div>
+      </div>
+      <div class="card span-6">
+        <h3>Editable PRISMA-style flow summary</h3>
+        <div class="form-grid">
+          <div class="span-3"><label>Identified</label><input id="flowIdentified" data-path="flow.identified" type="number"></div>
+          <div class="span-3"><label>Screened</label><input id="flowScreened" data-path="flow.screened" type="number"></div>
+          <div class="span-3"><label>Excluded</label><input id="flowExcluded" data-path="flow.excluded" type="number"></div>
+          <div class="span-3"><label>Retained</label><input id="flowRetained" data-path="flow.retained" type="number"></div>
+          <div class="span-12"><label for="flowNotes">Flow notes</label><textarea id="flowNotes" data-path="flow.notes"></textarea></div>
+        </div>
+        <div id="flowSummary" class="notice info"></div>
+      </div>
+      <div class="card span-12">
+        <h3>Module 5. Coding protocol builder</h3>
+        <div class="form-grid">
+          <div class="span-6"><label for="codingProtocol">Coding protocol text</label><textarea id="codingProtocol" data-path="coding.protocol"></textarea></div>
+          <div class="span-6"><label for="coderTraining">Coder training notes</label><textarea id="coderTraining" data-path="coding.training"></textarea></div>
+          <div class="span-3"><label for="doubleCoding">Double-coding status</label><select id="doubleCoding" data-path="coding.double"><option></option><option>Not started</option><option>Partially double-coded</option><option>Fully double-coded</option></select></div>
+          <div class="span-3"><label for="irr">Interrater reliability</label><input id="irr" data-path="coding.irr" type="text" placeholder="e.g., κ = .82; ICC = .90"></div>
+          <div class="span-3"><label for="discrepancy">Discrepancy-resolution notes</label><input id="discrepancy" data-path="coding.discrepancy" type="text"></div>
+          <div class="span-3"><label for="agreement">Final agreement notes</label><input id="agreement" data-path="coding.agreement" type="text"></div>
+        </div>
+        <div class="button-row no-print"><button onclick="addStudyRow()">Add coded study row</button></div>
+        <div class="table-wrap"><table><thead><tr><th>Article ID</th><th>Authors/year</th><th>Sample</th><th>Context</th><th>Design</th><th>Constructs</th><th>Correlations</th><th>N</th><th>Reliability</th><th>Effect-size notes</th><th>Measurement notes</th><th>Endogeneity notes</th><th>Sample overlap</th><th>Action</th></tr></thead><tbody id="studyRows"></tbody></table></div>
+      </div>
+      <div class="card span-12">
+        <h3>Module 6. Effect-size extraction and harmonization</h3>
+        <div class="notice info">Prefer correlation coefficients as the common standardized metric. Do not casually mix regression coefficients with correlations because regression coefficients depend on model specification, variable metrics, and the included predictors. Record k, N, intervals, and reliability corrections for every matrix cell.</div>
+        <div class="button-row no-print"><button onclick="addEffectRow()">Add effect-size row</button><button onclick="generateEffectPairs()">Generate construct pairs</button><button onclick="exportEffectsCSV()">Export effect table CSV</button></div>
+        <div class="table-wrap"><table><thead><tr><th>Variable 1</th><th>Variable 2</th><th>Observed r</th><th>Corrected ρ</th><th>Rel. V1</th><th>Rel. V2</th><th>N</th><th>k</th><th>95% CI low</th><th>95% CI high</th><th>80% CV low</th><th>80% CV high</th><th>Source notes</th><th>Source type</th><th>Action</th></tr></thead><tbody id="effectRows"></tbody></table></div>
+      </div>
+      <div class="card span-7">
+        <h3>Module 7. Missing correlation decision tree — Decision Point 2</h3>
+        <div class="notice info">Use actual data when possible. Searching again, contacting researchers, and conducting original primary studies are preferred because they do not require conceptual or empirical substitution.</div>
+        <div class="form-grid">
+          <div class="span-4"><label for="missingCellLabel">Missing cell</label><input id="missingCellLabel" type="text" placeholder="e.g., X–M"></div>
+          <div class="span-8"><label for="missingSolution">Chosen solution</label><select id="missingSolution"><option></option><option>1. Search again using same or different search criteria</option><option>2. Contact researchers for missing correlations</option><option>3. Conduct original primary studies</option><option>4. Use conceptually similar surrogate variables only with strong justification</option><option>5. Group constructs into broader constructs and derive composite correlations</option><option>6. Use TSSEM if appropriate</option><option>7. Use advanced imputation such as FIML if justified</option><option>8. Use average effect size across nonmissing cells only with caution</option><option>9. Use subject matter experts only as a last resort</option><option>10. Limit the scope of the inquiry</option></select></div>
+          <div class="span-12"><label for="missingJustification">Why defensible?</label><textarea id="missingJustification"></textarea></div>
+          <div class="span-4"><label for="usesActualData">Uses actual data?</label><select id="usesActualData"><option></option><option>Yes</option><option>No</option><option>Partly</option></select></div>
+          <div class="span-4"><label for="introducesManipulation">Introduces conceptual manipulation?</label><select id="introducesManipulation"><option></option><option>No</option><option>Some</option><option>Yes</option></select></div>
+          <div class="span-4"><label for="disclosurePlan">Disclosure plan</label><input id="disclosurePlan" type="text"></div>
+          <div class="span-12"><button onclick="addMissingDecision()">Add missing-cell decision</button></div>
+        </div>
+        <div class="table-wrap"><table><thead><tr><th>Cell</th><th>Solution</th><th>Defensibility</th><th>Actual data?</th><th>Manipulation?</th><th>Disclosure</th><th>Risk label</th><th>Action</th></tr></thead><tbody id="missingRows"></tbody></table></div>
+      </div>
+      <div class="card span-5">
+        <h3>Module 8. Sample-size harmonizer — Decision Point 3</h3>
+        <label for="sampleNs">Enter sample sizes for matrix cells</label>
+        <textarea id="sampleNs" data-path="samples.raw" placeholder="Comma- or space-separated values, e.g., 1200, 450, 900, 310"></textarea>
+        <div class="button-row no-print"><button onclick="computeSamples()">Compute</button><button onclick="loadNsFromEffects()">Load N values from effect table</button></div>
+        <div id="sampleResults" class="notice info">Formula: harmonic mean = k / (1/N1 + 1/N2 + ... + 1/Nk). Recommended default: harmonic mean.</div>
+      </div>
+    </div>
+  </section>
+
+  <section id="step3" class="section">
+    <div class="card"><h2>Step 3. Structural equation modeling</h2><p class="help">Goal: build the SEM input matrix, screen it, document dependency and suitability issues, plan external SEM estimation, and compare fit across theoretically meaningful models.</p></div>
+    <div class="grid">
+      <div class="card span-12">
+        <h3>Module 9. Meta-analytic correlation matrix builder</h3>
+        <div class="button-row no-print"><button onclick="renderMatrix();renderAll();saveState();">Refresh matrix</button><button onclick="loadMatrixFromEffects()">Load r/ρ from effects</button><button onclick="exportMatrixCSV()">Export matrix CSV</button><button onclick="exportMatrixText()">Export matrix syntax</button></div>
+        <div class="table-wrap"><table id="matrixTable" class="matrix"></table></div>
+        <details><summary>Selected-cell documentation</summary>
+          <div class="form-grid">
+            <div class="span-4"><label for="cellA">Variable 1</label><select id="cellA" onchange="loadCellDetails()"></select></div>
+            <div class="span-4"><label for="cellB">Variable 2</label><select id="cellB" onchange="loadCellDetails()"></select></div>
+            <div class="span-2"><label for="cellK">k</label><input id="cellK" type="number" onchange="saveCellDetails()"></div>
+            <div class="span-2"><label for="cellN">N</label><input id="cellN" type="number" onchange="saveCellDetails()"></div>
+            <div class="span-2"><label for="cellCILo">95% CI low</label><input id="cellCILo" type="number" step="0.001" onchange="saveCellDetails()"></div>
+            <div class="span-2"><label for="cellCIHi">95% CI high</label><input id="cellCIHi" type="number" step="0.001" onchange="saveCellDetails()"></div>
+            <div class="span-2"><label for="cellCRLo">80% CV low</label><input id="cellCRLo" type="number" step="0.001" onchange="saveCellDetails()"></div>
+            <div class="span-2"><label for="cellCRHi">80% CV high</label><input id="cellCRHi" type="number" step="0.001" onchange="saveCellDetails()"></div>
+            <div class="span-4"><label for="cellNotes">Notes</label><input id="cellNotes" type="text" onchange="saveCellDetails()"></div>
+          </div>
+        </details>
+        <div id="matrixAudit" class="notice info"></div>
+      </div>
+      <div class="card span-6">
+        <h3>Module 10. Positive-definiteness check — Decision Point 4</h3>
+        <button onclick="checkPositiveDefinite()" class="no-print">Run screening check</button>
+        <div id="pdResult" class="notice info">This is a browser-based screening check using the current matrix. It is not a substitute for SEM software diagnostics.</div>
+        <details open><summary>Common reasons and remedies</summary>
+          <ul>
+            <li>Sparse cells, small k or N, very high correlations, excessive imputation, surrogate variables, or broad poorly aligned constructs can produce nonpositive definite matrices.</li>
+            <li>Remedies include expanding the article pool, revisiting missing-cell decisions, reducing variables, defensibly combining overlapping variables, reconsidering imputation, and trying different starting values in SEM software.</li>
+          </ul>
+        </details>
+      </div>
+      <div class="card span-6">
+        <h3>Module 11. Sample dependency audit — Decision Point 5</h3>
+        <div id="dependencyChecklist" class="checklist"></div>
+        <label for="dependencyNotes">Dependency decisions and remedies</label><textarea id="dependencyNotes" data-path="dependency.notes" placeholder="Document overlap handling, composite correlations, largest-sample choices, GLS, random-effects, or multilevel approaches."></textarea>
+      </div>
+      <div class="card span-12">
+        <h3>Module 12. SEM analysis planner</h3>
+        <div class="notice warn">Final SEM estimation should be conducted in appropriate SEM software. This tool prepares, audits, documents, and reports the analysis.</div>
+        <div class="form-grid">
+          <div class="span-3"><label for="semSoftware">Software</label><select id="semSoftware" data-path="sem.software"><option></option><option>R/metaSEM</option><option>R/lavaan</option><option>Mplus</option><option>Amos</option><option>EQS</option><option>Other</option></select></div>
+          <div class="span-3"><label for="semEstimator">Estimator</label><input id="semEstimator" data-path="sem.estimator" type="text"></div>
+          <div class="span-3"><label for="semN">SEM sample size</label><input id="semN" data-path="sem.sampleSize" type="number"></div>
+          <div class="span-3"><label for="semMatrixName">Input matrix label</label><input id="semMatrixName" data-path="sem.matrixName" type="text" placeholder="Rmeta"></div>
+          <div class="span-6"><label for="semParameters">Parameters estimated</label><textarea id="semParameters" data-path="sem.parameters"></textarea></div>
+          <div class="span-6"><label for="semConstraints">Constraints and covariances</label><textarea id="semConstraints" data-path="sem.constraints"></textarea></div>
+          <div class="span-4"><label for="semDirect">Direct effects</label><textarea id="semDirect" data-path="sem.direct"></textarea></div>
+          <div class="span-4"><label for="semIndirect">Indirect effects</label><textarea id="semIndirect" data-path="sem.indirect"></textarea></div>
+          <div class="span-4"><label for="semNested">Nested model comparisons</label><textarea id="semNested" data-path="sem.nested"></textarea></div>
+        </div>
+        <button onclick="generateSyntax()" class="no-print">Generate template syntax</button>
+        <div class="side-by-side"><div><h4>R lavaan-style skeleton</h4><div id="lavaanSyntax" class="codebox"></div></div><div><h4>R metaSEM / Mplus / Amos notes</h4><div id="otherSyntax" class="codebox"></div></div></div>
+      </div>
+      <div class="card span-12">
+        <h3>Module 13. Fit-index and model-comparison dashboard — Decision Point 6</h3>
+        <div class="notice info">Use multiple fit measures. Avoid relying only on chi-square, and avoid treating universal cutoff values mechanically. Emphasize relative fit among theoretically meaningful models.</div>
+        <div class="button-row no-print"><button onclick="addFitModel()">Add tested model</button><label>Rank by <select id="rankCriterion" onchange="renderFitModels()"><option value="CFI">CFI high</option><option value="RMSEA">RMSEA low</option><option value="AIC">AIC low</option><option value="BIC">BIC low</option><option value="SRMR">SRMR low</option></select></label></div>
+        <div class="table-wrap"><table><thead><tr><th>Model</th><th>χ²</th><th>df</th><th>p</th><th>CFI</th><th>GFI</th><th>NFI</th><th>RMR</th><th>RMSEA</th><th>SRMR</th><th>AIC</th><th>BIC</th><th>Convergence notes</th><th>Theoretically meaningful?</th><th>Retain simpler model?</th><th>Action</th></tr></thead><tbody id="fitRows"></tbody></table></div>
+        <div id="fitComparison" class="notice info"></div>
+      </div>
+      <div class="card span-6">
+        <h3>Module 14. Suitable-correlation audit — Decision Point 7</h3>
+        <p class="help">For each effect-size row, answer the core suitability criteria. The tool provides a use/caution/exclude recommendation.</p>
+        <div class="button-row no-print"><button onclick="renderSuitabilityRows()">Refresh from effects</button></div>
+        <div class="table-wrap"><table><thead><tr><th>Cell</th><th>Operationalization consistent?</th><th>Method prespecified?</th><th>Reliability corrections documented?</th><th>Largest/appropriate sample?</th><th>Construct-validity threats?</th><th>Compatible studies?</th><th>Surrogate?</th><th>Dominated?</th><th>Recommendation</th></tr></thead><tbody id="suitabilityRows"></tbody></table></div>
+      </div>
+      <div class="card span-6">
+        <h3>Module 15. Endogeneity and causal-claim guardrail</h3>
+        <h4>Possible threats</h4><div id="endogeneityThreats" class="checklist"></div>
+        <h4>What did the study do?</h4><div id="endogeneityActions" class="checklist"></div>
+        <h4>Generated caution statement</h4>
+        <div id="causalStatement" class="report-box">Because the primary studies are not uniformly experimental, these results should not be interpreted as direct and unequivocal causal evidence. The analysis evaluates the comparative fit and plausibility of alternative theoretical models based on accumulated correlational evidence.</div>
+      </div>
+    </div>
+  </section>
+
+  <section id="step4" class="section">
+    <div class="card"><h2>Step 4. Reporting procedures</h2><p class="help">Goal: produce a transparent methods/reporting package with full matrix documentation, model figures, fit indices, coefficients, intervals, decision-point justifications, and causal limitations.</p></div>
+    <div class="grid">
+      <div class="card span-6">
+        <h3>Module 16. MASEM reporting checklist — Decision Points 8 and 9</h3>
+        <div id="reportingChecklist" class="checklist"></div>
+      </div>
+      <div class="card span-6">
+        <h3>Module 17. Results table generator</h3>
+        <button onclick="generateResultsTables()" class="no-print">Generate editable tables</button>
+        <div id="generatedTables"></div>
+      </div>
+      <div class="card span-12">
+        <h3>Module 18. Manuscript text generator</h3>
+        <div class="button-row no-print"><button onclick="generateManuscriptText()">Generate draft text</button><button onclick="copyElementText('manuscriptText')">Copy text</button></div>
+        <div id="manuscriptText" class="report-box"></div>
+      </div>
+    </div>
+  </section>
+
+  <section id="reviewer" class="section">
+    <div class="card">
+      <h2>Module 19. Reviewer/editor audit mode</h2>
+      <p class="help">Use this mode to evaluate a submitted MASEM or meta-analytic path analysis manuscript. The flags combine automatic checks from your data and manual reviewer judgments.</p>
+      <div class="button-row no-print"><button onclick="runReviewerAudit()">Run reviewer audit</button></div>
+    </div>
+    <div class="grid">
+      <div class="card span-6"><h3>Manual reviewer flags</h3><div id="reviewerFlags" class="checklist"></div></div>
+      <div class="card span-6"><h3>Audit output</h3><div id="reviewerOutput" class="report-box"></div></div>
+    </div>
+  </section>
+
+  <section id="report" class="section">
+    <div class="card">
+      <h2>Module 20. Final readiness report</h2>
+      <div class="button-row no-print"><button onclick="renderFinalReport()">Refresh report</button><button onclick="copyElementText('finalReport')">Copy report text</button><button onclick="exportReportHTML()">Export clean HTML report</button></div>
+      <div id="finalReport" class="report-box"></div>
+    </div>
+  </section>
+
+  <section id="about" class="section">
+    <div class="card">
+      <h2>About and credit</h2>
+      <p>This interactive tool operationalizes guidance on using meta-analytic structural equation modeling to advance management and strategy research. It is designed as a practical, offline study builder for researchers, reviewers, and editors.</p>
+      <div class="notice info"><strong>Credited source:</strong><br>Aguinis, H. 2025. <em>Research methodology: Best practices for rigorous, credible, and impactful research</em>. SAGE. https://collegepublishing.sagepub.com/products/research-methodology-1-280088</div>
+      <p>Core caution: MASEM can compare theoretically meaningful alternative models and mediation chains using accumulated correlational evidence, but it cannot fix weak construct validity, sparse primary-study correlations, excessive missing-cell substitution, sample dependency, or causal identification limits in nonexperimental primary studies.</p>
+    </div>
+  </section>
+
+  <div class="footer">
+    <strong>Credit:</strong> Aguinis, H. 2025. <em>Research methodology: Best practices for rigorous, credible, and impactful research</em>. SAGE. https://collegepublishing.sagepub.com/products/research-methodology-1-280088<br>
+    This tool operationalizes guidance on using meta-analytic structural equation modeling to advance management and strategy research. It is an offline planning, auditing, and reporting aid; it does not replace dedicated meta-analysis or SEM software.
+  </div>
+</main>
+<script>
+const STORAGE_KEY='masemStudyBuilderState_v1';
+const decisionPoint1=[
+  'Variables, focal relationships, and competing models specified.',
+  'Models grounded in exhaustive review of theory and empirical literature.',
+  'Outcome predicted by two or more antecedents.',
+  'Predictor covariation considered.',
+  'Mediation ordering explicitly justified.',
+  'A priori versus post hoc status disclosed.',
+  'Omitted-variable and endogeneity threats considered.'
+];
+const dependencyItems=[
+  'Same dataset used in multiple studies',
+  'Same sample reported across multiple articles',
+  'Multiple effects from the same study',
+  'Same database dominates a construct pair',
+  'Sample overlap is unknown',
+  'Effect sizes are not independent'
+];
+const reportingItems=[
+  'Full description of search strategy','Inclusion and exclusion criteria','Coding procedures','Coder training and reliability','How studies were obtained','How constructs were defined and coded','How missing cells were handled','Full meta-analytic correlation matrix','For every correlation: estimate, 95% CI, k, and N','Credibility intervals where appropriate','Reliability assumptions and corrections','SEM input matrix','Sample size used for SEM and why','Positive-definiteness check','Sample-dependency decisions','Fit indices for each tested model','Standardized coefficients','Standard errors','p-values','95% confidence intervals','Model figures','Formal coefficient comparisons where applicable','Model-comparison logic','Endogeneity assessment','Causal-claim disclaimer','Distinction between a priori and post hoc models','If only observed variables are used, label as meta-analytic path analysis'
+];
+const endoThreats=['Omitted variables','Measurement error','Autoregression','Selection bias','Simultaneous causality','Reverse causality','Prior outcome influencing predictors','Lack of temporal ordering','Nonexperimental primary studies'];
+const endoActions=['Used lagged data where available','Tested alternative variable orderings','Included broader variables to reduce omitted-variable concerns','Tested competing models','Examined measurement error','Checked whether prior outcome affects predictors','Conducted sensitivity analyses','Limited claims to model fit and theoretical plausibility','Avoided direct causal language'];
+const reviewerFlagItems=['No competing models','Insufficient literature base','Construct mismatch','Missing cells handled poorly','Excessive imputation','Surrogate variables overused','Nonpositive definite matrix','Dependency not addressed','Fit judged only by chi-square','Fit cutoffs applied mechanically','No full correlation matrix','No k and N for each cell','No confidence intervals','No coefficient table','Causal claims overstated','Post hoc model presented as a priori','Observed-only model mislabeled as full MASEM'];
+let state=defaultState();
+let saveTimer=null;
+function defaultState(){return{project:{title:'',domain:'',purpose:''},scope:{},constructs:[],models:[],search:{},flow:{},coding:{studies:[]},effects:[],missing:[],samples:{raw:'',stats:null},matrix:{values:{},details:{}},dependency:{flags:{},notes:''},sem:{},fitModels:[],suitability:{},endogeneity:{threats:{},actions:{}},reporting:{},reviewer:{flags:{}},ui:{selectedModel:'',showCovariances:false}}}
+function esc(s){return String(s ?? '').replace(/[&<>'"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c]));}
+function uid(prefix='id'){return prefix+'_'+Math.random().toString(36).slice(2,10)}
+function getPath(obj,path){return path.split('.').reduce((o,k)=>o?o[k]:undefined,obj)}
+function setPath(obj,path,value){const parts=path.split('.');let cur=obj;for(let i=0;i<parts.length-1;i++){if(!cur[parts[i]])cur[parts[i]]={};cur=cur[parts[i]];}cur[parts[parts.length-1]]=value}
+function showTab(id,btn){document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));document.getElementById(id).classList.add('active');document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));if(btn)btn.classList.add('active');window.scrollTo({top:0,behavior:'smooth'});}
+function init(){
+  const saved=localStorage.getItem(STORAGE_KEY); if(saved){try{state=Object.assign(defaultState(),JSON.parse(saved));}catch(e){state=defaultState();}}
+  buildStaticChecklists(); bindInputs(); hydrateInputs(); renderAll(); computeSamples(false);
+  document.getElementById('importFile').value='';
+}
+function buildStaticChecklists(){
+  document.getElementById('dp1Checklist').innerHTML=decisionPoint1.map((t,i)=>checkHTML(`dp1.${i}`,t)).join('');
+  document.getElementById('dependencyChecklist').innerHTML=dependencyItems.map((t,i)=>checkHTML(`dependency.flags.${i}`,t)).join('')+'<div class="notice info"><strong>Remedies:</strong> include all substantively relevant correlations, derive defensible composites, choose larger overlapping samples when appropriate, consider GLS, random-effects, or multilevel meta-analytic approaches, and disclose every dependency decision.</div>';
+  document.getElementById('reportingChecklist').innerHTML=reportingItems.map((t,i)=>checkHTML(`reporting.${i}`,t)).join('');
+  document.getElementById('endogeneityThreats').innerHTML=endoThreats.map((t,i)=>checkHTML(`endogeneity.threats.${i}`,t)).join('');
+  document.getElementById('endogeneityActions').innerHTML=endoActions.map((t,i)=>checkHTML(`endogeneity.actions.${i}`,t)).join('');
+  document.getElementById('reviewerFlags').innerHTML=reviewerFlagItems.map((t,i)=>checkHTML(`reviewer.flags.${i}`,t)).join('');
+}
+function checkHTML(path,text){return `<label class="check-row"><input type="checkbox" data-path="${path}"> <span>${esc(text)}</span></label>`}
+function bindInputs(){
+  document.body.addEventListener('input',e=>{const el=e.target;if(el.dataset && el.dataset.path){updateFromInput(el);scheduleSave();renderAllSoft();}});
+  document.body.addEventListener('change',e=>{const el=e.target;if(el.dataset && el.dataset.path){updateFromInput(el);scheduleSave();renderAllSoft();}});
+}
+function hydrateInputs(){
+  document.querySelectorAll('[data-path]').forEach(el=>{const v=getPath(state,el.dataset.path); if(el.type==='checkbox')el.checked=!!v; else if(v!==undefined)el.value=v;});
+  const sc=document.getElementById('showCovariances'); if(sc) sc.checked=!!state.ui.showCovariances;
+}
+function updateFromInput(el){let v=el.type==='checkbox'?el.checked:el.value; setPath(state,el.dataset.path,v);}
+function scheduleSave(){clearTimeout(saveTimer); saveTimer=setTimeout(()=>saveState(false),450)}
+function saveState(manual=false){state.ui.showCovariances=document.getElementById('showCovariances')?.checked||false; localStorage.setItem(STORAGE_KEY,JSON.stringify(state)); document.getElementById('autosaveStatus').textContent=(manual?'Saved ':'Autosaved ')+new Date().toLocaleTimeString();}
+function resetAll(){if(confirm('Reset all saved project data in this browser?')){localStorage.removeItem(STORAGE_KEY);state=defaultState();document.querySelectorAll('input,textarea,select').forEach(el=>{if(el.type==='checkbox')el.checked=false;else el.value='';});renderAll();saveState(true);}}
+function exportJSON(){saveState();downloadFile((state.project.title||'masem_project').replace(/[^a-z0-9]+/gi,'_')+'.json',JSON.stringify(state,null,2),'application/json')}
+function importJSON(e){const f=e.target.files[0]; if(!f)return; const r=new FileReader(); r.onload=()=>{try{state=Object.assign(defaultState(),JSON.parse(r.result)); saveState(true); hydrateInputs(); renderAll(); alert('Project imported.');}catch(err){alert('Could not import JSON: '+err.message)}}; r.readAsText(f);}
+function downloadFile(name,content,type='text/plain'){const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([content],{type}));a.download=name;document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove();},500)}
+function renderAllSoft(){renderDashboard(); renderAppropriateness(); renderFlow(); renderScores();}
+function renderAll(){hydrateInputs();renderConstructs();renderModels();renderSelects();renderPaths();renderStudyRows();renderEffectRows();renderMissingRows();renderMatrix();renderFitModels();renderSuitabilityRows();renderAppropriateness();renderFlow();renderDashboard();renderScores();generateSyntax(false);renderCausalStatement();}
+function renderDashboard(){
+  document.getElementById('dashTitle').textContent=state.project.title||'Untitled'; document.getElementById('dashDomain').textContent=state.project.domain||'—'; document.getElementById('dashConstructs').textContent=state.constructs.length; document.getElementById('dashModels').textContent=state.models.length;
+  const cells=matrixStats(); document.getElementById('dashCells').textContent=`${cells.complete} / ${cells.total}`;
+}
+function labelClass(score){return score>=75?'good':score>=45?'warn':'bad'}
+function labelText(score){return score>=75?'Green: strong':score>=45?'Yellow: needs attention':'Red: serious concern'}
+function setPill(id,score){const el=document.getElementById(id); el.className='pill '+labelClass(score); el.textContent=score>=75?'Green':score>=45?'Yellow':'Red'}
+function renderScores(){const s=computeScores();
+  ['Appropriate','Data','Matrix','Model','Report','Causal'].forEach(k=>{document.getElementById('score'+k).textContent=s[k.toLowerCase()];setPill('pill'+k,s[k.toLowerCase()]);});
+  document.getElementById('dashReadiness').textContent=s.appropriate; document.getElementById('readinessLabel').textContent=labelText(s.appropriate); document.getElementById('dashTransparency').textContent=s.report; document.getElementById('transparencyLabel').textContent=labelText(s.report); document.getElementById('dashCaution').textContent=s.causal; document.getElementById('cautionLabel').textContent=labelText(s.causal);
+}
+function countTruthy(obj){return Object.values(obj||{}).filter(Boolean).length}
+function computeScores(){
+  let appropriate=0; if(state.scope.question)appropriate+=10; if(state.scope.theories)appropriate+=10; if((state.scope.competing||'').includes('Yes'))appropriate+=20; else if((state.scope.competing||'').includes('Some'))appropriate+=10; if(['Mediation','Competing models','Theoretical integration','Theory comparison','Model refinement'].includes(state.scope.purpose))appropriate+=15; if((state.scope.maturity||'').includes('Mature'))appropriate+=15; else if((state.scope.maturity||'').includes('Moderately'))appropriate+=8; if(state.constructs.length>=3)appropriate+=10; if(state.models.length>=2)appropriate+=10; appropriate+=Math.min(10,countTruthy(state.dp1||{})*2);
+  const effects=state.effects||[]; const effectComplete=effects.filter(e=>num(e.r)!==null||num(e.rho)!==null).length; const nkComplete=effects.filter(e=>num(e.N)&&num(e.k)).length; let data=0; if(state.search.databases)data+=10;if(state.search.terms)data+=10;if(state.search.inclusion&&state.search.exclusion)data+=10;if(state.coding.protocol)data+=10;if((state.coding.studies||[]).length)data+=10; data+=Math.min(25,effectComplete*4); data+=Math.min(15,nkComplete*3); data+=Math.min(10,state.missing.length*2);
+  const ms=matrixStats(); const matrix=ms.total?Math.round((ms.complete/ms.total)*75 + (ms.hasImpossible?0:15)+(ms.missingKN?0:10)):0;
+  let model=0; if(state.models.length>=2)model+=25; if(state.models.some(m=>m.status==='A priori'))model+=15; if(state.models.some(m=>(m.type||'').includes('mediated')||(m.type||'').includes('Mediated')))model+=10; if(state.fitModels.length>=2)model+=20; if(state.fitModels.some(f=>num(f.CFI)||num(f.RMSEA)||num(f.AIC)||num(f.BIC)))model+=15; if(state.fitModels.some(f=>f.meaningful==='Yes'))model+=10; if(state.sem.software)model+=5;
+  const report=Math.round((countTruthy(state.reporting)/reportingItems.length)*100)||0;
+  const threats=countTruthy(state.endogeneity.threats); const actions=countTruthy(state.endogeneity.actions); let causal=0; if(threats)causal+=20; causal+=Math.min(55,actions*7); if(state.endogeneity.actions && state.endogeneity.actions[7])causal+=15; if(state.endogeneity.actions && state.endogeneity.actions[8])causal+=10; if(!threats && actions===0)causal=20;
+  return {appropriate:cap(appropriate),data:cap(data),matrix:cap(matrix),model:cap(model),report:cap(report),causal:cap(causal)};
+}
+function cap(n){return Math.max(0,Math.min(100,Math.round(n||0)))}
+function num(v){if(v===null||v===undefined||v==='')return null; const n=Number(v); return Number.isFinite(n)?n:null}
+function addConstruct(){state.constructs.push({id:uid('c'),name:'',role:'Antecedent',kind:'Latent construct',conceptual:'',operational:'',acceptable:'',unacceptable:'',reliability:'',measurementError:'',endogeneity:'',validityNotes:'',alignment:{}});renderAll();saveState();}
+function seedExampleConstructs(){if(state.constructs.length && !confirm('Append example constructs to current list?'))return;['CEO characteristics','Board monitoring','Firm performance'].forEach((n,i)=>state.constructs.push({id:uid('c'),name:n,role:i===2?'Outcome':i===1?'Mediator':'Antecedent',kind:i===2?'Observed variable/indicator':'Latent construct',conceptual:'',operational:'',acceptable:'',unacceptable:'',reliability:'',measurementError:'',endogeneity:'',validityNotes:'',alignment:{}}));renderAll();saveState();}
+function constructOptions(selected=''){return state.constructs.map(c=>`<option value="${c.id}" ${c.id===selected?'selected':''}>${esc(c.name||'(unnamed construct)')}</option>`).join('')}
+function renderConstructs(){const root=document.getElementById('constructList'); if(!state.constructs.length){root.innerHTML='<div class="notice warn">No constructs added yet. Add at least three constructs when testing mediation or competing model structures.</div>';return;} root.innerHTML=state.constructs.map((c,i)=>`
+  <details open class="construct-card"><summary>Construct ${i+1}: ${esc(c.name||'Unnamed')}</summary>
+  <div class="form-grid">
+    <div class="span-3"><label>Name</label><input value="${esc(c.name)}" oninput="state.constructs[${i}].name=this.value;scheduleSave();renderSelects();renderDashboard();"></div>
+    <div class="span-2"><label>Role</label><select onchange="state.constructs[${i}].role=this.value;scheduleSave();"><option ${c.role==='Antecedent'?'selected':''}>Antecedent</option><option ${c.role==='Mediator'?'selected':''}>Mediator</option><option ${c.role==='Outcome'?'selected':''}>Outcome</option><option ${c.role==='Control/covariate'?'selected':''}>Control/covariate</option></select></div>
+    <div class="span-3"><label>Type</label><select onchange="state.constructs[${i}].kind=this.value;scheduleSave();renderObservedWarning();renderSVG();"><option ${c.kind==='Latent construct'?'selected':''}>Latent construct</option><option ${c.kind==='Observed variable/indicator'?'selected':''}>Observed variable/indicator</option></select></div>
+    <div class="span-2"><label>Measurement error likely?</label><select onchange="state.constructs[${i}].measurementError=this.value;scheduleSave();"><option></option><option ${c.measurementError==='Yes'?'selected':''}>Yes</option><option ${c.measurementError==='No'?'selected':''}>No</option><option ${c.measurementError==='Unclear'?'selected':''}>Unclear</option></select></div>
+    <div class="span-2"><label>Endogeneity concern?</label><select onchange="state.constructs[${i}].endogeneity=this.value;scheduleSave();"><option></option><option ${c.endogeneity==='Yes'?'selected':''}>Yes</option><option ${c.endogeneity==='No'?'selected':''}>No</option><option ${c.endogeneity==='Unclear'?'selected':''}>Unclear</option></select></div>
+    <div class="span-6"><label>Conceptual definition</label><textarea oninput="state.constructs[${i}].conceptual=this.value;scheduleSave();">${esc(c.conceptual)}</textarea></div>
+    <div class="span-6"><label>Operational definition</label><textarea oninput="state.constructs[${i}].operational=this.value;scheduleSave();">${esc(c.operational)}</textarea></div>
+    <div class="span-4"><label>Acceptable measures</label><textarea oninput="state.constructs[${i}].acceptable=this.value;scheduleSave();">${esc(c.acceptable)}</textarea></div>
+    <div class="span-4"><label>Unacceptable measures</label><textarea oninput="state.constructs[${i}].unacceptable=this.value;scheduleSave();">${esc(c.unacceptable)}</textarea></div>
+    <div class="span-4"><label>Reliability assumption</label><textarea oninput="state.constructs[${i}].reliability=this.value;scheduleSave();">${esc(c.reliability)}</textarea></div>
+    <div class="span-12"><label>Construct-validity notes</label><textarea oninput="state.constructs[${i}].validityNotes=this.value;scheduleSave();">${esc(c.validityNotes)}</textarea></div>
+    <div class="span-12"><h4>Construct-alignment checklist</h4><div class="checklist">${['Operationalization matches the theoretical definition.','Construct is not merely a convenient surrogate.','Construct is measured consistently enough across studies.','Construct is not so broad that interpretation becomes ambiguous.','Inclusion/exclusion criteria are explicit.'].map((t,j)=>`<label class="check-row"><input type="checkbox" ${c.alignment&&c.alignment[j]?'checked':''} onchange="state.constructs[${i}].alignment=state.constructs[${i}].alignment||{};state.constructs[${i}].alignment[${j}]=this.checked;scheduleSave();renderScores();"> <span>${esc(t)}</span></label>`).join('')}</div></div>
+    <div class="span-12"><button class="danger small" onclick="deleteConstruct(${i})">Delete construct</button></div>
+  </div></details>`).join(''); renderObservedWarning();}
+function deleteConstruct(i){const id=state.constructs[i].id; state.constructs.splice(i,1); state.models.forEach(m=>{m.paths=(m.paths||[]).filter(p=>p.from!==id&&p.to!==id)}); Object.keys(state.matrix.values).forEach(k=>{if(k.includes(id))delete state.matrix.values[k]});renderAll();saveState();}
+function renderObservedWarning(){const el=document.getElementById('observedOnlyWarning'); if(!el)return; if(!state.constructs.length){el.textContent='Add constructs to determine whether the analysis should be described as full MASEM or meta-analytic path analysis.';el.className='notice info';return;} const allObs=state.constructs.every(c=>c.kind==='Observed variable/indicator'); el.textContent=allObs?'All variables are observed. Label the analysis as meta-analytic path analysis rather than full MASEM.':'At least one construct is latent. Use ovals for latent variables and rectangles for observed indicators in model figures.'; el.className='notice '+(allObs?'warn':'good');}
+function addModel(){state.models.push({id:uid('m'),name:'',theory:'',status:'A priori',type:'Direct-effect',paths:[],rationale:'',testsAlternative:'',endogeneity:''}); state.ui.selectedModel=state.models[state.models.length-1].id; renderAll();saveState();}
+function renderModels(){const root=document.getElementById('modelList'); if(!state.models.length){root.innerHTML='<div class="notice warn">No models added yet. MASEM is strongest when comparing competing theoretical models or mediation chains.</div>';return;} root.innerHTML=state.models.map((m,i)=>`<details ${i===0?'open':''}><summary>Model ${i+1}: ${esc(m.name||'Unnamed')} <span class="pill ${m.status==='A priori'?'good':'warn'}">${esc(m.status||'status')}</span></summary><div class="form-grid">
+  <div class="span-3"><label>Model name</label><input value="${esc(m.name)}" oninput="state.models[${i}].name=this.value;scheduleSave();renderSelects();renderDashboard();"></div>
+  <div class="span-3"><label>Theory represented</label><input value="${esc(m.theory)}" oninput="state.models[${i}].theory=this.value;scheduleSave();"></div>
+  <div class="span-3"><label>A priori or post hoc?</label><select onchange="state.models[${i}].status=this.value;scheduleSave();renderModels();renderScores();"><option ${m.status==='A priori'?'selected':''}>A priori</option><option ${m.status==='Post hoc'?'selected':''}>Post hoc</option></select></div>
+  <div class="span-3"><label>Model type</label><select onchange="state.models[${i}].type=this.value;scheduleSave();renderScores();"><option ${m.type==='Direct-effect'?'selected':''}>Direct-effect</option><option ${m.type==='Mediated'?'selected':''}>Mediated</option><option ${m.type==='Partially mediated'?'selected':''}>Partially mediated</option><option ${m.type==='Reverse-order'?'selected':''}>Reverse-order</option><option ${m.type==='Alternative model'?'selected':''}>Alternative model</option></select></div>
+  <div class="span-4"><label>Hypothesized paths summary</label><textarea oninput="state.models[${i}].rationale=this.value;scheduleSave();">${esc(m.rationale)}</textarea></div>
+  <div class="span-4"><label>Different mediator ordering, direction, or mechanism?</label><textarea oninput="state.models[${i}].testsAlternative=this.value;scheduleSave();">${esc(m.testsAlternative)}</textarea></div>
+  <div class="span-4"><label>Alternative explanations or endogeneity addressed?</label><textarea oninput="state.models[${i}].endogeneity=this.value;scheduleSave();">${esc(m.endogeneity)}</textarea></div>
+  <div class="span-12"><button class="danger small" onclick="deleteModel(${i})">Delete model</button></div>
+</div></details>`).join('');}
+function deleteModel(i){state.models.splice(i,1); if(!state.models.find(m=>m.id===state.ui.selectedModel))state.ui.selectedModel=state.models[0]?.id||'';renderAll();saveState();}
+function renderSelects(){
+  const msel=document.getElementById('selectedModel'); if(msel){msel.innerHTML=state.models.map(m=>`<option value="${m.id}" ${m.id===state.ui.selectedModel?'selected':''}>${esc(m.name||'(unnamed model)')}</option>`).join(''); if(!state.ui.selectedModel&&state.models[0])state.ui.selectedModel=state.models[0].id; msel.value=state.ui.selectedModel;}
+  ['fromConstruct','toConstruct','cellA','cellB'].forEach(id=>{const el=document.getElementById(id); if(el){const old=el.value;el.innerHTML='<option value=""></option>'+constructOptions(old);el.value=old;}});
+}
+function selectedModel(){const id=document.getElementById('selectedModel')?.value||state.ui.selectedModel; state.ui.selectedModel=id; return state.models.find(m=>m.id===id);}
+function addPathToSelectedModel(){const m=selectedModel(); if(!m){alert('Add or select a model first.');return;} const from=document.getElementById('fromConstruct').value; const to=document.getElementById('toConstruct').value; if(!from||!to||from===to){alert('Choose two different constructs.');return;} m.paths=m.paths||[]; m.paths.push({from,to,rationale:'',covariance:false}); renderPaths(); renderSVG(); generateSyntax(false); saveState();}
+function renderPaths(){const tbody=document.getElementById('pathTable'); if(!tbody)return; const m=selectedModel(); if(!m){tbody.innerHTML='<tr><td colspan="4">No selected model.</td></tr>';renderSVG();return;} tbody.innerHTML=(m.paths||[]).map((p,i)=>`<tr><td>${esc(cname(p.from))} → ${esc(cname(p.to))}</td><td><textarea oninput="selectedModel().paths[${i}].rationale=this.value;scheduleSave();">${esc(p.rationale)}</textarea></td><td><input type="checkbox" ${p.covariance?'checked':''} onchange="selectedModel().paths[${i}].covariance=this.checked;scheduleSave();renderSVG();"></td><td><button class="danger small" onclick="selectedModel().paths.splice(${i},1);renderPaths();renderSVG();saveState();">Delete</button></td></tr>`).join('')||'<tr><td colspan="4">No paths added.</td></tr>'; renderSVG();}
+function cname(id){return state.constructs.find(c=>c.id===id)?.name||'(unnamed)'}
+function ckind(id){return state.constructs.find(c=>c.id===id)?.kind||'Latent construct'}
+function renderSVG(){const svg=document.getElementById('modelSVG'); if(!svg)return; const m=selectedModel(); const W=900,H=420; svg.setAttribute('viewBox',`0 0 ${W} ${H}`); let html=`<defs><marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" fill="#1d5f8f"></path></marker></defs>`; if(!m||!state.constructs.length){svg.innerHTML=html+`<text x="30" y="50" fill="#5f6878">Add constructs and model paths to render the model.</text>`;return;} const nodes=state.constructs; const spacing=W/(nodes.length+1); const pos={}; nodes.forEach((c,i)=>{pos[c.id]={x:spacing*(i+1),y:H/2+(i%2?45:-45)}});
+  (m.paths||[]).forEach(p=>{if(!pos[p.from]||!pos[p.to])return; const a=pos[p.from],b=pos[p.to]; if(p.covariance&&!document.getElementById('showCovariances')?.checked)return; html+=`<line x1="${a.x}" y1="${a.y}" x2="${b.x}" y2="${b.y}" stroke="${p.covariance?'#68778a':'#1d5f8f'}" stroke-width="${p.covariance?2:3}" ${p.covariance?'stroke-dasharray="6 6"':''} marker-end="url(#arrow)"></line>`});
+  nodes.forEach(c=>{const p=pos[c.id], label=esc(c.name||'Unnamed'); if(c.kind==='Observed variable/indicator') html+=`<rect x="${p.x-74}" y="${p.y-26}" width="148" height="52" rx="8" fill="#fff" stroke="#0d2f4a" stroke-width="2"></rect>`; else html+=`<ellipse cx="${p.x}" cy="${p.y}" rx="82" ry="34" fill="#fff" stroke="#0d2f4a" stroke-width="2"></ellipse>`; html+=`<text x="${p.x}" y="${p.y+5}" text-anchor="middle" font-family="Arial" font-size="14" fill="#172033">${label.substring(0,24)}</text>`});
+  svg.innerHTML=html;
+}
+function exportSVG(){const svg=document.getElementById('modelSVG'); if(!svg){return;} const xml='<?xml version="1.0" encoding="UTF-8"?>\n'+svg.outerHTML; downloadFile((selectedModel()?.name||'masem_model')+'.svg',xml,'image/svg+xml')}
+function renderAppropriateness(){const el=document.getElementById('appropriatenessScreener'); if(!el)return; const notes=[]; let cls='info'; if((state.scope.competing||'').includes('Yes')||['Mediation','Competing models','Theory comparison','Model refinement'].includes(state.scope.purpose)){notes.push('Strong rationale: MASEM is well suited to competing theoretical models, mediation chains, alternative orderings, and model refinement.');cls='good'} else {notes.push('Caution: MASEM is less compelling when there are no competing models, mediation chains, or alternative theoretical structures.');cls='warn'}
+  if((state.scope.maturity||'').includes('Emergent')){notes.push('Serious concern: an emergent domain may have too little prior empirical evidence for feasible matrix construction.');cls='bad'}
+  if(state.constructs.length<3){notes.push('Add at least three constructs when testing mediation or comparing richer model structures.');}
+  if(state.effects.length && matrixStats().complete<matrixStats().total){notes.push('Some matrix cells are missing. Document DP2 decisions before proceeding.');}
+  notes.push('MASEM cannot fix weak construct validity in primary studies and should not be used for strong causal claims unless the included studies are experimental.');
+  el.className='notice '+cls; el.innerHTML='<strong>Preliminary verdict:</strong><br>'+notes.map(n=>'• '+esc(n)).join('<br>');
+}
+function renderFlow(){const el=document.getElementById('flowSummary'); if(!el)return; const f=state.flow||{}; el.innerHTML=`<strong>Flow summary:</strong> ${esc(f.identified||0)} records identified, ${esc(f.screened||0)} screened, ${esc(f.excluded||0)} excluded, and ${esc(f.retained||0)} retained. <br>${esc(f.notes||'Add notes on search, screening, and retention decisions.')}`;}
+function addStudyRow(){state.coding.studies=state.coding.studies||[];state.coding.studies.push({});renderStudyRows();saveState();}
+function renderStudyRows(){const tb=document.getElementById('studyRows'); if(!tb)return; const arr=state.coding.studies||[]; tb.innerHTML=arr.map((r,i)=>`<tr>${['id','authors','sample','context','design','constructs','correlations','N','reliability','effectNotes','measurementNotes','endogeneityNotes','overlapNotes'].map(k=>`<td><textarea oninput="state.coding.studies[${i}]['${k}']=this.value;scheduleSave();renderScores();">${esc(r[k])}</textarea></td>`).join('')}<td><button class="danger small" onclick="state.coding.studies.splice(${i},1);renderStudyRows();saveState();renderScores();">Delete</button></td></tr>`).join('')||'<tr><td colspan="14">No coded study rows yet.</td></tr>';}
+function addEffectRow(v1='',v2=''){state.effects.push({v1,v2,r:'',rho:'',rel1:'',rel2:'',N:'',k:'',ciLo:'',ciHi:'',cvLo:'',cvHi:'',notes:'',sourceType:''});renderEffectRows();renderMatrix();saveState();}
+function generateEffectPairs(){const cs=state.constructs; for(let i=0;i<cs.length;i++)for(let j=i+1;j<cs.length;j++){if(!state.effects.some(e=>(e.v1===cs[i].id&&e.v2===cs[j].id)||(e.v1===cs[j].id&&e.v2===cs[i].id)))state.effects.push({v1:cs[i].id,v2:cs[j].id,r:'',rho:'',rel1:'',rel2:'',N:'',k:'',ciLo:'',ciHi:'',cvLo:'',cvHi:'',notes:'',sourceType:''});}renderEffectRows();renderMatrix();saveState();}
+function renderEffectRows(){const tb=document.getElementById('effectRows'); if(!tb)return; tb.innerHTML=(state.effects||[]).map((e,i)=>`<tr>
+  <td><select onchange="state.effects[${i}].v1=this.value;scheduleSave();renderSuitabilityRows();">${'<option></option>'+constructOptions(e.v1)}</select></td>
+  <td><select onchange="state.effects[${i}].v2=this.value;scheduleSave();renderSuitabilityRows();">${'<option></option>'+constructOptions(e.v2)}</select></td>
+  ${['r','rho','rel1','rel2','N','k','ciLo','ciHi','cvLo','cvHi'].map(k=>`<td><input type="number" step="0.001" value="${esc(e[k])}" oninput="state.effects[${i}]['${k}']=this.value;scheduleSave();renderScores();"></td>`).join('')}
+  <td><textarea oninput="state.effects[${i}].notes=this.value;scheduleSave();">${esc(e.notes)}</textarea></td>
+  <td><select onchange="state.effects[${i}].sourceType=this.value;scheduleSave();"><option></option><option ${e.sourceType==='Prior meta-analysis'?'selected':''}>Prior meta-analysis</option><option ${e.sourceType==='Original coding'?'selected':''}>Original coding</option><option ${e.sourceType==='Imputed/substituted'?'selected':''}>Imputed/substituted</option></select></td>
+  <td><button class="danger small" onclick="state.effects.splice(${i},1);renderEffectRows();renderMatrix();renderSuitabilityRows();saveState();renderScores();">Delete</button></td>
+</tr>`).join('')||'<tr><td colspan="15">No effect-size rows yet.</td></tr>';}
+function exportEffectsCSV(){const rows=[['Variable 1','Variable 2','Observed r','Corrected rho','Reliability V1','Reliability V2','N','k','95 CI low','95 CI high','80 CV low','80 CV high','Notes','Source type']]; state.effects.forEach(e=>rows.push([cname(e.v1),cname(e.v2),e.r,e.rho,e.rel1,e.rel2,e.N,e.k,e.ciLo,e.ciHi,e.cvLo,e.cvHi,e.notes,e.sourceType])); downloadFile('masem_effect_size_table.csv',csv(rows),'text/csv');}
+function addMissingDecision(){const m={cell:val('missingCellLabel'),solution:val('missingSolution'),justification:val('missingJustification'),actual:val('usesActualData'),manipulation:val('introducesManipulation'),disclosure:val('disclosurePlan')}; if(!m.cell||!m.solution){alert('Enter a missing cell and chosen solution.');return;} state.missing.push(m); ['missingCellLabel','missingSolution','missingJustification','usesActualData','introducesManipulation','disclosurePlan'].forEach(id=>document.getElementById(id).value=''); renderMissingRows();saveState();renderScores();}
+function val(id){return document.getElementById(id)?.value||''}
+function renderMissingRows(){const tb=document.getElementById('missingRows'); if(!tb)return; tb.innerHTML=(state.missing||[]).map((m,i)=>{const risk=(m.solution||'').startsWith('1')||(m.solution||'').startsWith('2')||(m.solution||'').startsWith('3')?'Lower risk':(m.solution||'').startsWith('10')?'Scope limit':'Higher risk'; const cls=risk==='Lower risk'?'good':risk==='Scope limit'?'warn':'bad';return `<tr><td>${esc(m.cell)}</td><td>${esc(m.solution)}</td><td>${esc(m.justification)}</td><td>${esc(m.actual)}</td><td>${esc(m.manipulation)}</td><td>${esc(m.disclosure)}</td><td><span class="pill ${cls}">${risk}</span></td><td><button class="danger small" onclick="state.missing.splice(${i},1);renderMissingRows();saveState();renderScores();">Delete</button></td></tr>`}).join('')||'<tr><td colspan="8">No missing-cell decisions documented.</td></tr>';}
+function computeSamples(save=true){const raw=state.samples.raw||''; const vals=raw.split(/[\s,;]+/).map(Number).filter(n=>Number.isFinite(n)&&n>0); const el=document.getElementById('sampleResults'); if(!el)return; if(!vals.length){el.className='notice info';el.innerHTML='Formula: harmonic mean = k / (1/N1 + 1/N2 + ... + 1/Nk). Recommended default: harmonic mean.';return;} const k=vals.length, harmonic=k/vals.reduce((s,n)=>s+1/n,0), sorted=[...vals].sort((a,b)=>a-b), median=k%2?sorted[(k-1)/2]:(sorted[k/2-1]+sorted[k/2])/2, mean=vals.reduce((s,n)=>s+n,0)/k, min=sorted[0]; state.samples.stats={k,harmonic,min,median,mean}; const warn=mean>harmonic*1.5; el.className='notice '+(warn?'warn':'good'); el.innerHTML=`<strong>Recommended SEM sample size default: harmonic mean = ${fmt(harmonic)}</strong><br>k = ${k}; smallest N = ${fmt(min)}; median N = ${fmt(median)}; arithmetic mean = ${fmt(mean)}.${warn?'<br><strong>Warning:</strong> the arithmetic mean is much larger than the harmonic mean, so it may overstate available information.':''}`; if(!state.sem.sampleSize)state.sem.sampleSize=Math.round(harmonic); if(save)saveState();}
+function loadNsFromEffects(){state.samples.raw=state.effects.map(e=>e.N).filter(Boolean).join(', '); document.getElementById('sampleNs').value=state.samples.raw; computeSamples();hydrateInputs();}
+function fmt(n){return Number(n).toLocaleString(undefined,{maximumFractionDigits:2})}
+function key(a,b){return [a,b].sort().join('|')}
+function matrixStats(){const cs=state.constructs; let total=cs.length*(cs.length-1)/2, complete=0, hasImpossible=false, high=0, missingKN=0; for(let i=0;i<cs.length;i++)for(let j=i+1;j<cs.length;j++){const k=key(cs[i].id,cs[j].id), v=num(state.matrix.values[k]); if(v!==null){complete++; if(v<-1||v>1)hasImpossible=true; if(Math.abs(v)>.85)high++; const d=state.matrix.details[k]||{}; if(!num(d.k)||!num(d.N))missingKN++;}} return {total,complete,hasImpossible,high,missingKN};}
+function renderMatrix(){const table=document.getElementById('matrixTable'); if(!table)return; const cs=state.constructs; if(!cs.length){table.innerHTML='<tr><td>Add constructs to create a matrix.</td></tr>';return;} let html='<thead><tr><th></th>'+cs.map(c=>`<th>${esc(c.name||'Unnamed')}</th>`).join('')+'</tr></thead><tbody>'; cs.forEach((r,i)=>{html+=`<tr><th>${esc(r.name||'Unnamed')}</th>`; cs.forEach((c,j)=>{if(i===j) html+='<td>1.00</td>'; else {const k=key(r.id,c.id), v=state.matrix.values[k]??'', n=num(v); const cls=n===null?'cell-missing':(n<-1||n>1?'cell-bad':'cell-good'); html+=`<td class="${cls}"><input type="number" step="0.001" value="${esc(v)}" aria-label="Correlation ${esc(r.name)} with ${esc(c.name)}" oninput="state.matrix.values['${k}']=this.value;scheduleSave();renderMatrixAudit();renderDashboard();renderScores();"></td>`}}); html+='</tr>';}); html+='</tbody>'; table.innerHTML=html; renderMatrixAudit(); renderCellSelectors();}
+function renderCellSelectors(){['cellA','cellB'].forEach(id=>{const el=document.getElementById(id); if(!el)return; const old=el.value; el.innerHTML='<option></option>'+constructOptions(old); el.value=old;});}
+function loadMatrixFromEffects(){state.effects.forEach(e=>{if(e.v1&&e.v2){const v=e.rho||e.r;if(v!=='')state.matrix.values[key(e.v1,e.v2)]=v; state.matrix.details[key(e.v1,e.v2)]={k:e.k,N:e.N,ciLo:e.ciLo,ciHi:e.ciHi,crLo:e.cvLo,crHi:e.cvHi,notes:e.notes};}});renderMatrix();saveState();renderScores();}
+function loadCellDetails(){const a=val('cellA'),b=val('cellB'); if(!a||!b||a===b)return; const d=state.matrix.details[key(a,b)]||{}; ['K','N','CILo','CIHi','CRLo','CRHi','Notes'].forEach(x=>{const prop={K:'k',N:'N',CILo:'ciLo',CIHi:'ciHi',CRLo:'crLo',CRHi:'crHi',Notes:'notes'}[x]; document.getElementById('cell'+x).value=d[prop]||'';});}
+function saveCellDetails(){const a=val('cellA'),b=val('cellB'); if(!a||!b||a===b)return; const k0=key(a,b); state.matrix.details[k0]={k:val('cellK'),N:val('cellN'),ciLo:val('cellCILo'),ciHi:val('cellCIHi'),crLo:val('cellCRLo'),crHi:val('cellCRHi'),notes:val('cellNotes')}; saveState(); renderMatrixAudit(); renderScores();}
+function renderMatrixAudit(){const el=document.getElementById('matrixAudit'); if(!el)return; const ms=matrixStats(); const cls=ms.hasImpossible?'bad':ms.complete<ms.total?'warn':'good'; const items=[]; items.push(ms.complete===ms.total?'Complete matrix':'Incomplete matrix'); items.push('Symmetry enforced automatically by shared cell storage.'); if(ms.hasImpossible)items.push('Impossible correlations outside [-1, 1] detected.'); if(ms.high)items.push(`${ms.high} very high correlation(s) may indicate multicollinearity or construct redundancy.`); if(ms.missingKN)items.push(`${ms.missingKN} completed cell(s) are missing k or N documentation.`); items.push('Diagonal values default to 1.00.'); el.className='notice '+cls; el.innerHTML='<strong>Matrix audit:</strong><br>'+items.map(i=>'• '+esc(i)).join('<br>');}
+function exportMatrixCSV(){const cs=state.constructs; const rows=[[''].concat(cs.map(c=>c.name||'Unnamed'))]; cs.forEach((r,i)=>rows.push([r.name||'Unnamed'].concat(cs.map((c,j)=>i===j?'1.00':state.matrix.values[key(r.id,c.id)]||'')))); downloadFile('masem_correlation_matrix.csv',csv(rows),'text/csv')}
+function exportMatrixText(){const cs=state.constructs; const mat=cs.map((r,i)=>cs.map((c,j)=>i===j?'1.00':state.matrix.values[key(r.id,c.id)]||'NA').join(' ')).join('\n'); const names=cs.map(c=>c.name||'Unnamed').join(', '); const text=`Construct order: ${names}\n\nR / lavaan-style matrix:\n${mat}\n\nMplus/Amos note: enter the same symmetric correlation matrix in the listed construct order and use the documented harmonic mean or justified SEM sample size.`; downloadFile('masem_matrix_syntax.txt',text,'text/plain')}
+function csv(rows){return rows.map(r=>r.map(v=>`"${String(v??'').replace(/"/g,'""')}"`).join(',')).join('\n')}
+function makeMatrixArray(){const cs=state.constructs; return cs.map((r,i)=>cs.map((c,j)=>i===j?1:Number(state.matrix.values[key(r.id,c.id)])));}
+function checkPositiveDefinite(){const el=document.getElementById('pdResult'); const ms=matrixStats(); if(!ms.total||ms.complete<ms.total||ms.hasImpossible){el.className='notice bad';el.innerHTML='The matrix is incomplete or contains impossible correlations. Complete and repair the matrix before relying on a positive-definiteness screening check.';return;} const A=makeMatrixArray(); const res=cholesky(A); el.className='notice '+(res.ok?'good':'bad'); el.innerHTML=res.ok?`<strong>Screening result: appears positive definite.</strong><br>Minimum Cholesky diagonal estimate: ${res.min.toFixed(6)}. Confirm in SEM software.`:`<strong>Screening result: possible nonpositive definite matrix.</strong><br>${esc(res.message)} Revisit sparse cells, high correlations, imputation/substitution, variable redundancy, and starting values in SEM software.`;}
+function cholesky(A){const n=A.length,L=Array.from({length:n},()=>Array(n).fill(0));let min=Infinity; for(let i=0;i<n;i++){for(let j=0;j<=i;j++){let sum=0;for(let k=0;k<j;k++)sum+=L[i][k]*L[j][k]; if(i===j){const val=A[i][i]-sum; if(val<=1e-10)return{ok:false,message:`Nonpositive pivot at row ${i+1}: ${val.toFixed(8)}`,min:val}; L[i][j]=Math.sqrt(val); min=Math.min(min,L[i][j]);}else{L[i][j]=(A[i][j]-sum)/L[j][j];}}} return{ok:true,min};}
+function addFitModel(){state.fitModels.push({name:'',chi:'',df:'',p:'',CFI:'',GFI:'',NFI:'',RMR:'',RMSEA:'',SRMR:'',AIC:'',BIC:'',notes:'',meaningful:'',simpler:''});renderFitModels();saveState();}
+function renderFitModels(){const tb=document.getElementById('fitRows'); if(!tb)return; const fields=['name','chi','df','p','CFI','GFI','NFI','RMR','RMSEA','SRMR','AIC','BIC','notes']; tb.innerHTML=(state.fitModels||[]).map((f,i)=>`<tr>${fields.map(k=>`<td>${k==='notes'?`<textarea oninput="state.fitModels[${i}].${k}=this.value;scheduleSave();renderScores();">${esc(f[k])}</textarea>`:`<input ${k==='name'?'type="text"':'type="number" step="0.001"'} value="${esc(f[k])}" oninput="state.fitModels[${i}].${k}=this.value;scheduleSave();renderFitComparison();renderScores();">`}</td>`).join('')}<td><select onchange="state.fitModels[${i}].meaningful=this.value;scheduleSave();renderScores();"><option></option><option ${f.meaningful==='Yes'?'selected':''}>Yes</option><option ${f.meaningful==='No'?'selected':''}>No</option></select></td><td><select onchange="state.fitModels[${i}].simpler=this.value;scheduleSave();"><option></option><option ${f.simpler==='Yes'?'selected':''}>Yes</option><option ${f.simpler==='No'?'selected':''}>No</option><option ${f.simpler==='Not applicable'?'selected':''}>Not applicable</option></select></td><td><button class="danger small" onclick="state.fitModels.splice(${i},1);renderFitModels();saveState();renderScores();">Delete</button></td></tr>`).join('')||'<tr><td colspan="16">No tested models entered.</td></tr>'; renderFitComparison();}
+function renderFitComparison(){const el=document.getElementById('fitComparison'); if(!el)return; const crit=document.getElementById('rankCriterion')?.value||'CFI'; const arr=[...state.fitModels].filter(f=>f.name).sort((a,b)=>{const av=num(a[crit]),bv=num(b[crit]); if(av===null)return 1;if(bv===null)return -1; return ['CFI','GFI','NFI'].includes(crit)?bv-av:av-bv}); let html='<strong>Model comparison:</strong><br>'; if(!arr.length){el.innerHTML=html+'Enter model fit indices to compare models.';return;} html+='Ranked by '+crit+': '+arr.map((f,i)=>`${i+1}. ${esc(f.name)} (${crit}=${esc(f[crit]||'NA')})`).join('; ')+'.'; if(state.fitModels.length>=2){const a=state.fitModels[0],b=state.fitModels[1]; const dchi=num(a.chi)!==null&&num(b.chi)!==null?Math.abs(num(a.chi)-num(b.chi)):null; const ddf=num(a.df)!==null&&num(b.df)!==null?Math.abs(num(a.df)-num(b.df)):null; if(dchi!==null&&ddf!==null)html+=`<br>Δχ² between first two rows = ${dchi.toFixed(3)} with Δdf = ${ddf}. Use only for properly nested models.`} el.innerHTML=html;}
+function renderSuitabilityRows(){const tb=document.getElementById('suitabilityRows'); if(!tb)return; tb.innerHTML=(state.effects||[]).map((e,i)=>{const id=key(e.v1||'v1'+i,e.v2||'v2'+i); const s=state.suitability[id]||{}; const select=(field,opts=['Yes','No','Unclear'])=>`<select onchange="state.suitability['${id}']=state.suitability['${id}']||{};state.suitability['${id}'].${field}=this.value;scheduleSave();renderSuitabilityRows();"><option></option>${opts.map(o=>`<option ${s[field]===o?'selected':''}>${o}</option>`).join('')}</select>`; const rec=suitabilityRecommendation(s); return `<tr><td>${esc(cname(e.v1))} – ${esc(cname(e.v2))}</td><td>${select('consistent')}</td><td>${select('prespecified')}</td><td>${select('reliability')}</td><td>${select('sample')}</td><td>${select('validityThreat',['No','Some','Yes','Unclear'])}</td><td>${select('compatible')}</td><td>${select('surrogate',['No','Yes','Unclear'])}</td><td>${select('dominated',['No','Yes','Unclear'])}</td><td><span class="pill ${rec.cls}">${rec.text}</span></td></tr>`}).join('')||'<tr><td colspan="10">No effect-size rows to audit.</td></tr>';}
+function suitabilityRecommendation(s){let bad=0,unclear=0; ['consistent','prespecified','reliability','sample','compatible'].forEach(k=>{if(s[k]==='No')bad++; if(!s[k]||s[k]==='Unclear')unclear++;}); if(s.validityThreat==='Yes'||s.surrogate==='Yes'||s.dominated==='Yes')bad++; if(s.validityThreat==='Some'||s.validityThreat==='Unclear'||s.surrogate==='Unclear'||s.dominated==='Unclear')unclear++; if(bad>=2)return{text:'exclude/reconsider',cls:'bad'}; if(bad||unclear>=3)return{text:'use with caution',cls:'warn'}; return{text:'use',cls:'good'};}
+function renderCausalStatement(){const el=document.getElementById('causalStatement'); if(!el)return; el.textContent='Because the primary studies are not uniformly experimental, these results should not be interpreted as direct and unequivocal causal evidence. The analysis evaluates the comparative fit and plausibility of alternative theoretical models based on accumulated correlational evidence.';}
+function generateSyntax(show=true){const lavaan=document.getElementById('lavaanSyntax'), other=document.getElementById('otherSyntax'); if(!lavaan||!other)return; const m=selectedModel()||state.models[0]; const paths=(m?.paths||[]).filter(p=>!p.covariance); const lines=paths.map(p=>`${safeName(cname(p.to))} ~ ${safeName(cname(p.from))}`); lavaan.textContent=`# lavaan-style skeleton\n# Replace placeholder names with syntactically valid variable names.\nmodel <- '\n${lines.length?lines.join('\n'):'# Add directed paths in the model builder'}\n'\nfit <- sem(model, sample.cov = Rmeta, sample.nobs = ${state.sem.sampleSize||'HARMONIC_MEAN_N'})\nsummary(fit, fit.measures=TRUE, standardized=TRUE, ci=TRUE)`; other.textContent=`# R/metaSEM preparation notes\n# 1. Enter the meta-analytic correlation matrix in the construct order.\n# 2. Use TSSEM or appropriate MASEM procedure when missing cells or random effects are relevant.\n\n# Mplus skeleton\nDATA: TYPE = CORRELATION;\nVARIABLE: NAMES = ${state.constructs.map(c=>safeName(c.name||'V')).join(' ')};\nMODEL:\n${lines.length?lines.map(l=>'  '+l.replace('~','ON')).join('\n'):'  ! Add model paths'}\n\n# Amos/EQS note\n# Import the matrix with the justified SEM sample size and draw the same model. Confirm convergence, standardized coefficients, SEs, CIs, and fit indices.`;}
+function safeName(s){return String(s||'V').trim().replace(/[^A-Za-z0-9_]+/g,'_').replace(/^([0-9])/,'V$1')||'V'}
+function generateResultsTables(){const root=document.getElementById('generatedTables'); const sections=[
+  ['Study search and inclusion table',`Identified: ${state.flow.identified||''}; Screened: ${state.flow.screened||''}; Excluded: ${state.flow.excluded||''}; Retained: ${state.flow.retained||''}`],
+  ['Construct coding table',state.constructs.map(c=>`${c.name}: ${c.conceptual||'definition pending'}`).join('\n')],
+  ['Full meta-analytic correlation matrix table','Use the matrix export plus k, N, CI, credibility interval, and notes for each cell.'],
+  ['Missing-cell decision table',state.missing.map(m=>`${m.cell}: ${m.solution}; disclosure: ${m.disclosure}`).join('\n')],
+  ['Model-fit comparison table',state.fitModels.map(f=>`${f.name}: χ²=${f.chi}, df=${f.df}, CFI=${f.CFI}, RMSEA=${f.RMSEA}, AIC=${f.AIC}, BIC=${f.BIC}`).join('\n')],
+  ['Standardized coefficient table','Enter standardized coefficients, SEs, p-values, and 95% CIs from SEM software.'],
+  ['Indirect-effects table','Enter indirect effects, SEs/bootstrapped CIs if available, and model-specific notes.'],
+  ['Decision-point documentation table','Summarize DP1–DP9 decisions and justifications.'],
+  ['Endogeneity and causality audit table',endoThreats.filter((_,i)=>state.endogeneity.threats[i]).join('; ')],
+  ['Reviewer-response table','Use reviewer mode flags to prepare response points.']
+]; root.innerHTML=sections.map(([h,t])=>`<details open><summary>${esc(h)}</summary><textarea style="width:100%;min-height:90px">${esc(t)}</textarea></details>`).join('');}
+function generateManuscriptText(){const title=state.project.title||'the MASEM study'; const text=`Methods: Search strategy\nWe conducted a structured search for studies relevant to ${state.project.domain||'the focal research domain'}. The search covered ${state.search.databases||'[databases]'} and used the following search terms: ${state.search.terms||'[search terms]'}. Inclusion criteria were ${state.search.inclusion||'[inclusion criteria]'}, and exclusion criteria were ${state.search.exclusion||'[exclusion criteria]'}.\n\nMethods: Coding procedure\nStudies were coded using a prespecified coding protocol. The coding captured sample characteristics, design type, construct operationalizations, correlations, sample sizes, reliability estimates, measurement notes, endogeneity notes, and sample-overlap information. Coder training, reliability, and discrepancy resolution were documented as follows: ${state.coding.training||'[training notes]'}; ${state.coding.irr||'[interrater reliability]'}; ${state.coding.discrepancy||'[discrepancy resolution]'}.\n\nMethods: Meta-analytic procedures and matrix construction\nMeta-analytic correlations were organized into a symmetric input matrix. For each construct pair, we recorded the effect estimate, k, N, confidence interval, credibility interval where appropriate, reliability assumptions, and source notes. Missing cells were handled using documented decision rules rather than unreported substitution. The SEM sample size was set to ${state.sem.sampleSize||'[harmonic mean or justified N]'}, with the harmonic mean treated as the default when cell-specific sample sizes differed.\n\nMethods: SEM analysis\nThe structural models were estimated in ${state.sem.software||'[SEM software]'} using the meta-analytic correlation matrix as input. We compared theoretically meaningful models, distinguishing a priori from post hoc specifications. Fit was evaluated using multiple fit indices rather than chi-square alone.\n\nResults: Model comparison\nThe tested models were compared using fit indices, convergence diagnostics, standardized coefficients, and theoretical interpretability. The comparison emphasized relative fit among theoretically meaningful alternatives rather than mechanical cutoff rules.\n\nLimitations: Causality and endogeneity\nBecause the primary studies are not uniformly experimental, these results should not be interpreted as direct and unequivocal causal evidence. The analysis evaluates the comparative fit and plausibility of alternative theoretical models based on accumulated correlational evidence. Potential endogeneity threats were assessed, including omitted variables, measurement error, autoregression, selection bias, simultaneity, reverse causality, and temporal ordering limitations.\n\nTransparency statement\nAll search, coding, missing-cell, sample-size, matrix, positive-definiteness, dependency, fit-index, coefficient-reporting, and causal-claim decisions were documented to support replicability and reviewer evaluation.\n\nCredit statement\nThis study-building workflow credits: Aguinis, H. 2025. Research methodology: Best practices for rigorous, credible, and impactful research. SAGE. https://collegepublishing.sagepub.com/products/research-methodology-1-280088`;
+  document.getElementById('manuscriptText').textContent=text;
+}
+function runReviewerAudit(){const manual=reviewerFlagItems.filter((_,i)=>state.reviewer.flags[i]); const auto=[]; const ms=matrixStats(); if(state.models.length<2)auto.push('No competing models entered.'); if((state.scope.maturity||'').includes('Emergent'))auto.push('Insufficient or emergent literature base risk.'); if(ms.complete<ms.total)auto.push('Full correlation matrix is incomplete.'); if(ms.missingKN)auto.push('Some matrix cells lack k or N.'); if(state.fitModels.length && !state.fitModels.some(f=>num(f.CFI)||num(f.RMSEA)||num(f.AIC)||num(f.BIC)))auto.push('Fit may be judged too narrowly.'); if(state.models.some(m=>m.status==='Post hoc')&&!state.models.some(m=>m.status==='A priori'))auto.push('Only post hoc models entered.'); if(state.constructs.length&&state.constructs.every(c=>c.kind==='Observed variable/indicator'))auto.push('Observed-only model should be labeled meta-analytic path analysis.'); const flags=[...new Set([...manual,...auto])]; document.getElementById('reviewerOutput').textContent=flags.length?'Reviewer/editor flags:\n- '+flags.join('\n- '):'No major flags detected from current inputs. Continue checking the manuscript narrative, tables, and model figures.';}
+function renderFinalReport(){const s=computeScores(), ms=matrixStats(); const dp1Done=countTruthy(state.dp1||{}); const risks=[]; if(state.models.length<2)risks.push('Add at least two theoretically meaningful models or explain why a single model is sufficient.'); if(ms.complete<ms.total)risks.push('Complete or document missing correlation-matrix cells.'); if(ms.missingKN)risks.push('Document k and N for every completed matrix cell.'); if(!state.sem.software)risks.push('Specify SEM software and estimation plan.'); if(s.causal<75)risks.push('Strengthen causal-claim limitation and endogeneity assessment.'); if(s.report<75)risks.push('Complete the reporting checklist before submission.'); const report=`Project overview\nProject: ${state.project.title||'Untitled'}\nResearch domain: ${state.project.domain||'Not specified'}\nPurpose: ${state.project.purpose||state.scope.purpose||'Not specified'}\n\nMASEM appropriateness verdict\nScore: ${s.appropriate}/100 (${labelText(s.appropriate)}). MASEM is strongest when it compares competing theoretical models, mediation chains, alternative variable orderings, or model-refinement structures using accumulated correlations.\n\nCompleted decision points\nDP1 checklist completed: ${dp1Done}/${decisionPoint1.length}.\nDP2 missing-cell decisions documented: ${state.missing.length}.\nDP3 sample harmonization: ${state.samples.stats?`harmonic mean = ${fmt(state.samples.stats.harmonic)}`:'not computed'}.\nDP4 positive-definiteness: run the screening check and confirm in SEM software.\nDP5 sample dependency: ${countTruthy(state.dependency.flags)} dependency risks flagged; notes ${state.dependency.notes?'entered':'not entered'}.\nDP6 fit-index comparison: ${state.fitModels.length} tested model(s) entered.\nDP7 suitable-correlation audit: available through suitability table.\nDP8–DP9 reporting transparency: ${s.report}/100.\n\nMatrix readiness\nCompleted cells: ${ms.complete}/${ms.total}. Impossible correlations: ${ms.hasImpossible?'yes':'no'}. Very high correlations: ${ms.high}. Cells missing k or N: ${ms.missingKN}.\n\nModel comparison summary\nModels specified: ${state.models.length}. A priori models: ${state.models.filter(m=>m.status==='A priori').length}. Post hoc models: ${state.models.filter(m=>m.status==='Post hoc').length}. Fit models entered: ${state.fitModels.length}.\n\nEndogeneity caution level\nCausal/endogeneity caution score: ${s.causal}/100 (${labelText(s.causal)}). Use cautious language unless all primary studies are experimental and identification assumptions are defensible.\n\nRemaining risks\n${risks.length?risks.map(r=>'- '+r).join('\n'):'- No major unresolved risks detected from current inputs.'}\n\nRecommended next actions\n- Complete all required k, N, interval, and source documentation for each matrix cell.\n- Confirm positive definiteness, convergence, coefficients, standard errors, and model fit in SEM software.\n- Retain only theoretically meaningful model comparisons and clearly distinguish a priori from post hoc models.\n- Report the full matrix, model figures, coefficients, intervals, fit indices, dependency decisions, and causal-claim limitations.\n\nCopy-ready citation/credit statement\nCredit: Aguinis, H. 2025. Research methodology: Best practices for rigorous, credible, and impactful research. SAGE. https://collegepublishing.sagepub.com/products/research-methodology-1-280088\nThis tool operationalizes guidance on using meta-analytic structural equation modeling to advance management and strategy research.`; document.getElementById('finalReport').textContent=report; return report;}
+function exportReportHTML(){saveState(); const report=renderFinalReport(); const matrixHTML=document.getElementById('matrixTable')?.outerHTML||''; const content=`<!DOCTYPE html><html><head><meta charset="UTF-8"><title>MASEM Readiness Report</title><style>body{font-family:Arial,Helvetica,sans-serif;line-height:1.45;margin:32px;color:#172033}h1,h2{color:#0d2f4a}pre{white-space:pre-wrap;background:#f6f7fb;border:1px solid #d9deea;border-radius:12px;padding:14px}table{border-collapse:collapse;width:100%;font-size:12px}td,th{border:1px solid #d9deea;padding:6px}th{background:#eef3f8}.credit{border-top:1px solid #d9deea;margin-top:24px;padding-top:12px;font-size:12px;color:#4b5565}</style></head><body><h1>${esc(state.project.title||'MASEM Readiness Report')}</h1><pre>${esc(report)}</pre><h2>Current correlation matrix</h2>${matrixHTML}<div class="credit"><strong>Credit:</strong> Aguinis, H. 2025. <em>Research methodology: Best practices for rigorous, credible, and impactful research</em>. SAGE. https://collegepublishing.sagepub.com/products/research-methodology-1-280088<br>This report was generated by the Meta-Analytic Structural Equation Modeling Study Builder, an offline tool that operationalizes guidance on using MASEM to advance management and strategy research.</div></body></html>`; downloadFile('masem_readiness_report.html',content,'text/html');}
+function copyElementText(id){const text=document.getElementById(id)?.innerText||''; navigator.clipboard?.writeText(text).then(()=>alert('Copied to clipboard.')).catch(()=>alert('Copy failed. Select and copy manually.'))}
+function safeRows(){return ''}
+window.addConstruct=addConstruct; window.seedExampleConstructs=seedExampleConstructs; window.deleteConstruct=deleteConstruct; window.addModel=addModel; window.deleteModel=deleteModel; window.addPathToSelectedModel=addPathToSelectedModel; window.selectedModel=selectedModel; window.renderPaths=renderPaths; window.exportSVG=exportSVG; window.addStudyRow=addStudyRow; window.addEffectRow=addEffectRow; window.generateEffectPairs=generateEffectPairs; window.exportEffectsCSV=exportEffectsCSV; window.addMissingDecision=addMissingDecision; window.computeSamples=computeSamples; window.loadNsFromEffects=loadNsFromEffects; window.renderMatrix=renderMatrix; window.loadMatrixFromEffects=loadMatrixFromEffects; window.exportMatrixCSV=exportMatrixCSV; window.exportMatrixText=exportMatrixText; window.loadCellDetails=loadCellDetails; window.saveCellDetails=saveCellDetails; window.checkPositiveDefinite=checkPositiveDefinite; window.addFitModel=addFitModel; window.renderFitModels=renderFitModels; window.renderSuitabilityRows=renderSuitabilityRows; window.generateSyntax=generateSyntax; window.generateResultsTables=generateResultsTables; window.generateManuscriptText=generateManuscriptText; window.runReviewerAudit=runReviewerAudit; window.renderFinalReport=renderFinalReport; window.exportReportHTML=exportReportHTML; window.copyElementText=copyElementText; window.saveState=saveState; window.exportJSON=exportJSON; window.importJSON=importJSON; window.resetAll=resetAll; window.showTab=showTab;
+init();
+</script>
+<!-- Begin Countercentral code v 7.0 --> 
+<span id="wts2576"></span> 
+<script>var wts=document.createElement('script');wts.async=true; 
+wts.src='https://server2.countercentral.com/log7.js';document.head.appendChild(wts); 
+wts.onload = function(){ wtslog7(2576,1); }; 
+</script><noscript><a href="https://www.countercentral.com"> 
+<img src="https://server2.countercentral.com/7/1/2576.png"  
+alt="Countercentral web traffic analysis"></a></noscript> 
+<!-- End Countercentral code v 7.0 -->
+</body>
+</html>

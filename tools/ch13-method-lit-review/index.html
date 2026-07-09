@@ -1,0 +1,704 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Methodological Literature Review Builder and Evaluator</title>
+<style>
+:root {
+  --bg:#f6f8fb; --panel:#ffffff; --ink:#172033; --muted:#5b6475; --line:#d9dfeb;
+  --brand:#19345d; --brand2:#2f5d9e; --accent:#0f766e; --warn:#a16207; --bad:#b91c1c;
+  --good:#166534; --soft:#eaf1ff; --soft2:#eef9f6; --shadow:0 18px 42px rgba(23,32,51,.10);
+  --radius:18px;
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;font-family:Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;background:var(--bg);color:var(--ink);line-height:1.45}
+a{color:var(--brand2)}
+header.hero{background:linear-gradient(130deg,#11294f 0%,#19345d 54%,#0f766e 100%);color:white;padding:34px 22px 26px;position:relative;overflow:hidden}
+header.hero:after{content:"";position:absolute;right:-90px;top:-80px;width:260px;height:260px;border:36px solid rgba(255,255,255,.08);border-radius:50%}
+.wrap{max-width:1240px;margin:0 auto}
+.kicker{font-size:.78rem;text-transform:uppercase;letter-spacing:.13em;opacity:.86;font-weight:700}
+h1{font-size:clamp(1.9rem,4vw,3.2rem);line-height:1.05;margin:.35rem 0 .6rem}
+.subtitle{max-width:900px;font-size:1.03rem;opacity:.96}
+.credit{margin-top:16px;padding:12px 14px;border:1px solid rgba(255,255,255,.28);background:rgba(255,255,255,.10);border-radius:12px;font-size:.9rem}
+.topbar{position:sticky;top:0;z-index:5;background:rgba(246,248,251,.92);backdrop-filter:blur(12px);border-bottom:1px solid var(--line)}
+.toolbar{display:flex;gap:10px;align-items:center;justify-content:space-between;padding:12px 22px;max-width:1240px;margin:0 auto;flex-wrap:wrap}
+.navtabs{display:flex;gap:8px;flex-wrap:wrap}
+.tab{border:1px solid var(--line);background:var(--panel);padding:9px 12px;border-radius:999px;font-weight:700;color:var(--brand);cursor:pointer}
+.tab.active{background:var(--brand);color:white;border-color:var(--brand)}
+.actions{display:flex;gap:8px;flex-wrap:wrap}
+button,.button{font:inherit;border:0;border-radius:12px;padding:10px 13px;font-weight:750;cursor:pointer;background:var(--brand);color:white;text-decoration:none;display:inline-flex;align-items:center;gap:7px}
+button.secondary{background:white;color:var(--brand);border:1px solid var(--line)}
+button.ghost{background:transparent;color:var(--brand);border:1px solid var(--line)}
+button.warn{background:var(--bad)}
+button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible{outline:3px solid rgba(47,93,158,.35);outline-offset:2px}
+main{padding:22px}
+.panel{display:none}
+.panel.active{display:block}
+.grid{display:grid;gap:16px}
+.grid.two{grid-template-columns:repeat(2,minmax(0,1fr))}
+.grid.three{grid-template-columns:repeat(3,minmax(0,1fr))}
+.grid.four{grid-template-columns:repeat(4,minmax(0,1fr))}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow);padding:18px}
+.card.compact{padding:14px;box-shadow:none}
+.card h2,.card h3,.card h4{margin-top:0;color:var(--brand)}
+h2{font-size:1.45rem} h3{font-size:1.16rem} h4{font-size:1rem}
+.small{font-size:.88rem;color:var(--muted)}
+.muted{color:var(--muted)}
+.badge{display:inline-flex;align-items:center;padding:4px 9px;border-radius:999px;background:var(--soft);color:var(--brand);font-size:.78rem;font-weight:800;margin:2px}
+.badge.good{background:#dcfce7;color:var(--good)} .badge.warn{background:#fef3c7;color:#92400e} .badge.bad{background:#fee2e2;color:var(--bad)}
+label{display:block;font-weight:760;margin:10px 0 5px}
+input[type="text"],input[type="date"],input[type="number"],select,textarea{width:100%;border:1px solid var(--line);border-radius:12px;background:white;padding:10px 11px;color:var(--ink);font:inherit}
+textarea{min-height:88px;resize:vertical}
+.help{font-size:.82rem;color:var(--muted);margin-top:4px}
+.tooltip{border-bottom:1px dotted currentColor;cursor:help}
+.progress-wrap{height:12px;background:#e6ebf3;border-radius:999px;overflow:hidden;border:1px solid #d4dce8}
+.progress{height:100%;width:0%;background:linear-gradient(90deg,var(--brand2),var(--accent));transition:width .25s ease}
+.metric{display:flex;flex-direction:column;gap:8px}
+.metric .num{font-size:2rem;font-weight:900;color:var(--brand)}
+.status{font-weight:900;font-size:1rem}
+.alert{border-radius:14px;padding:12px 14px;border:1px solid #f4d08b;background:#fff7ed;color:#7c2d12;margin:12px 0}
+.alert.good{border-color:#bbf7d0;background:#f0fdf4;color:#14532d}
+.alert.bad{border-color:#fecaca;background:#fef2f2;color:#7f1d1d}
+details{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);margin:14px 0;box-shadow:var(--shadow);overflow:hidden}
+summary{padding:16px 18px;cursor:pointer;font-weight:900;color:var(--brand);display:flex;justify-content:space-between;gap:16px}
+details .inside{padding:0 18px 18px}
+.table-wrap{overflow:auto;border:1px solid var(--line);border-radius:14px;background:white}
+table{border-collapse:collapse;width:100%;min-width:780px}
+th,td{border-bottom:1px solid var(--line);padding:10px;vertical-align:top;text-align:left}
+th{background:#f1f5fb;color:var(--brand);font-size:.85rem;text-transform:uppercase;letter-spacing:.03em}
+tr:last-child td{border-bottom:0}
+.indicator-row{display:grid;grid-template-columns:minmax(220px,1.2fr) 145px minmax(210px,1fr) minmax(170px,.8fr);gap:10px;align-items:start;padding:12px 0;border-top:1px dashed var(--line)}
+.issueBox{border-left:5px solid var(--brand2)}
+.type-card{border:1px solid var(--line);border-radius:16px;padding:14px;background:white}
+.type-card.selected{border-color:var(--accent);box-shadow:0 0 0 3px rgba(15,118,110,.15)}
+.type-card h4{margin-bottom:6px}
+.pillrow{display:flex;gap:6px;flex-wrap:wrap;margin:8px 0}
+.output{white-space:pre-wrap;background:#0b1220;color:#eef5ff;border-radius:16px;padding:16px;min-height:130px;font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,"Liberation Mono",monospace;font-size:.88rem;overflow:auto}
+.copyLine{display:flex;justify-content:space-between;gap:10px;align-items:center;margin:12px 0 6px}
+.mode-note{display:none}
+body.mode-produce .producerOnly, body.mode-evaluate .evaluatorOnly, body.mode-teach .teacherOnly{display:block}
+body.mode-produce .producerGrid{display:grid}
+.hide{display:none!important}
+.inline-check{display:flex;align-items:flex-start;gap:8px;margin:8px 0;font-weight:600}
+.inline-check input{margin-top:3px}
+.footer{padding:22px;color:var(--muted);text-align:center}
+@media (max-width:900px){.grid.two,.grid.three,.grid.four{grid-template-columns:1fr}.indicator-row{grid-template-columns:1fr}.toolbar{align-items:flex-start}.actions,.navtabs{width:100%}}
+@media print{.topbar,.actions,button,.navtabs,input[type="file"]{display:none!important}body{background:white}header.hero{background:white;color:black;border-bottom:2px solid #111}.card,details{box-shadow:none;break-inside:avoid}.panel{display:block}.panel:not(.active){display:block}main{padding:0}textarea,input,select{border:1px solid #aaa}}
+</style>
+</head>
+<body class="mode-produce">
+<header class="hero">
+  <div class="wrap">
+    <div class="kicker">Interactive methodological literature review tool</div>
+    <h1>Builder, Evaluator, and Teaching Toolkit</h1>
+    <p class="subtitle">A self-contained workspace for planning, conducting, writing, revising, reviewing, and teaching best-in-kind methodological literature reviews. It operationalizes review type choice, the four broad issues, the ten-domain checklist, transparent scoring, risk diagnosis, and report generation.</p>
+    <div class="credit">Source: Aguinis, H. 2025. Research methodology: Best practices for rigorous, credible, and impactful research. SAGE. https://collegepublishing.sagepub.com/products/research-methodology-1-280088</div>
+  </div>
+</header>
+<div class="topbar">
+  <div class="toolbar">
+    <div class="navtabs" role="tablist" aria-label="Tool sections">
+      <button class="tab active" data-tab="dashboard" role="tab">Dashboard</button>
+      <button class="tab" data-tab="classifier" role="tab">Review Type</button>
+      <button class="tab" data-tab="workflow" role="tab">Four Issues</button>
+      <button class="tab" data-tab="checklist" role="tab">10-Domain Checklist</button>
+      <button class="tab" data-tab="producer" role="tab">Producer Mode</button>
+      <button class="tab" data-tab="evaluator" role="tab">Evaluator Mode</button>
+      <button class="tab" data-tab="teach" role="tab">Use/Teach</button>
+      <button class="tab" data-tab="reports" role="tab">Outputs</button>
+    </div>
+    <div class="actions">
+      <button class="secondary" id="saveBtn" type="button">Save</button>
+      <button class="secondary" id="exportBtn" type="button">Export JSON</button>
+      <label class="button secondary" for="importFile">Import JSON</label><input id="importFile" type="file" accept="application/json" class="hide">
+      <button class="secondary" id="printBtn" type="button">Print</button>
+      <button class="warn" id="resetBtn" type="button">Reset</button>
+    </div>
+  </div>
+</div>
+<main class="wrap">
+  <section id="dashboard" class="panel active" role="tabpanel">
+    <div class="grid two">
+      <div class="card">
+        <h2>Dashboard</h2>
+        <div class="grid two">
+          <div><label for="projectTitle">Project / Review title</label><input id="projectTitle" data-save="1" type="text" placeholder="e.g., Best practices for handling outliers in management research"></div>
+          <div><label for="projectTeam">Author / team</label><input id="projectTeam" data-save="1" type="text" placeholder="Names and roles"></div>
+          <div><label for="projectDate">Date</label><input id="projectDate" data-save="1" type="date"></div>
+          <div><label for="methodIssue">Methodological issue</label><input id="methodIssue" data-save="1" type="text" placeholder="e.g., Measurement invariance, SEM degrees of freedom, control variables"></div>
+          <div><label for="targetJournal">Target journal / audience</label><input id="targetJournal" data-save="1" type="text" placeholder="Journal, doctoral seminar, editor, HR/OB researchers"></div>
+          <div><label for="reviewPurpose">Review purpose</label><input id="reviewPurpose" data-save="1" type="text" placeholder="Classify, critique, map, synthesize, quantify, or teach"></div>
+        </div>
+        <label for="modeSelect">Mode selector</label>
+        <select id="modeSelect" data-save="1">
+          <option value="produce">Produce a Review</option>
+          <option value="evaluate">Evaluate a Review</option>
+          <option value="teach">Use/Teach a Review</option>
+        </select>
+        <div class="alert producerOnly mode-note">Producer mode emphasizes planning, execution, recommendation-source tracing, and manuscript readiness.</div>
+        <div class="alert evaluatorOnly mode-note">Evaluator mode emphasizes manuscript/article trustworthiness, red flags, publication fit, and reliance decisions.</div>
+        <div class="alert teacherOnly mode-note">Use/Teach mode emphasizes whether a published review is suitable as guidance for researchers or as a doctoral-seminar resource.</div>
+      </div>
+      <div class="card">
+        <h2>Readiness and Risk</h2>
+        <div class="grid two">
+          <div class="metric"><span class="small">Overall readiness score</span><span class="num" id="overallScore">0%</span><div class="progress-wrap"><div class="progress" id="overallBar"></div></div></div>
+          <div class="metric"><span class="small">Diagnostic status</span><span class="status" id="diagnosticStatus">Early planning</span><span id="statusBadge" class="badge warn">Start scoring</span></div>
+          <div class="metric"><span class="small">Checklist completion</span><span class="num" id="completionScore">0%</span><div class="progress-wrap"><div class="progress" id="completionBar"></div></div></div>
+          <div class="metric"><span class="small">Trustworthiness risk</span><span class="num" id="riskScore">0%</span><div class="progress-wrap"><div class="progress" id="riskBar"></div></div></div>
+        </div>
+        <div id="riskBanner" class="alert">No risk diagnosis yet. Score the ten domains and check applicable red flags.</div>
+      </div>
+    </div>
+    <div class="grid two" style="margin-top:16px">
+      <div class="card">
+        <h3>Progress by broad issue</h3>
+        <div id="broadProgress"></div>
+      </div>
+      <div class="card">
+        <h3>Progress by ten checklist domains</h3>
+        <div id="domainProgress"></div>
+      </div>
+    </div>
+  </section>
+
+  <section id="classifier" class="panel" role="tabpanel">
+    <div class="card">
+      <h2>Review Type Classifier</h2>
+      <p class="muted">Choose the review type that fits the purpose, evidence base, and claims. The recommendation is a decision aid, not a substitute for judgment.</p>
+      <div class="grid three">
+        <div><label for="classPurpose">Primary purpose</label><select id="classPurpose" data-save="1"><option value="critique">Critique or resolve controversy</option><option value="orient">Orient readers narratively</option><option value="describe">Document frequencies/trends</option><option value="systematic">Synthesize with transparent procedures</option><option value="map">Map an emerging/broad literature</option><option value="quantify">Aggregate quantitative effects</option><option value="reviews">Integrate existing reviews</option></select></div>
+        <div><label for="classEvidence">Evidence base</label><select id="classEvidence" data-save="1"><option value="mixed">Mixed or heterogeneous sources</option><option value="articles">Primary articles can be coded</option><option value="quantitative">Comparable quantitative estimates exist</option><option value="reviews">Multiple prior reviews exist</option><option value="emerging">Broad, emerging, or fragmented field</option></select></div>
+        <div><label for="classClaim">Strength of intended claim</label><select id="classClaim" data-save="1"><option value="interpretive">Interpretive guidance</option><option value="descriptive">Descriptive prevalence/trend claim</option><option value="transparent">Traceable synthesized guidance</option><option value="quantified">Quantified effect/variability claim</option><option value="state">State-of-the-science guidance</option></select></div>
+      </div>
+      <button id="recommendTypeBtn" type="button" style="margin-top:12px">Recommend review type</button>
+      <div id="typeRecommendation" class="alert good">Answer the decision questions and click “Recommend review type.”</div>
+    </div>
+    <div id="reviewTypeCards" class="grid two" style="margin-top:16px"></div>
+  </section>
+
+  <section id="workflow" class="panel" role="tabpanel">
+    <div class="card">
+      <h2>Four Broad-Issue Workflow</h2>
+      <p class="muted">Use these sections to make judgment calls explicit before drafting, during revision, or while reviewing a published/submitted methodological literature review.</p>
+    </div>
+    <div id="broadIssuePanels"></div>
+  </section>
+
+  <section id="checklist" class="panel" role="tabpanel">
+    <div class="card">
+      <h2>Ten-Domain Checklist and Scoring Rubric</h2>
+      <p class="muted">Score every observable indicator: 0 = absent, 1 = weak, 2 = adequate, 3 = strong, or N/A. Evidence quality matters: a section heading does not earn credit if it lacks transparency, specificity, or evidentiary support.</p>
+      <div class="alert" id="scoringAdvice">Low scores in scope, process, or source-of-recommendations will increase trustworthiness risk because they weaken transparency and replicability.</div>
+    </div>
+    <div id="domainPanels"></div>
+  </section>
+
+  <section id="producer" class="panel" role="tabpanel">
+    <div class="card">
+      <h2>Producer Mode: Plan, Build, and Reviewer-Proof the Review</h2>
+      <p class="muted">Complete the builders below to generate a purpose statement, scope boundary, search protocol, coding transparency summary, recommendation-source matrix, and final action plan.</p>
+    </div>
+    <div class="grid two producerGrid">
+      <div class="card">
+        <h3>Purpose Statement Builder</h3>
+        <label for="purposeIssue">Methodological issue</label><input id="purposeIssue" data-save="1" type="text" placeholder="The issue the review addresses">
+        <label for="purposeProblem">Confusion, misuse, or gap</label><textarea id="purposeProblem" data-save="1" placeholder="Describe the evidence that researchers are confused, misusing the method, or lack guidance."></textarea>
+        <label for="purposeContribution">Value-added contribution</label><textarea id="purposeContribution" data-save="1" placeholder="Explain how the review improves substantive research, theory, design, measurement, analysis, reporting, or practice."></textarea>
+        <label for="purposeAudience">Intended users</label><input id="purposeAudience" data-save="1" type="text" placeholder="Substantive researchers, doctoral students, reviewers, editors...">
+      </div>
+      <div class="card">
+        <h3>Scope Boundary Builder</h3>
+        <label for="scopeCovers">Covers</label><textarea id="scopeCovers" data-save="1" placeholder="Fields, subfields, methods, article types, sources, and time period included."></textarea>
+        <label for="scopeExcludes">Excludes</label><textarea id="scopeExcludes" data-save="1" placeholder="Important exclusions and why they are outside scope."></textarea>
+        <label for="scopeImplications">Implications of scope decisions</label><textarea id="scopeImplications" data-save="1" placeholder="State what claims are and are not warranted because of the scope."></textarea>
+      </div>
+      <div class="card">
+        <h3>Search Strategy Planner</h3>
+        <div class="grid two">
+          <div><label for="searchSources">Sources/databases/journals</label><textarea id="searchSources" data-save="1" placeholder="Web of Science, Scopus, PsycINFO, specific journals, books, manuals, reports..."></textarea></div>
+          <div><label for="searchTerms">Search terms and logic</label><textarea id="searchTerms" data-save="1" placeholder="Keyword strings, Boolean logic, citation chasing, manual search rules..."></textarea></div>
+          <div><label for="searchDates">Time period covered</label><input id="searchDates" data-save="1" type="text" placeholder="e.g., January 1997 through July 2018"></div>
+          <div><label for="searchFlow">Review-flow plan</label><input id="searchFlow" data-save="1" type="text" placeholder="PRISMA-style flow, review-flow diagram, or narrative disclosure"></div>
+        </div>
+      </div>
+      <div class="card">
+        <h3>Inclusion/Exclusion Criteria Builder</h3>
+        <label for="includeCriteria">Inclusion criteria</label><textarea id="includeCriteria" data-save="1" placeholder="Required definition, field, method, publication type, empirical/theoretical status, language, etc."></textarea>
+        <label for="excludeCriteria">Exclusion criteria</label><textarea id="excludeCriteria" data-save="1" placeholder="Tutorials, editorials, non-review articles, out-of-scope fields, insufficient methodological focus, etc."></textarea>
+        <label for="screeningPlan">Screening procedures</label><textarea id="screeningPlan" data-save="1" placeholder="Title/abstract/full-text screening, number of screeners, disagreement resolution."></textarea>
+      </div>
+      <div class="card">
+        <h3>Coding Protocol Builder</h3>
+        <label for="codingUnits">Coding units and variables</label><textarea id="codingUnits" data-save="1" placeholder="Article-level variables, recommendation-level variables, evidence-source variables, software/code fields..."></textarea>
+        <label for="coderPlan">Coder calibration and agreement</label><textarea id="coderPlan" data-save="1" placeholder="Coder training, pilot coding, calibration checks, agreement statistics, disagreement resolution, audit trail."></textarea>
+      </div>
+      <div class="card">
+        <h3>QRP Risk Detector</h3>
+        <p class="small">Check risks that apply to your draft. The report will convert checked items into reviewer-proofing actions.</p>
+        <div id="producerQrpFlags"></div>
+      </div>
+    </div>
+    <details open>
+      <summary>Recommendation-Source Matrix</summary>
+      <div class="inside">
+        <p class="muted">Connect every recommendation to an evidentiary source, boundary condition, and implementation note.</p>
+        <div id="recMatrix"></div>
+      </div>
+    </details>
+    <details>
+      <summary>Manuscript Section Planner and Reviewer-Proofing Checklist</summary>
+      <div class="inside"><div id="sectionPlanner"></div></div>
+    </details>
+  </section>
+
+  <section id="evaluator" class="panel" role="tabpanel">
+    <div class="card">
+      <h2>Evaluator Mode: Review, Rate, and Decide Whether to Rely on the Review</h2>
+      <div class="grid three">
+        <div><label for="evalTitle">Article/manuscript title</label><input id="evalTitle" data-save="1" type="text"></div>
+        <div><label for="evalAuthors">Authors</label><input id="evalAuthors" data-save="1" type="text"></div>
+        <div><label for="evalJournalYear">Journal/year</label><input id="evalJournalYear" data-save="1" type="text"></div>
+        <div><label for="evalType">Review type</label><select id="evalType" data-save="1"></select></div>
+        <div><label for="evalField">Field/subfield</label><input id="evalField" data-save="1" type="text"></div>
+        <div><label for="evalIssue">Methodological issue</label><input id="evalIssue" data-save="1" type="text"></div>
+      </div>
+    </div>
+    <div class="grid two">
+      <div class="card">
+        <h3>Red-Flag Detector</h3>
+        <div id="evaluatorQrpFlags"></div>
+      </div>
+      <div class="card">
+        <h3>Can I Rely on This Review?</h3>
+        <div id="relyDecision" class="alert">Score the checklist and select red flags to generate a reliance decision.</div>
+        <label for="evalStrengths">Observed strengths</label><textarea id="evalStrengths" data-save="1" placeholder="Strongest features of the review."></textarea>
+        <label for="evalMinor">Minor concerns</label><textarea id="evalMinor" data-save="1" placeholder="Fixable issues, unclear wording, missing examples."></textarea>
+        <label for="evalMajor">Major concerns</label><textarea id="evalMajor" data-save="1" placeholder="Threats to trustworthiness, replicability, scope alignment, or source support."></textarea>
+      </div>
+    </div>
+  </section>
+
+  <section id="teach" class="panel" role="tabpanel">
+    <div class="card">
+      <h2>Use/Teach a Review</h2>
+      <p class="muted">Use this section to decide whether a methodological literature review is suitable for doctoral seminars, reviewer training, journal guidance, or substantive researchers who need a reliable method resource.</p>
+      <div class="grid two">
+        <div>
+          <label for="teachUse">Intended use</label>
+          <select id="teachUse" data-save="1"><option>Doctoral seminar reading</option><option>Reviewer/editor training</option><option>Substantive researcher guidance</option><option>Methods workshop</option><option>Manuscript revision resource</option></select>
+          <label for="teachAudience">Audience background</label><textarea id="teachAudience" data-save="1" placeholder="Prior methods training, substantive field, likely pain points."></textarea>
+          <label for="teachFit">Teaching/use fit</label><textarea id="teachFit" data-save="1" placeholder="Why this review is or is not suitable for the intended use."></textarea>
+        </div>
+        <div>
+          <h3>Teaching prompts</h3>
+          <div class="inline-check"><input id="teach1" data-save="1" type="checkbox"><span>Can students identify the review type and explain why it fits the purpose?</span></div>
+          <div class="inline-check"><input id="teach2" data-save="1" type="checkbox"><span>Can students trace each major recommendation to an evidentiary source?</span></div>
+          <div class="inline-check"><input id="teach3" data-save="1" type="checkbox"><span>Can students identify hidden judgment calls or scope limitations?</span></div>
+          <div class="inline-check"><input id="teach4" data-save="1" type="checkbox"><span>Can students convert recommendations into an applied checklist or protocol?</span></div>
+          <div class="inline-check"><input id="teach5" data-save="1" type="checkbox"><span>Can students identify possible QRPs the review helps prevent?</span></div>
+          <label for="teachAssignment">Assignment idea</label><textarea id="teachAssignment" data-save="1" placeholder="Example: Students score the review using the ten-domain checklist, then write a one-page reliance memo."></textarea>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="reports" class="panel" role="tabpanel">
+    <div class="card">
+      <h2>Interactive Outputs</h2>
+      <p class="muted">Generate, copy, export, or print the outputs below. Reports use your dashboard fields, checklist scores, notes, recommendation-source matrix, risk flags, and mode-specific entries.</p>
+      <button id="generateReportBtn" type="button">Generate all outputs</button>
+    </div>
+    <div class="grid two" style="margin-top:16px">
+      <div class="card"><div class="copyLine"><h3>Producer Action Plan</h3><button class="secondary copyBtn" data-copy="producerReport">Copy</button></div><div id="producerReport" class="output"></div></div>
+      <div class="card"><div class="copyLine"><h3>Reviewer/Editor Evaluation Memo</h3><button class="secondary copyBtn" data-copy="evaluationMemo">Copy</button></div><div id="evaluationMemo" class="output"></div></div>
+      <div class="card"><div class="copyLine"><h3>Scope and Boundary Statement</h3><button class="secondary copyBtn" data-copy="scopeReport">Copy</button></div><div id="scopeReport" class="output"></div></div>
+      <div class="card"><div class="copyLine"><h3>Search and Screening Protocol Summary</h3><button class="secondary copyBtn" data-copy="searchReport">Copy</button></div><div id="searchReport" class="output"></div></div>
+      <div class="card"><div class="copyLine"><h3>Coding Transparency Summary</h3><button class="secondary copyBtn" data-copy="codingReport">Copy</button></div><div id="codingReport" class="output"></div></div>
+      <div class="card"><div class="copyLine"><h3>Readability and Usability Improvement List</h3><button class="secondary copyBtn" data-copy="usabilityReport">Copy</button></div><div id="usabilityReport" class="output"></div></div>
+      <div class="card"><div class="copyLine"><h3>Recommendation-Source Matrix</h3><button class="secondary copyBtn" data-copy="matrixReport">Copy</button></div><div id="matrixReport" class="output"></div></div>
+      <div class="card"><div class="copyLine"><h3>Final Checklist Report</h3><button class="secondary copyBtn" data-copy="checklistReport">Copy</button></div><div id="checklistReport" class="output"></div></div>
+    </div>
+  </section>
+</main>
+<div class="footer">All data are stored locally in your browser. No information is sent to a server.</div>
+<script>
+const DATA = {"sourceCredit": "Source: Aguinis, H. 2025. Research methodology: Best practices for rigorous, credible, and impactful research. SAGE. https://collegepublishing.sagepub.com/products/research-methodology-1-280088", "reviewTypes": [{"name": "Critical review", "definition": "Critically analyzes extant literature on a broad methodological issue to reveal weaknesses, contradictions, controversies, or inconsistencies; each work is assessed against explicit criteria.", "useCase": "Use when the purpose is to challenge, clarify, or improve methodological practice where existing guidance is inconsistent, incomplete, or potentially misleading.", "strengths": "Excellent for surfacing conceptual tensions, evaluating practice against standards, and motivating corrective recommendations.", "risks": "Can become selective advocacy if the criteria, literature boundaries, and source of recommendations are not transparent.", "disclosures": "State evaluative criteria, scope boundaries, search or selection logic, why focal exemplars were chosen, and how recommendations were derived.", "output": "Criteria-based critique, conceptual map of weaknesses, actionable recommendations, and future research agenda.", "warning": "Misaligned if the review claims comprehensive coverage or causal generalization but uses selective evidence without a systematic process.", "tags": ["critique", "controversy", "broad", "judgment"]}, {"name": "Narrative review", "definition": "Identifies what has been written on an issue without necessarily seeking cumulative generalization or conducting a systematic and comprehensive search.", "useCase": "Use when the goal is to orient readers to a methodological issue, synthesize readily available knowledge, and build an accessible interpretive account.", "strengths": "Flexible, readable, and useful for explaining complex issues to substantive researchers and doctoral students.", "risks": "High vulnerability to hidden selection, cherry-picking, and weak reproducibility if literature selection is not disclosed.", "disclosures": "Disclose that the review is narrative, explain how evidence was located, why included sources were selected, and what limitations follow from non-systematic coverage.", "output": "Integrative narrative, organizing framework, conceptual explanation, practical recommendations.", "warning": "Misaligned if the review presents itself as exhaustive, reproducible, or unbiased without systematic procedures.", "tags": ["narrative", "interpretive", "orientation", "flexible"]}, {"name": "Descriptive review", "definition": "Collects, codes, and analyzes data from existing studies to reveal patterns, frequencies, trends, and methodological practices in a defined research area.", "useCase": "Use when the purpose is to document how a method is used, misused, reported, or changing over time across a field or journal set.", "strengths": "Strong for documenting prevalence, trends, gaps, reporting practices, and field-level methodological norms.", "risks": "May overemphasize counts while underdeveloping judgment about quality, consequences, and best practices.", "disclosures": "Report article population, search sources, time period, coding protocol, coder training, agreement, inclusion/exclusion criteria, and analytic procedures.", "output": "Frequency tables, trend analyses, coding summaries, reporting-quality audit, and practice-improvement recommendations.", "warning": "Misaligned if the review draws prescriptive conclusions that are not supported by the coded evidence or external methodological standards.", "tags": ["counting", "trends", "coding", "practice"]}, {"name": "Qualitative systematic review", "definition": "Uses a structured process to search, identify, select, appraise, and synthesize studies, typically relying on textual rather than statistical synthesis.", "useCase": "Use when the review needs transparent, reproducible evidence identification but the evidence base is not suited to quantitative meta-analysis.", "strengths": "Improves transparency, reduces selection bias, and supports defensible synthesis of diverse evidence.", "risks": "Can become procedural theater if screening, appraisal, extraction, and synthesis decisions are not meaningfully reported.", "disclosures": "Provide databases, search strings, dates, screening flow, inclusion/exclusion rules, data extraction fields, appraisal process, synthesis approach, and audit trail.", "output": "PRISMA-style flow, evidence tables, thematic synthesis, methodological practice map, and traceable recommendations.", "warning": "Misaligned if the authors use systematic labels but omit search logic, screening decisions, coding procedures, or source-to-recommendation links.", "tags": ["systematic", "structured", "synthesis", "transparent"]}, {"name": "Scoping review", "definition": "Maps the size, range, and nature of available literature on a methodological issue; it prioritizes breadth of coverage and identification of gaps.", "useCase": "Use when the field is emerging, fragmented, or broad and the first task is to determine what exists and where deeper review is needed.", "strengths": "Useful for boundary setting, gap identification, and determining whether a full systematic review is warranted.", "risks": "Can produce broad but shallow conclusions if the review does not clearly separate mapping from evaluative claims.", "disclosures": "State the mapping purpose, concept boundaries, sources, search terms, screening rules, charting categories, and limits on inference.", "output": "Evidence map, taxonomy, gap analysis, field boundaries, and agenda for future systematic or meta-analytic work.", "warning": "Misaligned if used to make strong best-practice claims without deeper appraisal or evidence integration.", "tags": ["map", "breadth", "emerging", "gaps"]}, {"name": "Meta-analytic review", "definition": "Uses meta-analytic techniques to aggregate quantitative evidence, estimate effect sizes, and examine variability in outcomes associated with methodological choices.", "useCase": "Use when quantitative studies can be aggregated to evaluate how a methodological practice affects estimates, inferences, or conclusions.", "strengths": "Powerful for quantifying consequences of methodological choices and reducing ambiguity about practice effects.", "risks": "Can mislead if inclusion criteria, effect-size extraction, dependency handling, moderators, or publication bias diagnostics are weak.", "disclosures": "Report full search strategy, eligibility rules, coding protocol, effect-size decisions, dependence handling, moderators, sensitivity analyses, software, and reproducible code when possible.", "output": "Effect-size synthesis, moderator tests, robustness checks, transparent data/code, and evidence-calibrated recommendations.", "warning": "Misaligned if the evidence base lacks comparable quantitative inputs or if recommendations exceed the statistical evidence.", "tags": ["quantitative", "effect sizes", "integration", "variability"]}, {"name": "Umbrella review", "definition": "Integrates evidence from multiple existing reviews to address a usually narrow methodological question; a review of reviews.", "useCase": "Use when several reviews exist and the problem is to reconcile overlapping, conflicting, outdated, or fragmented recommendations.", "strengths": "Strong for state-of-the-science guidance, contradiction resolution, and synthesis across review traditions.", "risks": "Can compound limitations of prior reviews if review quality, overlap, and currency are not appraised.", "disclosures": "Report review-identification strategy, review eligibility criteria, quality appraisal, overlap handling, conflict-resolution logic, and update/currency rules.", "output": "Review-of-reviews matrix, agreement/disagreement map, updated guidance, and evidence hierarchy.", "warning": "Misaligned if too few prior reviews exist or if the target question requires analysis of primary studies rather than synthesis of reviews.", "tags": ["reviews", "integration", "state-of-science", "contradictions"]}], "broadIssues": [{"id": "motivation", "name": "Motivation and Importance", "why": "Establishes why the methodological issue deserves attention, what confusion or misuse exists, and why the review has value for theory, design, measurement, analysis, interpretation, reporting, and practice.", "domains": [1, 2, 3], "checklist": ["Show the value-added contribution for substantive research.", "Document confusion, incorrect use, or contradictory guidance.", "Explain why the issue is critical now and how bad choices harm knowledge generation.", "Spell out implications beyond analysis, including theory, design, measurement, reporting, and practice."], "redFlags": ["The introduction says the issue is important but gives no field-level evidence.", "The review motivates the issue only by author preference or citation volume.", "The paper treats a methodological choice as technical but does not explain substantive consequences.", "The review never explains who should care or what will improve."], "template": "This review is needed because [methodological issue] affects [theory/design/measurement/analysis/reporting] in [field]. Existing work shows [confusion/misuse/growing use], creating risks for [knowledge generation/practice]. We therefore review [scope] to provide [specific usable output].", "prompts": ["What concrete evidence shows that researchers are confused about or misusing the method?", "What would go wrong theoretically or practically if readers followed weak guidance?", "Does the manuscript explain why this review is needed now rather than merely interesting?"]}, {"id": "scope", "name": "Scope and Data Selection", "why": "Defines the breadth, boundaries, exclusions, and data-selection logic of the review, thereby preventing unfair expectations of comprehensiveness and making omissions interpretable.", "domains": [4], "checklist": ["State whether the review is comprehensive, field-specific, or focused on a narrower aspect of a larger issue.", "Justify boundaries, exclusions, and the field or time-period decisions.", "Explain how scope decisions affect the claims and recommendations.", "Align review type, search process, and output with the stated purpose."], "redFlags": ["The review says it is comprehensive but omits important sources without explanation.", "The title, abstract, and methods imply different scopes.", "Boundary decisions appear post hoc or convenience-based.", "The conclusions overgeneralize beyond the selected literature."], "template": "The review focuses on [scope] rather than [excluded area] because [reason]. We include [fields/sources/time period] and exclude [boundaries]. These choices mean that our recommendations are intended for [audience/context] and should not be generalized to [limits] without further evidence.", "prompts": ["What exactly is inside and outside the review?", "Are exclusions defensible given the review’s purpose?", "Would a reader know whether this is a one-stop shop, field-specific review, or narrow-method issue review?"]}, {"id": "transparency", "name": "Transparency and Replicability", "why": "Shows how the authors identified, screened, coded, synthesized, and converted evidence into recommendations, which directly affects trustworthiness and QRP risk.", "domains": [5, 6], "checklist": ["Report sources, databases, journals, search terms, dates, and time periods.", "Specify inclusion/exclusion criteria, screening procedures, coding protocol, coder calibration, disagreement resolution, and audit trail when applicable.", "Identify the evidentiary basis of each recommendation.", "Distinguish author expertise, prior recommendations, simulations, empirical analyses, and seminal sources."], "redFlags": ["Recommendations appear without visible evidentiary sources.", "The review omits inclusion/exclusion criteria or coding procedures.", "The authors use a systematic tone without reproducible procedures.", "Important judgment calls are hidden or described vaguely."], "template": "We identified sources using [databases/journals/books/manuals] with [search terms] covering [time period]. Articles were screened using [criteria]. Coding involved [coders/protocol/calibration/agreement/resolution]. Each recommendation is linked to [source type] and bounded by [context/assumption].", "prompts": ["Could another researcher reproduce the search and screening process?", "Can each recommendation be traced to a specific source of evidence?", "Are judgment calls acknowledged and justified rather than hidden?"]}, {"id": "usability", "name": "Readability and Usability", "why": "Converts complex methodological knowledge into guidance that substantive researchers, reviewers, and instructors can actually use without losing rigor.", "domains": [7, 8, 9, 10], "checklist": ["Organize recommendations by stage or step where possible.", "Provide both general best practices and context-specific decision rules.", "Use tables, figures, numbered lists, examples, and quick-use summaries.", "Define technical terms, separate description from prescription, and include software/code guidance where relevant."], "redFlags": ["Recommendations are buried in dense prose.", "Technical terms are undefined or disconnected from practical decisions.", "The review gives one-size-fits-all guidance where trade-offs matter.", "Software is mentioned without explaining appropriateness, defaults, versioning, or reproducibility."], "template": "For ease of use, we organize recommendations by [research stage/decision sequence]. Each recommendation states [what to do], [when it applies], [evidence source], [trade-off], and [implementation details/software where relevant]. A quick-use checklist is provided for researchers and reviewers.", "prompts": ["Can a doctoral student or substantive researcher use the recommendations without guessing?", "Are trade-offs and context-specific decisions explicit?", "Does the review provide usable implementation guidance, not just broad advice?"]}], "domains": [{"id": 1, "name": "Need for Review", "issue": "motivation", "summary": "Demonstrate why the review is needed and what it contributes.", "indicators": ["Explains the value-added contribution of the methodological issue for substantive research.", "Provides evidence of confusion about the meaning, value, or use of the methodological issue.", "Demonstrates misuse or incorrect application of the methodology."]}, {"id": 2, "name": "Criticality of the Issue", "issue": "motivation", "summary": "Show why the issue is consequential for the field.", "indicators": ["Provides evidence of growing interest in or use of the methodological issue.", "Shows that the issue is important for many or most studies in the field.", "Explains whether the issue is new or unfamiliar to researchers.", "Discusses the dangers of incorrect methodological choices for knowledge generation and practice."]}, {"id": 3, "name": "Implications of the Methodological Issue", "issue": "motivation", "summary": "Clarify how the methodological issue affects the research process.", "indicators": ["Explains implications for theory.", "Explains implications for research design.", "Explains implications for measurement.", "Explains implications for analysis.", "Explains implications for discussion, interpretation, transparency, and reporting."]}, {"id": 4, "name": "Scope of Review", "issue": "scope", "summary": "Make scope, boundaries, and exclusions explicit.", "indicators": ["Clarifies whether the review provides a comprehensive one-stop-shop treatment.", "Clarifies whether the issue is reviewed within specific fields or subfields.", "Clarifies whether the review focuses on a narrower aspect of a larger methodological issue.", "States boundaries, exclusions, and implications of the scope decision."]}, {"id": 5, "name": "Process of Literature Review", "issue": "transparency", "summary": "Describe how the literature was identified, screened, coded, and synthesized.", "indicators": ["States whether the process is formal, systematic, informal, author-expertise-based, or hybrid.", "Defines the methodological issue being reviewed.", "Specifies journals, databases, sources, books, articles, manuals, reports, or other evidence considered.", "Specifies time period covered.", "Specifies search terms and search logic.", "Specifies inclusion and exclusion criteria.", "Explains screening procedures.", "Explains coding procedures.", "Reports coder calibration, interrater agreement, disagreement resolution, and audit trail when applicable.", "Includes a PRISMA-style or review-flow diagram when appropriate."]}, {"id": 6, "name": "Source of Recommendations", "issue": "transparency", "summary": "Make the evidentiary basis of recommendations visible.", "indicators": ["Identifies whether recommendations are based on author expertise.", "Identifies whether recommendations are based on existing recommendations in the literature.", "Identifies whether recommendations are based on simulations.", "Identifies whether recommendations are based on analysis of published articles or data.", "Identifies whether recommendations are based on seminal papers, manuals, guidelines, or one or two foundational sources.", "Connects every recommendation to its evidentiary source and scope condition."]}, {"id": 7, "name": "Structure of Recommendations", "issue": "usability", "summary": "Organize recommendations so they can guide action and judgment.", "indicators": ["Organizes recommendations by stage of the research project or as a step-by-step guideline.", "Provides general best-practice recommendations.", "Provides context-specific recommendations and decision rules.", "Illustrates recommendations with empirical examples.", "Identifies published research that implements best practices.", "Optionally identifies common poor practices while avoiding unconstructive naming-and-shaming.", "Includes trade-offs and judgment calls rather than implying a single universal best practice when equifinality is possible."]}, {"id": 8, "name": "Layout of Recommendations", "issue": "usability", "summary": "Use formatting and visual design to make recommendations easy to find and apply.", "indicators": ["Presents recommendations in a separate section.", "Uses numbered lists or stepwise guidance.", "Uses tables to summarize recommendations.", "Uses diagrams, figures, models, or flowcharts where useful.", "Includes a quick-use version for substantive researchers."]}, {"id": 9, "name": "Readability of Review", "issue": "usability", "summary": "Make methodological guidance accessible without sacrificing rigor.", "indicators": ["Uses simple, descriptive language.", "Defines technical terms.", "Distinguishes descriptive statements from prescriptive recommendations.", "Uses an easy-to-follow narrative framework.", "Makes complex methodological issues accessible to doctoral students and substantive researchers without sacrificing rigor."]}, {"id": 10, "name": "Software Guidelines", "issue": "usability", "summary": "Help readers implement recommendations responsibly in software.", "indicators": ["Discusses relevant software packages and implementation options.", "Provides code, syntax, templates, or reproducible examples when appropriate.", "Distinguishes software availability from methodological appropriateness.", "Includes warnings about software defaults, versioning, and reproducibility."]}], "qrpFlags": ["Cherry-picking evidence to support a preferred recommendation", "Unclear or drifting scope", "Vague recommendations with no decision rules", "Hidden judgment calls", "Unsupported best-practice claims", "Missing search procedures", "Missing coding procedures", "Weak connection between evidence and recommendations", "Lack of usability for substantive researchers", "Overgeneralizing beyond the evidence base", "Treating software availability as methodological justification", "Insufficient distinction between descriptive findings and prescriptive advice"], "sectionPlan": ["Title/abstract signal the review type, methodological issue, scope, and usable output.", "Introduction establishes need, criticality, and implications for substantive research.", "Review type and scope section explains boundaries, exclusions, and intended audience.", "Method section reports search, screening, coding, and synthesis procedures.", "Recommendation-source section links every recommendation to evidence.", "Recommendations are organized by research stage, decision sequence, or context-specific rule.", "Tables/figures provide a quick-use version for researchers and evaluators.", "Software/code section explains implementation, defaults, versioning, and reproducibility.", "Limitations section states limits of scope, evidence base, and generalizability.", "Appendices/supplemental materials provide search strings, coding protocol, included/excluded records, and templates."]};
+const STORE_KEY = 'mlr_builder_evaluator_v1';
+
+function $(id) { return document.getElementById(id); }
+function esc(s) { return String(s ?? '').replace(/[&<>'"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c])); }
+function val(id) { const el=$(id); return el ? (el.type === 'checkbox' ? el.checked : el.value) : ''; }
+function setVal(id, v) { const el=$(id); if(!el) return; if(el.type === 'checkbox') el.checked = !!v; else el.value = v ?? ''; }
+function scoreLabel(v) { return {'0':'Absent','1':'Weak','2':'Adequate','3':'Strong','NA':'N/A','':'Not scored'}[v] || 'Not scored'; }
+function scoreOptions(id) {
+  return `<select id="${id}" data-score="1" data-save="1" aria-label="Score"><option value="">Not scored</option><option value="0">0 = Absent</option><option value="1">1 = Weak</option><option value="2">2 = Adequate</option><option value="3">3 = Strong</option><option value="NA">N/A</option></select>`;
+}
+function pct(n) { return Math.max(0, Math.min(100, Math.round(n || 0))); }
+function domainById(id) { return DATA.domains.find(d => d.id === Number(id)); }
+
+function renderReviewTypes() {
+  const wrap = $('reviewTypeCards');
+  wrap.innerHTML = DATA.reviewTypes.map((t, idx) => `<article class="type-card" id="typeCard${idx}">
+    <h4>${esc(t.name)}</h4>
+    <p>${esc(t.definition)}</p>
+    <div class="pillrow">${t.tags.map(x=>`<span class="badge">${esc(x)}</span>`).join('')}</div>
+    <p><strong>Appropriate use case:</strong> ${esc(t.useCase)}</p>
+    <p><strong>Strengths:</strong> ${esc(t.strengths)}</p>
+    <p><strong>Risks or limitations:</strong> ${esc(t.risks)}</p>
+    <p><strong>What must be disclosed:</strong> ${esc(t.disclosures)}</p>
+    <p><strong>Best-fit output:</strong> ${esc(t.output)}</p>
+    <p><strong>Warning flags:</strong> ${esc(t.warning)}</p>
+  </article>`).join('');
+  const evalType = $('evalType');
+  evalType.innerHTML = DATA.reviewTypes.map(t => `<option>${esc(t.name)}</option>`).join('');
+}
+
+function recommendType() {
+  const p=val('classPurpose'), e=val('classEvidence'), c=val('classClaim');
+  let name = 'Critical review';
+  if (p==='orient') name = 'Narrative review';
+  if (p==='describe' || c==='descriptive') name = 'Descriptive review';
+  if (p==='systematic' || c==='transparent') name = 'Qualitative systematic review';
+  if (p==='map' || e==='emerging') name = 'Scoping review';
+  if (p==='quantify' || e==='quantitative' || c==='quantified') name = 'Meta-analytic review';
+  if (p==='reviews' || e==='reviews' || c==='state') name = 'Umbrella review';
+  const idx = DATA.reviewTypes.findIndex(t => t.name === name);
+  document.querySelectorAll('.type-card').forEach(x=>x.classList.remove('selected'));
+  if (idx >= 0) $('typeCard'+idx).classList.add('selected');
+  const t = DATA.reviewTypes[idx];
+  $('typeRecommendation').innerHTML = `<strong>Recommended fit: ${esc(t.name)}.</strong> ${esc(t.useCase)} <br><span class="small">Check alignment: ${esc(t.warning)}</span>`;
+  saveState();
+}
+
+function renderBroadIssues() {
+  const wrap = $('broadIssuePanels');
+  wrap.innerHTML = DATA.broadIssues.map(issue => `<details open class="issueBox">
+    <summary>${esc(issue.name)} <span class="badge">Domains ${issue.domains.join(', ')}</span></summary>
+    <div class="inside grid two">
+      <div>
+        <h3>Why it matters</h3><p>${esc(issue.why)}</p>
+        <h4>Checklist items</h4><ul>${issue.checklist.map(x=>`<li>${esc(x)}</li>`).join('')}</ul>
+        <h4>Red flags</h4><ul>${issue.redFlags.map(x=>`<li>${esc(x)}</li>`).join('')}</ul>
+      </div>
+      <div>
+        <label for="issue_${issue.id}_rating">Broad-issue rating</label>
+        <select id="issue_${issue.id}_rating" data-save="1" data-issue-rating="${issue.id}"><option value="">Not scored</option><option value="0">Not addressed</option><option value="1">Weak</option><option value="2">Adequate</option><option value="3">Strong</option><option value="NA">Not applicable</option></select>
+        <label for="issue_${issue.id}_evidence">Evidence field</label>
+        <textarea id="issue_${issue.id}_evidence" data-save="1" placeholder="Paste manuscript text or article evidence addressing ${esc(issue.name)}."></textarea>
+        <label for="issue_${issue.id}_notes">Notes</label>
+        <textarea id="issue_${issue.id}_notes" data-save="1" placeholder="Observations, weaknesses, reviewer comments, or revision ideas."></textarea>
+        <div class="alert" id="issue_${issue.id}_advice">Auto-generated improvement advice will appear after scoring.</div>
+        <h4>Suggested manuscript language template</h4><p class="small">${esc(issue.template)}</p>
+        <h4>Evaluation prompts</h4><ul>${issue.prompts.map(x=>`<li>${esc(x)}</li>`).join('')}</ul>
+      </div>
+    </div>
+  </details>`).join('');
+}
+
+function renderDomains() {
+  const wrap = $('domainPanels');
+  wrap.innerHTML = DATA.domains.map(d => `<details open>
+    <summary>Domain ${d.id}. ${esc(d.name)} <span id="domainBadge_${d.id}" class="badge warn">Not scored</span></summary>
+    <div class="inside">
+      <p class="muted">${esc(d.summary)}</p>
+      <div class="table-wrap" style="border:0">
+        ${d.indicators.map((ind, i) => `<div class="indicator-row">
+          <div><strong>${d.id}.${i+1}</strong> ${esc(ind)}<div class="help">Score quality, specificity, and source support—not mere presence.</div></div>
+          <div>${scoreOptions(`score_${d.id}_${i}`)}</div>
+          <div><textarea id="evidence_${d.id}_${i}" data-save="1" placeholder="Paste or summarize evidence for this indicator."></textarea></div>
+          <div><textarea id="notes_${d.id}_${i}" data-save="1" placeholder="Notes, fixes, or reviewer concerns."></textarea></div>
+        </div>`).join('')}
+      </div>
+    </div>
+  </details>`).join('');
+}
+
+function renderFlags(containerId, prefix) {
+  $(containerId).innerHTML = DATA.qrpFlags.map((x,i)=>`<label class="inline-check" for="${prefix}Flag${i}"><input type="checkbox" id="${prefix}Flag${i}" data-save="1" data-flag="${prefix}"> <span>${esc(x)}</span></label>`).join('');
+}
+function renderRecMatrix() {
+  let rows = '';
+  for (let i=0;i<8;i++) {
+    rows += `<tr><td><textarea id="rec_${i}" data-save="1" placeholder="Recommendation ${i+1}"></textarea></td><td><select id="recSource_${i}" data-save="1"><option>Existing literature</option><option>Author expertise</option><option>Simulation</option><option>Published article/data analysis</option><option>Seminal paper/manual/guideline</option><option>Mixed sources</option></select></td><td><textarea id="recEvidence_${i}" data-save="1" placeholder="Specific citation/source/evidence"></textarea></td><td><textarea id="recBoundary_${i}" data-save="1" placeholder="When it applies; trade-offs; when not to use"></textarea></td><td><textarea id="recImplement_${i}" data-save="1" placeholder="How to implement; software/code/reporting"></textarea></td></tr>`;
+  }
+  $('recMatrix').innerHTML = `<div class="table-wrap"><table><thead><tr><th>Recommendation</th><th>Source type</th><th>Evidence source</th><th>Boundary / judgment call</th><th>Implementation</th></tr></thead><tbody>${rows}</tbody></table></div>`;
+}
+function renderSectionPlanner() {
+  $('sectionPlanner').innerHTML = DATA.sectionPlan.map((x,i)=>`<label class="inline-check" for="sectionPlan${i}"><input type="checkbox" id="sectionPlan${i}" data-save="1"> <span>${esc(x)}</span></label>`).join('');
+}
+
+function collectState() {
+  const state = {};
+  document.querySelectorAll('[data-save]').forEach(el => { state[el.id] = el.type === 'checkbox' ? el.checked : el.value; });
+  return state;
+}
+function applyState(state) {
+  Object.entries(state || {}).forEach(([id,v]) => setVal(id,v));
+  applyMode(); updateScores(); generateReports();
+}
+function saveState() { localStorage.setItem(STORE_KEY, JSON.stringify(collectState())); }
+function loadState() { try { return JSON.parse(localStorage.getItem(STORE_KEY) || '{}'); } catch(e) { return {}; } }
+
+function domainStats(d) {
+  let total=0, count=0, answered=0, possible=d.indicators.length;
+  d.indicators.forEach((_,i)=>{
+    const v = val(`score_${d.id}_${i}`);
+    if (v !== '') answered++;
+    if (['0','1','2','3'].includes(v)) { total += Number(v); count++; }
+  });
+  const score = count ? (total / (count*3))*100 : 0;
+  return {score, count, answered, possible};
+}
+function allStats() {
+  let scores=[], answered=0, possible=0;
+  const byDomain = DATA.domains.map(d => { const s=domainStats(d); if(s.count) scores.push(s.score); answered += s.answered; possible += s.possible; return {...s, id:d.id, name:d.name, issue:d.issue}; });
+  const overall = scores.length ? scores.reduce((a,b)=>a+b,0)/scores.length : 0;
+  const completion = possible ? answered / possible * 100 : 0;
+  return {overall, completion, byDomain};
+}
+function checkedFlags(prefix) { return DATA.qrpFlags.filter((_,i)=>val(prefix+'Flag'+i)); }
+function riskStats(stats) {
+  const scopeProcessSource = [4,5,6].map(id => stats.byDomain.find(d=>d.id===id)?.score || 0);
+  const transparencyRisk = 100 - (scopeProcessSource.reduce((a,b)=>a+b,0)/scopeProcessSource.length);
+  const flagCount = new Set([...checkedFlags('producer'), ...checkedFlags('evaluator')]).size;
+  const flagRisk = Math.min(100, flagCount * 9);
+  return pct((transparencyRisk * .70) + (flagRisk * .30));
+}
+function diagnostic(score) {
+  if(score >= 88) return 'Publication-ready';
+  if(score >= 75) return 'Strong';
+  if(score >= 58) return 'Promising but incomplete';
+  if(score >= 35) return 'Needs major development';
+  return 'Early planning';
+}
+function statusClass(score) { if(score>=75) return 'good'; if(score>=50) return 'warn'; return 'bad'; }
+function renderProgress() {
+  const stats = allStats(), risk = riskStats(stats), status = diagnostic(stats.overall);
+  $('overallScore').textContent = pct(stats.overall)+'%'; $('overallBar').style.width = pct(stats.overall)+'%';
+  $('completionScore').textContent = pct(stats.completion)+'%'; $('completionBar').style.width = pct(stats.completion)+'%';
+  $('riskScore').textContent = risk+'%'; $('riskBar').style.width = risk+'%';
+  $('diagnosticStatus').textContent = status;
+  const badge = $('statusBadge'); badge.textContent = status; badge.className = 'badge '+statusClass(stats.overall);
+  const riskBanner = $('riskBanner');
+  if (risk >= 65) { riskBanner.className='alert bad'; riskBanner.textContent='High trustworthiness risk: strengthen scope, literature-review process, recommendation-source tracing, and unresolved red flags.'; }
+  else if (risk >= 35) { riskBanner.className='alert'; riskBanner.textContent='Moderate trustworthiness risk: several transparency or evidentiary-support issues require attention.'; }
+  else { riskBanner.className='alert good'; riskBanner.textContent='Low-to-moderate trustworthiness risk based on current scores and checked red flags.'; }
+
+  $('domainProgress').innerHTML = stats.byDomain.map(d => `<div style="margin-bottom:11px"><div style="display:flex;justify-content:space-between;gap:8px"><strong>${d.id}. ${esc(d.name)}</strong><span>${pct(d.score)}%</span></div><div class="progress-wrap"><div class="progress" style="width:${pct(d.score)}%"></div></div><div class="small">${d.answered}/${d.possible} indicators scored</div></div>`).join('');
+  $('broadProgress').innerHTML = DATA.broadIssues.map(issue => {
+    const ds = stats.byDomain.filter(d => d.issue === issue.id);
+    const score = ds.length ? ds.reduce((a,b)=>a+b.score,0)/ds.length : 0;
+    const ans = ds.reduce((a,b)=>a+b.answered,0), pos = ds.reduce((a,b)=>a+b.possible,0);
+    return `<div style="margin-bottom:13px"><div style="display:flex;justify-content:space-between;gap:8px"><strong>${esc(issue.name)}</strong><span>${pct(score)}%</span></div><div class="progress-wrap"><div class="progress" style="width:${pct(score)}%"></div></div><div class="small">${ans}/${pos} indicators scored; linked domains: ${issue.domains.join(', ')}</div></div>`;
+  }).join('');
+  stats.byDomain.forEach(d => { const el=$('domainBadge_'+d.id); if(el) { el.textContent = pct(d.score)+'%'; el.className = 'badge '+statusClass(d.score); } });
+}
+
+function issueAdvice() {
+  DATA.broadIssues.forEach(issue => {
+    const v = val(`issue_${issue.id}_rating`), el = $(`issue_${issue.id}_advice`);
+    if(!el) return;
+    if(v === '3') { el.className='alert good'; el.textContent='Strong: preserve explicit evidence, boundaries, and source links. Make sure the claims do not exceed the stated scope.'; }
+    else if(v === '2') { el.className='alert'; el.textContent='Adequate but improvable: add specificity, direct evidence, and clearer links between judgment calls and conclusions.'; }
+    else if(v === '1' || v === '0') { el.className='alert bad'; el.textContent='High-priority fix: use the checklist items and template here to add explicit evidence, transparent decisions, and reviewer-ready justification.'; }
+    else if(v === 'NA') { el.className='alert'; el.textContent='Marked N/A. Briefly explain why this issue does not apply; otherwise reviewers may interpret it as an omission.'; }
+    else { el.className='alert'; el.textContent='Auto-generated improvement advice will appear after scoring.'; }
+  });
+}
+function updateReliance() {
+  const stats = allStats(), risk = riskStats(stats), flags = checkedFlags('evaluator');
+  let decision='Use with caution'; let cls='alert';
+  if(stats.overall>=80 && risk<35 && flags.length<=2) { decision='Rely on it for methodological guidance, with normal scholarly caution'; cls='alert good'; }
+  else if(stats.overall<55 || risk>=65 || flags.length>=6) { decision='Do not rely on it as authoritative guidance without major supplementation'; cls='alert bad'; }
+  $('relyDecision').className=cls;
+  $('relyDecision').innerHTML = `<strong>${decision}.</strong><br>Readiness: ${pct(stats.overall)}%. Trustworthiness risk: ${risk}%. Evaluator red flags checked: ${flags.length}.`;
+}
+function updateScores() { renderProgress(); issueAdvice(); updateReliance(); }
+
+function applyMode() {
+  const m = val('modeSelect') || 'produce';
+  document.body.classList.remove('mode-produce','mode-evaluate','mode-teach');
+  document.body.classList.add('mode-'+m);
+}
+function activateTab(id) {
+  document.querySelectorAll('.tab').forEach(t=>t.classList.toggle('active', t.dataset.tab===id));
+  document.querySelectorAll('.panel').forEach(p=>p.classList.toggle('active', p.id===id));
+  if(id==='reports') generateReports();
+}
+
+function checkedList(prefix) {
+  return DATA.qrpFlags.map((x,i)=>val(prefix+'Flag'+i) ? '• '+x : '').filter(Boolean).join('\\n') || 'None checked.';
+}
+function lowDomains(threshold=60) { return allStats().byDomain.filter(d=>d.score<threshold).map(d=>`Domain ${d.id} (${d.name}): ${pct(d.score)}%`).join('\\n') || 'No domains below threshold.'; }
+function matrixText() {
+  let lines = [];
+  for(let i=0;i<8;i++) {
+    const r=val('rec_'+i), src=val('recSource_'+i), ev=val('recEvidence_'+i), b=val('recBoundary_'+i), imp=val('recImplement_'+i);
+    if(r || ev || b || imp) lines.push(`${i+1}. Recommendation: ${r || '[not specified]'}
+   Source type: ${src}
+   Evidence: ${ev || '[not specified]'}
+   Boundary/judgment call: ${b || '[not specified]'}
+   Implementation: ${imp || '[not specified]'}`);
+  }
+  return lines.join('\\n\\n') || 'No recommendation-source entries completed yet.';
+}
+function checklistText() {
+  const stats = allStats();
+  return DATA.domains.map(d => {
+    const s = stats.byDomain.find(x=>x.id===d.id);
+    const items = d.indicators.map((ind,i)=>`  - ${d.id}.${i+1} ${ind} Score: ${scoreLabel(val(`score_${d.id}_${i}`))}. Evidence: ${val(`evidence_${d.id}_${i}`) || 'Not provided'}. Notes: ${val(`notes_${d.id}_${i}`) || 'None'}`).join('\\n');
+    return `Domain ${d.id}. ${d.name} — ${pct(s.score)}%
+${items}`;
+  }).join('\\n\\n');
+}
+function sectionPlannerText() {
+  return DATA.sectionPlan.map((x,i)=>`${val('sectionPlan'+i) ? '✓' : '□'} ${x}`).join('\\n');
+}
+function issueText(issueId) { return val(`issue_${issueId}_evidence`) || 'No evidence entered.'; }
+function generateReports() {
+  const stats = allStats(), risk = riskStats(stats), flags = [...new Set([...checkedFlags('producer'),...checkedFlags('evaluator')])];
+  const project = val('projectTitle') || val('evalTitle') || '[untitled review]';
+  const issue = val('methodIssue') || val('evalIssue') || val('purposeIssue') || '[methodological issue]';
+  const status = diagnostic(stats.overall);
+  $('producerReport').textContent = `PRODUCER ACTION PLAN
+Project: ${project}
+Methodological issue: ${issue}
+Current readiness: ${pct(stats.overall)}% (${status})
+Trustworthiness risk: ${risk}%
+
+Priority fixes
+${lowDomains(75)}
+
+QRP risks to neutralize
+${checkedList('producer')}
+
+Next actions
+1. Strengthen the motivation by documenting confusion, misuse, growing use, and implications beyond data analysis.
+2. Clarify the review type and scope so claims do not exceed the evidence base.
+3. Make the search, screening, coding, and recommendation-source logic reproducible.
+4. Convert recommendations into stage-based, context-specific, source-linked, usable guidance.
+5. Add quick-use tables, flow diagrams, software/code guidance, and explicit boundary conditions where relevant.
+
+Reviewer-proofing checklist
+${sectionPlannerText()}`;
+  $('evaluationMemo').textContent = `REVIEWER / EDITOR EVALUATION MEMO
+Title: ${val('evalTitle') || project}
+Authors: ${val('evalAuthors') || '[not entered]'}
+Journal/year: ${val('evalJournalYear') || '[not entered]'}
+Review type: ${val('evalType') || '[not entered]'}
+Methodological issue: ${val('evalIssue') || issue}
+
+Overall assessment: ${pct(stats.overall)}% readiness; ${risk}% trustworthiness risk; diagnostic status = ${status}.
+Reliance decision: ${$('relyDecision') ? $('relyDecision').innerText : 'Not generated'}
+
+Strengths
+${val('evalStrengths') || 'Not entered.'}
+
+Major concerns
+${val('evalMajor') || lowDomains(65)}
+
+Minor concerns
+${val('evalMinor') || 'Not entered.'}
+
+Missing disclosures / red flags
+${checkedList('evaluator')}
+
+Recommendations for revision
+Require clearer scope, stronger source-to-recommendation tracing, fuller reporting of literature-review procedures, and more usable recommendations wherever the checklist scores are weak.
+
+Suitability
+Publication: ${stats.overall>=75 && risk<50 ? 'Potentially suitable after targeted revisions.' : 'Not yet suitable without substantial revision.'}
+Teaching: ${stats.overall>=65 ? 'Useful if limitations are discussed explicitly.' : 'Use only as a diagnostic example of review weaknesses.'}
+Methodological guidance: ${stats.overall>=80 && risk<35 ? 'Reasonably reliable.' : 'Supplement with stronger sources and reviewer judgment.'}`;
+  $('scopeReport').textContent = `SCOPE AND BOUNDARY STATEMENT
+This review focuses on ${val('scopeCovers') || '[state what is included]'}. It excludes ${val('scopeExcludes') || '[state exclusions]'}. These boundaries matter because ${val('scopeImplications') || '[explain what claims are and are not warranted]'}.
+
+Evidence currently entered for Scope and Data Selection:
+${issueText('scope')}`;
+  $('searchReport').textContent = `SEARCH AND SCREENING PROTOCOL SUMMARY
+Sources/databases/journals: ${val('searchSources') || '[not entered]'}
+Search terms and logic: ${val('searchTerms') || '[not entered]'}
+Time period: ${val('searchDates') || '[not entered]'}
+Review-flow plan: ${val('searchFlow') || '[not entered]'}
+Inclusion criteria: ${val('includeCriteria') || '[not entered]'}
+Exclusion criteria: ${val('excludeCriteria') || '[not entered]'}
+Screening procedures: ${val('screeningPlan') || '[not entered]'}`;
+  $('codingReport').textContent = `CODING TRANSPARENCY SUMMARY
+Coding units and variables: ${val('codingUnits') || '[not entered]'}
+Coder calibration and agreement: ${val('coderPlan') || '[not entered]'}
+
+Minimum disclosure reminder: identify coding units, coder training, pilot coding/calibration, agreement evidence, disagreement resolution, and audit trail when applicable.`;
+  const usabilityDomains = allStats().byDomain.filter(d=>['usability'].includes(d.issue)).map(d=>`Domain ${d.id} ${d.name}: ${pct(d.score)}%`).join('\\n');
+  $('usabilityReport').textContent = `READABILITY AND USABILITY IMPROVEMENT LIST
+${usabilityDomains}
+
+Recommended improvements
+• Organize recommendations by research stage or decision sequence.
+• Add general and context-specific recommendations.
+• Provide empirical examples and exemplar studies.
+• Use tables, numbered lists, flowcharts, and a quick-use checklist.
+• Define technical terms and separate descriptive claims from prescriptive advice.
+• Add software/code guidance, warnings about defaults, versioning, and reproducibility where relevant.`;
+  $('matrixReport').textContent = matrixText();
+  $('checklistReport').textContent = `FINAL CHECKLIST REPORT
+Project: ${project}
+Overall readiness: ${pct(stats.overall)}%
+Diagnostic status: ${status}
+Trustworthiness risk: ${risk}%
+
+Checked QRP risks
+${flags.length ? flags.map(x=>'• '+x).join('\\n') : 'None checked.'}
+
+${checklistText()}`;
+}
+
+function exportJSON() {
+  const blob = new Blob([JSON.stringify(collectState(), null, 2)], {type:'application/json'});
+  const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'methodological_lit_review_tool_export.json'; document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(a.href);
+}
+function importJSON(file) {
+  const reader = new FileReader();
+  reader.onload = () => { try { const state = JSON.parse(reader.result); applyState(state); saveState(); alert('Import complete.'); } catch(e) { alert('Could not import JSON: '+e.message); } };
+  reader.readAsText(file);
+}
+function copyOutput(id) {
+  const text = $(id).innerText || $(id).textContent || '';
+  navigator.clipboard.writeText(text).then(()=>alert('Copied to clipboard.')).catch(()=>{
+    const ta=document.createElement('textarea'); ta.value=text; document.body.appendChild(ta); ta.select(); document.execCommand('copy'); ta.remove(); alert('Copied to clipboard.');
+  });
+}
+function resetAll() {
+  if(confirm('Reset all fields and locally stored data?')) { localStorage.removeItem(STORE_KEY); document.querySelectorAll('[data-save]').forEach(el=>{ if(el.type==='checkbox') el.checked=false; else el.value=''; }); $('modeSelect').value='produce'; applyMode(); updateScores(); generateReports(); }
+}
+function initEvents() {
+  document.querySelectorAll('.tab').forEach(t=>t.addEventListener('click',()=>activateTab(t.dataset.tab)));
+  document.addEventListener('input', e=>{ if(e.target.matches('[data-save]')) { saveState(); updateScores(); } });
+  document.addEventListener('change', e=>{ if(e.target.matches('[data-save]')) { if(e.target.id==='modeSelect') applyMode(); saveState(); updateScores(); generateReports(); } });
+  $('saveBtn').addEventListener('click',()=>{ saveState(); alert('Saved locally in this browser.'); });
+  $('exportBtn').addEventListener('click', exportJSON);
+  $('importFile').addEventListener('change', e=>{ if(e.target.files[0]) importJSON(e.target.files[0]); });
+  $('printBtn').addEventListener('click',()=>{ generateReports(); window.print(); });
+  $('resetBtn').addEventListener('click', resetAll);
+  $('recommendTypeBtn').addEventListener('click', recommendType);
+  $('generateReportBtn').addEventListener('click', generateReports);
+  document.querySelectorAll('.copyBtn').forEach(b=>b.addEventListener('click',()=>copyOutput(b.dataset.copy)));
+}
+function init() {
+  renderReviewTypes(); renderBroadIssues(); renderDomains(); renderFlags('producerQrpFlags','producer'); renderFlags('evaluatorQrpFlags','evaluator'); renderRecMatrix(); renderSectionPlanner(); initEvents(); applyState(loadState()); if(!val('projectDate')) { const d=new Date(); $('projectDate').value = d.toISOString().slice(0,10); } saveState(); updateScores(); generateReports();
+}
+document.addEventListener('DOMContentLoaded', init);
+</script>
+<!-- Begin Countercentral code v 7.0 --> 
+<span id="wts2576"></span> 
+<script>var wts=document.createElement('script');wts.async=true; 
+wts.src='https://server2.countercentral.com/log7.js';document.head.appendChild(wts); 
+wts.onload = function(){ wtslog7(2576,1); }; 
+</script><noscript><a href="https://www.countercentral.com"> 
+<img src="https://server2.countercentral.com/7/1/2576.png"  
+alt="Countercentral web traffic analysis"></a></noscript> 
+<!-- End Countercentral code v 7.0 -->
+</body>
+</html>

@@ -1,0 +1,21 @@
+cff-version: 1.2.0
+message: "If you use this toolkit, please cite it as below."
+title: "Research Methodology Toolkit"
+type: software
+authors:
+  - family-names: "Aguinis"
+    given-names: "Herman"
+    affiliation: "The George Washington University"
+repository-code: "https://github.com/REPLACE-WITH-YOUR-GITHUB-USERNAME/research-methodology-toolkit"
+url: "https://www.hermanaguinis.com/research-methodology-book.html"
+license:
+  - MIT
+  - CC-BY-NC-4.0
+version: "1.0.0"
+date-released: "2026-01-01"
+abstract: >
+  34 interactive, browser-based tools operationalizing published best-practice
+  recommendations for organizational and social science research design, data
+  collection, analysis, and reporting. Companion infrastructure to: Aguinis, H.
+  (2025). Research Methodology: Best Practices for Rigorous, Credible, and
+  Impactful Research. SAGE, Thousand Oaks, CA.

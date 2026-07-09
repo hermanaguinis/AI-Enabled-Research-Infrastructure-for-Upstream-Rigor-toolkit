@@ -1,0 +1,1278 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Key Informant Interview Research Tool</title>
+<style>
+:root{
+  --bg:#f5f7fb;
+  --panel:#ffffff;
+  --ink:#172033;
+  --muted:#64748b;
+  --line:#d9e2ef;
+  --primary:#183b68;
+  --primary2:#2563eb;
+  --accent:#0f766e;
+  --warn:#b45309;
+  --bad:#b91c1c;
+  --good:#047857;
+  --soft:#eef5ff;
+  --soft2:#ecfdf5;
+  --shadow:0 10px 28px rgba(15,23,42,.08);
+  --radius:18px;
+}
+*{box-sizing:border-box}
+html,body{height:100%}
+body{
+  margin:0;
+  font-family:Arial, Helvetica, sans-serif;
+  color:var(--ink);
+  background:linear-gradient(180deg,#f7faff 0%,#eef3fa 100%);
+  line-height:1.45;
+}
+button,input,textarea,select{font:inherit}
+.app{
+  min-height:100vh;
+  display:grid;
+  grid-template-columns:310px 1fr;
+}
+.sidebar{
+  background:#0e2543;
+  color:#fff;
+  padding:22px 18px;
+  position:sticky;
+  top:0;
+  height:100vh;
+  overflow:auto;
+}
+.brand{
+  padding:6px 8px 18px;
+  border-bottom:1px solid rgba(255,255,255,.16);
+  margin-bottom:16px;
+}
+.brand h1{
+  font-size:20px;
+  line-height:1.18;
+  margin:0 0 8px;
+}
+.brand p{margin:0;color:#cbd5e1;font-size:13px}
+.progressBlock{
+  background:rgba(255,255,255,.08);
+  border:1px solid rgba(255,255,255,.16);
+  border-radius:14px;
+  padding:14px;
+  margin:14px 0;
+}
+.progressTop{display:flex;justify-content:space-between;gap:12px;align-items:center;font-size:13px}
+.bar{height:10px;background:rgba(255,255,255,.18);border-radius:999px;overflow:hidden;margin:10px 0 6px}
+.bar span{display:block;height:100%;width:0;background:linear-gradient(90deg,#38bdf8,#34d399);transition:width .25s}
+.scoreBig{font-size:28px;font-weight:800}
+.nav button{
+  display:block;
+  width:100%;
+  border:0;
+  color:#dbeafe;
+  background:transparent;
+  text-align:left;
+  padding:10px 12px;
+  border-radius:10px;
+  margin:2px 0;
+  cursor:pointer;
+  font-size:14px;
+}
+.nav button:hover{background:rgba(255,255,255,.08)}
+.nav button.active{background:#1e40af;color:#fff}
+.main{min-width:0}
+.topbar{
+  position:sticky;
+  top:0;
+  z-index:10;
+  background:rgba(255,255,255,.92);
+  backdrop-filter:blur(10px);
+  border-bottom:1px solid var(--line);
+  padding:14px 22px;
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  gap:16px;
+}
+.topbar h2{font-size:18px;margin:0}
+.actions{display:flex;flex-wrap:wrap;gap:8px;justify-content:flex-end}
+.btn{
+  border:1px solid #cbd5e1;
+  background:#fff;
+  color:#0f172a;
+  border-radius:10px;
+  padding:8px 10px;
+  cursor:pointer;
+  font-weight:700;
+  font-size:13px;
+}
+.btn:hover{border-color:#64748b}
+.btn.primary{background:var(--primary2);color:#fff;border-color:var(--primary2)}
+.btn.good{background:var(--accent);color:#fff;border-color:var(--accent)}
+.btn.danger{background:#fff1f2;color:#9f1239;border-color:#fecdd3}
+.content{padding:24px;max-width:1380px;margin:0 auto}
+.section{display:none}
+.section.active{display:block}
+.hero{
+  background:linear-gradient(135deg,#102f55,#1e40af);
+  color:#fff;
+  padding:28px;
+  border-radius:var(--radius);
+  box-shadow:var(--shadow);
+  margin-bottom:20px;
+}
+.hero h2{font-size:30px;margin:0 0 8px}
+.hero p{max-width:920px;color:#dbeafe;margin:0}
+.grid{display:grid;gap:16px}
+.grid.two{grid-template-columns:repeat(2,minmax(0,1fr))}
+.grid.three{grid-template-columns:repeat(3,minmax(0,1fr))}
+.card{
+  background:var(--panel);
+  border:1px solid var(--line);
+  border-radius:var(--radius);
+  box-shadow:var(--shadow);
+  padding:18px;
+  margin-bottom:16px;
+}
+.card h3{margin:0 0 10px;font-size:19px;color:#0f2b4f}
+.card h4{margin:16px 0 8px;font-size:15px;color:#334155;text-transform:uppercase;letter-spacing:.04em}
+.card p.help{margin:6px 0 14px;color:var(--muted);font-size:14px}
+label.lbl{display:block;font-weight:700;margin:10px 0 6px;color:#1f2937}
+input[type=text],input[type=email],input[type=number],select,textarea{
+  width:100%;
+  border:1px solid #cbd5e1;
+  border-radius:10px;
+  padding:10px 11px;
+  background:#fff;
+  color:#0f172a;
+}
+textarea{min-height:94px;resize:vertical}
+textarea.tall{min-height:190px}
+.inline{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.checklist{
+  display:grid;
+  gap:8px;
+  margin:8px 0;
+}
+.check{
+  display:flex;
+  gap:10px;
+  align-items:flex-start;
+  padding:9px 10px;
+  background:#f8fafc;
+  border:1px solid #e2e8f0;
+  border-radius:12px;
+}
+.check input{margin-top:3px}
+.hint{
+  background:#f8fafc;
+  border-left:5px solid var(--primary2);
+  padding:12px 14px;
+  border-radius:10px;
+  color:#334155;
+  margin:12px 0;
+}
+.warning{
+  background:#fff7ed;
+  border:1px solid #fed7aa;
+  color:#7c2d12;
+  padding:12px 14px;
+  border-radius:12px;
+  margin:10px 0;
+}
+.success{
+  background:#ecfdf5;
+  border:1px solid #a7f3d0;
+  color:#065f46;
+  padding:12px 14px;
+  border-radius:12px;
+  margin:10px 0;
+}
+.badge{
+  display:inline-block;
+  padding:3px 8px;
+  border-radius:999px;
+  background:#e0f2fe;
+  color:#075985;
+  font-weight:800;
+  font-size:12px;
+}
+.badge.good{background:#d1fae5;color:#065f46}
+.badge.warn{background:#ffedd5;color:#9a3412}
+.badge.bad{background:#fee2e2;color:#991b1b}
+details{
+  border:1px solid #e2e8f0;
+  border-radius:12px;
+  padding:10px 12px;
+  background:#fbfdff;
+  margin:10px 0;
+}
+summary{font-weight:800;cursor:pointer;color:#17375e}
+.tableWrap{overflow:auto;border:1px solid var(--line);border-radius:14px}
+table{border-collapse:collapse;width:100%;min-width:980px;background:#fff}
+th,td{border-bottom:1px solid #e5e7eb;padding:8px;vertical-align:top;text-align:left;font-size:13px}
+th{background:#eff6ff;color:#17375e;position:sticky;top:0;z-index:1}
+td input,td textarea,td select{font-size:13px;padding:7px;border-radius:8px}
+td textarea{min-height:64px}
+td .scoreCell{font-weight:900;text-align:center;font-size:18px;color:#0f766e}
+.small{font-size:12px;color:var(--muted)}
+.kpiRow{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}
+.kpi{
+  background:#f8fafc;
+  border:1px solid #e2e8f0;
+  border-radius:14px;
+  padding:14px;
+}
+.kpi .n{font-size:26px;font-weight:900;color:#0f2b4f}
+.kpi .t{font-size:12px;color:var(--muted);font-weight:700;text-transform:uppercase;letter-spacing:.05em}
+.scorePanel{
+  display:grid;
+  grid-template-columns:220px 1fr;
+  gap:18px;
+  align-items:center;
+}
+.scoreCircle{
+  width:190px;height:190px;border-radius:50%;
+  display:grid;place-items:center;
+  background:conic-gradient(var(--primary2) 0deg,#e5e7eb 0deg);
+  margin:auto;
+}
+.scoreInner{
+  width:142px;height:142px;border-radius:50%;
+  background:#fff;
+  display:grid;place-items:center;
+  text-align:center;
+  border:1px solid #e2e8f0;
+}
+.scoreInner strong{font-size:36px}
+.outputBox{
+  white-space:pre-wrap;
+  background:#0f172a;
+  color:#e5e7eb;
+  padding:16px;
+  border-radius:14px;
+  min-height:200px;
+  overflow:auto;
+}
+.footerCredit{
+  margin:30px 0 0;
+  color:#64748b;
+  font-size:12px;
+  border-top:1px solid var(--line);
+  padding-top:16px;
+}
+.routeGrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+.pillList{display:flex;flex-wrap:wrap;gap:8px;margin:8px 0}
+.pill{
+  background:#eef2ff;
+  border:1px solid #c7d2fe;
+  color:#312e81;
+  border-radius:999px;
+  padding:6px 9px;
+  font-size:12px;
+  font-weight:800;
+}
+.templateBox{
+  background:#f8fafc;
+  border:1px dashed #94a3b8;
+  border-radius:12px;
+  padding:12px;
+  margin-top:10px;
+}
+@media(max-width:980px){
+  .app{grid-template-columns:1fr}
+  .sidebar{height:auto;position:relative}
+  .nav{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:4px}
+  .topbar{position:relative;align-items:flex-start;flex-direction:column}
+  .grid.two,.grid.three,.kpiRow,.scorePanel{grid-template-columns:1fr}
+}
+@media print{
+  body{background:#fff}
+  .sidebar,.topbar,.noPrint{display:none!important}
+  .app{display:block}
+  .content{padding:0;max-width:none}
+  .section{display:block!important;break-inside:avoid}
+  .card,.hero{box-shadow:none;border:1px solid #ddd}
+  textarea,input,select{border:0;border-bottom:1px solid #ccc}
+}
+</style>
+</head>
+<body>
+<div class="app">
+  <aside class="sidebar">
+    <div class="brand">
+      <h1>Key Informant Interview Research Tool</h1>
+      <p>Design, conduct, evaluate, and report rigorous interview-based research.</p>
+    </div>
+    <div class="progressBlock">
+      <div class="progressTop"><span>Readiness progress</span><span class="scoreBig" id="sideScore">0</span></div>
+      <div class="bar"><span id="sideBar"></span></div>
+      <div class="small" id="sideStatus">Complete the modules to build a defensible design.</div>
+    </div>
+    <nav class="nav" id="nav"></nav>
+  </aside>
+  <main class="main">
+    <div class="topbar">
+      <h2 id="sectionTitle">Project Setup</h2>
+      <div class="actions noPrint">
+        <button class="btn primary" onclick="saveAll()">Save</button>
+        <button class="btn" onclick="loadAll(true)">Load</button>
+        <button class="btn good" onclick="generateMethods(true)">Generate methods text</button>
+        <button class="btn" onclick="exportJSON()">Export JSON</button>
+        <button class="btn" onclick="exportTXT()">Export TXT</button>
+        <button class="btn" onclick="exportCSV()">Export CSV</button>
+        <button class="btn" onclick="window.print()">Print report</button>
+        <button class="btn danger" onclick="resetAll()">Reset</button>
+      </div>
+    </div>
+
+    <div class="content">
+      <section class="section active" id="project" data-title="Project Setup">
+        <div class="hero">
+          <h2>Build a rigorous key informant interview study</h2>
+          <p>This offline tool turns methodological recommendations into concrete decisions, checklists, templates, diagnostics, and exportable manuscript-ready outputs.</p>
+        </div>
+        <div class="grid two">
+          <div class="card">
+            <h3>Project profile</h3>
+            <label class="lbl">Study title</label><input data-field="studyTitle" type="text" placeholder="e.g., How boards respond to strategic failure">
+            <label class="lbl">Research question</label><textarea data-field="researchQuestion" placeholder="State the question that key informants can answer better than other sources."></textarea>
+            <label class="lbl">Research purpose</label>
+            <select data-field="purpose"><option value="">Select</option><option>Theory-building</option><option>Theory-testing</option><option>Mixed theory-building and theory-testing</option><option>Descriptive or exploratory</option></select>
+            <label class="lbl">Phenomenon of interest</label><textarea data-field="phenomenon"></textarea>
+            <label class="lbl">Industry, organization, or setting</label><input data-field="setting" type="text">
+            <label class="lbl">Target key informant population</label><textarea data-field="population" placeholder="Define roles, decision authority, exclusive information, and relevance."></textarea>
+            <label class="lbl">Expected contribution</label><textarea data-field="contribution"></textarea>
+          </div>
+          <div class="card">
+            <h3>Method fit diagnostic</h3>
+            <p class="help">Use interviews with key informants only when they add information that cannot be obtained adequately from less costly or less access-dependent sources.</p>
+            <label class="lbl">Why are key informant interviews necessary?</label><textarea data-field="necessity" placeholder="Explain the unique need for decision-making, privileged knowledge, organizational narratives, or insider interpretation."></textarea>
+            <label class="lbl">Alternative data sources considered</label><textarea data-field="alternatives" placeholder="Archival data, public records, documents, surveys, lower-level interviews, observations, experiments, etc."></textarea>
+            <div class="checklist">
+              <label class="check"><input type="checkbox" data-check="fit_decision_processes"> The study requires access to decision-making processes.</label>
+              <label class="check"><input type="checkbox" data-check="fit_narratives"> The study requires organizational narratives or sensemaking accounts.</label>
+              <label class="check"><input type="checkbox" data-check="fit_privileged"> The study requires privileged or exclusive information.</label>
+              <label class="check"><input type="checkbox" data-check="fit_insider"> The study requires insider interpretations of events or choices.</label>
+              <label class="check"><input type="checkbox" data-check="fit_high_level"> The study concerns high-level strategic choices or governance decisions.</label>
+            </div>
+            <div id="fitAdvice" class="hint"></div>
+            <details open>
+              <summary>About this tool</summary>
+              <p>This tool helps researchers plan and report interview research with key informants: individuals who are key decision makers, possess extensive and exclusive information, and can influence important organizational outcomes, either alone or jointly with others.</p>
+              <p><strong>Based on:</strong> Aguinis, H. 2025. <em>Research methodology: Best practices for rigorous, credible, and impactful research</em>. SAGE. https://collegepublishing.sagepub.com/products/research-methodology-1-280088</p>
+            </details>
+          </div>
+        </div>
+      </section>
+
+      <section class="section" id="design" data-title="Research Design Planner">
+        <div class="card">
+          <h3>Design decision support</h3>
+          <p class="help">Plan when to interview, whom to interview first, and how to prevent early assumptions from shaping the entire study.</p>
+          <div class="grid two">
+            <div>
+              <label class="lbl">Best project timing for key informant interviews</label>
+              <select data-field="interviewTiming">
+                <option value="">Select</option><option>Early stage</option><option>Middle stage</option><option>Late stage after background data collection</option><option>Multiple waves across the project</option>
+              </select>
+              <label class="lbl">Rationale for interview timing</label><textarea data-field="timingRationale"></textarea>
+              <label class="lbl">Initial assumptions and preconceptions</label><textarea data-field="initialAssumptions" placeholder="List the assumptions you most need to test."></textarea>
+            </div>
+            <div>
+              <label class="lbl">Preparation status</label>
+              <div class="checklist">
+                <label class="check"><input type="checkbox" data-check="prep_topic"> I know the details of the topic under investigation.</label>
+                <label class="check"><input type="checkbox" data-check="prep_history"> I know the history of the focal firms, informants, or setting.</label>
+                <label class="check"><input type="checkbox" data-check="prep_jargon"> I can use the relevant industry or organizational vocabulary appropriately.</label>
+                <label class="check"><input type="checkbox" data-check="prep_archives"> I reviewed public records, documents, news, or archival materials.</label>
+                <label class="check"><input type="checkbox" data-check="prep_examples"> I prepared specific examples to support questions and probes.</label>
+              </div>
+              <div id="prepAdvice" class="hint"></div>
+            </div>
+          </div>
+        </div>
+        <div class="card">
+          <h3>Challenge-assumptions-first planner</h3>
+          <p class="help">Identify informants who are least likely to share your worldview or network assumptions and interview some of them early.</p>
+          <label class="lbl">Who is most likely to challenge your assumptions?</label><textarea data-field="assumptionChallengers"></textarea>
+          <label class="lbl">Which direct-network informants could be useful but potentially assumption-reinforcing?</label><textarea data-field="networkRisks"></textarea>
+          <div class="checklist">
+            <label class="check"><input type="checkbox" data-check="design_challenge_first"> I plan to interview assumption-challenging informants early when feasible.</label>
+            <label class="check"><input type="checkbox" data-check="design_avoid_network"> I have a plan to avoid overreliance on personal networks.</label>
+            <label class="check"><input type="checkbox" data-check="design_snowball_limits"> I will monitor whether referrals are creating a homogeneous sample.</label>
+            <label class="check"><input type="checkbox" data-check="design_not_just_available"> Interview order will not be based only on availability or convenience.</label>
+          </div>
+        </div>
+      </section>
+
+      <section class="section" id="sampling" data-title="Identification and Sampling">
+        <div class="card">
+          <h3>Key informant table</h3>
+          <p class="help">List potential informants. The priority score rewards decision authority, exclusive information, relevance, independence from existing networks, and potential to challenge assumptions.</p>
+          <div class="actions noPrint"><button class="btn primary" onclick="addInformant()">Add informant</button><button class="btn" onclick="sortInformants()">Sort by score</button></div>
+          <div class="tableWrap"><table id="informantTable">
+            <thead><tr>
+              <th>ID/name</th><th>Organization</th><th>Role</th><th>Decision authority</th><th>Exclusive information</th><th>Relevance</th><th>Access route</th><th>Gatekeeper</th><th>Similarity risk</th><th>Disconfirming?</th><th>Challenge potential</th><th>Priority</th><th></th>
+            </tr></thead><tbody></tbody>
+          </table></div>
+          <div id="sampleWarning" class="warning"></div>
+        </div>
+      </section>
+
+      <section class="section" id="access" data-title="Access Strategy Builder">
+        <div class="grid two">
+          <div class="card">
+            <h3>Access route selection</h3>
+            <p class="help">Combine credibility, benefit framing, gatekeeper engagement, and personalized outreach.</p>
+            <div class="routeGrid">
+              <label class="check"><input type="checkbox" data-check="route_alumni"> Alumni network</label>
+              <label class="check"><input type="checkbox" data-check="route_institution"> Institutional endorsement</label>
+              <label class="check"><input type="checkbox" data-check="route_personal"> Personal/professional network</label>
+              <label class="check"><input type="checkbox" data-check="route_direct"> Direct contact</label>
+              <label class="check"><input type="checkbox" data-check="route_linkedin"> LinkedIn or professional platform</label>
+              <label class="check"><input type="checkbox" data-check="route_event"> Practitioner event</label>
+              <label class="check"><input type="checkbox" data-check="route_consultant"> Consultant connection</label>
+              <label class="check"><input type="checkbox" data-check="route_walkup"> Lower-level “walk-up” interviews</label>
+              <label class="check"><input type="checkbox" data-check="route_supplier"> Supplier/client relationship</label>
+              <label class="check"><input type="checkbox" data-check="route_assistant"> Executive assistant relationship</label>
+            </div>
+            <label class="lbl">Value proposition to informants or their organization</label><textarea data-field="valueProposition"></textarea>
+            <label class="lbl">Boundaries of what will and will not be shared</label><textarea data-field="sharingBoundaries"></textarea>
+            <label class="lbl">Gatekeeper engagement plan</label><textarea data-field="gatekeeperPlan"></textarea>
+          </div>
+          <div class="card">
+            <h3>Email templates</h3>
+            <p class="help">Use the buttons to generate editable templates from your project profile.</p>
+            <div class="actions noPrint">
+              <button class="btn" onclick="makeEmail('invite')">Invitation</button>
+              <button class="btn" onclick="makeEmail('gatekeeper')">Gatekeeper</button>
+              <button class="btn" onclick="makeEmail('followup')">Follow-up</button>
+            </div>
+            <label class="lbl">Personalized invitation email</label><textarea class="tall" data-field="emailInvite"></textarea>
+            <label class="lbl">Gatekeeper email</label><textarea class="tall" data-field="emailGatekeeper"></textarea>
+            <label class="lbl">Follow-up email</label><textarea class="tall" data-field="emailFollowup"></textarea>
+          </div>
+        </div>
+      </section>
+
+      <section class="section" id="format" data-title="Interview Format and Protocol">
+        <div class="grid two">
+          <div class="card">
+            <h3>Interview format selector</h3>
+            <label class="lbl">Can the informant allocate substantial time?</label>
+            <select data-field="substantialTime"><option value="">Select</option><option>Yes</option><option>No</option><option>Unclear</option></select>
+            <label class="lbl">Can the informant be interviewed more than once?</label>
+            <select data-field="multipleAccess"><option value="">Select</option><option>Yes</option><option>No</option><option>Unclear</option></select>
+            <label class="lbl">Is this likely a one-shot opportunity?</label>
+            <select data-field="oneShot"><option value="">Select</option><option>Yes</option><option>No</option><option>Unclear</option></select>
+            <div id="formatRecommendation" class="success"></div>
+            <div class="checklist">
+              <label class="check"><input type="checkbox" data-check="format_open_first"> Open-ended questions come before closed-ended questions.</label>
+              <label class="check"><input type="checkbox" data-check="format_flexible_protocol"> The protocol is detailed but flexible.</label>
+              <label class="check"><input type="checkbox" data-check="format_free_speech"> The informant can speak freely without losing core-topic coverage.</label>
+              <label class="check"><input type="checkbox" data-check="format_closeds_end"> Closed-ended questions, if any, are placed at the end.</label>
+            </div>
+          </div>
+          <div class="card">
+            <h3>Dynamic interview protocol builder</h3>
+            <label class="lbl">Opening script</label><textarea data-field="protocolOpening"></textarea>
+            <label class="lbl">Rapport-building questions</label><textarea data-field="protocolRapport"></textarea>
+            <label class="lbl">Main open-ended questions</label><textarea class="tall" data-field="protocolMain"></textarea>
+            <label class="lbl">Probes</label><textarea data-field="protocolProbes"></textarea>
+            <label class="lbl">Sensitive questions</label><textarea data-field="protocolSensitive"></textarea>
+            <label class="lbl">Hypothetical scenario prompts</label><textarea data-field="protocolHypotheticals"></textarea>
+            <label class="lbl">Disconfirming or clarification questions</label><textarea data-field="protocolClarifying"></textarea>
+            <label class="lbl">Closing questions</label><textarea data-field="protocolClosing">Is there anything else you would like to share?
+Are there any issues that you think are important that we did not cover?
+Is there anyone else you think I should speak with?
+May I contact you later to clarify or validate my understanding?</textarea>
+            <label class="lbl">Follow-up request</label><textarea data-field="protocolFollowup"></textarea>
+          </div>
+        </div>
+      </section>
+
+      <section class="section" id="power" data-title="Power Dynamics Manager">
+        <div class="card">
+          <h3>Power dynamics checklist</h3>
+          <p class="help">Key informants may control access, timing, topic flow, and the level of candor. The goal is to be prepared, respectful, and analytically independent.</p>
+          <div class="grid two">
+            <div class="checklist">
+              <label class="check"><input type="checkbox" data-check="power_prepared"> I can demonstrate substantive preparation.</label>
+              <label class="check"><input type="checkbox" data-check="power_jargon"> I can use appropriate jargon without overperforming expertise.</label>
+              <label class="check"><input type="checkbox" data-check="power_credibility"> I have a credibility signal or endorsement.</label>
+              <label class="check"><input type="checkbox" data-check="power_context"> I know the informant’s organization and context.</label>
+              <label class="check"><input type="checkbox" data-check="power_critical"> I will be respectful but tactfully critical.</label>
+              <label class="check"><input type="checkbox" data-check="power_no_hostage"> I have safeguards against overvaluing powerful narratives.</label>
+            </div>
+            <div class="checklist">
+              <label class="check"><input type="checkbox" data-check="power_distance_plan"> I know when to minimize versus leverage status distance.</label>
+              <label class="check"><input type="checkbox" data-check="power_rapport_before_sensitive"> I will wait for rapport before contentious questions.</label>
+              <label class="check"><input type="checkbox" data-check="power_sensitive_care"> I will ask difficult questions carefully and clearly.</label>
+              <label class="check"><input type="checkbox" data-check="power_reask"> I will re-ask unanswered questions in different ways.</label>
+              <label class="check"><input type="checkbox" data-check="power_cues"> I will use conversational cues to obtain deeper answers.</label>
+              <label class="check"><input type="checkbox" data-check="power_notes"> I will record power-dynamic observations in field notes.</label>
+            </div>
+          </div>
+          <label class="lbl">Power-dynamics plan</label><textarea class="tall" data-field="powerPlan"></textarea>
+        </div>
+      </section>
+
+      <section class="section" id="honesty" data-title="Honesty, Confidentiality, and Neutrality">
+        <div class="grid two">
+          <div class="card">
+            <h3>Candor and confidentiality checklist</h3>
+            <div class="checklist">
+              <label class="check"><input type="checkbox" data-check="hon_confidentiality"> Confidentiality is stated clearly in writing and verbally.</label>
+              <label class="check"><input type="checkbox" data-check="hon_no_names"> I avoid asking for unnecessary names.</label>
+              <label class="check"><input type="checkbox" data-check="hon_no_other_ids"> I will not disclose other participants’ identities.</label>
+              <label class="check"><input type="checkbox" data-check="hon_facts_process"> I focus on facts, processes, examples, and decisions.</label>
+              <label class="check"><input type="checkbox" data-check="hon_no_leading"> I avoid leading questions.</label>
+              <label class="check"><input type="checkbox" data-check="hon_neutrality"> I maintain neutrality toward answers.</label>
+              <label class="check"><input type="checkbox" data-check="hon_official_story"> I watch for official organizational narratives.</label>
+              <label class="check"><input type="checkbox" data-check="hon_sensitive"> I have a plan for failures, mistakes, reputation threats, or controversies.</label>
+              <label class="check"><input type="checkbox" data-check="hon_neutral_location"> I considered whether a neutral location would increase candor.</label>
+            </div>
+          </div>
+          <div class="card">
+            <h3>Bias risk diagnostic</h3>
+            <label class="lbl">How likely is an official or socially desirable response?</label>
+            <select data-field="biasRisk"><option value="">Select</option><option>Low</option><option>Moderate</option><option>High</option></select>
+            <label class="lbl">Why?</label><textarea data-field="biasRationale"></textarea>
+            <label class="lbl">Confidentiality script</label><textarea data-field="confidentialityScript">Your participation will be treated confidentially. I will not identify you or disclose who else participated. I am interested in decisions, processes, and interpretations rather than attributing statements to named individuals.</textarea>
+            <label class="lbl">Neutrality script</label><textarea data-field="neutralityScript">I am not evaluating whether the decision was right or wrong. I am trying to understand how the issue was interpreted, what information was available, and how the process unfolded.</textarea>
+          </div>
+        </div>
+      </section>
+
+      <section class="section" id="engagement" data-title="Engagement Module">
+        <div class="card">
+          <h3>Keep key informants engaged</h3>
+          <div class="grid three">
+            <div class="kpi"><div class="t">Principle 1</div><div class="n">Relevance</div><p class="small">Connect questions to the informant’s recent concerns and offer a meaningful perspective.</p></div>
+            <div class="kpi"><div class="t">Principle 2</div><div class="n">Non-threatening</div><p class="small">Position the conversation as learning while maintaining preparation and control.</p></div>
+            <div class="kpi"><div class="t">Principle 3</div><div class="n">Adaptability</div><p class="small">Follow the informant’s flow without losing coverage of core topics.</p></div>
+          </div>
+          <div class="grid two">
+            <div>
+              <label class="lbl">Relevance statement</label><textarea data-field="relevanceStatement"></textarea>
+              <label class="lbl">Follow-up probes</label><textarea data-field="followupProbes">Can you walk me through a specific example?
+What information mattered most at that moment?
+Who else saw the situation differently?
+What changed after that decision?
+What would an outsider misunderstand about this issue?</textarea>
+              <label class="lbl">Clarifying questions</label><textarea data-field="clarifyingQuestions"></textarea>
+            </div>
+            <div>
+              <label class="lbl">Hypothetical scenarios</label><textarea data-field="engagementHypotheticals"></textarea>
+              <label class="lbl">“Please elaborate” prompts</label><textarea data-field="elaborationPrompts">Could you say more about that?
+What led you to that interpretation?
+What happened next?
+How did others react?
+What evidence would support a different interpretation?</textarea>
+              <label class="lbl">Respectful redirects for drifting interviews</label><textarea data-field="redirectPrompts">That context is helpful. To connect it back to the study, could I ask how it affected the decision process?
+I want to make sure I understand the main issue. Could we return to the moment when the choice was made?</textarea>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="section" id="remote" data-title="Remote Interview Decision Module">
+        <div class="card">
+          <h3>Mode comparison and recommendation</h3>
+          <div class="grid three">
+            <div class="kpi"><div class="t">In person</div><p>Strong for rapport, nonverbal cues, and sensitive interpretation. Costly and schedule-dependent.</p></div>
+            <div class="kpi"><div class="t">Video</div><p>Strong offline alternative when geography or travel blocks access. Preserves some nonverbal information.</p></div>
+            <div class="kpi"><div class="t">Phone</div><p>Flexible and sometimes less status-laden, but weak on nonverbal cues and harder to manage drift.</p></div>
+          </div>
+          <div class="grid two">
+            <div class="checklist">
+              <label class="check"><input type="checkbox" data-check="remote_access"> Access constraints make remote interviewing useful.</label>
+              <label class="check"><input type="checkbox" data-check="remote_geography"> Geography makes in-person interviewing difficult.</label>
+              <label class="check"><input type="checkbox" data-check="remote_nonverbal"> Nonverbal cues are important for this research question.</label>
+              <label class="check"><input type="checkbox" data-check="remote_sensitive"> The topic is sensitive.</label>
+              <label class="check"><input type="checkbox" data-check="remote_schedule"> The informant’s schedule requires flexibility.</label>
+              <label class="check"><input type="checkbox" data-check="remote_bias"> Phone or video may reduce status, age, or similarity bias.</label>
+            </div>
+            <div>
+              <label class="lbl">Chosen interview mode</label>
+              <select data-field="interviewMode"><option value="">Select</option><option>In person</option><option>Video</option><option>Phone</option><option>Mixed modes</option></select>
+              <label class="lbl">Mode rationale</label><textarea data-field="modeRationale"></textarea>
+              <div id="modeAdvice" class="hint"></div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="section" id="closing" data-title="Interview Closing and Follow-up">
+        <div class="grid two">
+          <div class="card">
+            <h3>Closing questions</h3>
+            <label class="lbl">Closing script</label><textarea class="tall" data-field="closingScript">Is there anything else you would like to share?
+Are there any issues that you think are important that we did not cover?
+Is there anyone else you think I should speak with?
+May I contact you later to clarify or validate my understanding?</textarea>
+            <label class="lbl">Referral request wording</label><textarea data-field="referralRequest">Who else would have a different or especially useful perspective on this issue?</textarea>
+          </div>
+          <div class="card">
+            <h3>Post-interview checklist</h3>
+            <div class="checklist">
+              <label class="check"><input type="checkbox" data-check="close_thank"> Send thank-you note.</label>
+              <label class="check"><input type="checkbox" data-check="close_docs"> Request promised documents.</label>
+              <label class="check"><input type="checkbox" data-check="close_conf"> Confirm confidentiality expectations.</label>
+              <label class="check"><input type="checkbox" data-check="close_transcript"> Ask for transcript review if appropriate.</label>
+              <label class="check"><input type="checkbox" data-check="close_referrals"> Ask for referrals.</label>
+              <label class="check"><input type="checkbox" data-check="close_followup"> Preserve possibility of follow-up.</label>
+              <label class="check"><input type="checkbox" data-check="close_share"> Share practitioner-oriented findings later when appropriate.</label>
+            </div>
+            <label class="lbl">Follow-up plan</label><textarea data-field="followupPlan"></textarea>
+          </div>
+        </div>
+      </section>
+
+      <section class="section" id="trust" data-title="Trustworthiness Module">
+        <div class="card">
+          <h3>Trustworthiness dashboard</h3>
+          <div class="kpiRow">
+            <div class="kpi"><div class="t">Credibility</div><p>Confidence in findings and interpretations.</p></div>
+            <div class="kpi"><div class="t">Dependability</div><p>Transparent and stable research process.</p></div>
+            <div class="kpi"><div class="t">Transferability</div><p>Boundary testing across conditions and perspectives.</p></div>
+            <div class="kpi"><div class="t">Triangulation</div><p>Cross-checking claims across sources and records.</p></div>
+          </div>
+          <div class="checklist">
+            <label class="check"><input type="checkbox" data-check="trust_sources"> I will use multiple sources to cross-check important claims.</label>
+            <label class="check"><input type="checkbox" data-check="trust_lower"> I will seek confirmation or alternative views from lower-level managers where appropriate.</label>
+            <label class="check"><input type="checkbox" data-check="trust_archival"> I will compare interview claims with documents, public news, or archival records.</label>
+            <label class="check"><input type="checkbox" data-check="trust_within"> I will assess within-respondent dependability through restatement, third-party prompts, or clarification.</label>
+            <label class="check"><input type="checkbox" data-check="trust_between"> I will assess between-respondent dependability across informants with different positions.</label>
+            <label class="check"><input type="checkbox" data-check="trust_disconfirm"> I will actively seek disconfirming cases.</label>
+          </div>
+        </div>
+        <div class="card">
+          <h3>Triangulation matrix</h3>
+          <p class="help">Add central claims or emerging interpretations, then record convergent and divergent evidence.</p>
+          <div class="actions noPrint"><button class="btn primary" onclick="addClaim()">Add claim</button></div>
+          <div class="tableWrap"><table id="claimTable">
+            <thead><tr><th>Claim or interpretation</th><th>Other key informants</th><th>Lower-level managers</th><th>Rival firms</th><th>Customers/suppliers</th><th>Archival/public/company documents</th><th>Field notes or histories</th><th>Divergent evidence</th><th>Support status</th><th></th></tr></thead>
+            <tbody></tbody>
+          </table></div>
+          <div id="claimWarning" class="warning"></div>
+        </div>
+      </section>
+
+      <section class="section" id="disconfirming" data-title="Disconfirming Case Finder">
+        <div class="card">
+          <h3>Find boundary-testing informants</h3>
+          <p class="help">Disconfirming cases are especially important when sampling depends on snowball or convenience access and when early patterns emerge from similar networks.</p>
+          <div class="grid two">
+            <div>
+              <label class="lbl">Different organizational conditions to sample</label><textarea data-field="discConditions"></textarea>
+              <label class="lbl">Different status levels or roles</label><textarea data-field="discStatus"></textarea>
+              <label class="lbl">Different industries or functional areas</label><textarea data-field="discIndustries"></textarea>
+            </div>
+            <div>
+              <label class="lbl">Different geographic or cultural contexts</label><textarea data-field="discGeography"></textarea>
+              <label class="lbl">Different strategic positions</label><textarea data-field="discStrategic"></textarea>
+              <label class="lbl">Different viewpoints on the phenomenon</label><textarea data-field="discViewpoints"></textarea>
+            </div>
+          </div>
+          <div class="checklist">
+            <label class="check"><input type="checkbox" data-check="disc_after_saturation"> I will search for disconfirming cases after apparent saturation.</label>
+            <label class="check"><input type="checkbox" data-check="disc_different_networks"> I will seek informants outside existing referral chains.</label>
+            <label class="check"><input type="checkbox" data-check="disc_boundary"> I will use disconfirming cases to test boundary conditions.</label>
+            <label class="check"><input type="checkbox" data-check="disc_document"> I will document how disconfirming evidence changed or qualified interpretations.</label>
+          </div>
+          <div id="discWarning" class="warning"></div>
+        </div>
+      </section>
+
+      <section class="section" id="reporting" data-title="Reporting Checklist">
+        <div class="grid two">
+          <div class="card">
+            <h3>Manuscript transparency checklist</h3>
+            <div class="checklist">
+              <label class="check"><input type="checkbox" data-check="rep_why"> Explain why key informant interviews were appropriate.</label>
+              <label class="check"><input type="checkbox" data-check="rep_identified"> Explain how informants were identified.</label>
+              <label class="check"><input type="checkbox" data-check="rep_access"> Explain how access was obtained.</label>
+              <label class="check"><input type="checkbox" data-check="rep_contacted"> Report how many informants were contacted.</label>
+              <label class="check"><input type="checkbox" data-check="rep_participated"> Report how many participated.</label>
+              <label class="check"><input type="checkbox" data-check="rep_roles"> Report roles or categories of informants.</label>
+              <label class="check"><input type="checkbox" data-check="rep_format"> Report interview format.</label>
+              <label class="check"><input type="checkbox" data-check="rep_duration"> Report duration.</label>
+              <label class="check"><input type="checkbox" data-check="rep_mode"> Report mode.</label>
+              <label class="check"><input type="checkbox" data-check="rep_timing"> Report timing in the research project.</label>
+            </div>
+          </div>
+          <div class="card">
+            <h3>Confidentiality, quotes, and feedback</h3>
+            <div class="checklist">
+              <label class="check"><input type="checkbox" data-check="rep_conf"> Explain how confidentiality was protected.</label>
+              <label class="check"><input type="checkbox" data-check="rep_quotes"> Explain how quotes were selected.</label>
+              <label class="check"><input type="checkbox" data-check="rep_scene"> Provide quote context without revealing identity.</label>
+              <label class="check"><input type="checkbox" data-check="rep_cred"> Explain how credibility was assessed.</label>
+              <label class="check"><input type="checkbox" data-check="rep_dep"> Explain how dependability was assessed.</label>
+              <label class="check"><input type="checkbox" data-check="rep_tri"> Explain triangulation.</label>
+              <label class="check"><input type="checkbox" data-check="rep_disc"> Report whether disconfirming cases were sought.</label>
+              <label class="check"><input type="checkbox" data-check="rep_back"> Explain what was reported back to informants.</label>
+            </div>
+            <label class="lbl">Quote-reporting assistant: basic scene</label><textarea data-field="quoteScene" placeholder="Example: During a 50-minute video interview conducted after the informant reviewed the study overview, the informant described..."></textarea>
+            <label class="lbl">Confidentiality-safe quote context</label><textarea data-field="quoteContext"></textarea>
+          </div>
+        </div>
+      </section>
+
+      <section class="section" id="reflexivity" data-title="Researcher Reflexivity and Bias">
+        <div class="card">
+          <h3>Reflexivity prompts</h3>
+          <div class="grid two">
+            <div>
+              <label class="lbl">Prior assumptions</label><textarea data-field="refPrior"></textarea>
+              <label class="lbl">Relationship to informants</label><textarea data-field="refRelationship"></textarea>
+              <label class="lbl">Access dependencies</label><textarea data-field="refAccess"></textarea>
+              <label class="lbl">Possible deference to powerful informants</label><textarea data-field="refDeference"></textarea>
+            </div>
+            <div>
+              <label class="lbl">Possible overreliance on prestigious or articulate informants</label><textarea data-field="refPrestige"></textarea>
+              <label class="lbl">How contradictory evidence was handled</label><textarea data-field="refContradictions"></textarea>
+              <label class="lbl">How preferred narratives were avoided</label><textarea data-field="refNarratives"></textarea>
+              <label class="lbl">Reflexive memo summary</label><textarea data-field="refMemo"></textarea>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="section" id="audit" data-title="Final Audit and Scorecard">
+        <div class="card">
+          <h3>Readiness scorecard</h3>
+          <p class="help">This is a practical readiness indicator, not a scientific validity estimate.</p>
+          <div class="scorePanel">
+            <div class="scoreCircle" id="scoreCircle"><div class="scoreInner"><div><strong id="auditScore">0</strong><br><span class="small">out of 100</span></div></div></div>
+            <div>
+              <div id="auditStatus" class="hint"></div>
+              <div id="auditWarnings"></div>
+            </div>
+          </div>
+        </div>
+        <div class="card">
+          <h3>Reviewer-facing checklist: Will reviewers trust this interview design?</h3>
+          <div class="checklist">
+            <label class="check"><input type="checkbox" data-check="rev_fit"> Interviews are clearly necessary.</label>
+            <label class="check"><input type="checkbox" data-check="rev_defined"> Key informants are clearly defined.</label>
+            <label class="check"><input type="checkbox" data-check="rev_access"> Access strategy is explained.</label>
+            <label class="check"><input type="checkbox" data-check="rev_sampling"> Sampling is not merely convenience or snowballing.</label>
+            <label class="check"><input type="checkbox" data-check="rev_disc"> Disconfirming cases are addressed.</label>
+            <label class="check"><input type="checkbox" data-check="rev_tri"> Triangulation is documented.</label>
+            <label class="check"><input type="checkbox" data-check="rev_bias"> Informant bias is addressed.</label>
+            <label class="check"><input type="checkbox" data-check="rev_conf"> Confidentiality procedures are strong.</label>
+            <label class="check"><input type="checkbox" data-check="rev_quote"> Quote context is provided safely.</label>
+            <label class="check"><input type="checkbox" data-check="rev_back"> Reporting back to informants is addressed.</label>
+          </div>
+          <label class="lbl">Reviewer-response support notes</label><textarea data-field="reviewerNotes"></textarea>
+        </div>
+      </section>
+
+      <section class="section" id="outputs" data-title="Exportable Outputs">
+        <div class="card">
+          <h3>Generate outputs</h3>
+          <p class="help">Generate a full methods-section draft, readiness report, protocol, templates, matrices, and reviewer-response support text from your inputs.</p>
+          <div class="actions noPrint">
+            <button class="btn primary" onclick="generateMethods(true)">Generate methods text</button>
+            <button class="btn" onclick="copyOutput()">Copy output</button>
+            <button class="btn" onclick="exportTXT()">Export TXT</button>
+            <button class="btn" onclick="exportJSON()">Export JSON</button>
+            <button class="btn" onclick="exportCSV()">Export CSV</button>
+          </div>
+          <label class="lbl">Output type</label>
+          <select data-field="outputType" onchange="generateMethods(false)">
+            <option>Full methods-section draft</option>
+            <option>Interview readiness plan</option>
+            <option>Access email templates</option>
+            <option>Interview protocol</option>
+            <option>Sampling and informant table</option>
+            <option>Trustworthiness matrix</option>
+            <option>Disconfirming-case plan</option>
+            <option>Reporting checklist</option>
+            <option>Reviewer-response support text</option>
+            <option>Full readiness report</option>
+          </select>
+          <div class="outputBox" id="mainOutput"></div>
+        </div>
+      </section>
+
+      <div class="footerCredit">
+        <strong>Source credit:</strong> Based on: Aguinis, H. 2025. <em>Research methodology: Best practices for rigorous, credible, and impactful research</em>. SAGE. https://collegepublishing.sagepub.com/products/research-methodology-1-280088
+      </div>
+    </div>
+  </main>
+</div>
+
+<script>
+(function(){
+  "use strict";
+  const sections=[
+    ["project","Project setup"],["design","Research design"],["sampling","Identification and sampling"],["access","Access strategy"],["format","Interview format"],["power","Power dynamics"],["honesty","Honesty/confidentiality"],["engagement","Engagement"],["remote","Remote decisions"],["closing","Closing/follow-up"],["trust","Trustworthiness"],["disconfirming","Disconfirming cases"],["reporting","Reporting"],["reflexivity","Reflexivity"],["audit","Final audit"],["outputs","Outputs"]
+  ];
+  const state={fields:{},checks:{},informants:[],claims:[]};
+  const storageKey="keyInformantInterviewTool.v1";
+  window.toolState=state;
+
+  function $(sel,root=document){return root.querySelector(sel)}
+  function $all(sel,root=document){return Array.from(root.querySelectorAll(sel))}
+  function esc(s){return String(s||"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[m]))}
+  function lines(s){return String(s||"").split(/\n+/).map(x=>x.trim()).filter(Boolean)}
+  function field(k){return state.fields[k]||""}
+  function checked(k){return !!state.checks[k]}
+  function setField(k,v){state.fields[k]=v; updateDiagnostics();}
+  function setCheck(k,v){state.checks[k]=v; updateDiagnostics();}
+  function download(name,type,content){
+    const a=document.createElement("a");
+    a.href=URL.createObjectURL(new Blob([content],{type}));
+    a.download=name;
+    document.body.appendChild(a); a.click();
+    setTimeout(()=>{URL.revokeObjectURL(a.href); a.remove();},200);
+  }
+  function csvCell(v){return '"' + String(v==null?"":v).replace(/"/g,'""') + '"';}
+
+  function initNav(){
+    const nav=$("#nav");
+    nav.innerHTML=sections.map((s,i)=>`<button data-target="${s[0]}" class="${i===0?'active':''}">${String(i+1).padStart(2,'0')}. ${s[1]}</button>`).join("");
+    nav.addEventListener("click",e=>{
+      const b=e.target.closest("button[data-target]");
+      if(!b) return;
+      showSection(b.dataset.target);
+    });
+  }
+  window.showSection=function(id){
+    $all(".section").forEach(s=>s.classList.toggle("active",s.id===id));
+    $all(".nav button").forEach(b=>b.classList.toggle("active",b.dataset.target===id));
+    const sec=$("#"+id);
+    $("#sectionTitle").textContent=sec?sec.dataset.title:"";
+    if(id==="outputs") generateMethods(false);
+    if(id==="audit") updateDiagnostics();
+    window.scrollTo({top:0,behavior:"smooth"});
+  };
+
+  function bindFields(){
+    $all("[data-field]").forEach(el=>{
+      const k=el.dataset.field;
+      if(state.fields[k]!==undefined) el.value=state.fields[k];
+      el.addEventListener("input",()=>setField(k,el.value));
+      el.addEventListener("change",()=>setField(k,el.value));
+    });
+    $all("[data-check]").forEach(el=>{
+      const k=el.dataset.check;
+      el.checked=!!state.checks[k];
+      el.addEventListener("change",()=>setCheck(k,el.checked));
+    });
+  }
+
+  function syncDOMFromState(){
+    $all("[data-field]").forEach(el=>{el.value=field(el.dataset.field);});
+    $all("[data-check]").forEach(el=>{el.checked=checked(el.dataset.check);});
+    renderInformants();
+    renderClaims();
+    updateDiagnostics();
+  }
+
+  window.addInformant=function(row){
+    state.informants.push(row||{id:"",org:"",role:"",authority:3,exclusive:3,relevance:3,route:"",gatekeeper:"",similarity:"Moderate",disconfirming:"No",challenge:3});
+    renderInformants(); updateDiagnostics();
+  };
+  window.sortInformants=function(){
+    state.informants.sort((a,b)=>scoreInformant(b)-scoreInformant(a));
+    renderInformants(); updateDiagnostics();
+  };
+  function scoreInformant(r){
+    const auth=Number(r.authority||0), ex=Number(r.exclusive||0), rel=Number(r.relevance||0), chall=Number(r.challenge||0);
+    const independent = r.similarity==="Low" ? 5 : r.similarity==="Moderate" ? 3 : 1;
+    const disc = r.disconfirming==="Yes" ? 5 : 0;
+    return Math.round(((auth+ex+rel+independent+chall+disc)/30)*100);
+  }
+  function renderInformants(){
+    const tbody=$("#informantTable tbody");
+    if(!tbody) return;
+    tbody.innerHTML=state.informants.map((r,i)=>`
+      <tr>
+        <td><input value="${esc(r.id)}" oninput="updateInformant(${i},'id',this.value)"></td>
+        <td><input value="${esc(r.org)}" oninput="updateInformant(${i},'org',this.value)"></td>
+        <td><input value="${esc(r.role)}" oninput="updateInformant(${i},'role',this.value)"></td>
+        <td><select onchange="updateInformant(${i},'authority',this.value)">${scoreOpts(r.authority)}</select></td>
+        <td><select onchange="updateInformant(${i},'exclusive',this.value)">${scoreOpts(r.exclusive)}</select></td>
+        <td><select onchange="updateInformant(${i},'relevance',this.value)">${scoreOpts(r.relevance)}</select></td>
+        <td><textarea oninput="updateInformant(${i},'route',this.value)">${esc(r.route)}</textarea></td>
+        <td><input value="${esc(r.gatekeeper)}" oninput="updateInformant(${i},'gatekeeper',this.value)"></td>
+        <td><select onchange="updateInformant(${i},'similarity',this.value)">${["Low","Moderate","High"].map(x=>`<option ${r.similarity===x?'selected':''}>${x}</option>`).join("")}</select></td>
+        <td><select onchange="updateInformant(${i},'disconfirming',this.value)">${["No","Possible","Yes"].map(x=>`<option ${r.disconfirming===x?'selected':''}>${x}</option>`).join("")}</select></td>
+        <td><select onchange="updateInformant(${i},'challenge',this.value)">${scoreOpts(r.challenge)}</select></td>
+        <td><div class="scoreCell">${scoreInformant(r)}</div></td>
+        <td><button class="btn danger noPrint" onclick="removeInformant(${i})">Remove</button></td>
+      </tr>`).join("");
+  }
+  function scoreOpts(val){return [1,2,3,4,5].map(n=>`<option value="${n}" ${String(val||"")==String(n)?"selected":""}>${n}</option>`).join("")}
+  window.updateInformant=function(i,k,v){state.informants[i][k]=v; renderInformants(); updateDiagnostics();}
+  window.removeInformant=function(i){state.informants.splice(i,1); renderInformants(); updateDiagnostics();}
+
+  window.addClaim=function(row){
+    state.claims.push(row||{claim:"",informants:"",lower:"",rivals:"",customers:"",documents:"",field:"",divergent:"",status:"Unsupported"});
+    renderClaims(); updateDiagnostics();
+  };
+  function renderClaims(){
+    const tbody=$("#claimTable tbody");
+    if(!tbody) return;
+    tbody.innerHTML=state.claims.map((r,i)=>`
+      <tr>
+        <td><textarea oninput="updateClaim(${i},'claim',this.value)">${esc(r.claim)}</textarea></td>
+        <td><textarea oninput="updateClaim(${i},'informants',this.value)">${esc(r.informants)}</textarea></td>
+        <td><textarea oninput="updateClaim(${i},'lower',this.value)">${esc(r.lower)}</textarea></td>
+        <td><textarea oninput="updateClaim(${i},'rivals',this.value)">${esc(r.rivals)}</textarea></td>
+        <td><textarea oninput="updateClaim(${i},'customers',this.value)">${esc(r.customers)}</textarea></td>
+        <td><textarea oninput="updateClaim(${i},'documents',this.value)">${esc(r.documents)}</textarea></td>
+        <td><textarea oninput="updateClaim(${i},'field',this.value)">${esc(r.field)}</textarea></td>
+        <td><textarea oninput="updateClaim(${i},'divergent',this.value)">${esc(r.divergent)}</textarea></td>
+        <td><select onchange="updateClaim(${i},'status',this.value)">${["Unsupported","Single-source support","Triangulated","Mixed or contested"].map(x=>`<option ${r.status===x?'selected':''}>${x}</option>`).join("")}</select></td>
+        <td><button class="btn danger noPrint" onclick="removeClaim(${i})">Remove</button></td>
+      </tr>`).join("");
+  }
+  window.updateClaim=function(i,k,v){state.claims[i][k]=v; updateDiagnostics();}
+  window.removeClaim=function(i){state.claims.splice(i,1); renderClaims(); updateDiagnostics();}
+
+  function selectedRoutes(){
+    return [
+      ["route_alumni","alumni networks"],
+      ["route_institution","institutional endorsement"],
+      ["route_personal","personal or professional networks"],
+      ["route_direct","direct contact"],
+      ["route_linkedin","professional platforms"],
+      ["route_event","practitioner events"],
+      ["route_consultant","consultant connections"],
+      ["route_walkup","lower-level walk-up interviews"],
+      ["route_supplier","supplier or client relationships"],
+      ["route_assistant","executive assistant relationships"]
+    ].filter(x=>checked(x[0])).map(x=>x[1]);
+  }
+
+  window.makeEmail=function(type){
+    const title=field("studyTitle")||"[study title]";
+    const rq=field("researchQuestion")||"[research question]";
+    const val=field("valueProposition")||"The study will generate evidence-based insights that may be useful to leaders facing similar issues.";
+    const conf=field("confidentialityScript")||"Participation will be treated confidentially and no individuals will be identified.";
+    let txt="";
+    if(type==="invite"){
+      txt=`Subject: Invitation to participate in a research interview about ${title}
+
+Dear [Name],
+
+I am conducting a research study on ${title}. The study examines: ${rq}
+
+I am contacting you because your role and experience provide a uniquely informed perspective on this issue. The interview would focus on decisions, processes, and interpretations rather than confidential operational details.
+
+${val}
+
+The interview would take approximately [time] and can be scheduled at your convenience. ${conf}
+
+Would you be willing to participate, or would someone on your team be the appropriate person to contact?
+
+Sincerely,
+[Researcher]`;
+      state.fields.emailInvite=txt;
+    } else if(type==="gatekeeper"){
+      txt=`Subject: Research interview request for [Name/Role]
+
+Dear [Gatekeeper Name],
+
+I am requesting your assistance with a research study on ${title}. The study examines: ${rq}
+
+I believe [Name/Role] would be an especially valuable informant because of their decision authority and direct knowledge of the issue. The interview would be concise, confidential, and scheduled around their availability.
+
+${val}
+
+${conf}
+
+Could you advise whether [Name/Role] might be available for a short interview, or whether another person would be more appropriate?
+
+Sincerely,
+[Researcher]`;
+      state.fields.emailGatekeeper=txt;
+    } else {
+      txt=`Subject: Follow-up on research interview request
+
+Dear [Name],
+
+I am following up on my note about the research study on ${title}. I understand that your schedule is demanding, and I would be grateful for even a short conversation if that is more feasible.
+
+The study examines: ${rq}
+
+${conf}
+
+Thank you for considering this request.
+
+Sincerely,
+[Researcher]`;
+      state.fields.emailFollowup=txt;
+    }
+    syncDOMFromState();
+  };
+
+  function readinessScore(){
+    const groups=[
+      {name:"Method fit", weight:10, keys:["studyTitle","researchQuestion","necessity"], checks:["fit_decision_processes","fit_narratives","fit_privileged","fit_insider","fit_high_level"], minChecks:2},
+      {name:"Sampling logic", weight:10, custom:()=>Math.min(1,state.informants.length/5)},
+      {name:"Access strategy", weight:10, keys:["valueProposition","sharingBoundaries"], custom:()=>Math.min(1,selectedRoutes().length/3)},
+      {name:"Interview protocol", weight:10, keys:["protocolOpening","protocolMain","protocolClosing"], checks:["format_open_first","format_flexible_protocol"]},
+      {name:"Power dynamics plan", weight:8, keys:["powerPlan"], checks:["power_prepared","power_no_hostage","power_rapport_before_sensitive"]},
+      {name:"Honesty/confidentiality plan", weight:9, keys:["confidentialityScript","neutralityScript"], checks:["hon_confidentiality","hon_neutrality","hon_official_story"]},
+      {name:"Engagement plan", weight:7, keys:["relevanceStatement","followupProbes","redirectPrompts"]},
+      {name:"Follow-up plan", weight:6, keys:["closingScript","followupPlan"], checks:["close_thank","close_referrals","close_followup"]},
+      {name:"Trustworthiness plan", weight:12, checks:["trust_sources","trust_archival","trust_within","trust_between","trust_disconfirm"], custom:()=>Math.min(1,state.claims.length/3)},
+      {name:"Disconfirming-case strategy", weight:8, keys:["discConditions","discViewpoints"], checks:["disc_after_saturation","disc_different_networks","disc_boundary"]},
+      {name:"Reporting transparency", weight:10, checks:["rep_why","rep_identified","rep_access","rep_contacted","rep_participated","rep_roles","rep_format","rep_conf","rep_tri","rep_disc","rep_back"]}
+    ];
+    let total=0, details=[];
+    for(const g of groups){
+      let components=[];
+      if(g.keys) components.push(...g.keys.map(k=>field(k).trim()?1:0));
+      if(g.checks){
+        const needed=g.minChecks||g.checks.length;
+        const have=g.checks.filter(checked).length;
+        components.push(Math.min(1,have/needed));
+      }
+      if(g.custom) components.push(g.custom());
+      const pct=components.length?components.reduce((a,b)=>a+b,0)/components.length:0;
+      total+=g.weight*pct;
+      details.push({name:g.name,pct,points:g.weight*pct,weight:g.weight});
+    }
+    return {score:Math.round(total),details};
+  }
+
+  function warnings(){
+    const w=[];
+    if(!field("necessity").trim()) w.push("Explain why key informant interviews are necessary rather than merely convenient.");
+    if(state.informants.length<5) w.push("Add more potential key informants so the sampling logic is visible and defensible.");
+    if(!state.informants.some(r=>r.disconfirming==="Yes"||r.disconfirming==="Possible")) w.push("Identify at least one possible disconfirming case.");
+    if(selectedRoutes().length<2) w.push("Select more than one access route to reduce access dependency.");
+    if(!field("protocolMain").trim()) w.push("Draft the main open-ended interview questions.");
+    if(!checked("hon_confidentiality")) w.push("Document confidentiality procedures before recruiting participants.");
+    if(state.claims.length===0) w.push("Add claims to the triangulation matrix to avoid unsupported interpretations.");
+    if(!checked("trust_disconfirm")) w.push("Commit to seeking disconfirming cases, especially after apparent saturation.");
+    if(!checked("rep_tri")) w.push("Plan how triangulation will be reported in the manuscript.");
+    if(!field("refPrior").trim()) w.push("Document prior assumptions and researcher reflexivity.");
+    return w;
+  }
+
+  function updateDiagnostics(){
+    const fitChecks=["fit_decision_processes","fit_narratives","fit_privileged","fit_insider","fit_high_level"].filter(checked).length;
+    const fitAdvice=$("#fitAdvice");
+    if(fitAdvice) fitAdvice.innerHTML = fitChecks>=2 ? "<strong>Method fit looks plausible.</strong> Your design identifies distinctive information needs that key informants can address." : "<strong>Method fit needs strengthening.</strong> Specify what key informants know that documents, surveys, or lower-level interviews cannot capture adequately.";
+    const prepChecks=["prep_topic","prep_history","prep_jargon","prep_archives","prep_examples"].filter(checked).length;
+    const prepAdvice=$("#prepAdvice");
+    if(prepAdvice) prepAdvice.innerHTML = prepChecks>=4 ? "<strong>Preparation is strong.</strong> You are positioned to earn credibility and ask informed probes." : "<strong>Preparation gap.</strong> Build topic, firm, archival, and vocabulary knowledge before high-stakes interviews.";
+    const fmt=$("#formatRecommendation");
+    if(fmt){
+      let rec="Select time/access conditions to receive a recommendation.";
+      if(field("multipleAccess")==="Yes" || field("substantialTime")==="Yes") rec="<strong>Recommended:</strong> Start with a flexible unstructured or lightly semi-structured format, while preserving coverage of core topics.";
+      if(field("oneShot")==="Yes" || field("multipleAccess")==="No" || field("substantialTime")==="No") rec="<strong>Recommended:</strong> Use a semi-structured protocol: detailed enough for a one-shot opportunity, but flexible enough to let the informant speak freely.";
+      fmt.innerHTML=rec;
+    }
+    const mode=$("#modeAdvice");
+    if(mode){
+      let txt="Choose the mode that best balances access, candor, nonverbal information, and schedule constraints.";
+      if(checked("remote_nonverbal")||checked("remote_sensitive")) txt="Because nonverbal cues or sensitivity matter, prefer in-person or video when feasible.";
+      if(checked("remote_schedule")&& !checked("remote_nonverbal")) txt="Schedule constraints point toward phone or video, with a concise and carefully structured protocol.";
+      mode.innerHTML=txt;
+    }
+    const sampleWarning=$("#sampleWarning");
+    if(sampleWarning){
+      const highSimilar=state.informants.length && state.informants.every(r=>r.similarity==="High");
+      const noDisc=!state.informants.some(r=>r.disconfirming==="Yes"||r.disconfirming==="Possible");
+      sampleWarning.style.display=(highSimilar||noDisc)?"block":"none";
+      sampleWarning.innerHTML=(highSimilar?"All listed informants have high similarity risk. Add informants outside existing networks, organizations, or viewpoints.<br>":"")+(noDisc?"No potential disconfirming cases are listed yet. Add boundary-testing informants.":"");
+    }
+    const cw=$("#claimWarning");
+    if(cw){
+      const unsupported=state.claims.filter(c=>!c.status || c.status==="Unsupported" || c.status==="Single-source support").length;
+      cw.style.display=unsupported?"block":"none";
+      cw.textContent=unsupported ? unsupported + " claim(s) are unsupported or single-source. Add convergent, divergent, or documentary evidence." : "";
+    }
+    const dw=$("#discWarning");
+    if(dw){
+      const sparse=!(field("discConditions")&&field("discViewpoints"));
+      dw.style.display=sparse?"block":"none";
+      dw.textContent=sparse?"Specify at least one alternative condition and one alternative viewpoint to guide the search for disconfirming cases.":"";
+    }
+    const rs=readinessScore();
+    $("#sideScore").textContent=rs.score;
+    $("#sideBar").style.width=rs.score+"%";
+    $("#auditScore").textContent=rs.score;
+    $("#scoreCircle").style.background=`conic-gradient(var(--primary2) ${rs.score*3.6}deg,#e5e7eb 0deg)`;
+    $("#sideStatus").textContent=rs.score>=80?"Strong practical readiness":rs.score>=60?"Promising but still incomplete":"Substantial design work remains";
+    $("#auditStatus").innerHTML=rs.score>=80?"<strong>Strong readiness.</strong> Remaining issues should be easy to address before submission.":rs.score>=60?"<strong>Moderate readiness.</strong> The design is plausible but still has reviewer-visible gaps.":"<strong>Low readiness.</strong> Address the missing design, trustworthiness, and reporting elements before relying on the study.";
+    const aw=$("#auditWarnings");
+    const ws=warnings();
+    aw.innerHTML=ws.length?`<div class="warning"><strong>Priority fixes</strong><ul>${ws.map(x=>`<li>${esc(x)}</li>`).join("")}</ul></div>`:`<div class="success"><strong>No major readiness warnings.</strong> Review the generated report and verify accuracy before use.</div>`;
+    if($("#mainOutput") && $("#outputs").classList.contains("active")) generateMethods(false);
+  }
+
+  window.saveAll=function(){
+    localStorage.setItem(storageKey,JSON.stringify(state));
+    updateDiagnostics();
+    alert("Saved in this browser.");
+  };
+  window.loadAll=function(showAlert){
+    const raw=localStorage.getItem(storageKey);
+    if(!raw){ if(showAlert) alert("No saved data found in this browser."); return; }
+    try{
+      const obj=JSON.parse(raw);
+      state.fields=obj.fields||{}; state.checks=obj.checks||{}; state.informants=obj.informants||[]; state.claims=obj.claims||[];
+      syncDOMFromState();
+      if(showAlert) alert("Loaded saved data.");
+    }catch(e){ alert("Could not load saved data."); }
+  };
+  window.resetAll=function(){
+    if(!confirm("Reset all inputs in this tool?")) return;
+    state.fields={}; state.checks={}; state.informants=[]; state.claims=[];
+    localStorage.removeItem(storageKey);
+    syncDOMFromState();
+  };
+
+  function reportHeader(){
+    return `KEY INFORMANT INTERVIEW RESEARCH PLAN
+
+Study title: ${field("studyTitle")||"[Not specified]"}
+Research question: ${field("researchQuestion")||"[Not specified]"}
+Purpose: ${field("purpose")||"[Not specified]"}
+Setting: ${field("setting")||"[Not specified]"}
+Readiness score: ${readinessScore().score}/100
+
+`;
+  }
+  function informantText(){
+    if(!state.informants.length) return "No informants listed.";
+    return state.informants.map((r,i)=>`${i+1}. ${r.id||"[ID]"} | ${r.org||"[Organization]"} | ${r.role||"[Role]"} | priority ${scoreInformant(r)} | disconfirming: ${r.disconfirming||"No"} | route: ${r.route||"[not specified]"}`).join("\n");
+  }
+  function claimsText(){
+    if(!state.claims.length) return "No claims listed.";
+    return state.claims.map((c,i)=>`${i+1}. ${c.claim||"[Claim]"}\n   Status: ${c.status}\n   Convergent evidence: ${[c.informants,c.lower,c.rivals,c.customers,c.documents,c.field].filter(Boolean).join(" | ")||"[not specified]"}\n   Divergent evidence: ${c.divergent||"[not specified]"}`).join("\n\n");
+  }
+  function checklistText(prefix){
+    const items=$all(`[data-check^="${prefix}"]`).map(el=>`${el.checked?"[x]":"[ ]"} ${el.closest("label")?.innerText.trim()||el.dataset.check}`);
+    return items.join("\n");
+  }
+  function methodsText(){
+    return `${reportHeader()}METHODS-SECTION DRAFT
+
+Research design
+This study uses interviews with key informants to examine ${field("phenomenon")||"[phenomenon]"}. This approach is appropriate because ${field("necessity")||"[explain why the research question requires privileged knowledge, decision-process accounts, insider interpretations, or organizational narratives]"}. Alternative data sources considered included ${field("alternatives")||"[alternative sources]"}, but these sources alone would not provide sufficient access to the decision processes and interpretations needed to address the research question.
+
+Key informant selection
+Key informants were defined as individuals with decision authority, extensive and exclusive information, and direct relevance to the focal phenomenon. The target population was ${field("population")||"[target population]"}. Informants were prioritized based on decision authority, exclusive information, relevance to the research question, independence from existing networks, and potential to challenge emerging assumptions. The sampling plan also included potential disconfirming cases to test boundary conditions and reduce premature saturation based on homogeneous referral chains.
+
+Data collection
+Interviews are planned for the ${field("interviewTiming")||"[project stage]"} stage of the project because ${field("timingRationale")||"[timing rationale]"}. Access routes include ${selectedRoutes().join(", ")||"[access routes]"}. Recruitment materials emphasize the practical relevance of the study, confidentiality protections, and the boundaries of what will and will not be shared with participants.
+
+Interview procedures
+The selected interview mode is ${field("interviewMode")||"[mode]"} because ${field("modeRationale")||"[mode rationale]"}. The interview protocol is ${field("oneShot")==="Yes"||field("multipleAccess")==="No"?"semi-structured":"flexible and open-ended"}, allowing informants to speak freely while ensuring coverage of core topics. Open-ended questions are asked before any closed-ended items. The protocol includes rapport-building questions, main open-ended questions, probes, clarification questions, hypothetical scenarios where useful, and closing questions that invite additional information and referrals.
+
+Confidentiality
+Confidentiality is addressed as follows: ${field("confidentialityScript")||"[confidentiality procedures]"}. The study avoids unnecessary naming of individuals, does not disclose other participants’ identities, and reports quotations with enough contextual information to be interpretable without revealing identity.
+
+Trustworthiness
+Credibility will be strengthened through triangulation across multiple sources, including ${field("trustSources")||"other key informants, lower-level managers, documents, archival records, public information, and field notes where available"}. Dependability will be strengthened through within-respondent clarification, restatement of key points, and between-respondent comparison across informants with different positions. Divergent evidence and disconfirming cases will be used to test the robustness and boundary conditions of emerging interpretations.
+
+Triangulation
+Central claims will be entered into a triangulation matrix and evaluated against convergent and divergent evidence. Claims based on only one source will be treated as provisional unless they can be supported by additional interviews, documentary evidence, archival evidence, or plausible theoretical reasoning.
+
+Reporting
+The manuscript will report why key informant interviews were appropriate, how informants were identified, how access was obtained, how many were contacted and participated, interview format, duration, mode, timing, confidentiality procedures, quote-selection procedures, triangulation procedures, dependability checks, and whether disconfirming cases were sought. When reporting quotations, the manuscript will provide a confidentiality-safe basic scene: ${field("quoteScene")||"[basic scene for quotations]"}.`;
+  }
+  function readinessPlan(){
+    return `${reportHeader()}INTERVIEW READINESS PLAN
+
+Method fit
+${field("necessity")||"[Not specified]"}
+
+Assumptions to challenge
+${field("initialAssumptions")||"[Not specified]"}
+
+Preparation plan
+${checklistText("prep_")}
+
+Access strategy
+Selected routes: ${selectedRoutes().join(", ")||"[none selected]"}
+Value proposition: ${field("valueProposition")||"[Not specified]"}
+Gatekeeper plan: ${field("gatekeeperPlan")||"[Not specified]"}
+
+Power, candor, and confidentiality
+Power plan: ${field("powerPlan")||"[Not specified]"}
+Confidentiality script: ${field("confidentialityScript")||"[Not specified]"}
+Neutrality script: ${field("neutralityScript")||"[Not specified]"}
+
+Follow-up plan
+${field("followupPlan")||"[Not specified]"}
+
+Priority fixes
+${warnings().map(x=>"- "+x).join("\n")||"No major warnings."}`;
+  }
+  function outputByType(){
+    const t=field("outputType")||"Full methods-section draft";
+    if(t==="Full methods-section draft") return methodsText();
+    if(t==="Interview readiness plan") return readinessPlan();
+    if(t==="Access email templates") return `INVITATION EMAIL\n\n${field("emailInvite")||"[Generate or write invitation email]"}\n\nGATEKEEPER EMAIL\n\n${field("emailGatekeeper")||"[Generate or write gatekeeper email]"}\n\nFOLLOW-UP EMAIL\n\n${field("emailFollowup")||"[Generate or write follow-up email]"}`;
+    if(t==="Interview protocol") return `INTERVIEW PROTOCOL\n\nOpening script\n${field("protocolOpening")}\n\nRapport-building questions\n${field("protocolRapport")}\n\nMain open-ended questions\n${field("protocolMain")}\n\nProbes\n${field("protocolProbes")}\n\nSensitive questions\n${field("protocolSensitive")}\n\nHypothetical scenario prompts\n${field("protocolHypotheticals")}\n\nDisconfirming or clarification questions\n${field("protocolClarifying")}\n\nClosing questions\n${field("protocolClosing")}\n\nFollow-up request\n${field("protocolFollowup")}`;
+    if(t==="Sampling and informant table") return informantText();
+    if(t==="Trustworthiness matrix") return claimsText();
+    if(t==="Disconfirming-case plan") return `DISCONFIRMING-CASE PLAN\n\nDifferent organizational conditions:\n${field("discConditions")}\n\nDifferent status levels or roles:\n${field("discStatus")}\n\nDifferent industries or functional areas:\n${field("discIndustries")}\n\nDifferent geographic or cultural contexts:\n${field("discGeography")}\n\nDifferent strategic positions:\n${field("discStrategic")}\n\nDifferent viewpoints:\n${field("discViewpoints")}\n\nChecklist\n${checklistText("disc_")}`;
+    if(t==="Reporting checklist") return `REPORTING CHECKLIST\n\n${checklistText("rep_")}\n\nQuote scene:\n${field("quoteScene")}\n\nQuote context:\n${field("quoteContext")}`;
+    if(t==="Reviewer-response support text") return `REVIEWER-RESPONSE SUPPORT TEXT\n\nWe designed the study to address common concerns about interview research with key informants. The research question required access to decision processes, insider interpretations, and privileged information that could not be captured adequately through public records or other available sources alone. Informants were prioritized based on decision authority, exclusive information, relevance, independence from existing networks, and potential to challenge assumptions. We addressed access limitations by using multiple access routes and by documenting how informants were identified and recruited. We strengthened credibility and dependability through triangulation, within-respondent clarification, between-respondent comparison, and active attention to disconfirming cases. We also implemented confidentiality procedures and quote-reporting practices designed to preserve interpretive context without revealing participant identities.\n\nAdditional notes:\n${field("reviewerNotes")||"[Add study-specific notes]"}`;
+    return `${readinessPlan()}\n\nINFORMANTS\n${informantText()}\n\nTRIANGULATION MATRIX\n${claimsText()}\n\nMETHODS DRAFT\n${methodsText()}`;
+  }
+  window.generateMethods=function(go){
+    const out=$("#mainOutput");
+    if(out) out.textContent=outputByType();
+    if(go) showSection("outputs");
+  };
+  window.copyOutput=function(){
+    const txt=$("#mainOutput").textContent||"";
+    navigator.clipboard && navigator.clipboard.writeText(txt).then(()=>alert("Output copied."),()=>alert("Copy failed. Select and copy manually."));
+  };
+  window.exportJSON=function(){
+    download("key-informant-interview-tool-data.json","application/json",JSON.stringify(state,null,2));
+  };
+  window.exportTXT=function(){
+    download("key-informant-interview-report.txt","text/plain",outputByType());
+  };
+  window.exportCSV=function(){
+    const rows=[];
+    rows.push(["type","field","value"].map(csvCell).join(","));
+    Object.keys(state.fields).sort().forEach(k=>rows.push(["field",k,state.fields[k]].map(csvCell).join(",")));
+    Object.keys(state.checks).sort().forEach(k=>rows.push(["check",k,state.checks[k]?"yes":"no"].map(csvCell).join(",")));
+    rows.push([]);
+    rows.push(["informant_index","id","organization","role","authority","exclusive","relevance","route","gatekeeper","similarity","disconfirming","challenge","priority"].map(csvCell).join(","));
+    state.informants.forEach((r,i)=>rows.push([i+1,r.id,r.org,r.role,r.authority,r.exclusive,r.relevance,r.route,r.gatekeeper,r.similarity,r.disconfirming,r.challenge,scoreInformant(r)].map(csvCell).join(",")));
+    rows.push([]);
+    rows.push(["claim_index","claim","other_key_informants","lower_level","rivals","customers_suppliers","documents","field_notes","divergent","status"].map(csvCell).join(","));
+    state.claims.forEach((c,i)=>rows.push([i+1,c.claim,c.informants,c.lower,c.rivals,c.customers,c.documents,c.field,c.divergent,c.status].map(csvCell).join(",")));
+    download("key-informant-interview-tool-data.csv","text/csv",rows.join("\n"));
+  };
+
+  initNav();
+  bindFields();
+  if(!state.informants.length) addInformant({id:"KI-01",org:"",role:"",authority:3,exclusive:3,relevance:3,route:"",gatekeeper:"",similarity:"Moderate",disconfirming:"Possible",challenge:3});
+  if(!state.claims.length) addClaim({claim:"",informants:"",lower:"",rivals:"",customers:"",documents:"",field:"",divergent:"",status:"Unsupported"});
+  loadAll(false);
+  syncDOMFromState();
+})();
+</script>
+<!-- Begin Countercentral code v 7.0 --> 
+<span id="wts2576"></span> 
+<script>var wts=document.createElement('script');wts.async=true; 
+wts.src='https://server2.countercentral.com/log7.js';document.head.appendChild(wts); 
+wts.onload = function(){ wtslog7(2576,1); }; 
+</script><noscript><a href="https://www.countercentral.com"> 
+<img src="https://server2.countercentral.com/7/1/2576.png"  
+alt="Countercentral web traffic analysis"></a></noscript> 
+<!-- End Countercentral code v 7.0 --> 
+</body>
+</html>

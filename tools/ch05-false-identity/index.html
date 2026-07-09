@@ -1,0 +1,1195 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>False Identity Screening Tool for Web-Based Surveys</title>
+<style>
+  :root{
+    --bg:#f4f6f9; --panel:#ffffff; --ink:#1a2230; --muted:#5a6473;
+    --line:#dde3ec; --brand:#1f5fa6; --brand-dk:#16456f; --brand-soft:#e8f1fb;
+    --green:#1f8a4c; --green-bg:#e6f6ec; --green-line:#9bd9b3;
+    --red:#c0392b; --red-bg:#fdecea; --red-line:#f0b3ab;
+    --amber:#b9770a; --amber-bg:#fef5e3; --amber-line:#f2d294;
+    --focus:#ff8c1a;
+    --shadow:0 1px 3px rgba(20,40,70,.08),0 6px 20px rgba(20,40,70,.06);
+    --radius:12px;
+  }
+  *{box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{
+    margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    background:var(--bg);color:var(--ink);line-height:1.55;font-size:17px;
+  }
+  a{color:var(--brand)}
+  h1,h2,h3,h4{line-height:1.25;margin:0 0 .5em}
+  h1{font-size:1.55rem}
+  h2{font-size:1.3rem}
+  h3{font-size:1.08rem}
+  p{margin:0 0 .8em}
+  .wrap{max-width:1180px;margin:0 auto;padding:0 18px}
+  /* Header */
+  header.top{background:linear-gradient(135deg,var(--brand-dk),var(--brand));color:#fff;padding:20px 0 16px}
+  header.top h1{color:#fff;margin-bottom:.2em}
+  header.top p{color:#dce8f6;margin:0;max-width:820px}
+  .skip{position:absolute;left:-999px;top:0;background:#fff;color:var(--brand);padding:8px 14px;z-index:200}
+  .skip:focus{left:8px;top:8px}
+  /* Tabs */
+  nav.tabs{position:sticky;top:0;z-index:50;background:var(--panel);border-bottom:1px solid var(--line);box-shadow:0 1px 4px rgba(20,40,70,.05)}
+  nav.tabs .wrap{display:flex;flex-wrap:wrap;gap:4px}
+  .tab-btn{
+    appearance:none;border:none;background:none;font:inherit;color:var(--muted);
+    padding:13px 16px;cursor:pointer;border-bottom:3px solid transparent;font-weight:600;font-size:.97rem;
+  }
+  .tab-btn:hover{color:var(--brand)}
+  .tab-btn[aria-selected="true"]{color:var(--brand);border-bottom-color:var(--brand)}
+  .tab-btn:focus-visible{outline:3px solid var(--focus);outline-offset:-3px;border-radius:6px}
+  main{padding:22px 0 60px}
+  .tabpanel{display:none}
+  .tabpanel.active{display:block;animation:fade .25s ease}
+  @keyframes fade{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
+  /* Layout */
+  .grid{display:grid;grid-template-columns:1fr 360px;gap:22px;align-items:start}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow);padding:22px;margin-bottom:20px}
+  .card h2{display:flex;align-items:center;gap:8px}
+  .lead{color:var(--muted);font-size:1rem}
+  /* Buttons */
+  button.btn,a.btn{
+    appearance:none;font:inherit;font-weight:600;border-radius:9px;border:1px solid var(--brand);
+    background:var(--brand);color:#fff;padding:11px 18px;cursor:pointer;text-decoration:none;display:inline-flex;
+    align-items:center;gap:8px;transition:background .15s,transform .05s;
+  }
+  button.btn:hover,a.btn:hover{background:var(--brand-dk)}
+  button.btn:active{transform:translateY(1px)}
+  button.btn.ghost,a.btn.ghost{background:#fff;color:var(--brand)}
+  button.btn.ghost:hover{background:var(--brand-soft)}
+  button.btn.subtle{background:#eef2f7;color:var(--ink);border-color:var(--line)}
+  button.btn.subtle:hover{background:#e3e9f1}
+  button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,[tabindex]:focus-visible{outline:3px solid var(--focus);outline-offset:2px}
+  .btn-row{display:flex;flex-wrap:wrap;gap:10px;margin-top:16px}
+  /* Forms */
+  label.fld{display:block;font-weight:600;margin:14px 0 5px}
+  input[type=text],input[type=number],select,textarea{
+    width:100%;font:inherit;padding:10px 12px;border:1px solid var(--line);border-radius:8px;background:#fff;color:var(--ink);
+  }
+  textarea{min-height:64px;resize:vertical}
+  .hint{font-size:.85rem;color:var(--muted);margin-top:4px}
+  fieldset{border:1px solid var(--line);border-radius:10px;padding:14px 16px;margin:0 0 14px}
+  legend{font-weight:700;padding:0 8px}
+  .radio-row{display:flex;flex-direction:column;gap:8px;margin-top:8px}
+  .radio-opt{display:flex;align-items:flex-start;gap:10px;padding:11px 13px;border:1px solid var(--line);border-radius:9px;cursor:pointer;background:#fff}
+  .radio-opt:hover{border-color:var(--brand);background:var(--brand-soft)}
+  .radio-opt input{margin-top:3px;width:18px;height:18px;flex:none}
+  .radio-opt .ro-txt b{display:block}
+  .radio-opt .ro-txt span{font-size:.86rem;color:var(--muted)}
+  /* Tooltip */
+  .tip{border-bottom:1px dotted var(--brand);cursor:help;position:relative}
+  .tip:focus{outline:3px solid var(--focus);outline-offset:2px}
+  .tip .tipbox{
+    visibility:hidden;opacity:0;position:absolute;bottom:135%;left:50%;transform:translateX(-50%);
+    background:#16233a;color:#fff;padding:10px 12px;border-radius:8px;width:260px;font-size:.82rem;font-weight:400;
+    line-height:1.45;z-index:80;box-shadow:0 6px 22px rgba(0,0,0,.25);transition:opacity .15s
+  }
+  .tip:hover .tipbox,.tip:focus .tipbox{visibility:visible;opacity:1}
+  .tip .tipbox::after{content:"";position:absolute;top:100%;left:50%;transform:translateX(-50%);border:7px solid transparent;border-top-color:#16233a}
+  /* Verdict */
+  .verdict{border-radius:12px;padding:20px 22px;border:2px solid;margin-top:6px}
+  .verdict h3{margin:0 0 6px;font-size:1.35rem}
+  .v-include{background:var(--green-bg);border-color:var(--green-line);color:#0f5c30}
+  .v-exclude{background:var(--red-bg);border-color:var(--red-line);color:#8a2418}
+  .v-follow{background:var(--amber-bg);border-color:var(--amber-line);color:#7a4d05}
+  .v-badge{display:inline-block;font-weight:800;letter-spacing:.04em;text-transform:uppercase;font-size:.78rem;padding:4px 10px;border-radius:20px;margin-bottom:8px}
+  .v-include .v-badge{background:var(--green);color:#fff}
+  .v-exclude .v-badge{background:var(--red);color:#fff}
+  .v-follow .v-badge{background:var(--amber);color:#fff}
+  /* Stepper */
+  .stepper{display:flex;gap:6px;margin-bottom:18px;flex-wrap:wrap}
+  .stepper .st{flex:1;min-width:90px;text-align:center;font-size:.74rem;font-weight:600;color:var(--muted);padding:8px 4px;border-radius:8px;background:#eef2f7;border:1px solid var(--line)}
+  .stepper .st.active{background:var(--brand);color:#fff;border-color:var(--brand)}
+  .stepper .st.done{background:var(--green-bg);color:#0f5c30;border-color:var(--green-line)}
+  .qstep{display:none}
+  .qstep.active{display:block;animation:fade .2s}
+  .qtext{font-size:1.18rem;font-weight:700;margin-bottom:4px}
+  /* Decision tree SVG */
+  .treebox{overflow:auto;border:1px solid var(--line);border-radius:10px;background:#fbfcfe;padding:10px}
+  .tnode rect{fill:#fff;stroke:#c2cddd;stroke-width:1.5}
+  .tnode text{font-size:12px;fill:var(--ink)}
+  .tnode.lit rect{stroke:var(--brand);stroke-width:3;fill:var(--brand-soft)}
+  .tnode.lit-inc rect{stroke:var(--green);stroke-width:3;fill:var(--green-bg)}
+  .tnode.lit-exc rect{stroke:var(--red);stroke-width:3;fill:var(--red-bg)}
+  .tnode.lit-fol rect{stroke:var(--amber);stroke-width:3;fill:var(--amber-bg)}
+  .tedge{stroke:#c2cddd;stroke-width:1.5;fill:none}
+  .tedge.lit{stroke:var(--brand);stroke-width:3}
+  .elabel{font-size:10px;fill:var(--muted)}
+  .elabel.lit{fill:var(--brand);font-weight:700}
+  /* Sidebar settings */
+  .setting-box{background:var(--brand-soft);border:1px solid var(--brand-line,#bcd6f0);border-radius:10px;padding:16px}
+  .threat-val{font-size:2rem;font-weight:800;color:var(--brand);text-align:center}
+  input[type=range]{width:100%}
+  /* Table */
+  .tablewrap{overflow:auto;border:1px solid var(--line);border-radius:10px}
+  table{border-collapse:collapse;width:100%;font-size:.86rem;min-width:760px}
+  th,td{padding:9px 10px;text-align:left;border-bottom:1px solid var(--line);vertical-align:top}
+  th{background:#f0f4f9;font-weight:700;position:sticky;top:0}
+  tr:hover td{background:#f8fafc}
+  .pill{display:inline-block;font-size:.74rem;font-weight:700;padding:2px 9px;border-radius:20px}
+  .pill.inc{background:var(--green-bg);color:#0f5c30}
+  .pill.exc{background:var(--red-bg);color:#8a2418}
+  .pill.fol{background:var(--amber-bg);color:#7a4d05}
+  /* Counters */
+  .counters{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:18px}
+  .counter{border-radius:10px;padding:14px;text-align:center;border:1px solid var(--line);background:#fff}
+  .counter .n{font-size:1.9rem;font-weight:800;line-height:1}
+  .counter .l{font-size:.78rem;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.03em;margin-top:4px}
+  .counter.c-inc .n{color:var(--green)} .counter.c-exc .n{color:var(--red)} .counter.c-fol .n{color:var(--amber)}
+  /* Reference accordions */
+  details.acc{border:1px solid var(--line);border-radius:10px;margin-bottom:12px;background:#fff;overflow:hidden}
+  details.acc summary{cursor:pointer;padding:14px 16px;font-weight:700;list-style:none;display:flex;justify-content:space-between;align-items:center;gap:10px}
+  details.acc summary::-webkit-details-marker{display:none}
+  details.acc summary::after{content:"▸";color:var(--brand);transition:transform .2s}
+  details.acc[open] summary::after{transform:rotate(90deg)}
+  details.acc .acc-body{padding:0 16px 16px;border-top:1px solid var(--line)}
+  details.acc .acc-body p:first-child{margin-top:12px}
+  .ref-list{margin:0;padding-left:0;list-style:none}
+  .ref-list li{padding:9px 0;border-bottom:1px solid var(--line)}
+  .ref-list li:last-child{border:none}
+  .ref-list b{color:var(--brand-dk)}
+  .two-col{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+  .badge-list{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+  .chip{font-size:.8rem;padding:4px 10px;border-radius:18px;background:#eef2f7;border:1px solid var(--line)}
+  .chip.t{background:var(--green-bg);border-color:var(--green-line);color:#0f5c30}
+  .chip.n{background:var(--red-bg);border-color:var(--red-line);color:#8a2418}
+  .note{background:var(--amber-bg);border:1px solid var(--amber-line);border-radius:9px;padding:12px 14px;font-size:.9rem;color:#6b4504}
+  .note.privacy{background:var(--brand-soft);border-color:#bcd6f0;color:var(--brand-dk)}
+  .stat{display:flex;gap:14px;align-items:baseline;padding:10px 0;border-bottom:1px solid var(--line)}
+  .stat .big{font-size:1.5rem;font-weight:800;color:var(--brand);min-width:120px}
+  .check-item{display:flex;gap:10px;align-items:flex-start;padding:8px 0}
+  .check-item input{margin-top:4px;width:18px;height:18px;flex:none}
+  footer.cred{background:#16233a;color:#c9d4e3;padding:28px 0;font-size:.9rem;margin-top:40px}
+  footer.cred a{color:#9cc4ee}
+  footer.cred .wrap>div{max-width:880px}
+  .small{font-size:.85rem;color:var(--muted)}
+  .kbd{font-family:monospace;background:#eef2f7;border:1px solid var(--line);border-radius:5px;padding:1px 6px;font-size:.85em}
+  .result-out{margin-top:14px;padding:14px;border-radius:10px;border:1px solid var(--line);background:#fbfcfe;display:none}
+  .result-out.show{display:block}
+  .flagline{display:flex;align-items:center;gap:8px;padding:6px 0;font-weight:600}
+  .flag-yes{color:var(--red)} .flag-no{color:var(--green)}
+  @media print{
+    nav.tabs,header.top .lead,.no-print,.btn-row,nav{display:none!important}
+    .tabpanel{display:block!important}
+    body{background:#fff;font-size:12px}
+    .card{box-shadow:none;page-break-inside:avoid}
+  }
+  @media (max-width:880px){
+    .grid{grid-template-columns:1fr}
+    .counters{grid-template-columns:repeat(2,1fr)}
+    .two-col{grid-template-columns:1fr}
+    body{font-size:16px}
+  }
+</style>
+</head>
+<body>
+<a href="#maincontent" class="skip">Skip to main content</a>
+
+<header class="top">
+  <div class="wrap">
+    <h1>False Identity Screening Tool</h1>
+    <p class="lead">An interactive assistant for detecting and handling false identities in web-based surveys, operationalizing the decision-making tree and best practices of Bernerth, Aguinis, &amp; Taylor (2021).</p>
+  </div>
+</header>
+
+<nav class="tabs" aria-label="Main sections">
+  <div class="wrap" role="tablist">
+    <button class="tab-btn" id="tab-wizard" role="tab" aria-selected="true" aria-controls="panel-wizard">1 · Screening Wizard</button>
+    <button class="tab-btn" id="tab-calc" role="tab" aria-selected="false" aria-controls="panel-calc" tabindex="-1">2 · Calculators &amp; Checks</button>
+    <button class="tab-btn" id="tab-tracker" role="tab" aria-selected="false" aria-controls="panel-tracker" tabindex="-1">3 · Batch Tracker &amp; Log</button>
+    <button class="tab-btn" id="tab-ref" role="tab" aria-selected="false" aria-controls="panel-ref" tabindex="-1">4 · Reference &amp; Guidance</button>
+  </div>
+</nav>
+
+<main id="maincontent">
+<div class="wrap">
+
+<!-- ============ TAB 1: WIZARD ============ -->
+<section class="tabpanel active" id="panel-wizard" role="tabpanel" aria-labelledby="tab-wizard">
+  <div class="grid">
+    <div>
+      <div class="card">
+        <h2>Guided screening wizard</h2>
+        <p class="lead">Screen <strong>one participant at a time</strong>. Answer one question per screen; the tool follows the article's Figure&nbsp;1 logic and returns a clear verdict with a plain-language rationale. Your answers never leave this page.</p>
+
+        <label class="fld" for="pid">Participant ID <span class="small">(optional, used for the log)</span></label>
+        <input type="text" id="pid" placeholder="e.g., P-0142">
+
+        <div class="stepper" id="stepper" aria-hidden="true">
+          <div class="st" data-st="0">Duplicate IP</div>
+          <div class="st" data-st="1">Same group?</div>
+          <div class="st" data-st="2">Verification</div>
+          <div class="st" data-st="3">ISP type</div>
+          <div class="st" data-st="4">Threat score</div>
+          <div class="st" data-st="5">Other checks</div>
+          <div class="st" data-st="6">Verdict</div>
+        </div>
+
+        <form id="wizForm" onsubmit="return false">
+          <!-- STEP 0: duplicate -->
+          <div class="qstep active" data-step="0">
+            <p class="qtext">Does this participant's <span class="tip" tabindex="0">IP address<span class="tipbox">An <b>IP address</b> is a unique identifier assigned to a device on a network — like a license plate for a computer. Surveys (e.g., Qualtrics) usually record it by default.</span></span> appear more than once in your dataset?</p>
+            <p class="hint">Check your data for duplicate IP addresses before starting. Duplicates can mean one person took the survey multiple times — or that several legitimate people share one network IP.</p>
+            <div class="radio-row" role="radiogroup" aria-label="Duplicate IP status">
+              <label class="radio-opt"><input type="radio" name="dup" value="none"><span class="ro-txt"><b>No duplicates</b><span>This IP appears only once.</span></span></label>
+              <label class="radio-opt"><input type="radio" name="dup" value="few"><span class="ro-txt"><b>Duplicate, but appears on fewer than 3 surveys</b><span>The IP appears 2 times.</span></span></label>
+              <label class="radio-opt"><input type="radio" name="dup" value="many"><span class="ro-txt"><b>Appears on 3 or more surveys</b><span>The IP is associated with ≥ 3 completed surveys.</span></span></label>
+            </div>
+          </div>
+
+          <!-- STEP 1: same group -->
+          <div class="qstep" data-step="1">
+            <p class="qtext">Did you invite multiple participants from the <strong>same organization or group</strong>?</p>
+            <p class="hint">A single network often uses one public IP for many devices (e.g., a shared work computer or a computer lab). Snowball recruiting also means you may not know exactly who is in your sample.</p>
+            <div class="radio-row" role="radiogroup" aria-label="Same organization invited">
+              <label class="radio-opt"><input type="radio" name="samegroup" value="no"><span class="ro-txt"><b>No</b><span>I did not invite multiple people from the same organization/group.</span></span></label>
+              <label class="radio-opt"><input type="radio" name="samegroup" value="yes"><span class="ro-txt"><b>Yes, or I don't know</b><span>I invited multiple people from one group, or used snowball recruiting.</span></span></label>
+            </div>
+          </div>
+
+          <!-- STEP 2: verification -->
+          <div class="qstep" data-step="2">
+            <p class="qtext">Did the participant respond to a <strong>follow-up phone/email verification</strong>?</p>
+            <p class="hint">In the article, a direct verification request helped confirm shared-IP cases. Non-targeted participants were far less likely to respond (a high threat score or proxy ISP sharply reduced the odds of replying).</p>
+            <div class="radio-row" role="radiogroup" aria-label="Verification response">
+              <label class="radio-opt"><input type="radio" name="verify" value="yes"><span class="ro-txt"><b>Yes — they responded</b><span>Verification confirmed the shared IP is legitimate.</span></span></label>
+              <label class="radio-opt"><input type="radio" name="verify" value="no"><span class="ro-txt"><b>No — no response (or could not verify)</b><span>Verification attempt was unsuccessful.</span></span></label>
+            </div>
+          </div>
+
+          <!-- STEP 3: ISP -->
+          <div class="qstep" data-step="3">
+            <p class="qtext">Is the participant's <span class="tip" tabindex="0">ISP<span class="tipbox">An <b>Internet Service Provider</b> is the network the device connects through. Look it up with infobyip.com using the participant's IP address.</span></span> consumer-based or proxy-based?</p>
+            <p class="hint">Look up the IP at <strong>infobyip.com</strong>. Consumer ISPs suggest a likely targeted participant; <span class="tip" tabindex="0">proxy/VPN<span class="tipbox">A <b>proxy</b> or <b>VPN</b> routes traffic through an intermediary server, masking the user's true network and location. Common among non-targeted participants.</span></span> hosts suggest a likely non-targeted participant.</p>
+            <div class="radio-row" role="radiogroup" aria-label="ISP type">
+              <label class="radio-opt"><input type="radio" name="isp" value="consumer"><span class="ro-txt"><b>Consumer-based ISP</b><span>e.g., Comcast, AT&amp;T, Verizon, Time Warner, Charter Spectrum, Qwest, a university.</span></span></label>
+              <label class="radio-opt"><input type="radio" name="isp" value="proxy"><span class="ro-txt"><b>Proxy-based ISP / hosting / VPN</b><span>e.g., Psychz Networks, Vultr, Sharktech, CyberGhost, Leaseweb.</span></span></label>
+            </div>
+          </div>
+
+          <!-- STEP 4: threat -->
+          <div class="qstep" data-step="4">
+            <p class="qtext">What is the participant's <span class="tip" tabindex="0">IP threat score<span class="tipbox">A probability from 0 to 1 that an IP is deliberately masked and/or linked to prior malicious activity. Near 0 = safe; near 1 = likely proxy/bot/spammer. Get it free at getipintel.net.</span></span>?</p>
+            <p class="hint">Enter the value (0–1) from <strong>getipintel.net</strong>. It is compared against your threshold of <strong id="cutEcho">0.90</strong> (editable in the panel on the right).</p>
+            <label class="fld" for="threat">IP threat score (0–1)</label>
+            <input type="number" id="threat" name="threat" min="0" max="1" step="0.01" placeholder="e.g., 0.12">
+            <div class="hint" id="threatHint"></div>
+          </div>
+
+          <!-- STEP 5: other checks -->
+          <div class="qstep" data-step="5">
+            <p class="qtext">This is a <strong>mixed-identity</strong> case. Did the participant <strong>miss other validity checks</strong>?</p>
+            <p class="hint">A mixed identity is a contradiction — e.g., a consumer ISP with a high threat score, or a proxy ISP with a low threat score. Lean on your other checks (attention items, within-person reliability, open-ended completion, time-to-complete, location match). Use the <button type="button" class="btn subtle" style="padding:4px 10px;font-size:.85rem" onclick="switchTab('calc')">Calculators tab</button> to compute these, then decide below. You define which flags count.</p>
+            <div class="radio-row" role="radiogroup" aria-label="Missed other checks">
+              <label class="radio-opt"><input type="radio" name="other" value="yes"><span class="ro-txt"><b>Yes — they missed/failed other checks</b><span>One or more of your defined flags were raised.</span></span></label>
+              <label class="radio-opt"><input type="radio" name="other" value="no"><span class="ro-txt"><b>No — they passed other checks</b><span>No additional flags; data look sound.</span></span></label>
+            </div>
+            <div id="flagSummaryWiz" class="hint"></div>
+          </div>
+
+          <!-- STEP 6: verdict -->
+          <div class="qstep" data-step="6">
+            <div id="verdictOut" aria-live="polite"></div>
+            <div class="btn-row no-print">
+              <button type="button" class="btn" id="logBtn">＋ Add this verdict to the batch log</button>
+              <button type="button" class="btn ghost" onclick="resetWizard()">Screen another participant</button>
+            </div>
+            <p class="hint" id="loggedMsg" style="display:none;color:var(--green);font-weight:600">✓ Added to the batch log (Tab 3).</p>
+          </div>
+
+          <div class="btn-row no-print" id="navRow">
+            <button type="button" class="btn subtle" id="backBtn" disabled>← Back</button>
+            <button type="button" class="btn" id="nextBtn">Next →</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- Sidebar -->
+    <aside aria-label="Settings and live decision tree">
+      <div class="card">
+        <h3>⚙️ Threat-score threshold</h3>
+        <div class="setting-box">
+          <div class="threat-val" id="cutDisplay">0.90</div>
+          <input type="range" id="cutSlider" min="0.50" max="0.99" step="0.01" value="0.90" aria-label="Threat score cutoff">
+          <input type="number" id="cutNum" min="0" max="1" step="0.01" value="0.90" style="margin-top:8px" aria-label="Threat score cutoff exact value">
+          <p class="hint" style="margin-top:10px">Default <strong>.90</strong> is conservative, based on threat-prevention experts. Scores at or above the threshold are treated as high-threat.</p>
+          <div class="note" style="margin-top:8px;font-size:.82rem">⚠ Whatever threshold you choose, <strong>report it explicitly</strong> in your methods so results can be replicated.</div>
+        </div>
+      </div>
+
+      <div class="card">
+        <h3>Live decision tree</h3>
+        <p class="small">The highlighted path shows how the current participant moves through Figure&nbsp;1.</p>
+        <div class="treebox">
+          <svg id="treeSvg" viewBox="0 0 520 640" width="500" role="img" aria-label="Decision tree, current path highlighted">
+            <!-- edges -->
+            <g id="edges">
+              <path class="tedge" id="e_dup_isp" d="M260,70 L260,250"></path>
+              <path class="tedge" id="e_dup_grp" d="M150,55 L60,55 L60,130"></path>
+              <text class="elabel" x="95" y="45">≥3 surveys</text>
+              <path class="tedge" id="e_grp_excA" d="M60,170 L60,205"></path>
+              <text class="elabel" x="70" y="192">No</text>
+              <path class="tedge" id="e_grp_ver" d="M100,150 L175,150 L175,170"></path>
+              <text class="elabel" x="120" y="143">Yes/?</text>
+              <path class="tedge" id="e_ver_excB" d="M150,210 L100,210 L100,245"></path>
+              <text class="elabel" x="105" y="232">No</text>
+              <path class="tedge" id="e_ver_isp" d="M210,210 L260,210 L260,250"></path>
+              <text class="elabel" x="222" y="232">Yes</text>
+              <!-- isp split -->
+              <path class="tedge" id="e_isp_con" d="M210,285 L120,285 L120,330"></path>
+              <text class="elabel" x="130" y="305">Consumer</text>
+              <path class="tedge" id="e_isp_prx" d="M310,285 L400,285 L400,330"></path>
+              <text class="elabel" x="340" y="305">Proxy</text>
+              <!-- consumer threat -->
+              <path class="tedge" id="e_con_inc" d="M90,370 L60,370 L60,470"></path>
+              <text class="elabel" x="20" y="420">&lt; cut</text>
+              <path class="tedge" id="e_con_mix" d="M150,370 L185,370 L185,415"></path>
+              <text class="elabel" x="150" y="390">≥ cut</text>
+              <!-- proxy threat -->
+              <path class="tedge" id="e_prx_exc" d="M430,370 L460,370 L460,470"></path>
+              <text class="elabel" x="430" y="420">≥ cut</text>
+              <path class="tedge" id="e_prx_mix" d="M370,370 L335,370 L335,415"></path>
+              <text class="elabel" x="300" y="390">&lt; cut</text>
+              <!-- mixed -> other checks -->
+              <path class="tedge" id="e_mixL" d="M185,455 L185,490 L255,490 L255,520"></path>
+              <path class="tedge" id="e_mixR" d="M335,455 L335,490 L285,490 L285,520"></path>
+              <path class="tedge" id="e_oth_exc" d="M240,560 L200,560 L200,595"></path>
+              <text class="elabel" x="205" y="582">Missed</text>
+              <path class="tedge" id="e_oth_inc" d="M300,560 L350,560 L350,595"></path>
+              <text class="elabel" x="320" y="582">Passed</text>
+            </g>
+            <!-- nodes -->
+            <g class="tnode" id="n_dup"><rect x="150" y="30" width="220" height="40" rx="8"></rect><text x="260" y="55" text-anchor="middle">Duplicate IP check</text></g>
+            <g class="tnode" id="n_grp"><rect x="10" y="130" width="100" height="40" rx="8"></rect><text x="60" y="148" text-anchor="middle">Same group</text><text x="60" y="162" text-anchor="middle">invited?</text></g>
+            <g class="tnode" id="n_ver"><rect x="125" y="170" width="100" height="40" rx="8"></rect><text x="175" y="188" text-anchor="middle">Responded to</text><text x="175" y="202" text-anchor="middle">verification?</text></g>
+            <g class="tnode" id="n_isp"><rect x="160" y="250" width="200" height="40" rx="8"></rect><text x="260" y="275" text-anchor="middle">ISP type?</text></g>
+            <g class="tnode" id="n_con"><rect x="40" y="330" width="120" height="40" rx="8"></rect><text x="100" y="348" text-anchor="middle">Consumer +</text><text x="100" y="362" text-anchor="middle">threat?</text></g>
+            <g class="tnode" id="n_prx"><rect x="360" y="330" width="120" height="40" rx="8"></rect><text x="420" y="348" text-anchor="middle">Proxy +</text><text x="420" y="362" text-anchor="middle">threat?</text></g>
+            <g class="tnode" id="n_mix"><rect x="220" y="520" width="140" height="40" rx="8"></rect><text x="290" y="538" text-anchor="middle">Mixed identity:</text><text x="290" y="552" text-anchor="middle">other checks?</text></g>
+            <!-- outcomes -->
+            <g class="tnode" id="n_excA"><rect x="10" y="205" width="100" height="36" rx="8"></rect><text x="60" y="227" text-anchor="middle">EXCLUDE</text></g>
+            <g class="tnode" id="n_excB"><rect x="50" y="245" width="100" height="36" rx="8"></rect><text x="100" y="267" text-anchor="middle">EXCLUDE</text></g>
+            <g class="tnode" id="n_inc1"><rect x="10" y="470" width="100" height="36" rx="8"></rect><text x="60" y="492" text-anchor="middle">INCLUDE</text></g>
+            <g class="tnode" id="n_exc2"><rect x="410" y="470" width="100" height="36" rx="8"></rect><text x="460" y="492" text-anchor="middle">EXCLUDE</text></g>
+            <g class="tnode" id="n_excO"><rect x="150" y="595" width="100" height="36" rx="8"></rect><text x="200" y="617" text-anchor="middle">EXCLUDE</text></g>
+            <g class="tnode" id="n_incO"><rect x="300" y="595" width="100" height="36" rx="8"></rect><text x="350" y="617" text-anchor="middle">INCLUDE</text></g>
+          </svg>
+        </div>
+      </div>
+    </aside>
+  </div>
+</section>
+
+<!-- ============ TAB 2: CALCULATORS ============ -->
+<section class="tabpanel" id="panel-calc" role="tabpanel" aria-labelledby="tab-calc">
+  <div class="card">
+    <h2>Supporting calculators &amp; checks</h2>
+    <p class="lead">These helpers feed the wizard's "missed other validity checks" branch. Compute each one, decide which raise a flag, and carry the result back to the wizard. <strong>You define which flags count.</strong></p>
+  </div>
+
+  <div class="grid">
+    <div>
+      <!-- Instructed response -->
+      <div class="card">
+        <h3>① Instructed-response scorer</h3>
+        <p class="small">Instructed-response (attention) items tell the participant exactly how to answer (e.g., "Please select <em>strongly disagree</em> for this item"). The article used 2; targeted participants missed far fewer (mean .41 vs 1.06).</p>
+        <div class="two-col">
+          <div><label class="fld" for="ir_total">Number of instructed-response items</label><input type="number" id="ir_total" min="0" step="1" value="2"></div>
+          <div><label class="fld" for="ir_miss">Number answered incorrectly</label><input type="number" id="ir_miss" min="0" step="1" placeholder="0"></div>
+        </div>
+        <label class="fld" for="ir_thresh">Flag if misses are at least…</label>
+        <input type="number" id="ir_thresh" min="1" step="1" value="1">
+        <div class="result-out" id="ir_out"></div>
+      </div>
+
+      <!-- Within-person reliability -->
+      <div class="card">
+        <h3>② Within-person reliability</h3>
+        <p class="small">Individual-level consistency. <strong>Higher = more reliable.</strong> Two methods from the article:</p>
+
+        <fieldset>
+          <legend>(a) <span class="tip" tabindex="0">Half-scale (odd/even) correlation<span class="tipbox">Split each multi-item scale into odd-numbered and even-numbered items, average each half, then correlate the two halves across that person's scales. Strong positive r = consistent responding.</span></span></legend>
+          <p class="small">For one participant, list paired half-scale averages — odd-item averages in one box, even-item averages in the other (one number per line, matched order). The tool returns the within-person correlation.</p>
+          <div class="two-col">
+            <div><label class="fld" for="hs_odd">Odd-half averages</label><textarea id="hs_odd" placeholder="5.0&#10;4.5&#10;6.0&#10;5.5"></textarea></div>
+            <div><label class="fld" for="hs_even">Even-half averages</label><textarea id="hs_even" placeholder="4.75&#10;4.25&#10;5.5&#10;5.75"></textarea></div>
+          </div>
+          <button type="button" class="btn ghost" onclick="calcHalfScale()">Compute half-scale r</button>
+          <div class="result-out" id="hs_out"></div>
+        </fieldset>
+
+        <fieldset>
+          <legend>(b) <span class="tip" tabindex="0">Psychometric antonym correlation<span class="tipbox">Correlate forward-scored items with their reverse-scored antonyms (e.g., "efficient"/"inefficient") across the person. Reverse-score so that higher = more reliable.</span></span></legend>
+          <p class="small">List each forward item's score and its paired antonym's score (one pair per line). Antonyms are reverse-scored automatically, so a higher result means greater consistency.</p>
+          <div class="two-col">
+            <div><label class="fld" for="an_fwd">Forward-item scores</label><textarea id="an_fwd" placeholder="6&#10;5&#10;7&#10;4"></textarea></div>
+            <div><label class="fld" for="an_rev">Antonym scores (raw)</label><textarea id="an_rev" placeholder="2&#10;3&#10;1&#10;4"></textarea></div>
+          </div>
+          <label class="fld" for="an_max">Scale maximum (for reverse-scoring)</label>
+          <input type="number" id="an_max" min="2" step="1" value="7" style="max-width:140px">
+          <div style="margin-top:10px"><button type="button" class="btn ghost" onclick="calcAntonym()">Compute antonym r</button></div>
+          <div class="result-out" id="an_out"></div>
+        </fieldset>
+      </div>
+    </div>
+
+    <div>
+      <!-- Open-ended -->
+      <div class="card">
+        <h3>③ Open-ended completion</h3>
+        <p class="small">Targeted participants voluntarily answered nearly twice as many open-ended questions (2.08 vs 1.11). Low completion is a flag.</p>
+        <div class="two-col">
+          <div><label class="fld" for="oe_total">Open-ended questions offered</label><input type="number" id="oe_total" min="0" step="1" value="3"></div>
+          <div><label class="fld" for="oe_done">Number answered</label><input type="number" id="oe_done" min="0" step="1" placeholder="0"></div>
+        </div>
+        <label class="fld" for="oe_thresh">Flag if answered fewer than…</label>
+        <input type="number" id="oe_thresh" min="0" step="1" value="1">
+        <div class="result-out" id="oe_out"></div>
+      </div>
+
+      <!-- Time -->
+      <div class="card">
+        <h3>④ Time-to-complete flag</h3>
+        <p class="small">Implausibly fast completion suggests careless or non-genuine responding. The article used a &lt; 3 minute rule as one existing check.</p>
+        <div class="two-col">
+          <div><label class="fld" for="tm_actual">Time taken (minutes)</label><input type="number" id="tm_actual" min="0" step="0.1" placeholder="e.g., 2.4"></div>
+          <div><label class="fld" for="tm_min">Minimum acceptable (minutes)</label><input type="number" id="tm_min" min="0" step="0.1" value="3"></div>
+        </div>
+        <div class="result-out" id="tm_out"></div>
+      </div>
+
+      <!-- Location -->
+      <div class="card">
+        <h3>⑤ Location cross-check</h3>
+        <p class="small">Compare the participant's self-reported location with what an IP lookup (infobyip.com) returns. A discrepancy is a flag — non-targeted users often mask or misreport location.</p>
+        <label class="fld" for="loc_self">Self-reported location</label>
+        <input type="text" id="loc_self" placeholder="e.g., Seattle, WA, USA">
+        <label class="fld" for="loc_ip">Location from IP lookup</label>
+        <input type="text" id="loc_ip" placeholder="e.g., Amsterdam, NL">
+        <div class="btn-row"><button type="button" class="btn ghost" onclick="calcLocation()">Compare</button></div>
+        <div class="result-out" id="loc_out"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h3>Flag summary → carry to wizard</h3>
+    <p class="small">Tick the checks you treat as flags for this participant. The count is shown on the wizard's "other checks" step to support your Yes/No decision.</p>
+    <div id="flagChecklist"></div>
+    <div class="note" style="margin-top:14px" id="flagTotal">No flags recorded yet.</div>
+  </div>
+</section>
+
+<!-- ============ TAB 3: TRACKER ============ -->
+<section class="tabpanel" id="panel-tracker" role="tabpanel" aria-labelledby="tab-tracker">
+  <div class="card">
+    <h2>Batch tracker &amp; exclusion log</h2>
+    <p class="lead">Every verdict you add from the wizard is recorded here, documenting your screening for full reproducibility. You can also add or edit rows manually.</p>
+
+    <div class="counters">
+      <div class="counter"><div class="n" id="cTotal">0</div><div class="l">Logged</div></div>
+      <div class="counter c-inc"><div class="n" id="cInc">0</div><div class="l">Include</div></div>
+      <div class="counter c-exc"><div class="n" id="cExc">0</div><div class="l">Exclude</div></div>
+      <div class="counter c-fol"><div class="n" id="cFol">0</div><div class="l">Follow up</div></div>
+    </div>
+
+    <div class="note privacy">🔒 <strong>Privacy:</strong> all data stays in your browser's memory only. Nothing is saved to disk, sent over the internet, or stored after you close this tab. (No cookies, no local storage.) Export to CSV if you need to keep your log. Consistent with the article, consider deleting IP addresses from your data files once duplicate-checking and screening are complete.</div>
+
+    <div class="btn-row no-print">
+      <button type="button" class="btn" onclick="exportCSV()">⬇ Export log to CSV</button>
+      <button type="button" class="btn ghost" onclick="window.print()">🖨 Printable summary</button>
+      <button type="button" class="btn subtle" onclick="addBlankRow()">＋ Add manual row</button>
+      <button type="button" class="btn subtle" onclick="clearLog()">Clear log</button>
+    </div>
+  </div>
+
+  <div class="card">
+    <h3>Participant log</h3>
+    <div class="tablewrap">
+      <table id="logTable">
+        <thead>
+          <tr>
+            <th>Participant ID</th><th>ISP type</th><th>Threat</th><th>Threshold</th><th>Duplicate</th>
+            <th># Flags</th><th>Verdict</th><th>Reason</th><th>Notes</th><th class="no-print"></th>
+          </tr>
+        </thead>
+        <tbody id="logBody">
+          <tr id="emptyRow"><td colspan="10" style="text-align:center;color:var(--muted);padding:24px">No participants logged yet. Run the wizard or add a manual row.</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="card">
+    <h3>Exclusion-reason summary</h3>
+    <div id="reasonSummary"><p class="small">Reasons will appear here as you log exclusions and follow-ups.</p></div>
+  </div>
+</section>
+
+<!-- ============ TAB 4: REFERENCE ============ -->
+<section class="tabpanel" id="panel-ref" role="tabpanel" aria-labelledby="tab-ref">
+  <div class="card">
+    <h2>Reference &amp; guidance</h2>
+    <p class="lead">Always-available background for every step of the method. Expand any panel.</p>
+
+    <details class="acc" open>
+      <summary>Why this matters — the evidence</summary>
+      <div class="acc-body">
+        <p>In a study of nearly <strong>1,000 participants</strong> (405 targeted, 581 non-targeted), targeted and non-targeted respondents differed sharply on data quality:</p>
+        <div class="stat"><span class="big">2.5× fewer</span><span>missed instructed-response items by targeted participants (0.41 vs 1.06; d = .78).</span></div>
+        <div class="stat"><span class="big">2× higher</span><span>within-person reliability for targeted participants (half-scale .78 vs .37; d = 1.00).</span></div>
+        <div class="stat"><span class="big">~2× more</span><span>open-ended questions answered by targeted participants (2.08 vs 1.11; d = 1.07).</span></div>
+        <div class="stat"><span class="big">.66 → .77</span><span>average scale reliability when using only targeted participants vs. all data; vs non-targeted (.53), error variance dropped over 50%.</span></div>
+        <div class="stat"><span class="big">|d| = .63</span><span>average construct-mean difference across 10 substantive constructs; 5 of 9 constructs were <em>not</em> metrically invariant (different factor structure).</span></div>
+        <div class="stat"><span class="big">Caught what others missed</span><span>The IP method flagged false identities that five common cleaning methods (within-person reliability, instructed-response, open-ended, duplicate IP, time-to-complete) left undetected — reducing measurement error by ~25% on average even <em>after</em> those methods were applied.</span></div>
+        <p class="small" style="margin-top:12px">Substantive conclusions changed too: with targeted-only data, some predictor–outcome relationships flipped sign or changed significance (e.g., LMX → workplace stressors).</p>
+      </div>
+    </details>
+
+    <details class="acc">
+      <summary>Targeted vs. non-targeted — definitions &amp; example ISPs</summary>
+      <div class="acc-body">
+        <p><strong>Targeted</strong> participants have low IP threat scores and/or consumer-focused ISPs — genuine, intended members of your population.</p>
+        <p><strong>Non-targeted</strong> participants (false identities) have high IP threat scores and/or proxy-based ISPs — people who took deliberate steps to mask identity/location, and likely lack the characteristics you require.</p>
+        <p><strong>Consumer-based ISPs</strong> (suggest targeted):</p>
+        <div class="badge-list">
+          <span class="chip t">Comcast</span><span class="chip t">AT&amp;T</span><span class="chip t">Verizon</span><span class="chip t">Time Warner</span><span class="chip t">Charter Spectrum</span><span class="chip t">Qwest Communications</span><span class="chip t">Virgin Mobile</span><span class="chip t">Universities (e.g., Univ. of Washington)</span>
+        </div>
+        <p style="margin-top:14px"><strong>Proxy-based ISPs / hosting / VPN</strong> (suggest non-targeted):</p>
+        <div class="badge-list">
+          <span class="chip n">Psychz Networks</span><span class="chip n">Vultr Holdings</span><span class="chip n">Sharktech</span><span class="chip n">CyberGhost</span><span class="chip n">Leaseweb</span>
+        </div>
+        <p class="small" style="margin-top:14px">Note: legitimate participants increasingly use VPNs (especially since the rise of work-from-home), so a proxy ISP alone is not proof of a false identity — that is why the method combines ISP type, threat score, and other checks before excluding anyone.</p>
+      </div>
+    </details>
+
+    <details class="acc">
+      <summary>Free tools used in the article</summary>
+      <div class="acc-body">
+        <ul class="ref-list">
+          <li><b>getipintel.net</b> — enter an IP address, receive an <strong>IP threat score</strong> (0–1 probability the IP is masked or linked to malicious activity). Public since 2015; updates in real time.</li>
+          <li><b>infobyip.com</b> — enter an IP address, receive detailed information including the <strong>ISP</strong> and approximate location. Used to classify consumer vs. proxy.</li>
+          <li><b>whatismyip.com</b> — reveals the host network/organization and approximate location for an IP. Useful supporting lookup.</li>
+          <li><b>dnsleaktest.com</b> — reveals information leaked about the host/network, helping detect proxy/VPN use.</li>
+        </ul>
+        <p class="small" style="margin-top:10px">These tools' exact computations are proprietary, and other commercial tools may not correlate perfectly. Always report which tool and threshold you used.</p>
+      </div>
+    </details>
+
+    <details class="acc">
+      <summary>Ethical &amp; legal guidance (IRB, GDPR, consent)</summary>
+      <div class="acc-body">
+        <p><strong>IRB balance.</strong> Researchers and Institutional Review Boards must balance the validity benefits of collecting and using IP addresses against participants' rights and safety.</p>
+        <p><strong>EU / GDPR.</strong> Authorities in the European Union require <strong>formal consent to collect IP addresses</strong>. Plan consent language accordingly when any participants may be in the EU.</p>
+        <p><strong>United States.</strong> The U.S. does <em>not</em> require consent to collect IP addresses, but obtaining it is a defensible, wise practice. A hesitation is that asking might deter targeted participants — but it may equally deter non-targeted ones, which is the goal.</p>
+        <p><strong>Confidentiality vs. anonymity.</strong> Because IP addresses can identify a device, consider framing consent forms around <strong>confidentiality rather than anonymity</strong> (per Teitcher et al., 2015) — a reasonable compromise until governing bodies issue clearer guidance.</p>
+        <p><strong>Delete IPs when done.</strong> Delete IP addresses from all data files <strong>after</strong> checking for duplicates and completing the screening method, to minimize retention of identifying data.</p>
+      </div>
+    </details>
+
+    <details class="acc">
+      <summary>Reporting checklist (for your methods section)</summary>
+      <div class="acc-body">
+        <p class="small">Tick these as you write up your screening so it is transparent and replicable:</p>
+        <div id="reportChecklist"></div>
+      </div>
+    </details>
+
+    <details class="acc">
+      <summary>Glossary of technical terms</summary>
+      <div class="acc-body">
+        <ul class="ref-list">
+          <li><b>IP address</b> — unique identifier for a device on a network; recorded by default in most survey platforms.</li>
+          <li><b>IP threat score</b> — 0–1 probability that an IP is masked and/or tied to prior malicious activity. Near 1 = likely proxy/bot/spammer.</li>
+          <li><b>ISP</b> — Internet Service Provider; the network the device connects through. Consumer vs. proxy/hosting distinguishes likely targeted vs. non-targeted users.</li>
+          <li><b>Proxy / VPN</b> — an intermediary server that routes and encrypts traffic, masking the user's true network and location.</li>
+          <li><b>Within-person reliability</b> — consistency of one individual's responses across items (half-scale and antonym methods). Higher = more reliable.</li>
+          <li><b>Configural invariance</b> — whether items load on the same factors across groups (same basic factor structure).</li>
+          <li><b>Metric invariance</b> — whether factor loadings are equal across groups; required to compare relationships fairly. Non-invariance means the same scale "means" different things across groups.</li>
+        </ul>
+      </div>
+    </details>
+  </div>
+</section>
+
+</div>
+</main>
+
+<footer class="cred">
+  <div class="wrap">
+    <div>
+      <h3 style="color:#fff">About &amp; credits</h3>
+      <p>This tool operationalizes the decision-making tree and best-practice recommendations of:</p>
+      <p><strong>Bernerth, J. B., Aguinis, H., &amp; Taylor, E. C. (2021).</strong> Detecting false identities: A solution to improve web-based surveys and research on leadership and health/well-being. <em>Journal of Occupational Health Psychology, 26</em>(6), 564–581. <a href="https://doi.org/10.1037/ocp0000281" target="_blank" rel="noopener">https://doi.org/10.1037/ocp0000281</a></p>
+      <p style="margin-top:12px">See also: <strong>Aguinis, H. (2025).</strong> <em>Research methodology: Best practices for rigorous, credible, and impactful research.</em> SAGE. <a href="https://collegepublishing.sagepub.com/products/research-methodology-1-280088" target="_blank" rel="noopener">collegepublishing.sagepub.com/products/research-methodology-1-280088</a></p>
+      <p class="small" style="color:#8fa0b6;margin-top:14px">This is an independent decision-support aid, not a substitute for reading the primary article or for researcher judgment and IRB guidance. Works fully offline; no data leaves your device.</p>
+    </div>
+  </div>
+</footer>
+
+<script>
+"use strict";
+
+/* ---------- Tabs ---------- */
+var tabs=[["tab-wizard","panel-wizard"],["tab-calc","panel-calc"],["tab-tracker","panel-tracker"],["tab-ref","panel-ref"]];
+function switchTab(key){
+  var map={wizard:"tab-wizard",calc:"tab-calc",tracker:"tab-tracker",ref:"tab-ref"};
+  selectTab(map[key]||key);
+}
+function selectTab(tabId){
+  tabs.forEach(function(t){
+    var btn=document.getElementById(t[0]), pan=document.getElementById(t[1]);
+    var on=(t[0]===tabId);
+    btn.setAttribute("aria-selected",on?"true":"false");
+    btn.tabIndex=on?0:-1;
+    pan.classList.toggle("active",on);
+  });
+  window.scrollTo({top:0,behavior:"smooth"});
+}
+tabs.forEach(function(t,i){
+  var btn=document.getElementById(t[0]);
+  btn.addEventListener("click",function(){selectTab(t[0]);});
+  btn.addEventListener("keydown",function(e){
+    if(e.key==="ArrowRight"||e.key==="ArrowLeft"){
+      e.preventDefault();
+      var dir=e.key==="ArrowRight"?1:-1;
+      var ni=(i+dir+tabs.length)%tabs.length;
+      var nb=document.getElementById(tabs[ni][0]);
+      selectTab(tabs[ni][0]); nb.focus();
+    }
+  });
+});
+
+/* ---------- Threshold setting ---------- */
+var cutoff=0.90;
+var cutSlider=document.getElementById("cutSlider"),cutNum=document.getElementById("cutNum"),
+    cutDisplay=document.getElementById("cutDisplay"),cutEcho=document.getElementById("cutEcho");
+function setCutoff(v){
+  v=Math.max(0,Math.min(1,parseFloat(v)||0));
+  cutoff=v;
+  var s=v.toFixed(2);
+  cutDisplay.textContent=s; cutEcho.textContent=s;
+  cutSlider.value=v; cutNum.value=s;
+  updateThreatHint();
+}
+cutSlider.addEventListener("input",function(){setCutoff(cutSlider.value);});
+cutNum.addEventListener("input",function(){setCutoff(cutNum.value);});
+function updateThreatHint(){
+  var t=parseFloat(document.getElementById("threat").value);
+  var h=document.getElementById("threatHint");
+  if(isNaN(t)){h.textContent="";return;}
+  if(t>=cutoff){h.innerHTML="<span class='flag-yes'>● High threat</span> — score "+t.toFixed(2)+" is ≥ threshold "+cutoff.toFixed(2)+".";}
+  else{h.innerHTML="<span class='flag-no'>● Low threat</span> — score "+t.toFixed(2)+" is below threshold "+cutoff.toFixed(2)+".";}
+}
+document.getElementById("threat").addEventListener("input",updateThreatHint);
+
+/* ---------- Wizard flow ---------- */
+var stepOrder=["dup","samegroup","verify","isp","threat","other","verdict"];
+var curStep=0;
+var wizState={};
+
+function getRadio(name){var el=document.querySelector('input[name="'+name+'"]:checked');return el?el.value:null;}
+
+/* Decide the next logical step index given current answers; returns -1 if must compute verdict */
+function nextLogicalStep(fromIdx){
+  var dup=getRadio("dup");
+  // From step 0 (dup)
+  if(fromIdx===0){
+    if(dup==="many") return 1;       // ask same group
+    return 3;                         // none or few -> ISP
+  }
+  if(fromIdx===1){
+    var sg=getRadio("samegroup");
+    if(sg==="no") return 6;          // exclude verdict
+    return 2;                        // yes/dontknow -> verification
+  }
+  if(fromIdx===2){
+    var v=getRadio("verify");
+    if(v==="no") return 6;           // exclude verdict
+    return 3;                        // yes -> ISP
+  }
+  if(fromIdx===3) return 4;          // isp -> threat
+  if(fromIdx===4){
+    var isp=getRadio("isp");
+    var t=parseFloat(document.getElementById("threat").value);
+    var high=t>=cutoff;
+    // pure cases -> verdict; mixed -> other checks
+    if(isp==="consumer"&&!high) return 6;
+    if(isp==="proxy"&&high) return 6;
+    return 5;                        // mixed -> other checks
+  }
+  if(fromIdx===5) return 6;          // other -> verdict
+  return 6;
+}
+
+/* validate current step has an answer */
+function stepValid(idx){
+  if(idx===0) return !!getRadio("dup");
+  if(idx===1) return !!getRadio("samegroup");
+  if(idx===2) return !!getRadio("verify");
+  if(idx===3) return !!getRadio("isp");
+  if(idx===4){var t=parseFloat(document.getElementById("threat").value);return !isNaN(t)&&t>=0&&t<=1;}
+  if(idx===5) return !!getRadio("other");
+  return true;
+}
+
+var visitedPath=[]; // step indices visited, for back navigation
+
+function showStep(idx){
+  document.querySelectorAll(".qstep").forEach(function(q){q.classList.toggle("active",parseInt(q.dataset.step,10)===idx);});
+  curStep=idx;
+  // stepper highlight
+  document.querySelectorAll("#stepper .st").forEach(function(s){
+    var si=parseInt(s.dataset.st,10);
+    s.classList.toggle("active",si===idx);
+    s.classList.toggle("done",visitedPath.indexOf(si)>-1&&si!==idx);
+  });
+  var back=document.getElementById("backBtn"),next=document.getElementById("nextBtn"),navRow=document.getElementById("navRow");
+  back.disabled=visitedPath.length===0;
+  if(idx===6){navRow.style.display="none";computeVerdict();}
+  else{navRow.style.display="flex";next.textContent= (nextLogicalStep(idx)===6?"See verdict →":"Next →");}
+  if(idx===5){renderWizFlagSummary();}
+}
+
+document.getElementById("nextBtn").addEventListener("click",function(){
+  if(!stepValid(curStep)){alert("Please answer this question to continue.");return;}
+  visitedPath.push(curStep);
+  var nx=nextLogicalStep(curStep);
+  showStep(nx);
+});
+document.getElementById("backBtn").addEventListener("click",function(){
+  if(visitedPath.length===0)return;
+  var prev=visitedPath.pop();
+  showStep(prev);
+});
+
+/* highlight tree nodes/edges by path */
+function clearTree(){
+  document.querySelectorAll("#treeSvg .tnode").forEach(function(n){n.classList.remove("lit","lit-inc","lit-exc","lit-fol");});
+  document.querySelectorAll("#treeSvg .tedge,#treeSvg .elabel").forEach(function(n){n.classList.remove("lit");});
+}
+function litNode(id,kind){var n=document.getElementById(id);if(n)n.classList.add(kind||"lit");}
+function litEdge(id){var e=document.getElementById(id);if(e)e.classList.add("lit");}
+
+function highlightTree(state){
+  clearTree();
+  litNode("n_dup");
+  if(state.dup==="many"){
+    litEdge("e_dup_grp"); litNode("n_grp");
+    if(state.samegroup==="no"){litEdge("e_grp_excA");litNode("n_excA","lit-exc");return;}
+    litEdge("e_grp_ver");litNode("n_ver");
+    if(state.verify==="no"){litEdge("e_ver_excB");litNode("n_excB","lit-exc");return;}
+    litEdge("e_ver_isp");
+  } else {
+    litEdge("e_dup_isp");
+  }
+  litNode("n_isp");
+  if(state.isp==="consumer"){
+    litEdge("e_isp_con");litNode("n_con");
+    if(!state.high){litEdge("e_con_inc");litNode("n_inc1","lit-inc");return;}
+    litEdge("e_con_mix");litNode("n_mix"); // mixed
+  } else if(state.isp==="proxy"){
+    litEdge("e_isp_prx");litNode("n_prx");
+    if(state.high){litEdge("e_prx_exc");litNode("n_exc2","lit-exc");return;}
+    litEdge("e_prx_mix");litNode("n_mix"); // mixed
+  } else {return;}
+  // mixed identity -> other checks
+  if(state.isp==="consumer"){litEdge("e_mixL");}else{litEdge("e_mixR");}
+  if(state.other==="yes"){litEdge("e_oth_exc");litNode("n_excO","lit-exc");}
+  else if(state.other==="no"){litEdge("e_oth_inc");litNode("n_incO","lit-inc");}
+}
+
+function computeVerdict(){
+  var dup=getRadio("dup"), sg=getRadio("samegroup"), v=getRadio("verify"),
+      isp=getRadio("isp"), t=parseFloat(document.getElementById("threat").value),
+      other=getRadio("other");
+  var high=t>=cutoff;
+  var verdict,reason,detail;
+
+  if(dup==="many"&&sg==="no"){
+    verdict="Exclude";
+    reason="Duplicate IP (≥3 surveys), no same-group invitation";
+    detail="This IP is associated with 3 or more surveys, and you did not invite multiple participants from the same organization or group. This pattern indicates one person likely completed the survey multiple times. The article recommends excluding these data.";
+  } else if(dup==="many"&&sg==="yes"&&v==="no"){
+    verdict="Exclude";
+    reason="Duplicate IP (≥3 surveys), verification failed";
+    detail="The IP appears on 3+ surveys. Although multiple people from one group could share a network IP, the participant did not respond to follow-up verification. When verification of a shared IP is unsuccessful, the article recommends excluding these data.";
+  } else {
+    // proceed to ISP/threat
+    if(isp==="consumer"&&!high){
+      verdict="Include";
+      reason="Consumer ISP + low threat score";
+      detail="Consumer-based ISP combined with an IP threat score below your threshold ("+cutoff.toFixed(2)+"). You can feel confident this is a genuine, targeted member of your population.";
+    } else if(isp==="proxy"&&high){
+      verdict="Exclude";
+      reason="Proxy ISP + high threat score";
+      detail="Proxy-based ISP combined with an IP threat score at or above your threshold ("+cutoff.toFixed(2)+"). This respondent is likely non-targeted and can be removed — unless a follow-up inquiry provides information justifying inclusion.";
+    } else {
+      // mixed identity
+      var mixDesc=(isp==="consumer")?"consumer ISP with a high threat score":"proxy ISP with a low threat score";
+      if(other==="yes"){
+        verdict="Exclude";
+        reason="Mixed identity + failed other checks";
+        detail="Mixed identity ("+mixDesc+"). Because the participant also missed one or more of your other validity checks, the weight of evidence supports exclusion (treat like a confirmed outlier).";
+      } else {
+        verdict="Include";
+        reason="Mixed identity + passed other checks";
+        detail="Mixed identity ("+mixDesc+"). Because the participant passed your other validity checks, lean on that evidence and retain the data. Consider a follow-up if you want added confidence.";
+      }
+    }
+  }
+
+  // If the path required verification yes (shared IP confirmed), note it
+  if(dup==="many"&&sg==="yes"&&v==="yes"){
+    detail="Shared IP confirmed as legitimate via verification. "+detail;
+  }
+  if(dup==="few"){
+    detail="Note: a duplicate appearing on fewer than 3 surveys proceeds directly to IP analysis. "+detail;
+  }
+
+  wizState={dup:dup,samegroup:sg,verify:v,isp:isp,threat:isNaN(t)?"":t,high:high,other:other,verdict:verdict,reason:reason,cutoff:cutoff};
+  highlightTree(wizState);
+
+  var cls=verdict==="Include"?"v-include":verdict==="Exclude"?"v-exclude":"v-follow";
+  var out=document.getElementById("verdictOut");
+  out.innerHTML='<div class="verdict '+cls+'">'+
+    '<span class="v-badge">'+verdict+'</span>'+
+    '<h3>'+verdict+(verdict==="Exclude"?" from final analyses":verdict==="Include"?" in final analyses":"")+'</h3>'+
+    '<p style="margin:0 0 6px"><strong>Why:</strong> '+detail+'</p>'+
+    '<p class="small" style="margin:0"><strong>Threshold used:</strong> threat score ≥ '+cutoff.toFixed(2)+' counts as high. Report this value in your methods.</p>'+
+    '</div>';
+  document.getElementById("loggedMsg").style.display="none";
+}
+
+/* live tree update as user answers (before verdict) */
+function liveTree(){
+  var t=parseFloat(document.getElementById("threat").value);
+  highlightTree({dup:getRadio("dup"),samegroup:getRadio("samegroup"),verify:getRadio("verify"),
+    isp:getRadio("isp"),high:(!isNaN(t)&&t>=cutoff),other:getRadio("other")});
+}
+document.getElementById("wizForm").addEventListener("change",liveTree);
+document.getElementById("threat").addEventListener("input",liveTree);
+
+function resetWizard(){
+  document.getElementById("wizForm").reset();
+  document.getElementById("pid").value="";
+  visitedPath=[]; wizState={};
+  document.getElementById("threatHint").textContent="";
+  clearTree(); litNode("n_dup");
+  showStep(0);
+}
+
+/* ---------- Calculators ---------- */
+function parseCol(id){
+  return document.getElementById(id).value.split(/[\n,]+/).map(function(x){return parseFloat(x.trim());}).filter(function(x){return !isNaN(x);});
+}
+function pearson(a,b){
+  var n=Math.min(a.length,b.length);
+  if(n<2) return null;
+  var sa=0,sb=0,saa=0,sbb=0,sab=0;
+  for(var i=0;i<n;i++){sa+=a[i];sb+=b[i];saa+=a[i]*a[i];sbb+=b[i]*b[i];sab+=a[i]*b[i];}
+  var num=n*sab-sa*sb;
+  var den=Math.sqrt((n*saa-sa*sa)*(n*sbb-sb*sb));
+  if(den===0) return null;
+  return num/den;
+}
+function interpR(r){
+  var a=Math.abs(r);
+  if(a>=.7) return "strong";
+  if(a>=.4) return "moderate";
+  if(a>=.2) return "weak";
+  return "very weak / near zero";
+}
+function show(id,html,kind){
+  var el=document.getElementById(id);el.innerHTML=html;el.className="result-out show";
+}
+
+/* instructed response */
+function scoreIR(){
+  var miss=parseInt(document.getElementById("ir_miss").value,10);
+  var th=parseInt(document.getElementById("ir_thresh").value,10)||1;
+  if(isNaN(miss)){document.getElementById("ir_out").className="result-out";return;}
+  var flag=miss>=th;
+  show("ir_out",'<div class="flagline '+(flag?"flag-yes":"flag-no")+'">'+(flag?"⚑ Flagged":"✓ No flag")+'</div>'+
+    '<p class="small" style="margin:0">'+miss+' incorrect instructed-response item(s); flag threshold = '+th+'.</p>',flag);
+  registerFlag("ir","Missed instructed-response items ("+miss+")",flag);
+}
+["ir_miss","ir_thresh","ir_total"].forEach(function(id){document.getElementById(id).addEventListener("input",scoreIR);});
+
+function calcHalfScale(){
+  var odd=parseCol("hs_odd"),even=parseCol("hs_even");
+  var r=pearson(odd,even);
+  if(r===null){show("hs_out",'<p class="small" style="margin:0;color:var(--red)">Enter at least 2 matched pairs of numbers.</p>');return;}
+  var flag=r<0.3;
+  show("hs_out",'<div class="flagline '+(flag?"flag-yes":"flag-no")+'">r = '+r.toFixed(3)+' ('+interpR(r)+')</div>'+
+    '<p class="small" style="margin:0">Higher = more reliable. '+(flag?"Low correlation suggests inconsistent responding — consider flagging.":"Acceptable consistency.")+'</p>');
+  registerFlag("hs","Low within-person reliability (half-scale r="+r.toFixed(2)+")",flag);
+}
+function calcAntonym(){
+  var fwd=parseCol("an_fwd"),rev=parseCol("an_rev");
+  var max=parseFloat(document.getElementById("an_max").value)||7;
+  var revScored=rev.map(function(x){return (max+1)-x;}); // reverse-score so higher=more consistent
+  var r=pearson(fwd,revScored);
+  if(r===null){show("an_out",'<p class="small" style="margin:0;color:var(--red)">Enter at least 2 matched pairs of numbers.</p>');return;}
+  var flag=r<0.3;
+  show("an_out",'<div class="flagline '+(flag?"flag-yes":"flag-no")+'">r = '+r.toFixed(3)+' ('+interpR(r)+')</div>'+
+    '<p class="small" style="margin:0">Antonyms reverse-scored on a '+max+'-point scale; higher r = more consistent. '+(flag?"Low — consider flagging.":"Acceptable consistency.")+'</p>');
+  registerFlag("an","Low within-person reliability (antonym r="+r.toFixed(2)+")",flag);
+}
+
+/* open-ended */
+function scoreOE(){
+  var done=parseInt(document.getElementById("oe_done").value,10);
+  var th=parseInt(document.getElementById("oe_thresh").value,10);
+  if(isNaN(done)){document.getElementById("oe_out").className="result-out";return;}
+  if(isNaN(th))th=1;
+  var flag=done<th;
+  show("oe_out",'<div class="flagline '+(flag?"flag-yes":"flag-no")+'">'+(flag?"⚑ Flagged":"✓ No flag")+'</div>'+
+    '<p class="small" style="margin:0">Answered '+done+'; flag if fewer than '+th+'.</p>');
+  registerFlag("oe","Low open-ended completion ("+done+")",flag);
+}
+["oe_done","oe_thresh","oe_total"].forEach(function(id){document.getElementById(id).addEventListener("input",scoreOE);});
+
+/* time */
+function scoreTime(){
+  var act=parseFloat(document.getElementById("tm_actual").value);
+  var min=parseFloat(document.getElementById("tm_min").value);
+  if(isNaN(act)){document.getElementById("tm_out").className="result-out";return;}
+  if(isNaN(min))min=3;
+  var flag=act<min;
+  show("tm_out",'<div class="flagline '+(flag?"flag-yes":"flag-no")+'">'+(flag?"⚑ Flagged — too fast":"✓ No flag")+'</div>'+
+    '<p class="small" style="margin:0">'+act+' min vs. minimum '+min+' min.</p>');
+  registerFlag("tm","Completed too fast ("+act+" min)",flag);
+}
+["tm_actual","tm_min"].forEach(function(id){document.getElementById(id).addEventListener("input",scoreTime);});
+
+/* location */
+function calcLocation(){
+  var s=document.getElementById("loc_self").value.trim().toLowerCase();
+  var ip=document.getElementById("loc_ip").value.trim().toLowerCase();
+  if(!s||!ip){show("loc_out",'<p class="small" style="margin:0;color:var(--red)">Enter both locations to compare.</p>');return;}
+  // crude token overlap
+  var st=s.split(/[\s,]+/).filter(Boolean), it=ip.split(/[\s,]+/).filter(Boolean);
+  var overlap=st.some(function(x){return it.indexOf(x)>-1;});
+  var flag=!overlap;
+  show("loc_out",'<div class="flagline '+(flag?"flag-yes":"flag-no")+'">'+(flag?"⚑ Discrepancy — flagged":"✓ Locations appear consistent")+'</div>'+
+    '<p class="small" style="margin:0">Self-reported "'+document.getElementById("loc_self").value+'" vs IP "'+document.getElementById("loc_ip").value+'". '+(flag?"No shared location terms — review manually; non-targeted users often mask location.":"Shared location terms detected.")+'</p>');
+  registerFlag("loc","Location discrepancy",flag);
+}
+
+/* ---------- Flag registry feeding wizard ---------- */
+var flagRegistry={}; // key -> {label, raised}
+var flagLabels={ir:"Instructed-response misses",hs:"Within-person reliability (half-scale)",an:"Within-person reliability (antonyms)",oe:"Open-ended completion",tm:"Time-to-complete",loc:"Location cross-check"};
+function registerFlag(key,label,raised){
+  flagRegistry[key]={label:label,raised:raised};
+  renderFlagChecklist();
+}
+function renderFlagChecklist(){
+  var keys=Object.keys(flagLabels);
+  var html="";
+  keys.forEach(function(k){
+    var f=flagRegistry[k];
+    var checked=f&&f.raised?"checked":"";
+    var sub=f?(' — <span class="small">'+f.label+'</span>'):' — <span class="small">not computed</span>';
+    html+='<label class="check-item"><input type="checkbox" data-flag="'+k+'" '+checked+' onchange="updateFlagTotal()"> <span><strong>'+flagLabels[k]+'</strong>'+sub+'</span></label>';
+  });
+  document.getElementById("flagChecklist").innerHTML=html;
+  updateFlagTotal();
+}
+function countFlags(){
+  var boxes=document.querySelectorAll('#flagChecklist input[type=checkbox]');
+  var n=0; boxes.forEach(function(b){if(b.checked)n++;});
+  return n;
+}
+function updateFlagTotal(){
+  var n=countFlags();
+  var el=document.getElementById("flagTotal");
+  el.innerHTML= n===0? "No flags currently ticked for this participant."
+    : "<strong>"+n+" flag"+(n>1?"s":"")+"</strong> ticked. If this is a mixed-identity case in the wizard, that supports answering <em>Yes</em> to “missed other checks.”";
+  renderWizFlagSummary();
+}
+function renderWizFlagSummary(){
+  var n=countFlags();
+  var el=document.getElementById("flagSummaryWiz");
+  if(!el)return;
+  el.innerHTML= n>0? '<strong style="color:var(--amber)">From your Calculators tab: '+n+' flag'+(n>1?"s":"")+' ticked.</strong>'
+    : '<span class="small">No flags ticked yet on the Calculators tab. Compute checks there if you want to inform this decision.</span>';
+}
+
+/* ---------- Batch log ---------- */
+var logRows=[];
+function refreshCounts(){
+  var inc=0,exc=0,fol=0;
+  logRows.forEach(function(r){
+    if(r.verdict==="Include")inc++;
+    else if(r.verdict==="Exclude")exc++;
+    else if(r.verdict==="Follow up")fol++;
+  });
+  document.getElementById("cTotal").textContent=logRows.length;
+  document.getElementById("cInc").textContent=inc;
+  document.getElementById("cExc").textContent=exc;
+  document.getElementById("cFol").textContent=fol;
+  renderReasonSummary();
+}
+function esc(s){return String(s==null?"":s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");}
+function pillClass(v){return v==="Include"?"inc":v==="Exclude"?"exc":"fol";}
+function renderLog(){
+  var body=document.getElementById("logBody");
+  if(logRows.length===0){
+    body.innerHTML='<tr id="emptyRow"><td colspan="10" style="text-align:center;color:var(--muted);padding:24px">No participants logged yet. Run the wizard or add a manual row.</td></tr>';
+    refreshCounts();return;
+  }
+  var html="";
+  logRows.forEach(function(r,i){
+    html+='<tr>'+
+      '<td><input type="text" value="'+esc(r.pid)+'" data-i="'+i+'" data-f="pid" style="min-width:90px"></td>'+
+      '<td>'+selCell(r.isp,["","consumer","proxy"],["—","Consumer","Proxy"],i,"isp")+'</td>'+
+      '<td><input type="text" value="'+esc(r.threat)+'" data-i="'+i+'" data-f="threat" style="width:64px"></td>'+
+      '<td><input type="text" value="'+esc(r.cutoff)+'" data-i="'+i+'" data-f="cutoff" style="width:64px"></td>'+
+      '<td>'+selCell(r.dup,["","none","few","many"],["—","None","<3","≥3"],i,"dup")+'</td>'+
+      '<td><input type="text" value="'+esc(r.flags)+'" data-i="'+i+'" data-f="flags" style="width:54px"></td>'+
+      '<td>'+verdictSel(r.verdict,i)+'</td>'+
+      '<td><input type="text" value="'+esc(r.reason)+'" data-i="'+i+'" data-f="reason" style="min-width:150px"></td>'+
+      '<td><input type="text" value="'+esc(r.notes)+'" data-i="'+i+'" data-f="notes" style="min-width:120px"></td>'+
+      '<td class="no-print"><button class="btn subtle" style="padding:5px 9px" onclick="delRow('+i+')" aria-label="Delete row">✕</button></td>'+
+    '</tr>';
+  });
+  body.innerHTML=html;
+  body.querySelectorAll("input,select").forEach(function(inp){
+    inp.addEventListener("change",function(){
+      var i=parseInt(inp.dataset.i,10),f=inp.dataset.f;
+      logRows[i][f]=inp.value;
+      refreshCounts();
+    });
+  });
+  refreshCounts();
+}
+function selCell(val,vals,labels,i,f){
+  var h='<select data-i="'+i+'" data-f="'+f+'">';
+  for(var k=0;k<vals.length;k++){h+='<option value="'+vals[k]+'"'+(val===vals[k]?" selected":"")+'>'+labels[k]+'</option>';}
+  return h+'</select>';
+}
+function verdictSel(val,i){
+  var opts=["Include","Exclude","Follow up"];
+  var h='<select data-i="'+i+'" data-f="verdict">';
+  opts.forEach(function(o){h+='<option'+(val===o?" selected":"")+'>'+o+'</option>';});
+  return h+'</select>';
+}
+function delRow(i){logRows.splice(i,1);renderLog();}
+function addBlankRow(){
+  logRows.push({pid:"",isp:"",threat:"",cutoff:cutoff.toFixed(2),dup:"",flags:"",verdict:"Follow up",reason:"",notes:""});
+  renderLog();
+}
+function clearLog(){
+  if(logRows.length&&!confirm("Clear all "+logRows.length+" logged participants? This cannot be undone."))return;
+  logRows=[];renderLog();
+}
+function renderReasonSummary(){
+  var ex=logRows.filter(function(r){return r.verdict==="Exclude";});
+  var fo=logRows.filter(function(r){return r.verdict==="Follow up";});
+  var el=document.getElementById("reasonSummary");
+  if(ex.length===0&&fo.length===0){el.innerHTML='<p class="small">Reasons will appear here as you log exclusions and follow-ups.</p>';return;}
+  function tally(rows){
+    var m={};rows.forEach(function(r){var k=r.reason||"(no reason given)";m[k]=(m[k]||0)+1;});
+    return Object.keys(m).map(function(k){return {k:k,n:m[k]};}).sort(function(a,b){return b.n-a.n;});
+  }
+  var html="";
+  if(ex.length){
+    html+='<p style="font-weight:700;margin-bottom:6px;color:var(--red)">Excluded ('+ex.length+')</p><ul class="ref-list">';
+    tally(ex).forEach(function(t){html+='<li><b>'+t.n+'×</b> '+esc(t.k)+'</li>';});
+    html+='</ul>';
+  }
+  if(fo.length){
+    html+='<p style="font-weight:700;margin:14px 0 6px;color:var(--amber)">Follow up ('+fo.length+')</p><ul class="ref-list">';
+    tally(fo).forEach(function(t){html+='<li><b>'+t.n+'×</b> '+esc(t.k)+'</li>';});
+    html+='</ul>';
+  }
+  el.innerHTML=html;
+}
+
+/* add verdict from wizard */
+document.getElementById("logBtn").addEventListener("click",function(){
+  if(!wizState.verdict){alert("Complete the wizard first.");return;}
+  logRows.push({
+    pid:document.getElementById("pid").value||("P-"+(logRows.length+1)),
+    isp:wizState.isp||"",
+    threat:wizState.threat===""?"":Number(wizState.threat).toFixed(2),
+    cutoff:wizState.cutoff.toFixed(2),
+    dup:wizState.dup||"",
+    flags:String(countFlags()),
+    verdict:wizState.verdict,
+    reason:wizState.reason||"",
+    notes:""
+  });
+  renderLog();
+  document.getElementById("loggedMsg").style.display="block";
+  selectTab("tab-tracker");
+});
+
+/* CSV export */
+function exportCSV(){
+  if(logRows.length===0){alert("Nothing to export — the log is empty.");return;}
+  var heads=["Participant ID","ISP type","Threat score","Threshold","Duplicate status","# Flags","Verdict","Reason","Notes"];
+  var lines=[heads.join(",")];
+  logRows.forEach(function(r){
+    var row=[r.pid,r.isp,r.threat,r.cutoff,r.dup,r.flags,r.verdict,r.reason,r.notes].map(function(c){
+      c=String(c==null?"":c);
+      if(/[",\n]/.test(c))c='"'+c.replace(/"/g,'""')+'"';
+      return c;
+    });
+    lines.push(row.join(","));
+  });
+  var csv=lines.join("\r\n");
+  var blob=new Blob([csv],{type:"text/csv;charset=utf-8;"});
+  var url=URL.createObjectURL(blob);
+  var a=document.createElement("a");
+  var d=new Date();
+  a.href=url;a.download="false-identity-screening-log_"+d.toISOString().slice(0,10)+".csv";
+  document.body.appendChild(a);a.click();document.body.removeChild(a);
+  setTimeout(function(){URL.revokeObjectURL(url);},1000);
+}
+
+/* ---------- Reporting checklist ---------- */
+var reportItems=[
+  "Stated the IP threat-score threshold used (default .90) explicitly.",
+  "Named the tools used (e.g., getipintel.net for threat scores; infobyip.com for ISP).",
+  "Described how ISPs were classified as consumer- vs. proxy-based (and inter-rater agreement, if applicable).",
+  "Reported the duplicate-IP rule and any same-group/verification follow-up procedure.",
+  "Listed every data-cleaning rule applied and which counted as a flag.",
+  "Reported counts excluded at each step (duplicates, proxy+high threat, mixed-identity exclusions).",
+  "Addressed consent for IP collection (GDPR if EU participants) and IP deletion after screening."
+];
+function renderReportChecklist(){
+  var html="";
+  reportItems.forEach(function(t,i){
+    html+='<label class="check-item"><input type="checkbox"> <span>'+t+'</span></label>';
+  });
+  document.getElementById("reportChecklist").innerHTML=html;
+}
+
+/* ---------- init ---------- */
+renderFlagChecklist();
+renderReportChecklist();
+renderLog();
+clearTree(); litNode("n_dup");
+showStep(0);
+setCutoff(0.90);
+</script>
+<!-- Begin Countercentral code v 7.0 --> 
+<span id="wts2576"></span> 
+<script>var wts=document.createElement('script');wts.async=true; 
+wts.src='https://server2.countercentral.com/log7.js';document.head.appendChild(wts); 
+wts.onload = function(){ wtslog7(2576,1); }; 
+</script><noscript><a href="https://www.countercentral.com"> 
+<img src="https://server2.countercentral.com/7/1/2576.png"  
+alt="Countercentral web traffic analysis"></a></noscript> 
+<!-- End Countercentral code v 7.0 --> 
+</body>
+</html>

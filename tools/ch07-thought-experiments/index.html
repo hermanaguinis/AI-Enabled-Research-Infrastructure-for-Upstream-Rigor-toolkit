@@ -1,0 +1,1163 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Thought Experiment Designer — A Rigorous Tool for OB &amp; Social Science Researchers</title>
+<style>
+  :root{
+    --ink:#1a2330;
+    --ink-soft:#3d4a5c;
+    --muted:#6b7888;
+    --line:#dfe4ec;
+    --line-soft:#eef1f6;
+    --bg:#f4f6fa;
+    --panel:#ffffff;
+    --brand:#1f3a5f;
+    --brand-2:#2c5f8a;
+    --accent:#9a6b2f;
+    --accent-soft:#f3ebdd;
+    --good:#1f7a4d;
+    --good-soft:#e4f3ea;
+    --warn:#9a3b2f;
+    --warn-soft:#f7e6e3;
+    --highlight:#fff6e2;
+    --shadow:0 1px 3px rgba(20,30,50,.07),0 8px 24px rgba(20,30,50,.06);
+    --radius:12px;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    font-family:'Georgia','Times New Roman',serif;
+    background:var(--bg);
+    color:var(--ink);
+    font-size:18px;
+    line-height:1.65;
+    -webkit-font-smoothing:antialiased;
+  }
+  .sans{font-family:'Segoe UI',Helvetica,Arial,sans-serif;}
+  h1,h2,h3,h4,.stepper,.btn,.tag,.sidebar,.topbar,label,input,textarea,select,button,.tooltip-pop,.pill,.chk-item,.tax-cell .ttl,.crumb{
+    font-family:'Segoe UI',Helvetica,Arial,sans-serif;
+  }
+
+  /* ---------- Layout ---------- */
+  .topbar{
+    position:sticky;top:0;z-index:50;
+    background:var(--brand);
+    color:#fff;
+    padding:14px 26px;
+    display:flex;align-items:center;gap:18px;
+    box-shadow:0 2px 14px rgba(20,30,50,.18);
+  }
+  .topbar .brand{font-weight:700;font-size:18px;letter-spacing:.2px;display:flex;align-items:center;gap:10px;}
+  .topbar .brand .mark{
+    width:30px;height:30px;border-radius:7px;background:rgba(255,255,255,.16);
+    display:inline-flex;align-items:center;justify-content:center;font-size:17px;
+  }
+  .topbar .spacer{flex:1;}
+  .progress-wrap{display:flex;align-items:center;gap:12px;min-width:220px;}
+  .progress-track{flex:1;height:8px;background:rgba(255,255,255,.22);border-radius:6px;overflow:hidden;}
+  .progress-fill{height:100%;width:0%;background:linear-gradient(90deg,#bfe0ff,#7fb8ec);transition:width .35s ease;}
+  .progress-label{font-size:13px;font-family:'Segoe UI',sans-serif;white-space:nowrap;opacity:.92;}
+
+  .shell{display:flex;max-width:1280px;margin:0 auto;align-items:flex-start;}
+  .sidebar{
+    width:290px;flex-shrink:0;position:sticky;top:64px;
+    align-self:flex-start;
+    padding:22px 16px 40px;
+    max-height:calc(100vh - 64px);overflow-y:auto;
+  }
+  .sidebar .nav-title{font-size:12px;text-transform:uppercase;letter-spacing:1.4px;color:var(--muted);margin:6px 10px 12px;font-weight:700;}
+  .step{
+    display:flex;gap:12px;align-items:flex-start;
+    padding:11px 12px;border-radius:10px;cursor:pointer;margin-bottom:3px;
+    border:1px solid transparent;transition:background .15s,border .15s;
+  }
+  .step:hover{background:var(--line-soft);}
+  .step.active{background:#fff;border-color:var(--line);box-shadow:var(--shadow);}
+  .step .num{
+    width:26px;height:26px;border-radius:50%;flex-shrink:0;
+    background:var(--line);color:var(--ink-soft);
+    display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;
+    font-family:'Segoe UI',sans-serif;transition:.15s;
+  }
+  .step.active .num{background:var(--brand);color:#fff;}
+  .step.done .num{background:var(--good);color:#fff;}
+  .step .lbl{font-size:14.5px;font-family:'Segoe UI',sans-serif;line-height:1.3;padding-top:2px;}
+  .step .lbl small{display:block;color:var(--muted);font-size:12px;font-weight:400;}
+
+  .main{flex:1;min-width:0;padding:28px 40px 80px;}
+  .card{
+    background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);
+    box-shadow:var(--shadow);padding:38px 44px;margin-bottom:26px;
+  }
+  .crumb{font-size:13px;color:var(--brand-2);text-transform:uppercase;letter-spacing:1.5px;font-weight:700;margin-bottom:6px;}
+  h1{font-size:30px;line-height:1.25;margin:0 0 8px;color:var(--ink);}
+  h2{font-size:25px;line-height:1.3;margin:0 0 6px;color:var(--ink);}
+  h3{font-size:19px;margin:26px 0 10px;color:var(--brand);}
+  h4{font-size:16px;margin:18px 0 6px;color:var(--ink-soft);}
+  p{margin:0 0 14px;}
+  .lead{font-size:19.5px;color:var(--ink-soft);line-height:1.7;}
+  .muted{color:var(--muted);}
+  a{color:var(--brand-2);}
+
+  .pull{
+    border-left:4px solid var(--accent);background:var(--accent-soft);
+    padding:14px 20px;border-radius:0 10px 10px 0;margin:18px 0;font-style:italic;color:#5d4a2c;
+  }
+
+  /* ---------- Form elements ---------- */
+  .field{margin:22px 0;}
+  label.flabel{display:flex;align-items:center;gap:8px;font-size:15.5px;font-weight:600;color:var(--ink);margin-bottom:7px;line-height:1.4;}
+  .field .hint{font-size:14px;color:var(--muted);font-family:'Segoe UI',sans-serif;margin:-2px 0 9px;line-height:1.5;}
+  .ex{font-size:13.5px;font-family:'Segoe UI',sans-serif;background:var(--line-soft);border-radius:8px;padding:9px 13px;margin:0 0 9px;color:var(--ink-soft);}
+  .ex b{color:var(--brand);}
+  textarea,input[type=text],select{
+    width:100%;font-size:16px;font-family:'Segoe UI',sans-serif;color:var(--ink);
+    border:1.5px solid var(--line);border-radius:9px;padding:11px 13px;background:#fff;
+    resize:vertical;transition:border .15s,box-shadow .15s;
+  }
+  textarea:focus,input:focus,select:focus{outline:none;border-color:var(--brand-2);box-shadow:0 0 0 3px rgba(44,95,138,.13);}
+  textarea{min-height:96px;line-height:1.55;}
+
+  /* ---------- Buttons ---------- */
+  .btn{
+    display:inline-flex;align-items:center;gap:8px;cursor:pointer;
+    font-size:15px;font-weight:600;border-radius:9px;padding:11px 22px;border:1.5px solid transparent;
+    transition:.15s;text-decoration:none;
+  }
+  .btn-primary{background:var(--brand);color:#fff;}
+  .btn-primary:hover{background:#16304f;}
+  .btn-ghost{background:#fff;color:var(--brand);border-color:var(--line);}
+  .btn-ghost:hover{background:var(--line-soft);}
+  .btn-accent{background:var(--accent);color:#fff;}
+  .btn-accent:hover{background:#84591f;}
+  .btn:disabled{opacity:.4;cursor:not-allowed;}
+  .navbtns{display:flex;justify-content:space-between;gap:14px;margin-top:30px;padding-top:22px;border-top:1px solid var(--line-soft);}
+
+  /* ---------- Choice buttons ---------- */
+  .choices{display:flex;flex-wrap:wrap;gap:12px;margin:14px 0;}
+  .choice{
+    flex:1;min-width:200px;cursor:pointer;border:2px solid var(--line);border-radius:11px;
+    padding:16px 18px;background:#fff;transition:.15s;font-family:'Segoe UI',sans-serif;
+  }
+  .choice:hover{border-color:var(--brand-2);background:#fafcff;}
+  .choice.sel{border-color:var(--brand);background:#f0f6fc;box-shadow:0 0 0 3px rgba(44,95,138,.12);}
+  .choice .ct{font-weight:700;font-size:16px;color:var(--ink);margin-bottom:3px;}
+  .choice .cd{font-size:14px;color:var(--muted);line-height:1.45;}
+
+  /* ---------- Tooltip ---------- */
+  .info{
+    display:inline-flex;align-items:center;justify-content:center;
+    width:18px;height:18px;border-radius:50%;background:var(--brand-2);color:#fff;
+    font-size:12px;font-weight:700;cursor:help;position:relative;flex-shrink:0;font-family:'Segoe UI',sans-serif;
+  }
+  .info .tooltip-pop{
+    visibility:hidden;opacity:0;position:absolute;bottom:140%;left:50%;transform:translateX(-50%) translateY(4px);
+    width:290px;background:var(--ink);color:#fff;font-size:13.5px;font-weight:400;line-height:1.5;
+    padding:11px 14px;border-radius:9px;z-index:80;transition:.18s;box-shadow:0 8px 24px rgba(0,0,0,.25);
+    text-align:left;pointer-events:none;
+  }
+  .info .tooltip-pop::after{content:"";position:absolute;top:100%;left:50%;transform:translateX(-50%);border:7px solid transparent;border-top-color:var(--ink);}
+  .info:hover .tooltip-pop{visibility:visible;opacity:1;transform:translateX(-50%) translateY(0);}
+  @media(max-width:900px){.info .tooltip-pop{left:0;transform:none;}.info:hover .tooltip-pop{transform:translateY(0);}.info .tooltip-pop::after{left:9px;}}
+
+  /* ---------- Decision tree ---------- */
+  .dt-step{border:1px solid var(--line);border-radius:11px;padding:20px 22px;margin-bottom:14px;background:#fff;}
+  .dt-step.locked{opacity:.45;pointer-events:none;filter:grayscale(.3);}
+  .dt-step .dphead{display:flex;align-items:center;gap:10px;font-weight:700;font-size:13px;text-transform:uppercase;letter-spacing:1px;color:var(--brand-2);margin-bottom:8px;}
+  .dt-result{border-radius:11px;padding:20px 24px;margin-top:8px;font-family:'Segoe UI',sans-serif;}
+  .dt-result.go{background:var(--good-soft);border:1px solid #b7ddc7;}
+  .dt-result.stop{background:var(--warn-soft);border:1px solid #e6bfb9;}
+  .dt-result h3{margin-top:0;color:inherit;}
+  .dt-result.go h3{color:var(--good);}
+  .dt-result.stop h3{color:var(--warn);}
+
+  /* ---------- Taxonomy ---------- */
+  .tax-grid{display:grid;grid-template-columns:130px 1fr 1fr;gap:10px;margin:20px 0;}
+  .tax-axis-top{grid-column:2/4;display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+  .axis-h{font-family:'Segoe UI',sans-serif;font-weight:700;text-align:center;font-size:14px;color:var(--brand);background:var(--line-soft);border-radius:8px;padding:9px;}
+  .axis-v{font-family:'Segoe UI',sans-serif;font-weight:700;font-size:14px;color:var(--brand);background:var(--line-soft);border-radius:8px;padding:9px;display:flex;align-items:center;justify-content:center;text-align:center;writing-mode:horizontal-tb;}
+  .tax-cell{
+    border:2px solid var(--line);border-radius:11px;padding:16px 18px;cursor:pointer;background:#fff;transition:.15s;
+  }
+  .tax-cell:hover{border-color:var(--brand-2);}
+  .tax-cell.sel{border-color:var(--brand);background:#f0f6fc;box-shadow:0 0 0 3px rgba(44,95,138,.13);}
+  .tax-cell.rec{box-shadow:0 0 0 3px rgba(154,107,47,.28);}
+  .tax-cell .ttl{font-family:'Segoe UI',sans-serif;font-weight:700;font-size:16px;color:var(--ink);margin-bottom:5px;}
+  .tax-cell .badge{display:inline-block;font-family:'Segoe UI',sans-serif;font-size:11px;font-weight:700;letter-spacing:.5px;background:var(--accent-soft);color:var(--accent);padding:2px 9px;border-radius:20px;margin-bottom:7px;}
+  .tax-cell .def{font-size:14px;color:var(--ink-soft);line-height:1.5;margin-bottom:8px;}
+  .tax-cell .exemplar{font-size:13px;font-family:'Segoe UI',sans-serif;color:var(--muted);border-top:1px dashed var(--line);padding-top:7px;}
+  .tax-cell .exemplar b{color:var(--brand-2);}
+  @media(max-width:760px){.tax-grid{grid-template-columns:1fr;}.tax-axis-top{grid-template-columns:1fr;}.axis-v{writing-mode:horizontal-tb;}}
+
+  /* ---------- Collapsible ---------- */
+  .collapse{border:1px solid var(--line);border-radius:11px;margin:16px 0;overflow:hidden;}
+  .collapse > summary{
+    cursor:pointer;list-style:none;padding:15px 20px;font-family:'Segoe UI',sans-serif;font-weight:600;
+    background:var(--line-soft);display:flex;align-items:center;gap:10px;font-size:15.5px;color:var(--ink);
+  }
+  .collapse > summary::-webkit-details-marker{display:none;}
+  .collapse > summary::before{content:"▸";color:var(--brand-2);transition:.2s;font-size:13px;}
+  .collapse[open] > summary::before{transform:rotate(90deg);}
+  .collapse .cbody{padding:20px 24px;}
+  .we-block{margin-bottom:18px;}
+  .we-block .we-h{font-family:'Segoe UI',sans-serif;font-weight:700;color:var(--brand);font-size:14px;margin-bottom:3px;}
+  .we-block .we-t{font-size:15.5px;color:var(--ink-soft);line-height:1.6;}
+  .we-narr{background:var(--highlight);border-radius:9px;padding:16px 20px;font-style:italic;line-height:1.7;color:#4a432f;border:1px solid #f0e3bf;}
+
+  /* ---------- Reference panel / pills ---------- */
+  .pillrow{display:flex;flex-wrap:wrap;gap:9px;margin:12px 0;}
+  .pill{font-family:'Segoe UI',sans-serif;font-size:13.5px;background:#eef4fb;color:var(--brand);border:1px solid #d3e2f1;border-radius:20px;padding:6px 15px;font-weight:600;}
+  .domain-card{border:1px solid var(--line);border-radius:10px;padding:14px 18px;margin-bottom:10px;}
+  .domain-card .dn{font-family:'Segoe UI',sans-serif;font-weight:700;color:var(--brand);font-size:15px;margin-bottom:3px;}
+  .domain-card .dq{font-size:14.5px;color:var(--ink-soft);line-height:1.55;}
+
+  /* ---------- Summary / checklist ---------- */
+  .checklist{margin:16px 0;}
+  .chk-item{display:flex;align-items:flex-start;gap:11px;padding:10px 14px;border-radius:9px;margin-bottom:6px;font-family:'Segoe UI',sans-serif;font-size:14.5px;line-height:1.45;}
+  .chk-item.ok{background:var(--good-soft);}
+  .chk-item.miss{background:var(--warn-soft);}
+  .chk-mark{width:22px;height:22px;border-radius:50%;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;color:#fff;}
+  .chk-item.ok .chk-mark{background:var(--good);}
+  .chk-item.miss .chk-mark{background:var(--warn);}
+  .chk-grp{font-family:'Segoe UI',sans-serif;font-weight:700;font-size:13px;text-transform:uppercase;letter-spacing:1px;color:var(--muted);margin:18px 0 8px;}
+  .export-box{
+    width:100%;min-height:340px;font-family:'SFMono-Regular',Consolas,'Liberation Mono',monospace;
+    font-size:13px;line-height:1.55;border:1.5px solid var(--line);border-radius:10px;padding:16px;background:#fbfcfe;color:var(--ink-soft);
+  }
+  .toast{
+    position:fixed;bottom:26px;left:50%;transform:translateX(-50%) translateY(20px);
+    background:var(--ink);color:#fff;padding:13px 24px;border-radius:30px;font-family:'Segoe UI',sans-serif;
+    font-size:14.5px;font-weight:600;opacity:0;pointer-events:none;transition:.3s;z-index:200;box-shadow:0 10px 30px rgba(0,0,0,.3);
+  }
+  .toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+
+  /* ---------- Welcome feature grid ---------- */
+  .feat-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin:22px 0;}
+  .feat{border:1px solid var(--line);border-radius:11px;padding:18px 20px;background:#fafcff;}
+  .feat .fi{font-size:22px;margin-bottom:6px;}
+  .feat .fh{font-family:'Segoe UI',sans-serif;font-weight:700;color:var(--brand);margin-bottom:4px;font-size:16px;}
+  .feat .ft{font-size:14.5px;color:var(--ink-soft);line-height:1.5;}
+  @media(max-width:760px){.feat-grid{grid-template-columns:1fr;}}
+
+  /* ---------- Footer ---------- */
+  .footer{
+    background:#1a2330;color:#c4cdd9;font-family:'Segoe UI',sans-serif;font-size:14px;line-height:1.7;
+    padding:30px 40px;margin-top:10px;
+  }
+  .footer .credit{max-width:1000px;margin:0 auto;}
+  .footer b{color:#fff;}
+  .footer a{color:#8fc0ee;}
+
+  .hide{display:none !important;}
+
+  @media(max-width:980px){
+    .shell{flex-direction:column;}
+    .sidebar{width:100%;position:static;max-height:none;display:flex;flex-wrap:wrap;gap:6px;padding:14px;}
+    .sidebar .nav-title{width:100%;}
+    .step{flex:1;min-width:150px;margin:0;}
+    .main{padding:18px;}
+    .card{padding:24px 22px;}
+  }
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="brand"><span class="mark">&#129504;</span><span>Thought Experiment Designer</span></div>
+  <div class="spacer"></div>
+  <div class="progress-wrap">
+    <span class="progress-label" id="progLabel">Step 1 of 8</span>
+    <div class="progress-track"><div class="progress-fill" id="progFill"></div></div>
+  </div>
+</div>
+
+<div class="shell">
+  <nav class="sidebar" id="sidebar">
+    <div class="nav-title">Your progress</div>
+    <!-- steps injected by JS -->
+  </nav>
+
+  <main class="main">
+
+    <!-- ============ STEP 0: WELCOME ============ -->
+    <section class="panel" data-step="0">
+      <div class="card">
+        <div class="crumb">Welcome</div>
+        <h1>Design a rigorous, valid thought experiment</h1>
+        <p class="lead">A thought experiment is a judgment about <em>what would happen if an imagined scenario were real</em>. It is conducted not in a physical lab but in <strong>&ldquo;the laboratory of the mind.&rdquo;</strong> This guided tool walks you through every step of planning, executing, reporting, and discussing a thought experiment so you finish with a fully specified design and an exportable write-up ready to drop into a manuscript.</p>
+
+        <div class="pull">&ldquo;Thought experiments illustrate one way that theorizing can bridge the gap between the abstract and the concrete.&rdquo; &mdash; Folger &amp; Turillo (1999)</div>
+
+        <h3>Why use a thought experiment?</h3>
+        <div class="feat-grid">
+          <div class="feat"><div class="fi">&#128176;</div><div class="fh">Cost-efficient</div><div class="ft">Conducted entirely in the researcher&rsquo;s mind &mdash; no recruiting, compensation, equipment, or sample-size constraints. They can be run for little to no financial cost.</div></div>
+          <div class="feat"><div class="fi">&#9989;</div><div class="fh">No IRB approval needed</div><div class="ft">Because the scenario is imagined, it is not subject to the same ethical and legal review as traditional experiments &mdash; ideal for socially sensitive topics (discrimination, harassment, bullying).</div></div>
+          <div class="feat"><div class="fi">&#9854;</div><div class="fh">Unlimited variables</div><div class="ft">You can manipulate a virtually unlimited number of imagined independent variables, free of fatigue, acquiescence, or logistical limits.</div></div>
+          <div class="feat"><div class="fi">&#128300;</div><div class="fh">Advances theory</div><div class="ft">Used for decades across physics, economics, philosophy and more to confirm or disconfirm theory &mdash; yet they remain underutilized in OB and adjacent fields.</div></div>
+        </div>
+
+        <h3>What this tool will produce</h3>
+        <p>Working through the eight modules, you will (1) decide whether a thought experiment is appropriate, (2) identify which of four types fits your situation, (3) plan the theory, (4) design the execution, (5) plan how to report results, and (6) frame the implications. At the end you receive a structured draft (copyable and downloadable as Markdown/text) plus a completeness checklist. <strong>All of your work is held in memory in your browser only &mdash; nothing is uploaded or saved to a server.</strong></p>
+
+        <div class="navbtns">
+          <span></span>
+          <button class="btn btn-primary" onclick="go(1)">Begin &rarr;</button>
+        </div>
+      </div>
+
+      <div class="card" style="background:#fbfcfe;">
+        <div class="crumb">Source</div>
+        <p style="margin-bottom:0;font-size:15px;" class="sans">Built on the methodology in <b>Aguinis, H., Beltran, J. R., Archibold, E. E., Jean, E. L., &amp; Rice, D. B. (2023). Thought experiments: Review and recommendations. <em>Journal of Organizational Behavior, 44</em>(3), 544&ndash;560.</b><br>Additional best practices: Aguinis, H. (2025). <em>Research methodology: Best practices for rigorous, credible, and impactful research.</em> SAGE. <a href="https://collegepublishing.sagepub.com/products/research-methodology-1-280088" target="_blank" rel="noopener">https://collegepublishing.sagepub.com/products/research-methodology-1-280088</a></p>
+      </div>
+    </section>
+
+    <!-- ============ STEP 1: DECISION TREE ============ -->
+    <section class="panel hide" data-step="1">
+      <div class="card">
+        <div class="crumb">Module 1 &middot; Should I run a thought experiment?</div>
+        <h1>Decision Tree</h1>
+        <p class="lead">Thought experiments are not appropriate for every situation. Answer four sequential decision points. The tool advances as you go, explains each implication, and will recommend stopping if a thought experiment is unlikely to help. Your answers to Decision Points 3 and 4 carry forward to determine your <em>type</em> in Module 2.</p>
+
+        <!-- DP1 -->
+        <div class="dt-step" id="dp1">
+          <div class="dphead">Decision Point 1
+            <span class="info">i<span class="tooltip-pop">Thought experiments are tools for confirming or disconfirming theory. If your aim is purely exploratory, a thought experiment is unlikely to yield substantial theory advancement.</span></span>
+          </div>
+          <label class="flabel" style="font-size:18px;">Is there a need to confirm or disconfirm theory?</label>
+          <p class="hint">Is there a theoretical proposition or assumption to be confirmed or disconfirmed &mdash; for example a debate in the literature or a commonly misunderstood relationship? If your goal is primarily exploratory, the answer is &ldquo;no.&rdquo;</p>
+          <div class="choices">
+            <div class="choice" data-dp="1" data-val="yes" onclick="dtPick(1,'yes')"><div class="ct">Yes</div><div class="cd">There is a specific proposition to confirm or disconfirm.</div></div>
+            <div class="choice" data-dp="1" data-val="no" onclick="dtPick(1,'no')"><div class="ct">No / Exploratory</div><div class="cd">My aim is primarily to explore, not test theory.</div></div>
+          </div>
+        </div>
+
+        <!-- DP2 -->
+        <div class="dt-step locked" id="dp2">
+          <div class="dphead">Decision Point 2
+            <span class="info">i<span class="tooltip-pop">Can you conceive a scenario that succinctly and effectively models the theory to be tested? The scenario should have a storylike narrative that brings the reasoning to life.</span></span>
+          </div>
+          <label class="flabel" style="font-size:18px;">Can an imagined scenario succinctly and effectively model the theory?</label>
+          <p class="hint">Can you picture a relatable, storylike situation in which the theory is tested clearly and efficiently? If no such scenario is conceivable, a thought experiment is not the right tool.</p>
+          <div class="choices">
+            <div class="choice" data-dp="2" data-val="yes" onclick="dtPick(2,'yes')"><div class="ct">Yes</div><div class="cd">I can imagine a scenario that models the theory.</div></div>
+            <div class="choice" data-dp="2" data-val="no" onclick="dtPick(2,'no')"><div class="ct">No</div><div class="cd">No imagined scenario captures the theory well.</div></div>
+          </div>
+        </div>
+
+        <!-- DP3 -->
+        <div class="dt-step locked" id="dp3">
+          <div class="dphead">Decision Point 3
+            <span class="info">i<span class="tooltip-pop">Early-stage theory rests on sparse or disparate studies (e.g., Newton&rsquo;s cannonball, Schr&ouml;dinger&rsquo;s cat). Late-stage theory rests on more abundant, established literature (e.g., Galileo, Einstein).</span></span>
+          </div>
+          <label class="flabel" style="font-size:18px;">Is the theory well developed?</label>
+          <p class="hint">Is the theory in an early (less-developed) stage, relying on sparse or disparate studies, or a late (more-developed) stage, resting on abundant, established literature?</p>
+          <div class="choices">
+            <div class="choice" data-dp="3" data-val="early" onclick="dtPick(3,'early')"><div class="ct">Early / less developed</div><div class="cd">Nascent theory, sparse or disparate studies.</div></div>
+            <div class="choice" data-dp="3" data-val="late" onclick="dtPick(3,'late')"><div class="ct">Late / more developed</div><div class="cd">Established theory, abundant literature.</div></div>
+          </div>
+        </div>
+
+        <!-- DP4 -->
+        <div class="dt-step locked" id="dp4">
+          <div class="dphead">Decision Point 4
+            <span class="info">i<span class="tooltip-pop">State explicitly whether your purpose is theory confirmation or theory disconfirmation. This, combined with development stage, determines the type of thought experiment.</span></span>
+          </div>
+          <label class="flabel" style="font-size:18px;">Is the purpose theory confirmation or disconfirmation?</label>
+          <p class="hint">Answer explicitly. Confirmation seeks to affirm a proposition; disconfirmation creates a counterfactual or paradoxical situation that questions it.</p>
+          <div class="choices">
+            <div class="choice" data-dp="4" data-val="confirmation" onclick="dtPick(4,'confirmation')"><div class="ct">Confirmation</div><div class="cd">Affirm an existing proposition or assumption.</div></div>
+            <div class="choice" data-dp="4" data-val="disconfirmation" onclick="dtPick(4,'disconfirmation')"><div class="ct">Disconfirmation</div><div class="cd">Question / overturn it via a paradox or counterfactual.</div></div>
+          </div>
+        </div>
+
+        <div id="dtResult"></div>
+
+        <div class="navbtns">
+          <button class="btn btn-ghost" onclick="go(0)">&larr; Back</button>
+          <button class="btn btn-primary" id="dtNext" onclick="go(2)">Continue to Taxonomy &rarr;</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ STEP 2: TAXONOMY ============ -->
+    <section class="panel hide" data-step="2">
+      <div class="card">
+        <div class="crumb">Module 2 &middot; Which type?</div>
+        <h1>Taxonomy of Thought Experiments</h1>
+        <p class="lead">Thought experiments are classified along two dimensions: the theory&rsquo;s <strong>development stage</strong> (early vs. late) and the study&rsquo;s <strong>theoretical goal</strong> (confirmation vs. disconfirmation). This 2&times;2 yields four types. The cell recommended by your Module&nbsp;1 answers is highlighted &mdash; but you may override it by clicking a different cell.</p>
+
+        <div id="recNote" class="ex" style="font-size:14.5px;"></div>
+
+        <div class="tax-grid">
+          <div></div>
+          <div class="tax-axis-top">
+            <div class="axis-h">Goal: Confirmation</div>
+            <div class="axis-h">Goal: Disconfirmation</div>
+          </div>
+
+          <div class="axis-v">Early<br>stage</div>
+          <div class="tax-cell" data-type="I" onclick="pickType('I')">
+            <span class="badge">TYPE I</span>
+            <div class="ttl">Early &middot; Confirmation</div>
+            <div class="def">Building a nascent theory and seeking to confirm rather than disconfirm it.</div>
+            <div class="exemplar"><b>Exemplar:</b> Newton&rsquo;s cannonball &mdash; imagined cannonballs fired ever faster until one orbits the Earth, confirming nascent ideas about gravity.</div>
+          </div>
+          <div class="tax-cell" data-type="II" onclick="pickType('II')">
+            <span class="badge">TYPE II</span>
+            <div class="ttl">Early &middot; Disconfirmation</div>
+            <div class="def">A counterfactual or paradoxical situation that questions an early-stage theory and forces refinement.</div>
+            <div class="exemplar"><b>Exemplar:</b> Schr&ouml;dinger&rsquo;s cat &mdash; a paradox (a cat simultaneously alive and dead) that disconfirms an early interpretation of quantum mechanics.</div>
+          </div>
+
+          <div class="axis-v">Late<br>stage</div>
+          <div class="tax-cell" data-type="III" onclick="pickType('III')">
+            <span class="badge">TYPE III</span>
+            <div class="ttl">Late &middot; Confirmation</div>
+            <div class="def">Confirming a more developed theory.</div>
+            <div class="exemplar"><b>Exemplar:</b> Galileo and the Leaning Tower of Pisa &mdash; imagining two bodies of different weight falling in equal time, confirming his developed theory of gravity.</div>
+          </div>
+          <div class="tax-cell" data-type="IV" onclick="pickType('IV')">
+            <span class="badge">TYPE IV</span>
+            <div class="ttl">Late &middot; Disconfirmation</div>
+            <div class="def">A paradoxical situation that disconfirms a developed theory.</div>
+            <div class="exemplar"><b>Exemplar:</b> Einstein riding a beam of light &mdash; a paradox under the prevailing emission theory of light, which it disconfirmed.</div>
+          </div>
+        </div>
+
+        <div class="field">
+          <label class="flabel">Selected type for your study</label>
+          <input type="text" id="typeChosen" readonly placeholder="Pick a cell above" style="background:#f0f6fc;font-weight:600;">
+        </div>
+
+        <div class="navbtns">
+          <button class="btn btn-ghost" onclick="go(1)">&larr; Back</button>
+          <button class="btn btn-primary" onclick="go(3)">Continue to Plan it &rarr;</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ STEP 3: PLAN IT ============ -->
+    <section class="panel hide" data-step="3">
+      <div class="card">
+        <div class="crumb">Module 3 &middot; Plan it</div>
+        <h1>Theory Considerations</h1>
+        <p class="lead">Planning means building an engaging, convincing <strong>&ldquo;mind model&rdquo;</strong> &mdash; understanding and relaying the theory being tested, including its propositions, dimensions, and assumptions. Work through each prompt below.</p>
+
+        <div class="field">
+          <label class="flabel">Establish the theoretical domain
+            <span class="info">i<span class="tooltip-pop">&ldquo;Setting the scene&rdquo; means conjuring a mind model by reviewing key constructs, variables, and relevant background. Given sufficient knowledge of the theory you can begin mentally experimenting without new background research.</span></span>
+          </label>
+          <p class="hint">Review the key constructs, variables, and relevant background that create the &ldquo;mind model&rdquo; and set the scene for your experiment.</p>
+          <div class="ex"><b>Example (allyship):</b> Allyship = members of advantaged groups taking committed action to improve the treatment and status of a disadvantaged group. Key constructs: effective vs. performative allyship; self-determination; supportive contact.</div>
+          <textarea id="f_domain" data-key="domain" placeholder="Describe the constructs, variables, and background that set the scene..."></textarea>
+        </div>
+
+        <div class="field">
+          <label class="flabel">Target a specific proposition or assumption
+            <span class="info">i<span class="tooltip-pop">Specify a point of dissension or agreement &mdash; e.g., a debate in the literature or a commonly misunderstood relationship between similar concepts &mdash; that justifies the need for a thought experiment.</span></span>
+          </label>
+          <p class="hint">Name the one proposition or assumption you will challenge or affirm. Anchor it in a debate or a commonly misunderstood relationship.</p>
+          <div class="ex"><b>Example:</b> Theoretical tension over <em>who determines the value of allyship</em> &mdash; the well-intentioned ally, or the intended beneficiary?</div>
+          <textarea id="f_proposition" data-key="proposition" placeholder="State the specific theoretical proposition or assumption to be confirmed or disconfirmed..."></textarea>
+        </div>
+
+        <div class="field">
+          <label class="flabel">Summarize theoretical assumptions / boundary conditions
+            <span class="info">i<span class="tooltip-pop">The theoretical assumptions that form the boundaries of the experiment should be explicit. Stating rejected assumptions lets you conduct the exercise within certain boundary conditions.</span></span>
+          </label>
+          <p class="hint">List the assumptions that set the boundaries of the experiment. Making them explicit defines the conditions under which your conclusion holds.</p>
+          <div class="ex"><b>Example:</b> Assume the ally has prior experience supporting BIPOC colleagues; the beneficiary has already acted on her own behalf; she has substantial knowledge of the organization&rsquo;s systems.</div>
+          <textarea id="f_assumptions" data-key="assumptions" placeholder="List the assumptions / boundary conditions that bound the experiment..."></textarea>
+        </div>
+
+        <div class="field">
+          <label class="flabel">Plan supporting diagrams, tables, or figures
+            <span class="info">i<span class="tooltip-pop">Illustrate the dimensions of the theory used in the mind model with diagrams, tables, or figures. Visuals help create an effective mental model and ground assumptions (e.g., Botha used several diagrams; Hong used an organized table).</span></span>
+          </label>
+          <p class="hint">Sketch out what visual(s) will illustrate the dimensions of the theory in your mind model.</p>
+          <div class="ex"><b>Example:</b> A figure mapping the dominant-group member&rsquo;s options &mdash; use own judgment / consult &amp; collaborate / enact the beneficiary&rsquo;s request &mdash; against self-determination and mentoring theory.</div>
+          <textarea id="f_visuals" data-key="visuals" placeholder="Describe the diagrams, tables, or figures you will create to illustrate the theory..."></textarea>
+        </div>
+
+        <div class="navbtns">
+          <button class="btn btn-ghost" onclick="go(2)">&larr; Back</button>
+          <button class="btn btn-primary" onclick="go(4)">Continue to Execute it &rarr;</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ STEP 4: EXECUTE IT ============ -->
+    <section class="panel hide" data-step="4">
+      <div class="card">
+        <div class="crumb">Module 4 &middot; Execute it</div>
+        <h1>Research Design Considerations</h1>
+        <p class="lead">Execution means conducting the experiment in the laboratory of the mind using the model you developed when planning. Above all, be a storyteller and apply &ldquo;disciplined imagination.&rdquo;</p>
+
+        <div class="field">
+          <label class="flabel">Be a raconteur &mdash; write the narrative scenario
+            <span class="info">i<span class="tooltip-pop">Folger &amp; Turillo: thinking in narrative, storylike terms provides a route to theorizing via abstraction. A storylike narrative brings the experiment to life and helps the reader follow your reasoning toward the confirmation/disconfirmation claim.</span></span>
+          </label>
+          <p class="hint">Write your experiment as a narrative, storylike scenario that bridges the abstract and the concrete. This is the heart of your thought experiment.</p>
+          <div class="ex"><b>Example:</b> Dr. Beauford Manigold, a White male department chair, is asked to meet Dr. Dianne Winfrey, a junior Black female colleague he helped recruit. She asks him to lobby to renegotiate her tenure benchmarks and shield her from DEI service. He must choose how to respond...</div>
+          <textarea id="f_narrative" data-key="narrative" placeholder="Write the storylike narrative scenario of your thought experiment..." style="min-height:150px;"></textarea>
+        </div>
+
+        <div class="field">
+          <label class="flabel">Choose your path
+            <span class="info">i<span class="tooltip-pop">You can use an existing thought experiment, alter a seminal one to fit your needs, or create a novel one. Consider also adopting thought experiments from completely different fields.</span></span>
+          </label>
+          <p class="hint">How are you sourcing your thought experiment?</p>
+          <div class="choices">
+            <div class="choice" data-path="existing" onclick="pickPath('existing')"><div class="ct">Use existing</div><div class="cd">Adopt an established thought experiment as-is.</div></div>
+            <div class="choice" data-path="alter" onclick="pickPath('alter')"><div class="ct">Alter a seminal one</div><div class="cd">Adapt a classic TE to fit your particular needs.</div></div>
+            <div class="choice" data-path="novel" onclick="pickPath('novel')"><div class="ct">Create novel</div><div class="cd">Build an entirely new thought experiment.</div></div>
+          </div>
+          <p class="hint" style="margin-top:6px;">Tip: you may also adopt a thought experiment from a completely different field. Note your choice and reasoning:</p>
+          <textarea id="f_pathnote" data-key="pathnote" placeholder="Note your sourcing choice and reasoning (e.g., adapting a TE from physics / economics)..." style="min-height:70px;"></textarea>
+        </div>
+
+        <div class="field">
+          <label class="flabel">Apply disciplined imagination (Weick)
+            <span class="info">i<span class="tooltip-pop">Weick (1989): discipline comes from consistent application of selection criteria to trial-and-error thinking; imagination from deliberate diversity in problem statements. An underlying internal and external logic should make practical sense and be conveyable to a reader.</span></span>
+          </label>
+          <p class="hint">Ensure consistent internal and external logic, then state why the boundaries you proposed make sense.</p>
+          <div class="ex"><b>Example:</b> Even the most fantastical thought experiment (Einstein on a light beam) is grounded in natural, explainable phenomena. State why your rejected assumptions are reasonable given the scenario.</div>
+          <textarea id="f_discipline" data-key="discipline" placeholder="Explain the internal/external logic and why your proposed boundaries make sense..."></textarea>
+        </div>
+
+        <div class="field">
+          <label class="flabel">Consider multiple thought experiments
+            <span class="info">i<span class="tooltip-pop">Including multiple TEs (e.g., Lachenicht ran several variations to contrast ideas) gives breadth and lets contrasting scenarios test the theory. Optional but powerful.</span></span>
+          </label>
+          <p class="hint">Will you use more than one contrasting scenario to test the theory? If so, describe them (optional).</p>
+          <textarea id="f_multiple" data-key="multiple" placeholder="Describe any additional / contrasting thought experiments, or note 'single scenario'..." style="min-height:70px;"></textarea>
+        </div>
+
+        <div class="field">
+          <label class="flabel">Create &ldquo;what if&rdquo; counterfactual scenarios
+            <span class="info">i<span class="tooltip-pop">Counterfactual &ldquo;what if&rdquo; scenarios narratively apply abstract mechanisms by tying them to understandable situations from the present, distant past, or imagined future (e.g., St&ouml;gbauer &amp; Komlos used the Nazi seizure of power as a counterfactual).</span></span>
+          </label>
+          <p class="hint">Tie the abstract theory to an understandable situation drawn from the present, the distant past, or an imagined future.</p>
+          <div class="ex"><b>Example:</b> &ldquo;What if Dr. Manigold simply enacts the request as stated?&rdquo; vs. &ldquo;What if he instead consults, mentors, and advocates?&rdquo; &mdash; contrasting outcomes for self-determination.</div>
+          <textarea id="f_counterfactual" data-key="counterfactual" placeholder="Describe the 'what if' counterfactual variations and their time frame..."></textarea>
+        </div>
+
+        <div class="navbtns">
+          <button class="btn btn-ghost" onclick="go(3)">&larr; Back</button>
+          <button class="btn btn-primary" onclick="go(5)">Continue to Report results &rarr;</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ STEP 5: REPORT RESULTS ============ -->
+    <section class="panel hide" data-step="5">
+      <div class="card">
+        <div class="crumb">Module 5 &middot; Report results</div>
+        <h1>Reporting Results</h1>
+        <p class="lead">Guide readers through the experiment and justify the choices you made. Address each recommendation below.</p>
+
+        <div class="field">
+          <label class="flabel">State the type of thought experiment
+            <span class="info">i<span class="tooltip-pop">Report the type from the taxonomy (early vs. late stage, confirmation vs. disconfirmation) to orient the reader to the nature of the experiment.</span></span>
+          </label>
+          <p class="hint">Detail the type from the taxonomy. (Pre-filled from Module 2 &mdash; edit if needed.)</p>
+          <textarea id="f_typestate" data-key="typestate" placeholder="State the type used and what it means..." style="min-height:70px;"></textarea>
+        </div>
+
+        <div class="field">
+          <label class="flabel">Specify usefulness / justification
+            <span class="info">i<span class="tooltip-pop">Justify why this method was used given the situational context of the theory (e.g., Reichstein justified utopian thought because no real jurisdictions offered an alternative to examine).</span></span>
+          </label>
+          <p class="hint">Explain why a thought experiment is the right method given the situational context of your theory.</p>
+          <textarea id="f_usefulness" data-key="usefulness" placeholder="Justify the usefulness of the thought experiment in this context..."></textarea>
+        </div>
+
+        <div class="field">
+          <label class="flabel">Stipulate the meaning of key concepts
+            <span class="info">i<span class="tooltip-pop">Give readers a clear description of all key concepts, especially boundary conditions (Bozeman &amp; Feeney noted that concepts are often merely suggestive rather than stipulated). Define the focal construct precisely.</span></span>
+          </label>
+          <p class="hint">Define your key concepts precisely &mdash; especially the boundary conditions.</p>
+          <textarea id="f_concepts" data-key="concepts" placeholder="Stipulate the meaning of key concepts and boundary conditions..."></textarea>
+        </div>
+
+        <div class="field">
+          <label class="flabel">Plan a figure or diagram for the reader
+            <span class="info">i<span class="tooltip-pop">Include a figure or diagram to ground the thought experiment and bring it to life in the reader&rsquo;s mind, providing visual evidence for the explanations to each question raised.</span></span>
+          </label>
+          <p class="hint">Describe the figure that will illustrate the experiment in the reader&rsquo;s mind.</p>
+          <textarea id="f_figure" data-key="figure" placeholder="Describe the figure/diagram that will accompany the write-up..." style="min-height:70px;"></textarea>
+        </div>
+
+        <div class="field">
+          <label class="flabel">Describe the expected outcome(s)
+            <span class="info">i<span class="tooltip-pop">Given the proposed specifications, explain what the outcome is given the proposed boundaries &mdash; what should happen if the scenario plays out within those conditions.</span></span>
+          </label>
+          <p class="hint">Given your boundaries, what outcome(s) should the experiment produce?</p>
+          <div class="ex"><b>Example:</b> If the intended beneficiary determines the value of allyship, then Dr. Manigold acting on his own judgment (ignoring her requests) would violate her self-determination &mdash; confirming the proposition.</div>
+          <textarea id="f_outcome" data-key="outcome" placeholder="Describe the expected outcome(s) based on the proposed boundaries..."></textarea>
+        </div>
+
+        <div class="field">
+          <label class="flabel">Bolster with additional evidence
+            <span class="info">i<span class="tooltip-pop">Although thought experiments create no empirical data, results can be supplemented and enhanced by connecting them to historical evidence, archival data, or qualitative data, and by incorporating lived experiences for realism.</span></span>
+          </label>
+          <p class="hint">How will you reinforce the results with additional archival, qualitative, or historical evidence?</p>
+          <textarea id="f_evidence" data-key="evidence" placeholder="Note how results will be bolstered with archival, qualitative, or historical evidence..." style="min-height:70px;"></textarea>
+        </div>
+
+        <div class="navbtns">
+          <button class="btn btn-ghost" onclick="go(4)">&larr; Back</button>
+          <button class="btn btn-primary" onclick="go(6)">Continue to Implications &rarr;</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ STEP 6: IMPLICATIONS ============ -->
+    <section class="panel hide" data-step="6">
+      <div class="card">
+        <div class="crumb">Module 6 &middot; Discuss implications</div>
+        <h1>Discussing Implications</h1>
+        <p class="lead">Implications begin with the shift in thinking the experiment produces, then surface hidden truths and connect to other disciplines.</p>
+
+        <div class="field">
+          <label class="flabel">Present the proposed shift in thinking
+            <span class="info">i<span class="tooltip-pop">Begin by presenting the proposed shift in thinking or perspective resulting from the TE &mdash; the difference between the original position and the position after the experiment (Mankiw contrasted the position before and after).</span></span>
+          </label>
+          <p class="hint">What shift in thinking or perspective results from your experiment?</p>
+          <div class="ex"><b>Example:</b> The field should shift focus from self-identified allies of the dominant group to the role of the intended beneficiaries in determining allyship&rsquo;s value.</div>
+          <textarea id="f_shift" data-key="shift" placeholder="Present the shift in thinking or perspective the experiment produces..."></textarea>
+        </div>
+
+        <div class="field">
+          <label class="flabel">Discuss obscure truths / biases &amp; alternatives
+            <span class="info">i<span class="tooltip-pop">Thought experiments may reveal a truth that would otherwise have remained obscure (Lachenicht). Discuss biases illuminated and offer alternative explanations for the outcome.</span></span>
+          </label>
+          <p class="hint">What obscure truths or biases did the experiment illuminate? What alternative explanations exist?</p>
+          <div class="ex"><b>Example:</b> The experiment clarifies the line between effective and performative allyship, and surfaces the value of exchanging organizational knowledge across vantage points.</div>
+          <textarea id="f_obscure" data-key="obscure" placeholder="Discuss obscure truths or biases illuminated, and alternative explanations..."></textarea>
+        </div>
+
+        <div class="field">
+          <label class="flabel">Discuss interdisciplinary linkages
+            <span class="info">i<span class="tooltip-pop">Discuss interdisciplinary linkages and the value of the implications to other disciplines (e.g., Darnell linked psychiatry and cultural anthropology as two sides of a coin).</span></span>
+          </label>
+          <p class="hint">How do your implications link to or add value for other disciplines?</p>
+          <div class="ex"><b>Example:</b> Draws together self-determination theory and mentoring theory; relevant to social psychology, education, and organizational justice.</div>
+          <textarea id="f_interdisc" data-key="interdisc" placeholder="Discuss interdisciplinary linkages and value to other disciplines..."></textarea>
+        </div>
+
+        <!-- Worked example -->
+        <details class="collapse">
+          <summary>&#128214; See a complete worked example &mdash; Workplace Allyship (Type III)</summary>
+          <div class="cbody" id="workedExample"><!-- injected --></div>
+        </details>
+
+        <!-- Future research panel -->
+        <details class="collapse">
+          <summary>&#128161; Optional reference: OB domains that benefit from thought experiments</summary>
+          <div class="cbody" id="domainsPanel"><!-- injected --></div>
+        </details>
+
+        <div class="navbtns">
+          <button class="btn btn-ghost" onclick="go(5)">&larr; Back</button>
+          <button class="btn btn-primary" onclick="go(7)">Continue to Summary &amp; Export &rarr;</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ STEP 7: SUMMARY & EXPORT ============ -->
+    <section class="panel hide" data-step="7">
+      <div class="card">
+        <div class="crumb">Summary &amp; Export</div>
+        <h1>Your Thought Experiment</h1>
+        <p class="lead">Below is your fully assembled draft, organized by the five stages and ready to paste into a manuscript. The completeness checklist flags any recommendation you have not yet addressed.</p>
+
+        <h3>Completeness checklist</h3>
+        <div id="checklist" class="checklist"></div>
+
+        <h3>Assembled draft</h3>
+        <div style="display:flex;gap:12px;margin-bottom:12px;flex-wrap:wrap;">
+          <button class="btn btn-primary" onclick="copyDraft()">&#128203; Copy to clipboard</button>
+          <button class="btn btn-accent" onclick="downloadDraft('md')">&#11015; Download Markdown</button>
+          <button class="btn btn-ghost" onclick="downloadDraft('txt')">&#11015; Download .txt</button>
+          <button class="btn btn-ghost" onclick="refreshSummary()">&#8635; Refresh</button>
+        </div>
+        <textarea id="exportBox" class="export-box" readonly></textarea>
+
+        <div class="navbtns">
+          <button class="btn btn-ghost" onclick="go(6)">&larr; Back</button>
+          <button class="btn btn-ghost" onclick="go(0)">&#8635; Start over</button>
+        </div>
+      </div>
+    </section>
+
+  </main>
+</div>
+
+<div class="footer">
+  <div class="credit">
+    <p style="margin-bottom:8px;">Built on the methodology in <b>Aguinis, H., Beltran, J. R., Archibold, E. E., Jean, E. L., &amp; Rice, D. B. (2023). Thought experiments: Review and recommendations. Journal of Organizational Behavior, 44(3), 544&ndash;560.</b></p>
+    <p style="margin-bottom:0;">Additional best practices: Aguinis, H. (2025). <em>Research methodology: Best practices for rigorous, credible, and impactful research.</em> SAGE. <a href="https://collegepublishing.sagepub.com/products/research-methodology-1-280088" target="_blank" rel="noopener">https://collegepublishing.sagepub.com/products/research-methodology-1-280088</a></p>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+/* ============================================================
+   STATE (in-memory only)
+   ============================================================ */
+var state = {
+  dt: {1:null,2:null,3:null,4:null},
+  type: null,
+  path: null,
+  fields: {}
+};
+
+var STEPS = [
+  {n:0, label:"Welcome", sub:"Overview"},
+  {n:1, label:"Module 1", sub:"Should I run one?"},
+  {n:2, label:"Module 2", sub:"Which type?"},
+  {n:3, label:"Module 3", sub:"Plan it"},
+  {n:4, label:"Module 4", sub:"Execute it"},
+  {n:5, label:"Module 5", sub:"Report results"},
+  {n:6, label:"Module 6", sub:"Implications"},
+  {n:7, label:"Summary", sub:"Export"}
+];
+
+var TYPE_INFO = {
+  "I":  {name:"Type I — Early stage, Confirmation",  stage:"early", goal:"confirmation",   ex:"Newton's cannonball"},
+  "II": {name:"Type II — Early stage, Disconfirmation", stage:"early", goal:"disconfirmation", ex:"Schrödinger's cat"},
+  "III":{name:"Type III — Late stage, Confirmation", stage:"late",  goal:"confirmation",   ex:"Galileo and the Leaning Tower of Pisa"},
+  "IV": {name:"Type IV — Late stage, Disconfirmation", stage:"late",  goal:"disconfirmation", ex:"Einstein riding a beam of light"}
+};
+
+var current = 0;
+
+/* ============================================================
+   NAV
+   ============================================================ */
+function buildSidebar(){
+  var sb = document.getElementById('sidebar');
+  var html = '<div class="nav-title">Your progress</div>';
+  STEPS.forEach(function(s){
+    html += '<div class="step" data-s="'+s.n+'" onclick="go('+s.n+')">'+
+      '<div class="num">'+(s.n===0?'&#9733;':s.n)+'</div>'+
+      '<div class="lbl">'+s.label+'<small>'+s.sub+'</small></div></div>';
+  });
+  sb.innerHTML = html;
+}
+
+function go(n){
+  current = n;
+  document.querySelectorAll('.panel').forEach(function(p){
+    p.classList.toggle('hide', parseInt(p.getAttribute('data-step'),10)!==n);
+  });
+  document.querySelectorAll('.step').forEach(function(st){
+    var sn = parseInt(st.getAttribute('data-s'),10);
+    st.classList.toggle('active', sn===n);
+    st.classList.toggle('done', sn<n && sn!==0);
+  });
+  // progress
+  var pct = Math.round((n/(STEPS.length-1))*100);
+  document.getElementById('progFill').style.width = pct+'%';
+  document.getElementById('progLabel').textContent = 'Step '+(n+1)+' of '+STEPS.length;
+  // refresh dynamic content
+  if(n===2) renderTaxonomy();
+  if(n===5) prefillTypeState();
+  if(n===7) refreshSummary();
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
+/* ============================================================
+   MODULE 1 — DECISION TREE
+   ============================================================ */
+function dtPick(dp, val){
+  state.dt[dp]=val;
+  // visually mark selection
+  document.querySelectorAll('.choice[data-dp="'+dp+'"]').forEach(function(c){
+    c.classList.toggle('sel', c.getAttribute('data-val')===val);
+  });
+  evalTree();
+}
+
+function unlock(id, on){
+  document.getElementById(id).classList.toggle('locked', !on);
+}
+
+function evalTree(){
+  var d=state.dt;
+  var res = document.getElementById('dtResult');
+  var nextBtn = document.getElementById('dtNext');
+  nextBtn.disabled = true;
+
+  // DP1
+  if(d[1]==='no'){
+    unlock('dp2',false);unlock('dp3',false);unlock('dp4',false);
+    res.innerHTML = stopBox("A thought experiment is unlikely to help here.",
+      "Your goal appears primarily exploratory. Thought experiments are tools for confirming or disconfirming theory; when the aim is exploration, they are unlikely to result in substantial theory advancement. Consider an exploratory or inductive design instead &mdash; or revisit Decision Point 1 if you do in fact have a proposition to test.");
+    return;
+  }
+  if(d[1]==='yes'){ unlock('dp2',true); } else { unlock('dp2',false);unlock('dp3',false);unlock('dp4',false);res.innerHTML='';return; }
+
+  // DP2
+  if(d[2]==='no'){
+    unlock('dp3',false);unlock('dp4',false);
+    res.innerHTML = stopBox("A thought experiment is not advisable here.",
+      "If no imagined scenario can succinctly and effectively model the theory, the experiment cannot bring your reasoning to life for a reader. Consider whether a different scenario is conceivable, or use an empirical design that can capture the theory.");
+    return;
+  }
+  if(d[2]==='yes'){ unlock('dp3',true); } else { unlock('dp3',false);unlock('dp4',false);res.innerHTML='';return; }
+
+  // DP3
+  if(d[3]){ unlock('dp4',true); } else { unlock('dp4',false);res.innerHTML='';return; }
+
+  // DP4
+  if(d[4]){
+    var stage = d[3]; var goal = d[4];
+    var t = stageGoalToType(stage,goal);
+    var ti = TYPE_INFO[t];
+    state.type = t; // recommended carried forward
+    res.innerHTML = goBox(t, ti);
+    nextBtn.disabled = false;
+  } else {
+    res.innerHTML='';
+  }
+}
+
+function stageGoalToType(stage,goal){
+  if(stage==='early'&&goal==='confirmation') return 'I';
+  if(stage==='early'&&goal==='disconfirmation') return 'II';
+  if(stage==='late'&&goal==='confirmation') return 'III';
+  return 'IV';
+}
+
+function stopBox(title,body){
+  return '<div class="dt-result stop"><h3>&#9888; '+title+'</h3><p style="margin-bottom:0;">'+body+'</p></div>';
+}
+function goBox(t,ti){
+  return '<div class="dt-result go"><h3>&#10003; A thought experiment is appropriate</h3>'+
+    '<p>Based on your answers, a thought experiment is a suitable methodological approach. Carried forward to Module 2:</p>'+
+    '<p style="margin-bottom:0;"><strong>Recommended type: '+ti.name+'</strong><br>'+
+    'Development stage: <em>'+ti.stage+'</em> &middot; Goal: <em>'+ti.goal+'</em> &middot; Classic exemplar: <em>'+ti.ex+'</em></p></div>';
+}
+
+/* ============================================================
+   MODULE 2 — TAXONOMY
+   ============================================================ */
+function renderTaxonomy(){
+  var note = document.getElementById('recNote');
+  if(state.dt[3] && state.dt[4]){
+    var rec = stageGoalToType(state.dt[3],state.dt[4]);
+    note.innerHTML = '&#11088; Based on Module 1, <b>Type '+rec+'</b> ('+TYPE_INFO[rec].name.split('—')[1].trim()+') is recommended and highlighted below. You may override by selecting another cell.';
+    note.classList.remove('hide');
+    document.querySelectorAll('.tax-cell').forEach(function(c){
+      c.classList.toggle('rec', c.getAttribute('data-type')===rec);
+    });
+    if(!state.type) state.type = rec;
+  } else {
+    note.innerHTML = 'Complete Module 1 to get an automatic recommendation, or simply choose the cell that fits your study.';
+  }
+  // reflect current selection
+  if(state.type) pickType(state.type, true);
+}
+
+function pickType(t, silent){
+  state.type = t;
+  document.querySelectorAll('.tax-cell').forEach(function(c){
+    c.classList.toggle('sel', c.getAttribute('data-type')===t);
+  });
+  document.getElementById('typeChosen').value = TYPE_INFO[t].name + '  (exemplar: '+TYPE_INFO[t].ex+')';
+}
+
+/* ============================================================
+   MODULE 4 — PATH
+   ============================================================ */
+function pickPath(p){
+  state.path=p;
+  document.querySelectorAll('.choice[data-path]').forEach(function(c){
+    c.classList.toggle('sel', c.getAttribute('data-path')===p);
+  });
+}
+
+/* ============================================================
+   FIELD BINDING
+   ============================================================ */
+function bindFields(){
+  document.querySelectorAll('textarea[data-key],input[data-key]').forEach(function(el){
+    el.addEventListener('input', function(){
+      state.fields[el.getAttribute('data-key')] = el.value;
+    });
+  });
+}
+
+function prefillTypeState(){
+  var el = document.getElementById('f_typestate');
+  if(state.type && !state.fields['typestate']){
+    var ti = TYPE_INFO[state.type];
+    var v = ti.name + " — a "+ti.stage+"-stage theory with a "+ti.goal+" goal.";
+    el.value = v;
+    state.fields['typestate'] = v;
+  }
+}
+
+/* ============================================================
+   WORKED EXAMPLE + DOMAINS
+   ============================================================ */
+var WE = [
+  ["Decision &amp; type","Following the decision tree: there <em>is</em> a need to confirm/disconfirm theory (DP1=yes); an imagined academic-workplace scenario can model it (DP2=yes); the theory is well developed in the social sciences though new to OB (DP3=late); the purpose is confirmation (DP4=confirmation). &rarr; <strong>Type III</strong> (late stage, confirmation)."],
+  ["Theoretical domain","Allyship = members of advantaged groups taking committed action to improve the treatment and status of a disadvantaged group. Key constructs: effective vs. performative allyship, supportive contact, and self-determination."],
+  ["Targeted proposition","A point of theoretical tension: <em>who determines the value of allyship</em> &mdash; the well-intentioned ally, or the intended beneficiary? The experiment seeks to confirm that the intended beneficiary determines the value of allyship."],
+  ["Assumptions / boundaries","Several assumptions are explicitly rejected to create the paradox: the ally has prior experience supporting BIPOC colleagues; the beneficiary has already acted on her own behalf; she knows who voted against her; and she has substantial knowledge of the organization&rsquo;s systems."],
+  ["Narrative scenario","Dr. Beauford Manigold, a White male finance-department chair, is asked to meet Dr. Dianne Winfrey, a junior Black female colleague he helped recruit. After a difficult third-year review she emails three concerns (lack of community; qualitative scholarship needing more time; overload of DEI service) and asks him to lobby to renegotiate her tenure benchmarks and dissuade others from requesting her DEI service. He believes doing exactly as asked could compromise her standing. His options: use his own judgment; consult and collaborate on an alternative; or enact her requests as stated."],
+  ["Disciplined imagination","The scenario&rsquo;s internal and external logic is consistent and conveyable; explicitly stating the rejected assumptions keeps the exercise within clear boundary conditions, in the spirit of Weick&rsquo;s disciplined imagination."],
+  ["Type stated","Reported as a Type III thought experiment &mdash; confirming a well-developed theory."],
+  ["Key concepts / boundaries","Effective allyship = supportive action that affirms the self-determination of the beneficiary; performative allyship = interest in being an ally without the ongoing labor, self-reflection, and exchange of power true allyship requires."],
+  ["Figure","A figure mapping Dr. Manigold&rsquo;s options (own judgment / consult &amp; collaborate / enact request) against self-determination theory and mentoring theory."],
+  ["Expected outcome","If the intended beneficiary determines allyship&rsquo;s value, then acting on his own judgment and ignoring her expressed needs would violate her self-determination &mdash; confirming the proposition. The best course: acknowledge her identity, mentor by sharing institutional knowledge, collaborate on solutions, and advocate on her behalf."],
+  ["Bolstering evidence","Grounded in self-determination theory and mentoring theory, and connectable to lived experiences and qualitative accounts of allyship to enhance realism."],
+  ["Shift in thinking","The field should shift focus from self-identified allies of the dominant group toward the role of intended beneficiaries in determining allyship&rsquo;s value."],
+  ["Obscure truths / biases","Clarifies the difference between effective and performative allyship and surfaces the value of exchanging organizational knowledge across different experiential vantage points."],
+  ["Interdisciplinary linkages","Integrates self-determination theory and mentoring theory; relevant to social psychology, education, and organizational justice across disciplines."]
+];
+
+function renderWorkedExample(){
+  var html = '<p class="muted" style="font-family:Segoe UI,sans-serif;font-size:14px;">Read-only illustration from Aguinis et al. (2023): the &ldquo;Allyship my way or your way&rdquo; thought experiment (Dr. Manigold &amp; Dr. Winfrey).</p>';
+  WE.forEach(function(r){
+    if(r[0]==="Narrative scenario"){
+      html += '<div class="we-block"><div class="we-h">'+r[0]+'</div><div class="we-narr">'+r[1]+'</div></div>';
+    } else {
+      html += '<div class="we-block"><div class="we-h">'+r[0]+'</div><div class="we-t">'+r[1]+'</div></div>';
+    }
+  });
+  document.getElementById('workedExample').innerHTML = html;
+}
+
+var DOMAINS = [
+  ["Diversity &amp; inclusion","Given a large nomological network and many theories from multiple fields, how can new methods, a broadened construct, and integrated perspectives spur new theoretical insight?"],
+  ["Leadership","How can the dense leadership-construct landscape be understood with fewer related constructs? Is a more parsimonious full-range model of leadership possible?"],
+  ["Performance","How can objective and subjective measures of performance be combined to form a more accurate picture of the performance construct?"],
+  ["Selection &amp; recruitment","How can context-sensitive results be applied more broadly, and which variables are responsible? Can complicated individual-difference&ndash;outcome relations be modeled more parsimoniously?"],
+  ["Teams","How can the dynamic, emergent nature of teams be modeled while considering multilevel units of analysis?"],
+  ["Turnover","Can post-turnover implications for organizations and employees be conceptualized? How can turnover studies better capture contextual issues?"]
+];
+
+function renderDomains(){
+  var html = '<div class="pillrow">';
+  DOMAINS.forEach(function(d){ html += '<span class="pill">'+d[0]+'</span>'; });
+  html += '</div>';
+  DOMAINS.forEach(function(d){
+    html += '<div class="domain-card"><div class="dn">'+d[0]+'</div><div class="dq">'+d[1]+'</div></div>';
+  });
+  document.getElementById('domainsPanel').innerHTML = html;
+}
+
+/* ============================================================
+   SUMMARY / EXPORT / CHECKLIST
+   ============================================================ */
+var CHECK = [
+  {grp:"1. Decide whether to conduct a TE (and which type)", items:[
+    {k:"_decided", label:"Decision tree completed and a thought experiment found appropriate"},
+    {k:"_type",    label:"Type determined from the taxonomy"}
+  ]},
+  {grp:"2. Plan it — theory considerations", items:[
+    {k:"domain",      label:"Established the theoretical domain (mind model)"},
+    {k:"proposition", label:"Targeted a specific proposition or assumption"},
+    {k:"assumptions", label:"Summarized assumptions / boundary conditions"},
+    {k:"visuals",     label:"Planned diagrams, tables, or figures"}
+  ]},
+  {grp:"3. Execute it — research design considerations", items:[
+    {k:"narrative",      label:"Wrote a narrative, storylike scenario (be a raconteur)"},
+    {k:"_path",          label:"Chose a path (existing / alter / novel)"},
+    {k:"discipline",     label:"Applied disciplined imagination & justified boundaries"},
+    {k:"multiple",       label:"Considered multiple / contrasting thought experiments"},
+    {k:"counterfactual", label:"Created 'what if' counterfactual scenario(s)"}
+  ]},
+  {grp:"4. Report results", items:[
+    {k:"typestate",  label:"Stated the type of thought experiment"},
+    {k:"usefulness", label:"Specified usefulness / justification"},
+    {k:"concepts",   label:"Stipulated meaning of key concepts & boundary conditions"},
+    {k:"figure",     label:"Planned a figure or diagram for the reader"},
+    {k:"outcome",    label:"Described the expected outcome(s)"},
+    {k:"evidence",   label:"Noted additional / archival / qualitative evidence"}
+  ]},
+  {grp:"5. Discuss implications", items:[
+    {k:"shift",     label:"Presented the proposed shift in thinking"},
+    {k:"obscure",   label:"Discussed obscure truths / biases & alternatives"},
+    {k:"interdisc", label:"Discussed interdisciplinary linkages"}
+  ]}
+];
+
+function isFilled(k){
+  if(k==="_decided") return !!(state.dt[1]&&state.dt[2]&&state.dt[3]&&state.dt[4] && state.dt[1]==='yes' && state.dt[2]==='yes');
+  if(k==="_type")    return !!state.type;
+  if(k==="_path")    return !!state.path;
+  var v = state.fields[k];
+  return !!(v && v.trim().length>0);
+}
+
+function renderChecklist(){
+  var cont = document.getElementById('checklist');
+  var html=''; var done=0, total=0;
+  CHECK.forEach(function(g){
+    html += '<div class="chk-grp">'+g.grp+'</div>';
+    g.items.forEach(function(it){
+      total++;
+      var ok = isFilled(it.k);
+      if(ok) done++;
+      html += '<div class="chk-item '+(ok?'ok':'miss')+'">'+
+        '<span class="chk-mark">'+(ok?'&#10003;':'&#33;')+'</span>'+
+        '<span>'+it.label+'</span></div>';
+    });
+  });
+  var pct = Math.round((done/total)*100);
+  var banner = '<div class="ex" style="font-size:15px;margin-bottom:14px;"><b>'+done+' of '+total+'</b> recommendations addressed ('+pct+'% complete).'+
+    (done===total?' &#127881; Your thought experiment is fully specified.':' Items flagged in red below are still open.')+'</div>';
+  cont.innerHTML = banner + html;
+}
+
+function val(k){ var v=state.fields[k]; return (v&&v.trim())?v.trim():"_[not yet specified]_"; }
+
+function buildMarkdown(){
+  var ti = state.type? TYPE_INFO[state.type] : null;
+  var dt = state.dt;
+  var pathMap = {existing:"Use an existing thought experiment", alter:"Alter a seminal thought experiment", novel:"Create a novel thought experiment"};
+  var L = [];
+  L.push("# Thought Experiment Design");
+  L.push("");
+  L.push("_Designed using the best-practice recommendations of Aguinis, Beltran, Archibold, Jean, & Rice (2023), Journal of Organizational Behavior, 44(3), 544–560._");
+  L.push("");
+  L.push("## Stage 1 — Decision and Type");
+  L.push("");
+  L.push("**Decision tree**");
+  L.push("- DP1 (Need to confirm/disconfirm theory?): " + (dt[1]||"_not answered_"));
+  L.push("- DP2 (Can an imagined scenario model the theory?): " + (dt[2]||"_not answered_"));
+  L.push("- DP3 (Theory development stage): " + (dt[3]||"_not answered_"));
+  L.push("- DP4 (Purpose): " + (dt[4]||"_not answered_"));
+  L.push("");
+  if(ti){
+    L.push("**Selected type:** "+ti.name);
+    L.push("");
+    L.push("- Development stage: "+ti.stage);
+    L.push("- Theoretical goal: "+ti.goal);
+    L.push("- Classic exemplar: "+ti.ex);
+  } else {
+    L.push("**Selected type:** _not yet selected_");
+  }
+  L.push("");
+  L.push("## Stage 2 — Planning (Theory Considerations)");
+  L.push("");
+  L.push("**Theoretical domain (mind model):** "+val("domain"));
+  L.push("");
+  L.push("**Targeted proposition / assumption:** "+val("proposition"));
+  L.push("");
+  L.push("**Assumptions / boundary conditions:** "+val("assumptions"));
+  L.push("");
+  L.push("**Planned diagrams / tables / figures:** "+val("visuals"));
+  L.push("");
+  L.push("## Stage 3 — Execution (Research Design Considerations)");
+  L.push("");
+  L.push("**Narrative scenario:**");
+  L.push("");
+  L.push(val("narrative"));
+  L.push("");
+  L.push("**Sourcing path:** " + (state.path? pathMap[state.path] : "_not selected_") + (state.fields["pathnote"]? " — "+state.fields["pathnote"].trim() : ""));
+  L.push("");
+  L.push("**Disciplined imagination (logic & justified boundaries):** "+val("discipline"));
+  L.push("");
+  L.push("**Multiple / contrasting thought experiments:** "+val("multiple"));
+  L.push("");
+  L.push("**\"What if\" counterfactual scenarios:** "+val("counterfactual"));
+  L.push("");
+  L.push("## Stage 4 — Reporting Results");
+  L.push("");
+  L.push("**Type stated:** "+val("typestate"));
+  L.push("");
+  L.push("**Usefulness / justification:** "+val("usefulness"));
+  L.push("");
+  L.push("**Key concepts & boundary conditions:** "+val("concepts"));
+  L.push("");
+  L.push("**Planned figure / diagram:** "+val("figure"));
+  L.push("");
+  L.push("**Expected outcome(s):** "+val("outcome"));
+  L.push("");
+  L.push("**Additional / archival / qualitative evidence:** "+val("evidence"));
+  L.push("");
+  L.push("## Stage 5 — Discussing Implications");
+  L.push("");
+  L.push("**Proposed shift in thinking:** "+val("shift"));
+  L.push("");
+  L.push("**Obscure truths / biases & alternative explanations:** "+val("obscure"));
+  L.push("");
+  L.push("**Interdisciplinary linkages:** "+val("interdisc"));
+  L.push("");
+  L.push("---");
+  L.push("");
+  L.push("Built on the methodology in Aguinis, H., Beltran, J. R., Archibold, E. E., Jean, E. L., & Rice, D. B. (2023). Thought experiments: Review and recommendations. Journal of Organizational Behavior, 44(3), 544–560.");
+  L.push("");
+  L.push("Additional best practices: Aguinis, H. (2025). Research methodology: Best practices for rigorous, credible, and impactful research. SAGE. https://collegepublishing.sagepub.com/products/research-methodology-1-280088");
+  return L.join("\n");
+}
+
+function refreshSummary(){
+  renderChecklist();
+  document.getElementById('exportBox').value = buildMarkdown();
+}
+
+function copyDraft(){
+  var txt = buildMarkdown();
+  var ta = document.getElementById('exportBox');
+  ta.value = txt;
+  ta.select();
+  var ok=false;
+  try{ ok=document.execCommand('copy'); }catch(e){}
+  if(navigator.clipboard && navigator.clipboard.writeText){
+    navigator.clipboard.writeText(txt).then(function(){toast("Draft copied to clipboard");}, function(){toast(ok?"Draft copied to clipboard":"Press Ctrl/Cmd+C to copy");});
+  } else {
+    toast(ok?"Draft copied to clipboard":"Press Ctrl/Cmd+C to copy");
+  }
+  window.getSelection().removeAllRanges();
+}
+
+function downloadDraft(ext){
+  var txt = buildMarkdown();
+  var blob = new Blob([txt], {type: ext==='md'?'text/markdown':'text/plain'});
+  var url = URL.createObjectURL(blob);
+  var a = document.createElement('a');
+  a.href = url;
+  a.download = 'thought-experiment-design.'+ext;
+  document.body.appendChild(a); a.click(); document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+  toast("Downloaded thought-experiment-design."+ext);
+}
+
+function toast(msg){
+  var t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  clearTimeout(window._tt);
+  window._tt = setTimeout(function(){ t.classList.remove('show'); }, 2400);
+}
+
+/* ============================================================
+   INIT
+   ============================================================ */
+buildSidebar();
+bindFields();
+renderWorkedExample();
+renderDomains();
+go(0);
+</script>
+<!-- Begin Countercentral code v 7.0 --> 
+<span id="wts2576"></span> 
+<script>var wts=document.createElement('script');wts.async=true; 
+wts.src='https://server2.countercentral.com/log7.js';document.head.appendChild(wts); 
+wts.onload = function(){ wtslog7(2576,1); }; 
+</script><noscript><a href="https://www.countercentral.com"> 
+<img src="https://server2.countercentral.com/7/1/2576.png"  
+alt="Countercentral web traffic analysis"></a></noscript> 
+<!-- End Countercentral code v 7.0 --> 
+</body>
+</html>

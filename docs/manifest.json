@@ -1,0 +1,308 @@
+[
+  {
+    "id": "ch02-ethics",
+    "folder": "tools/ch02-ethics",
+    "name": "Ethical Research Design and Implementation Tool",
+    "source_page": "https://www.hermanaguinis.com/ethics.html",
+    "topic": "Research Ethics",
+    "function": "A ten-module workspace covering project profiling, utilitarian/deontological ethics comparison, due diligence, recruitment safeguards (including a coercion-risk meter), participant rights and consent-form building, field-setting conflicts of interest, online/MTurk-specific safeguards, a misconduct taxonomy (trimming, cooking, forging, plagiarism, censoring), a deception decision tree built around the bogus-pipeline case, and a final action plan that exports IRB-ready text. All CSS/JS inline, no external libraries or CDNs, progress stored only in browser localStorage.",
+    "primary_cited_source": "Aguinis (2025), Research Methodology"
+  },
+  {
+    "id": "ch03-theory-contribution",
+    "folder": "tools/ch03-theory-contribution",
+    "name": "Theory Contribution Builder",
+    "source_page": "https://www.hermanaguinis.com/theorycontribution.html",
+    "topic": "Theory Development",
+    "function": "A workflow tool for building and exporting a theoretical-contribution statement; saves progress in-browser and supports JSON export and print/PDF.",
+    "primary_cited_source": "Aguinis (2025), Research Methodology"
+  },
+  {
+    "id": "ch03-theory-elaboration",
+    "folder": "tools/ch03-theory-elaboration",
+    "name": "TheoryForge: Interactive Theory Elaboration Navigator",
+    "source_page": "https://www.hermanaguinis.com/Theoryelaboration.html",
+    "topic": "Theory Development",
+    "function": "Defines theory elaboration against theory generation and theory testing, a three-question decision tree (with published exemplars at each branch), all seven elaboration tactics across three approaches (contrasting, construct specification, structuring) mapped to Bacharach's (1989) five theory-quality criteria, six research-opportunity types, a full study planner that generates manuscript-ready text, and pre-readiness and pre-submission checklists.",
+    "primary_cited_source": "Bacharach (1989), Academy of Management Review 14(4):496-515"
+  },
+  {
+    "id": "ch04-causal-inference",
+    "folder": "tools/ch04-causal-inference",
+    "name": "Causal Inference Research Planning Tool",
+    "source_page": "https://www.hermanaguinis.com/causality.html",
+    "topic": "Causal Inference and Control Variables",
+    "function": "Fifteen linked modules from practical-relevance screening through a causal-claim builder, the three classical conditions for causal inference, a rival-explanation threat matrix, a procedure selector (experiments, matching, instrumental variables, quasi-experiments), an internal/external validity dashboard, a control-variable decision tree, and a manuscript-language generator with full report export.",
+    "primary_cited_source": "Aguinis (2025), Research Methodology"
+  },
+  {
+    "id": "ch04-control-variables",
+    "folder": "tools/ch04-control-variables",
+    "name": "Control Variable Decision Tool",
+    "source_page": "https://www.hermanaguinis.com/controlvariables.html",
+    "topic": "Causal Inference and Control Variables",
+    "function": "Operationalizes the control variable decision tree: a per-variable wizard ending in Include/Exclude/Stop plus reasoning chain, an auto-generated methods paragraph, and an explicit rebuttal of the purification principle, the residual-predictor problem, and the \"conservative test\" fallacy. All data stays in the browser; nothing is uploaded or transmitted.",
+    "primary_cited_source": "Personnel Psychology article (specific citation not named in proposal text -- confirm before publishing)"
+  },
+  {
+    "id": "ch05-false-identity",
+    "folder": "tools/ch05-false-identity",
+    "name": "False Identity Screening Tool",
+    "source_page": "https://www.hermanaguinis.com/falseidentities.html",
+    "topic": "Survey Research Data Quality",
+    "function": "Operationalizes the decision tree for detecting non-targeted (false-identity) survey respondents using duplicate-IP checks, ISP type, an IP threat score, and five supporting calculators (instructed-response scoring, two within-person reliability methods, open-ended completion, time-to-complete, location cross-check). No cookies, no local storage; all data stays in browser memory only and clears on tab close.",
+    "primary_cited_source": "Aguinis (2025), Research Methodology"
+  },
+  {
+    "id": "ch05-response-rate",
+    "folder": "tools/ch05-response-rate",
+    "name": "Response-Rate Validity Assessment Tool",
+    "source_page": "https://www.hermanaguinis.com/responserate.html",
+    "topic": "Survey Research Data Quality",
+    "function": "A ten-module tool that computes gross/usable/adjusted response rates and attrition, benchmarks them cautiously against field norms, scores validity evidence across multiple domains, classifies the rate as functional or dysfunctional (never from the percentage alone), and exports manuscript-ready reporting language in five registers (concise, detailed, reviewer response, limitations, appendix checklist).",
+    "primary_cited_source": "Aguinis (2025), Research Methodology"
+  },
+  {
+    "id": "ch07-vignettes",
+    "folder": "tools/ch07-vignettes",
+    "name": "EVM Study Designer",
+    "source_page": "https://www.hermanaguinis.com/vignettes.html",
+    "topic": "Vignettes, Online Samples, and Thought Experiments",
+    "function": "Walks through all ten decision points and three stages (Planning, Implementation, Reporting) of Experimental Vignette Methodology design: EVM suitability, paper-people vs. policy-capturing/conjoint type, between/within/mixed design, immersion level, factors and levels with a live full-factorial calculator, vignette count, sample, setting and timing, analysis method (auto-recommending multilevel modeling for within/mixed designs), and a transparency checklist.",
+    "primary_cited_source": "Aguinis (2025), Research Methodology"
+  },
+  {
+    "id": "ch07-mturk",
+    "folder": "tools/ch07-mturk",
+    "name": "MTurkGuard",
+    "source_page": "https://www.hermanaguinis.com/MTurk.html",
+    "topic": "Vignettes, Online Samples, and Thought Experiments",
+    "function": "Organizes ten MTurk-specific challenges and ten lifecycle recommendations across Planning, Implementation, and Reporting, with calculators, templates, checklists, and reviewer-response text.",
+    "primary_cited_source": "Aguinis (2025), Research Methodology"
+  },
+  {
+    "id": "ch07-thought-experiments",
+    "folder": "tools/ch07-thought-experiments",
+    "name": "Thought Experiment Designer",
+    "source_page": "https://www.hermanaguinis.com/thoughtexperiments.html",
+    "topic": "Vignettes, Online Samples, and Thought Experiments",
+    "function": "An eight-module tool implementing a 2x2 taxonomy of thought experiments (early/late stage by confirmation/disconfirmation, with Newton, Schrodinger, Galileo, and Einstein as exemplars), a decision tree for whether a thought experiment is appropriate, planning and execution guidance grounded in \"disciplined imagination\" (Weick, 1989), and a full worked example (workplace allyship, Type III) with export to Markdown/text.",
+    "primary_cited_source": "Weick (1989), Academy of Management Review 14(4):516-531"
+  },
+  {
+    "id": "ch08-outliers",
+    "folder": "tools/ch08-outliers",
+    "name": "Outlier Detection & Management Tool",
+    "source_page": "https://www.hermanaguinis.com/Outliers.html",
+    "topic": "Outlier Management",
+    "function": "A five-part decision guide distinguishing error, interesting, and influential outliers; a 39-technique identification reference filterable by analytic context (regression, SEM, MLM, meta-analysis, time series) and outlier type; a live cutoff calculator (leverage, Mahalanobis distance, Cook's D, DFFITS, DFBETAS, Bonferroni-corrected thresholds) driven by user-entered n and k; and a methods-paragraph generator.",
+    "primary_cited_source": "Aguinis (2025), Research Methodology"
+  },
+  {
+    "id": "ch09-moderation",
+    "folder": "tools/ch09-moderation",
+    "name": "Moderation Study Design and Audit Tool",
+    "source_page": "https://www.hermanaguinis.com/moderation.html",
+    "topic": "Moderation and Mediation",
+    "function": "Thirteen modules spanning study setup, conceptual-model clarity audit, a product-term reliability calculator, range-restriction audit, categorical-moderator balance, a rule-based statistical-power worksheet, guardrails against splitting continuous moderators, centering guidance, full-model interpretation, a simple-slopes/interaction-plot calculator, a reporting checklist, and a seven-item risk dashboard. All inputs stored only in browser localStorage.",
+    "primary_cited_source": "Aguinis (2025), Research Methodology"
+  },
+  {
+    "id": "ch09-interactions",
+    "folder": "tools/ch09-interactions",
+    "name": "Interaction Effect Reporting Tool",
+    "source_page": "https://www.hermanaguinis.com/interactions.html",
+    "topic": "Moderation and Mediation",
+    "function": "Runs a real OLS regression engine in the browser (on pasted raw data or entered coefficients): full (untruncated) y-axis by default with a teaching toggle reproducing the truncation-inflation effect documented in a 96-paper review; an interpretable effect size (delta R-squared, f-squared, Liu & Yuan's index); interaction-type classification read from plotted slopes; and Johnson-Neyman region-of-significance analysis. Ships a synthetic N=220 dataset.",
+    "primary_cited_source": "Source article's 96-paper review (specific citation not named in proposal text -- confirm before publishing)"
+  },
+  {
+    "id": "ch09-mediation",
+    "folder": "tools/ch09-mediation",
+    "name": "Mediation Study Design and Reporting Tool",
+    "source_page": "https://www.hermanaguinis.com/mediation.html",
+    "topic": "Moderation and Mediation",
+    "function": "Twelve modules, including a mechanism-quality scorer, a model-specification wizard (no default direct path), a design-quality rating tied to causal-language guardrails, a measurement-risk planner, an indirect-effect calculator (manual coefficients or an offline single-mediator OLS-plus-bootstrap engine on pasted CSV data), overclaiming warnings, and a reviewer/editor checklist.",
+    "primary_cited_source": "Aguinis (2025), Research Methodology"
+  },
+  {
+    "id": "ch09-ancova-eiv",
+    "folder": "tools/ch09-ancova-eiv",
+    "name": "ANCOVA with Fallible Covariates: EIV Correction Tool",
+    "source_page": "https://www.hermanaguinis.com/ANCOVA.html",
+    "topic": "Moderation and Mediation",
+    "function": "Implements Fuller's errors-in-variables (EIV) correction end to end: a bias/Type-I-error risk calculator, a live Type-I-error-inflation explorer across covariate reliabilities, a full EIV engine (raw CSV or covariance-matrix input) that disattenuates coefficients and computes Fuller (1987) standard errors, a comparison table of EIV against Lord's method, SEM, and naive OLS ANCOVA, and copyable R/Stata code. Self-tests against the source's worked example on load.",
+    "primary_cited_source": "Fuller (1987), Measurement Error Models (Wiley)"
+  },
+  {
+    "id": "ch10-cross-level-interactions",
+    "folder": "tools/ch10-cross-level-interactions",
+    "name": "Cross-Level Interaction Workbench",
+    "source_page": "https://www.hermanaguinis.com/multilevelinteractions.html",
+    "topic": "Multilevel Modeling and Cross-Level Interactions",
+    "function": "Operationalizes best-practice recommendations across Design, Conduct/Analyze, Interpret, and Reporting phases: the gamma-11-versus-tau-11 distinction, a design-scenario power planner, a four-step model-building walkthrough with FIML/REML guidance, a centering decision helper, an interaction-plot generator with regions of significance, and an annotated R-code generator (lme4, RLRsim, residual bootstrap).",
+    "primary_cited_source": "Aguinis (2025), Research Methodology"
+  },
+  {
+    "id": "ch10-cross-level-power",
+    "folder": "tools/ch10-cross-level-power",
+    "name": "Cross-Level Interaction Power Workbench",
+    "source_page": "https://www.hermanaguinis.com/crosslevelpower.html",
+    "topic": "Multilevel Modeling and Cross-Level Interactions",
+    "function": "A ten-module power-planning companion, covering parameter inputs, a power estimator with generated R code, design trade-offs (the roughly 3:2 Level-1-to-Level-2 sample premium for detecting interactions), driver importance, reliability, centering, alpha decisions, and post-hoc power reading.",
+    "primary_cited_source": "Aguinis (2025), Research Methodology"
+  },
+  {
+    "id": "ch11-meta-analysis",
+    "folder": "tools/ch11-meta-analysis",
+    "name": "Meta-Analysis Anatomy Toolkit",
+    "source_page": "https://www.hermanaguinis.com/metaanalysis.html",
+    "topic": "Meta-Analysis and MASEM",
+    "function": "Role-adaptive (author/reviewer/reader) workbench across Data Collection, Preparation, Analysis, and Reporting stages; includes a three-step \"should this review be updated\" decision framework and a contemporary effect-size benchmark classifier (small = .10, medium = .18, large = .32) plus a searchable method/software index.",
+    "primary_cited_source": "Aguinis (2025), Research Methodology"
+  },
+  {
+    "id": "ch11-meta-regression",
+    "folder": "tools/ch11-meta-regression",
+    "name": "Metaregression Boundary-Condition Reporting Tool",
+    "source_page": "https://www.hermanaguinis.com/metaregression.html",
+    "topic": "Meta-Analysis and MASEM",
+    "function": "An eight-stage pipeline implementing real statistics: forest plots, a Monte Carlo and approximate power check, a heterogeneity dashboard (Q, tau-squared, I-squared), a model-choice wizard defaulting to mixed effects with Knapp-Hartung inference and REML, moderator bubble plots, and an R-squared-Meta calculation, with two built-in worked datasets.",
+    "primary_cited_source": "Gonzalez-Mule & Aguinis (2018), Journal of Management 44(6):2246-2273"
+  },
+  {
+    "id": "ch11-masem",
+    "folder": "tools/ch11-masem",
+    "name": "Meta-Analytic Structural Equation Modeling (MASEM) Study Builder",
+    "source_page": "https://www.hermanaguinis.com/MASEM.html",
+    "topic": "Meta-Analysis and MASEM",
+    "function": "A four-step, twenty-module workflow covering competing-model specification, a nine-decision-point meta-analytic and SEM pipeline (missing-correlation decision tree, sample-size harmonization, positive-definiteness screening, sample-dependency audit, fit-index dashboard), an endogeneity/causal-claim guardrail, and reviewer-audit and final-readiness reporting modes.",
+    "primary_cited_source": "Aguinis (2025), Research Methodology"
+  },
+  {
+    "id": "ch12-market-basket-analysis",
+    "folder": "tools/ch12-market-basket-analysis",
+    "name": "Market Basket Analysis (MBA) Implementation Tool",
+    "source_page": "https://www.hermanaguinis.com/marketbasketanalysis.html",
+    "topic": "Market Basket Analysis, Experience Sampling, and Bayesian Analysis",
+    "function": "Six-step guided workspace from suitability screening through transaction definition, data sourcing, requirement verification, a live lift/support/confidence calculator (single-rule, histogram cutoff, and batch modes on pasted transaction matrices), and interpretation guidance, plus a documented list of three classic MBA pitfalls.",
+    "primary_cited_source": "Aguinis (2025), Research Methodology"
+  },
+  {
+    "id": "ch12-esm",
+    "folder": "tools/ch12-esm",
+    "name": "Experience Sampling Methodology (ESM) Study Designer",
+    "source_page": "https://www.hermanaguinis.com/ESM.html",
+    "topic": "Market Basket Analysis, Experience Sampling, and Bayesian Analysis",
+    "function": "Fourteen modules (A through N) covering ESM fit diagnosis, a research-question-to-design mapper, a protocol selector (interval/event/signal-contingent), a sample-size and data-point planner, a survey/codebook builder, a schedule generator, technology planning, recruitment scripts, a compliance-monitoring dashboard, a stacked multilevel data-structure builder, an analysis-plan generator, a validity/risk audit, an ethics/IRB module, and a reporting-package generator.",
+    "primary_cited_source": "Aguinis (2025), Research Methodology"
+  },
+  {
+    "id": "ch12-bayesian",
+    "folder": "tools/ch12-bayesian",
+    "name": "Bayesian Analysis Companion",
+    "source_page": "https://www.hermanaguinis.com/Bayesian.html",
+    "topic": "Market Basket Analysis, Experience Sampling, and Bayesian Analysis",
+    "function": "A working Metropolis MCMC sampler running a full Bayesian multiple linear regression in the browser (multiple chains, burn-in, trace/autocorrelation/R-hat diagnostics), prior specification and justification, HDI/ROPE-based decision rules, a Bayesian power-and-replication simulator that resamples from the fitted posterior, and a five-recommendation manuscript write-up generator.",
+    "primary_cited_source": "Aguinis (2025), Research Methodology"
+  },
+  {
+    "id": "ch13-key-informant-interviews",
+    "folder": "tools/ch13-key-informant-interviews",
+    "name": "Key Informant Interview Research Tool",
+    "source_page": "https://www.hermanaguinis.com/keyinformantinterviews.html",
+    "topic": "Qualitative and Mixed-Methods Research",
+    "function": "Covers method-fit diagnosis, an assumption-challenging informant planner, a scored informant-priority table, access-route selection with generated outreach emails, an interview-format selector and dynamic protocol builder, power-dynamics and candor/confidentiality checklists, a triangulation matrix, disconfirming-case planning, and reviewer-facing and reflexivity checklists.",
+    "primary_cited_source": "Aguinis (2025), Research Methodology"
+  },
+  {
+    "id": "ch13-cata",
+    "folder": "tools/ch13-cata",
+    "name": "CATA Accuracy Toolkit",
+    "source_page": "https://www.hermanaguinis.com/CATA.html",
+    "topic": "Qualitative and Mixed-Methods Research",
+    "function": "A seven-module companion for computer-aided text analysis with built-in calculation self-tests: each test reproduces a worked number reported in the source article, and all tests must pass.",
+    "primary_cited_source": "Journal of Management article (specific citation not named in proposal text -- confirm before publishing)"
+  },
+  {
+    "id": "ch13-method-lit-review",
+    "folder": "tools/ch13-method-lit-review",
+    "name": "Methodological Literature Review Builder, Evaluator, and Teaching Toolkit",
+    "source_page": "https://www.hermanaguinis.com/methodlitreview.html",
+    "topic": "Qualitative and Mixed-Methods Research",
+    "function": "Three interchangeable modes (Produce, Evaluate, Use/Teach) built around a review-type classifier, a four-broad-issue workflow, a ten-domain scored checklist, a QRP (questionable research practice) risk detector, a recommendation-source matrix, and mode-specific outputs.",
+    "primary_cited_source": "Aguinis (2025), Research Methodology"
+  },
+  {
+    "id": "ch13-qual-transparency",
+    "folder": "tools/ch13-qual-transparency",
+    "name": "Transparency and Replicability Tool for Qualitative Research",
+    "source_page": "https://www.hermanaguinis.com/qualtransparency.html",
+    "topic": "Qualitative and Mixed-Methods Research",
+    "function": "Implements 12 transparency criteria with a four-point behaviorally anchored rating scale, live replication-readiness scoring, and separate author and reviewer working modes; no single criterion holds veto power over publication.",
+    "primary_cited_source": "Aguinis (2025), Research Methodology"
+  },
+  {
+    "id": "ch13-mixed-methods",
+    "folder": "tools/ch13-mixed-methods",
+    "name": "Mixed Methods Study Designer",
+    "source_page": "https://www.hermanaguinis.com/mixedmethods.html",
+    "topic": "Qualitative and Mixed-Methods Research",
+    "function": "A wizard covering the five purposes for mixing, priority/emphasis and sequencing decisions with standard QUAL/QUAN notation, a built-in participant-selection design template, quantitative- and qualitative-strand worksheets, and an integration checklist and diagram.",
+    "primary_cited_source": "Greene, Caracelli & Graham (1989), Ed. Eval. Policy Anal. 11(3):255-274; Rouse & Daellenbach (1999), Strategic Management J. 20(5):487-494"
+  },
+  {
+    "id": "ch14-customer-centric",
+    "folder": "tools/ch14-customer-centric",
+    "name": "Customer-Centric Science Tool",
+    "source_page": "https://www.hermanaguinis.com/customercentric.html",
+    "topic": "Reporting Results",
+    "function": "Operationalizes a three-step sequence: an alpha-justification calculator based on the relative seriousness of Type I versus Type II error, an effect-magnitude calculator (Cohen's d/Hedges' g, R-squared/adjusted R-squared with confidence intervals) that argues against fixed small/medium/large cutoffs, and a qualitative, practical-significance study planner.",
+    "primary_cited_source": "Murphy & Myors (1998), Statistical Power Analysis (Lawrence Erlbaum)"
+  },
+  {
+    "id": "ch14-effect-sizes",
+    "folder": "tools/ch14-effect-sizes",
+    "name": "Effect-Size Benchmark Interpreter",
+    "source_page": "https://www.hermanaguinis.com/effectsizes.html",
+    "topic": "Reporting Results",
+    "function": "A twenty-plus-module benchmarking tool: an effect-size metric converter, a benchmark-selection wizard, a built-in benchmark library plus custom-benchmark import, a percentile locator, cross-domain comparison, practical-significance and moderation-opportunity modules, a Bayesian-prior assistant, and manuscript-text and reviewer red-flag generators.",
+    "primary_cited_source": "Aguinis (2025), Research Methodology"
+  },
+  {
+    "id": "ch14-limitations",
+    "folder": "tools/ch14-limitations",
+    "name": "Limitations & Future Directions Builder",
+    "source_page": "https://www.hermanaguinis.com/limitations.html",
+    "topic": "Reporting Results",
+    "function": "Implements eight evidence-based guidelines with a per-limitation wizard (validity type, the \"what\" and required \"so what\", magnitude, who raised it) and a future-directions builder that checks whether a direction merely restates a limitation versus advances theory.",
+    "primary_cited_source": "Aguinis (2025), Research Methodology"
+  },
+  {
+    "id": "ch15-transparency",
+    "folder": "tools/ch15-transparency",
+    "name": "Methodological Transparency Companion",
+    "source_page": "https://www.hermanaguinis.com/transparency.html",
+    "topic": "Research Transparency",
+    "function": "Operationalizes all 44 disclosure recommendations from the source article as a trackable, filterable checklist (mark addressed / not applicable) that exports a manuscript-ready transparency appendix in Markdown and JSON.",
+    "primary_cited_source": "Aguinis, Ramani & Alabduljader (2018), Acad. Management Ann. 12(1):83-110"
+  },
+  {
+    "id": "ch16-impact",
+    "folder": "tools/ch16-impact",
+    "name": "Scholarly Impact Toolkit",
+    "source_page": "https://www.hermanaguinis.com/impact.html",
+    "topic": "Scholarly Impact",
+    "function": "Separate administrator and researcher/educator paths built on a four-dimension, four-stakeholder impact framework (theory/research, education, organizations, society), each with weighted recommendation modules, culminating in an exportable, printable Impact Plan.",
+    "primary_cited_source": "Aguinis (2025), Research Methodology"
+  },
+  {
+    "id": "ch16-pidp",
+    "folder": "tools/ch16-pidp",
+    "name": "Personal Impact Development Plan (PIDP) Builder",
+    "source_page": "https://www.hermanaguinis.com/PIDP.html",
+    "topic": "Scholarly Impact",
+    "function": "Thirteen modules from a six-competency diagnostic (priority score = importance + (5 minus capability) + (5 minus confidence)) through an action-plan builder, a developmental-activity library, a prescriptive-readiness module, a feedforward-interview worksheet, a mentor/support-request tracker, an evidence-of-development log, and a generated, exportable PIDP.",
+    "primary_cited_source": "Aguinis (2025), Research Methodology"
+  }
+]

@@ -1,0 +1,1718 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Causal Inference Research Planning Tool</title>
+  <style>
+    :root{
+      --bg:#f6f8fb;
+      --panel:#ffffff;
+      --ink:#172033;
+      --muted:#5b6475;
+      --line:#d9e1ec;
+      --brand:#194f87;
+      --brand2:#2d78b7;
+      --accent:#0f766e;
+      --warn:#b45309;
+      --bad:#b91c1c;
+      --good:#166534;
+      --soft:#eaf3fb;
+      --soft2:#eef8f6;
+      --shadow:0 12px 30px rgba(23,32,51,.09);
+      --radius:18px;
+      --radius2:12px;
+    }
+    *{box-sizing:border-box}
+    html{scroll-behavior:smooth}
+    body{
+      margin:0;
+      font-family: Arial, Helvetica, sans-serif;
+      background:linear-gradient(135deg,#f6f8fb 0%,#eef4f9 100%);
+      color:var(--ink);
+      line-height:1.45;
+    }
+    a{color:var(--brand)}
+    .app{
+      display:grid;
+      grid-template-columns:310px minmax(0,1fr);
+      min-height:100vh;
+    }
+    aside{
+      position:sticky;
+      top:0;
+      height:100vh;
+      overflow:auto;
+      background:#0e2f51;
+      color:#fff;
+      padding:22px 18px;
+      box-shadow:6px 0 22px rgba(0,0,0,.12);
+      z-index:2;
+    }
+    .brand{
+      padding:10px 10px 18px;
+      border-bottom:1px solid rgba(255,255,255,.18);
+      margin-bottom:14px;
+    }
+    .brand h1{
+      font-size:1.25rem;
+      margin:0 0 8px;
+      letter-spacing:.2px;
+    }
+    .brand p{
+      color:#dbeafe;
+      font-size:.88rem;
+      margin:0;
+    }
+    .progressWrap{
+      background:rgba(255,255,255,.11);
+      padding:14px;
+      border-radius:14px;
+      margin:14px 0;
+    }
+    .progressHeader{
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      font-size:.86rem;
+      margin-bottom:8px;
+    }
+    .progressBar{
+      height:10px;
+      background:rgba(255,255,255,.18);
+      border-radius:99px;
+      overflow:hidden;
+    }
+    .progressBar > div{
+      height:100%;
+      width:0%;
+      background:linear-gradient(90deg,#7dd3fc,#5eead4);
+      transition:width .25s ease;
+    }
+    nav{
+      display:flex;
+      flex-direction:column;
+      gap:5px;
+      margin-top:12px;
+    }
+    nav a{
+      color:#e8f2ff;
+      text-decoration:none;
+      padding:10px 11px;
+      border-radius:12px;
+      font-size:.9rem;
+      display:flex;
+      gap:8px;
+      align-items:flex-start;
+    }
+    nav a:hover, nav a.active{
+      background:rgba(255,255,255,.14);
+    }
+    nav a .num{
+      opacity:.8;
+      min-width:24px;
+      font-weight:700;
+    }
+    main{
+      padding:28px clamp(18px,3vw,44px) 70px;
+      max-width:1280px;
+      width:100%;
+      margin:auto;
+    }
+    .hero{
+      background:linear-gradient(135deg,#ffffff 0%,#eaf3fb 100%);
+      border:1px solid var(--line);
+      border-radius:28px;
+      padding:34px;
+      box-shadow:var(--shadow);
+      margin-bottom:22px;
+    }
+    .hero h2{
+      margin:0 0 8px;
+      font-size:clamp(2rem,4vw,3.2rem);
+      color:#0e2f51;
+      line-height:1.05;
+    }
+    .hero .subtitle{
+      font-size:1.1rem;
+      color:#334155;
+      margin:0 0 18px;
+      max-width:900px;
+    }
+    .credit{
+      font-size:.92rem;
+      background:rgba(25,79,135,.08);
+      border-left:5px solid var(--brand);
+      padding:12px 14px;
+      border-radius:10px;
+      margin:16px 0 18px;
+    }
+    .heroGrid{
+      display:grid;
+      grid-template-columns:repeat(3,minmax(0,1fr));
+      gap:12px;
+      margin-top:18px;
+    }
+    .pill{
+      border:1px solid var(--line);
+      background:#fff;
+      padding:12px;
+      border-radius:14px;
+      font-size:.92rem;
+      display:flex;
+      gap:8px;
+      align-items:flex-start;
+    }
+    .pill b{color:#0e2f51}
+    section.module{
+      background:var(--panel);
+      border:1px solid var(--line);
+      border-radius:var(--radius);
+      box-shadow:var(--shadow);
+      margin:18px 0;
+      overflow:hidden;
+    }
+    .moduleHeader{
+      display:flex;
+      justify-content:space-between;
+      gap:18px;
+      align-items:flex-start;
+      padding:22px 24px;
+      background:linear-gradient(135deg,#ffffff,#f3f7fb);
+      border-bottom:1px solid var(--line);
+    }
+    .moduleHeader h3{
+      margin:0;
+      font-size:1.35rem;
+      color:#12385f;
+    }
+    .moduleHeader p{
+      margin:6px 0 0;
+      color:var(--muted);
+      max-width:820px;
+      font-size:.95rem;
+    }
+    .moduleBody{
+      padding:22px 24px 26px;
+    }
+    details.card{
+      border:1px solid var(--line);
+      border-radius:var(--radius2);
+      background:#fff;
+      margin:12px 0;
+      overflow:hidden;
+    }
+    details.card summary{
+      cursor:pointer;
+      padding:14px 16px;
+      font-weight:700;
+      color:#12385f;
+      background:#f8fafc;
+    }
+    details.card .cardBody{
+      padding:16px;
+      border-top:1px solid var(--line);
+    }
+    .grid2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
+    .grid3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}
+    .grid4{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}
+    label{
+      display:block;
+      font-size:.86rem;
+      color:#334155;
+      font-weight:700;
+      margin:0 0 6px;
+    }
+    .field{margin-bottom:13px}
+    input[type="text"], input[type="number"], select, textarea{
+      width:100%;
+      border:1px solid #cbd5e1;
+      background:#fff;
+      color:var(--ink);
+      border-radius:11px;
+      padding:10px 11px;
+      font-size:.95rem;
+      font-family:inherit;
+      outline:none;
+    }
+    textarea{min-height:92px;resize:vertical}
+    input:focus, textarea:focus, select:focus{
+      border-color:var(--brand2);
+      box-shadow:0 0 0 3px rgba(45,120,183,.14);
+    }
+    .checks{
+      display:grid;
+      grid-template-columns:repeat(2,minmax(0,1fr));
+      gap:8px 12px;
+      margin:8px 0 14px;
+    }
+    .check{
+      display:flex;
+      gap:8px;
+      align-items:flex-start;
+      padding:10px;
+      border:1px solid var(--line);
+      border-radius:12px;
+      background:#fbfdff;
+      font-size:.9rem;
+    }
+    .check input{margin-top:2px}
+    .buttons{
+      display:flex;
+      flex-wrap:wrap;
+      gap:9px;
+      margin:12px 0;
+    }
+    button{
+      border:0;
+      border-radius:999px;
+      background:var(--brand);
+      color:#fff;
+      padding:10px 14px;
+      cursor:pointer;
+      font-weight:700;
+      font-size:.9rem;
+      box-shadow:0 3px 10px rgba(25,79,135,.18);
+    }
+    button.secondary{
+      background:#e7eef6;
+      color:#12385f;
+      box-shadow:none;
+      border:1px solid #cbd5e1;
+    }
+    button.warning{background:var(--warn)}
+    button.bad{background:var(--bad)}
+    button.good{background:var(--good)}
+    button:hover{filter:brightness(.96)}
+    .diagnostic{
+      padding:14px;
+      border-radius:14px;
+      border:1px solid var(--line);
+      background:#f8fafc;
+      margin:12px 0;
+    }
+    .diagnostic.good{
+      border-color:#bbf7d0;
+      background:#f0fdf4;
+      color:#14532d;
+    }
+    .diagnostic.warn{
+      border-color:#fed7aa;
+      background:#fff7ed;
+      color:#7c2d12;
+    }
+    .diagnostic.bad{
+      border-color:#fecaca;
+      background:#fef2f2;
+      color:#7f1d1d;
+    }
+    .small{
+      font-size:.84rem;
+      color:var(--muted);
+    }
+    .callout{
+      background:#eff6ff;
+      border-left:5px solid var(--brand2);
+      padding:12px 14px;
+      border-radius:12px;
+      margin:12px 0;
+      color:#1e3a5f;
+    }
+    .callout strong{color:#0e2f51}
+    .methodCard, .miniCard{
+      border:1px solid var(--line);
+      background:#fff;
+      border-radius:14px;
+      padding:14px;
+      min-height:100%;
+    }
+    .methodCard h4, .miniCard h4{margin:0 0 8px;color:#12385f}
+    .methodCard ul, .miniCard ul{margin:7px 0 0 18px;padding:0}
+    .methodCard li, .miniCard li{margin:3px 0}
+    .matrix{
+      display:grid;
+      grid-template-columns:repeat(2,minmax(0,1fr));
+      gap:10px;
+      margin-top:10px;
+    }
+    .quadrant{
+      min-height:110px;
+      border:1px dashed #94a3b8;
+      border-radius:14px;
+      padding:12px;
+      background:#f8fafc;
+    }
+    .quadrant h4{margin:0 0 8px;font-size:.96rem}
+    .tag{
+      display:inline-flex;
+      align-items:center;
+      padding:4px 8px;
+      margin:3px;
+      background:#e2e8f0;
+      border-radius:999px;
+      font-size:.8rem;
+    }
+    .tag.high{background:#fee2e2;color:#7f1d1d}
+    .tag.medium{background:#ffedd5;color:#7c2d12}
+    .tag.low{background:#dcfce7;color:#14532d}
+    table{
+      width:100%;
+      border-collapse:collapse;
+      margin:12px 0;
+      font-size:.9rem;
+    }
+    th,td{
+      border:1px solid var(--line);
+      padding:9px;
+      vertical-align:top;
+      text-align:left;
+    }
+    th{background:#f1f5f9;color:#12385f}
+    .rangeLine{
+      display:grid;
+      grid-template-columns:1fr 86px;
+      gap:12px;
+      align-items:center;
+      margin:8px 0 14px;
+    }
+    input[type="range"]{width:100%}
+    .scoreGrid{
+      display:grid;
+      grid-template-columns:repeat(2,minmax(0,1fr));
+      gap:14px;
+      margin:10px 0;
+    }
+    .scoreBox{
+      padding:18px;
+      border-radius:16px;
+      border:1px solid var(--line);
+      background:#f8fafc;
+      text-align:center;
+    }
+    .scoreBox .num{
+      font-size:2.2rem;
+      font-weight:800;
+      color:#12385f;
+    }
+    .copyBox{
+      border:1px solid var(--line);
+      border-radius:14px;
+      padding:12px;
+      margin:10px 0;
+      background:#fbfdff;
+    }
+    .copyBox h4{margin:0 0 8px;color:#12385f}
+    .copyBox textarea{min-height:150px;background:#fff}
+    .stickyActions{
+      position:sticky;
+      bottom:0;
+      background:rgba(246,248,251,.94);
+      backdrop-filter:blur(8px);
+      border-top:1px solid var(--line);
+      padding:12px 0;
+      z-index:1;
+      display:flex;
+      flex-wrap:wrap;
+      gap:8px;
+    }
+    #reportPreview{
+      white-space:pre-wrap;
+      background:#fff;
+      border:1px solid var(--line);
+      border-radius:14px;
+      padding:18px;
+      min-height:300px;
+      font-family:Arial, Helvetica, sans-serif;
+    }
+    .tooltip{
+      border-bottom:1px dotted currentColor;
+      cursor:help;
+      color:#0f766e;
+      font-weight:700;
+    }
+    .hidden{display:none!important}
+    .rowItem{
+      border:1px solid var(--line);
+      border-radius:14px;
+      padding:14px;
+      margin:10px 0;
+      background:#fff;
+    }
+    .rowHeader{
+      display:flex;
+      justify-content:space-between;
+      gap:10px;
+      align-items:center;
+      margin-bottom:8px;
+    }
+    .rowHeader strong{color:#12385f}
+    .footerNote{
+      margin:30px 0 0;
+      color:#64748b;
+      font-size:.86rem;
+    }
+    @media (max-width:1050px){
+      .app{grid-template-columns:1fr}
+      aside{position:relative;height:auto}
+      nav{display:grid;grid-template-columns:repeat(2,minmax(0,1fr))}
+      .heroGrid,.grid3,.grid4{grid-template-columns:1fr 1fr}
+    }
+    @media (max-width:720px){
+      main{padding:16px}
+      .hero{padding:22px}
+      .moduleHeader{padding:18px;display:block}
+      .moduleBody{padding:18px}
+      .grid2,.grid3,.grid4,.heroGrid,.checks,.scoreGrid,.matrix{grid-template-columns:1fr}
+      nav{grid-template-columns:1fr}
+      .rangeLine{grid-template-columns:1fr}
+    }
+    @media print{
+      aside,.stickyActions,button,nav{display:none!important}
+      .app{display:block}
+      main{max-width:none;padding:0}
+      section.module,.hero{box-shadow:none;break-inside:avoid}
+      body{background:#fff}
+      #reportPreview{border:0}
+    }
+  </style>
+</head>
+<body>
+<div class="app">
+  <aside>
+    <div class="brand">
+      <h1>Causal Inference Research Planning Tool</h1>
+      <p>Plan rigorous, credible, relevant, and causally interpretable empirical research before data collection.</p>
+    </div>
+    <div class="progressWrap">
+      <div class="progressHeader"><span>Completion</span><strong id="progressText">0%</strong></div>
+      <div class="progressBar"><div id="progressFill"></div></div>
+      <p class="small" id="progressHint">Complete fields across modules to build your research plan.</p>
+    </div>
+    <nav id="nav">
+      <a href="#dashboard"><span class="num">0</span>Dashboard</a>
+      <a href="#m1"><span class="num">1</span>Research planning & practical relevance</a>
+      <a href="#m2"><span class="num">2</span>Causal claim builder</a>
+      <a href="#m3"><span class="num">3</span>Three causal conditions</a>
+      <a href="#m4"><span class="num">4</span>Alternative explanations</a>
+      <a href="#m5"><span class="num">5</span>Procedure selector</a>
+      <a href="#m6"><span class="num">6</span>Counterfactual planner</a>
+      <a href="#m7"><span class="num">7</span>Matching planner</a>
+      <a href="#m8"><span class="num">8</span>Instrumental-variable diagnostic</a>
+      <a href="#m9"><span class="num">9</span>Quasi-experiment planner</a>
+      <a href="#m10"><span class="num">10</span>Internal/external validity</a>
+      <a href="#m11"><span class="num">11</span>ESM, eLancing, VR</a>
+      <a href="#m12"><span class="num">12</span>Control-variable decision tree</a>
+      <a href="#m13"><span class="num">13</span>With/without controls reporting</a>
+      <a href="#m14"><span class="num">14</span>Manuscript language generator</a>
+      <a href="#m15"><span class="num">15</span>Final research plan export</a>
+    </nav>
+  </aside>
+
+  <main>
+    <div id="dashboard" class="hero">
+      <h2>Causal Inference Research Planning Tool</h2>
+      <p class="subtitle">An interactive guide for planning rigorous, credible, relevant, and causally interpretable social and behavioral science research.</p>
+      <div class="credit">
+        <strong>Source credit:</strong> Based on Aguinis, H. 2025. <em>Research methodology: Best practices for rigorous, credible, and impactful research.</em> SAGE. https://collegepublishing.sagepub.com/products/research-methodology-1-280088
+      </div>
+      <div class="callout"><strong>Core principle:</strong> Causal inference is first a design problem. Weak research design cannot be fixed after data collection by sophisticated statistical analysis.</div>
+      <div class="heroGrid">
+        <div class="pill">✓ <span><b>Practical relevance:</b> identify important research questions, beneficiaries, and actionable decision consequences.</span></div>
+        <div class="pill">✓ <span><b>Causal design:</b> test association, temporal precedence, and rival explanations before data collection.</span></div>
+        <div class="pill">✓ <span><b>Design selection:</b> compare experiments, quasi-experiments, matching, IVs, ESM, eLancing, and VR.</span></div>
+        <div class="pill">✓ <span><b>Validity balance:</b> diagnose internal and external validity tradeoffs.</span></div>
+        <div class="pill">✓ <span><b>Control variables:</b> include, exclude, or reclassify controls using theoretical and measurement logic.</span></div>
+        <div class="pill">✓ <span><b>Manuscript readiness:</b> generate transparent language for methods, controls, and limitations.</span></div>
+      </div>
+      <div class="stickyActions">
+        <button onclick="saveState()">Save progress</button>
+        <button class="secondary" onclick="loadState()">Load saved progress</button>
+        <button class="secondary" onclick="generateReport(true)">Refresh final report</button>
+        <button class="warning" onclick="clearState()">Clear all responses</button>
+      </div>
+    </div>
+
+    <section id="m1" class="module" data-module>
+      <div class="moduleHeader">
+        <div>
+          <h3>1. Research planning and practical relevance</h3>
+          <p>Clarify what problem the study addresses, who can use the evidence, and how the research reduces science-practice or micro-macro gaps.</p>
+        </div>
+      </div>
+      <div class="moduleBody">
+        <div class="grid2">
+          <div class="field"><label>Research topic</label><input id="topic" data-track placeholder="e.g., leader behavior and employee voice"></div>
+          <div class="field"><label>Focal practical problem</label><input id="practicalProblem" data-track placeholder="What decision or problem motivates the study?"></div>
+          <div class="field"><label>Intended beneficiaries</label><input id="beneficiaries" data-track placeholder="Organizations, employees, policymakers, communities, society..."></div>
+          <div class="field"><label>Outcome variables of interest to decision-makers</label><input id="outcomes" data-track placeholder="e.g., retention, safety, well-being, performance"></div>
+        </div>
+        <div class="grid2">
+          <div class="field"><label>Theoretical contribution</label><textarea id="theoryContribution" data-track></textarea></div>
+          <div class="field"><label>Practical contribution</label><textarea id="practicalContribution" data-track></textarea></div>
+        </div>
+        <div class="checks">
+          <label class="check"><input type="checkbox" id="sciencePracticeGap" data-track> Addresses a science-practice gap</label>
+          <label class="check"><input type="checkbox" id="microMacroGap" data-track> Addresses a micro-macro gap</label>
+          <label class="check"><input type="checkbox" id="designScience" data-track> Uses a design-science orientation focused on preferred futures</label>
+          <label class="check"><input type="checkbox" id="decisionUse" data-track> Specifies an actionable decision improved by the evidence</label>
+        </div>
+        <details class="card" open>
+          <summary>Refinement prompts</summary>
+          <div class="cardBody grid2">
+            <div class="field"><label>What actionable decision could be improved by this research?</label><textarea id="actionDecision" data-track></textarea></div>
+            <div class="field"><label>Who would use the findings?</label><textarea id="userOfFindings" data-track></textarea></div>
+            <div class="field"><label>What would change in practice if the causal claim were supported?</label><textarea id="practiceChange" data-track></textarea></div>
+            <div class="field"><label>What outcome matters beyond the academic literature?</label><textarea id="nonAcademicOutcome" data-track></textarea></div>
+          </div>
+        </details>
+        <div id="practicalScore" class="diagnostic">Practical Relevance Score will appear here.</div>
+        <button onclick="scorePractical()">Score practical relevance</button>
+      </div>
+    </section>
+
+    <section id="m2" class="module" data-module>
+      <div class="moduleHeader">
+        <div>
+          <h3>2. Causal claim builder</h3>
+          <p>Convert the idea into an explicit causal claim with mechanism, boundary conditions, levels, time frame, and contribution logic.</p>
+        </div>
+      </div>
+      <div class="moduleBody">
+        <div class="grid3">
+          <div class="field"><label>Presumed cause X</label><input id="xVar" data-track></div>
+          <div class="field"><label>Presumed outcome Y</label><input id="yVar" data-track></div>
+          <div class="field"><label>Proposed mechanism M</label><input id="mVar" data-track></div>
+          <div class="field"><label>Boundary conditions Z</label><input id="zConditions" data-track></div>
+          <div class="field"><label>Unit of analysis</label><input id="unitAnalysis" data-track></div>
+          <div class="field"><label>Level of theory</label><input id="levelTheory" data-track></div>
+          <div class="field"><label>Level of measurement</label><input id="levelMeasurement" data-track></div>
+          <div class="field"><label>Time frame</label><input id="timeFrame" data-track></div>
+          <div class="field"><label>Expected direction of effect</label><select id="effectDirection" data-track><option></option><option>positive</option><option>negative</option><option>curvilinear</option><option>conditional</option><option>nonlinear or asymmetric</option></select></div>
+        </div>
+        <div class="grid2">
+          <div class="field"><label>Why the relationship matters theoretically</label><textarea id="theoryMatter" data-track></textarea></div>
+          <div class="field"><label>Why the relationship matters practically</label><textarea id="practiceMatter" data-track></textarea></div>
+        </div>
+        <button onclick="buildCausalStatement()">Generate causal statement</button>
+        <div class="field"><label>Editable causal statement</label><textarea id="causalStatement" data-track placeholder="X is expected to affect Y through M under conditions Z."></textarea></div>
+      </div>
+    </section>
+
+    <section id="m3" class="module" data-module>
+      <div class="moduleHeader">
+        <div>
+          <h3>3. Three conditions for causal inference</h3>
+          <p>Assess association, temporal precedence, and the ability to rule out alternative explanations.</p>
+        </div>
+      </div>
+      <div class="moduleBody">
+        <details class="card" open>
+          <summary>Condition 1: Association between cause and effect</summary>
+          <div class="cardBody grid2">
+            <div class="field"><label>What evidence will show that X and Y are related?</label><textarea id="assocEvidence" data-track></textarea></div>
+            <div class="field"><label>What model or comparison will test the association?</label><textarea id="assocModel" data-track></textarea></div>
+            <label class="check"><input type="checkbox" id="assocPredicted" data-track> Expected relationship is nonzero and in the predicted direction</label>
+          </div>
+        </details>
+        <details class="card" open>
+          <summary>Condition 2: Temporal precedence</summary>
+          <div class="cardBody grid2">
+            <div class="field"><label>Study design</label><select id="designType" data-track><option></option><option>Cross-sectional</option><option>Longitudinal</option><option>Randomized experiment</option><option>Quasi-experiment</option><option>Experience sampling</option><option>Field experiment</option><option>Mixed-method or multi-study design</option></select></div>
+            <div class="field"><label>Theoretically appropriate time lag</label><input id="timeLag" data-track></div>
+            <div class="field"><label>How does X clearly occur before Y?</label><textarea id="temporalExplanation" data-track></textarea></div>
+            <div class="field"><label>Could reverse causality explain the relationship?</label><textarea id="reverseCausality" data-track></textarea></div>
+            <label class="check"><input type="checkbox" id="xBeforeY" data-track> Design makes X occur before Y</label>
+          </div>
+        </details>
+        <details class="card" open>
+          <summary>Condition 3: Ruling out alternative explanations</summary>
+          <div class="cardBody grid2">
+            <div class="field"><label>Plausible rival explanations</label><textarea id="rivalSummary" data-track></textarea></div>
+            <div class="field"><label>Omitted variables that could explain both X and Y</label><textarea id="omittedVars" data-track></textarea></div>
+            <div class="field"><label>Selection, common method bias, measurement artifacts, endogeneity, or context effects</label><textarea id="biasThreats" data-track></textarea></div>
+            <div class="field"><label>How will design or analysis address these alternatives?</label><textarea id="addressAlternatives" data-track></textarea></div>
+            <label class="check"><input type="checkbox" id="rivalsAddressed" data-track> Major rival explanations are addressed by design, measurement, or analysis</label>
+          </div>
+        </details>
+        <div id="causalReadiness" class="diagnostic">Causal Inference Readiness Rating will appear here.</div>
+        <button onclick="scoreCausalReadiness()">Rate causal readiness</button>
+      </div>
+    </section>
+
+    <section id="m4" class="module" data-module>
+      <div class="moduleHeader">
+        <div>
+          <h3>4. Alternative explanation inventory</h3>
+          <p>Create a rival-explanations worksheet and threat matrix before data collection.</p>
+        </div>
+      </div>
+      <div class="moduleBody">
+        <div class="buttons"><button onclick="addRival()">Add rival explanation</button><button class="secondary" onclick="renderRivals()">Refresh matrix</button></div>
+        <div id="rivalList"></div>
+        <h4>Rival Explanation Threat Matrix</h4>
+        <div class="matrix">
+          <div class="quadrant" id="matrixHH"><h4>High plausibility / high threat</h4></div>
+          <div class="quadrant" id="matrixHL"><h4>High plausibility / low threat</h4></div>
+          <div class="quadrant" id="matrixLH"><h4>Low plausibility / high threat</h4></div>
+          <div class="quadrant" id="matrixLL"><h4>Low plausibility / low threat</h4></div>
+        </div>
+      </div>
+    </section>
+
+    <section id="m5" class="module" data-module>
+      <div class="moduleHeader">
+        <div>
+          <h3>5. Causal-inference procedure selector</h3>
+          <p>Use design constraints to identify procedures that may strengthen causal inference.</p>
+        </div>
+      </div>
+      <div class="moduleBody">
+        <div class="grid3">
+          <div class="field"><label>Can X be manipulated?</label><select id="qManipulate" data-track><option></option><option>Yes</option><option>No</option><option>Partially</option></select></div>
+          <div class="field"><label>Can units be randomly assigned?</label><select id="qRandom" data-track><option></option><option>Yes</option><option>No</option><option>Partially</option></select></div>
+          <div class="field"><label>Is there naturally occurring variation in X?</label><select id="qNatural" data-track><option></option><option>Yes</option><option>No</option><option>Unclear</option></select></div>
+          <div class="field"><label>Are pre-treatment measures available?</label><select id="qPre" data-track><option></option><option>Yes</option><option>No</option><option>Can collect</option></select></div>
+          <div class="field"><label>Are comparable treated and untreated units available?</label><select id="qComparable" data-track><option></option><option>Yes</option><option>No</option><option>Can construct</option></select></div>
+          <div class="field"><label>Is there a plausible instrument?</label><select id="qInstrument" data-track><option></option><option>Yes</option><option>No</option><option>Possible but uncertain</option></select></div>
+          <div class="field"><label>Is the instrument correlated with X?</label><select id="qInstX" data-track><option></option><option>Yes</option><option>No</option><option>Unknown</option></select></div>
+          <div class="field"><label>Is the instrument uncorrelated with omitted causes of Y?</label><select id="qInstError" data-track><option></option><option>Yes</option><option>No</option><option>Unknown</option></select></div>
+          <div class="field"><label>Does the instrument affect Y only through X?</label><select id="qInstExclusion" data-track><option></option><option>Yes</option><option>No</option><option>Unknown</option></select></div>
+          <div class="field"><label>Is temporal sequencing available?</label><select id="qTemporal" data-track><option></option><option>Yes</option><option>No</option><option>Can be added</option></select></div>
+          <div class="field"><label>Is the setting naturalistic?</label><select id="qNaturalistic" data-track><option></option><option>Yes</option><option>No</option><option>Can be approximated</option></select></div>
+          <div class="field"><label>Is repeated within-person or within-unit measurement possible?</label><select id="qRepeated" data-track><option></option><option>Yes</option><option>No</option><option>Possibly</option></select></div>
+          <div class="field"><label>Is the topic sensitive or difficult to study in the field?</label><select id="qSensitive" data-track><option></option><option>Yes</option><option>No</option><option>Partly</option></select></div>
+        </div>
+        <button onclick="recommendProcedures()">Recommend designs</button>
+        <div id="procedureRecommendation" class="diagnostic">Recommendations will appear here.</div>
+        <details class="card" open>
+          <summary>Method reference cards</summary>
+          <div class="cardBody grid3" id="methodCards"></div>
+        </details>
+      </div>
+    </section>
+
+    <section id="m6" class="module" data-module>
+      <div class="moduleHeader">
+        <div>
+          <h3>6. Counterfactual thinking planner</h3>
+          <p>State the missing potential outcome and specify how the design approximates it.</p>
+        </div>
+      </div>
+      <div class="moduleBody grid2">
+        <div class="field"><label>What would happen to the same unit if exposed to X?</label><textarea id="cfTreated" data-track></textarea></div>
+        <div class="field"><label>What would happen to the same unit if not exposed to X?</label><textarea id="cfUntreated" data-track></textarea></div>
+        <div class="field"><label>Why can the two potential outcomes not be observed simultaneously?</label><textarea id="cfMissing" data-track></textarea></div>
+        <div class="field"><label>What comparison group or design feature approximates the missing counterfactual?</label><textarea id="cfApprox" data-track></textarea></div>
+        <div class="field"><label>What assumptions are required for the comparison to be credible?</label><textarea id="cfAssumptions" data-track></textarea></div>
+        <div>
+          <button onclick="generateCounterfactual()">Generate counterfactual summary</button>
+          <div class="field"><label>The study’s counterfactual logic is...</label><textarea id="cfSummary" data-track></textarea></div>
+        </div>
+      </div>
+    </section>
+
+    <section id="m7" class="module" data-module>
+      <div class="moduleHeader">
+        <div>
+          <h3>7. Matching and propensity-score planning</h3>
+          <p>Plan matching variables, check pre-treatment status, and avoid unnecessary categorization, measurement error, and overmatching.</p>
+        </div>
+      </div>
+      <div class="moduleBody">
+        <div class="grid2">
+          <div class="field"><label>Treated group</label><input id="matchTreated" data-track></div>
+          <div class="field"><label>Comparison group</label><input id="matchComparison" data-track></div>
+        </div>
+        <div class="buttons"><button onclick="addMatchVar()">Add matching variable</button><button class="secondary" onclick="renderMatchVars()">Refresh matching plan</button></div>
+        <div id="matchList"></div>
+        <div id="matchWarnings" class="diagnostic warn">Matching warnings will appear here.</div>
+        <div class="field"><label>Generated matching-plan summary</label><textarea id="matchingSummary" data-track></textarea></div>
+      </div>
+    </section>
+
+    <section id="m8" class="module" data-module>
+      <div class="moduleHeader">
+        <div>
+          <h3>8. Instrumental-variable diagnostic</h3>
+          <p>Evaluate whether proposed instruments meet stringent relevance, independence, and exclusion assumptions.</p>
+        </div>
+      </div>
+      <div class="moduleBody">
+        <div class="callout"><strong>Warning:</strong> Instrumental variables require stringent assumptions. Failed assumptions can produce biased, inconsistent, or inefficient estimates.</div>
+        <div class="buttons"><button onclick="addInstrument()">Add proposed instrument</button><button class="secondary" onclick="renderInstruments()">Refresh diagnostic</button></div>
+        <div id="instrumentList"></div>
+      </div>
+    </section>
+
+    <section id="m9" class="module" data-module>
+      <div class="moduleHeader">
+        <div>
+          <h3>9. Quasi-experiment planner</h3>
+          <p>Select and stress-test natural experiments, difference-in-differences, interrupted time series, regression discontinuity, event studies, policy-change designs, and matched comparisons.</p>
+        </div>
+      </div>
+      <div class="moduleBody">
+        <div class="grid3">
+          <div class="field"><label>Quasi-experimental design</label><select id="quasiDesign" data-track>
+            <option></option><option>Natural experiment</option><option>Difference-in-differences</option><option>Interrupted time series</option><option>Regression discontinuity</option><option>Event study</option><option>Policy-change design</option><option>Matched comparison design</option>
+          </select></div>
+          <div class="field"><label>Naturally occurring change or intervention</label><input id="quasiChange" data-track></div>
+          <div class="field"><label>Who is exposed?</label><input id="quasiExposed" data-track></div>
+          <div class="field"><label>Who is not exposed?</label><input id="quasiUnexposed" data-track></div>
+          <div class="field"><label>Is assignment nonrandom?</label><select id="quasiNonrandom" data-track><option></option><option>Yes</option><option>No</option><option>Partly/unclear</option></select></div>
+          <div class="field"><label>Are pre- and post-measures available?</label><select id="quasiPrePost" data-track><option></option><option>Yes</option><option>No</option><option>Can collect</option></select></div>
+          <div class="field"><label>Is there a comparison group?</label><select id="quasiComparison" data-track><option></option><option>Yes</option><option>No</option><option>Can construct</option></select></div>
+          <div class="field"><label>Could other events explain the observed change?</label><textarea id="quasiOtherEvents" data-track></textarea></div>
+          <div class="field"><label>Is timing theoretically justified?</label><textarea id="quasiTiming" data-track></textarea></div>
+          <div class="field"><label>Credibility assumptions</label><textarea id="quasiAssumptions" data-track></textarea></div>
+        </div>
+        <button onclick="quasiRecommend()">Generate quasi-experimental recommendation</button>
+        <div id="quasiOutput" class="diagnostic">Recommendations and warnings will appear here.</div>
+      </div>
+    </section>
+
+    <section id="m10" class="module" data-module>
+      <div class="moduleHeader">
+        <div>
+          <h3>10. Internal versus external validity tradeoff</h3>
+          <p>Rate design features that support causal conclusions and generalizability across persons, settings, and time.</p>
+        </div>
+      </div>
+      <div class="moduleBody">
+        <div class="grid2">
+          <div>
+            <h4>Internal validity features</h4>
+            <div id="internalSliders"></div>
+          </div>
+          <div>
+            <h4>External validity features</h4>
+            <div id="externalSliders"></div>
+          </div>
+        </div>
+        <div class="scoreGrid">
+          <div class="scoreBox"><div>Internal Validity Strength</div><div class="num" id="internalScore">0%</div></div>
+          <div class="scoreBox"><div>External Validity Strength</div><div class="num" id="externalScore">0%</div></div>
+        </div>
+        <button onclick="scoreValidity()">Update validity recommendations</button>
+        <div id="validityAdvice" class="diagnostic">Recommendations will appear here.</div>
+      </div>
+    </section>
+
+    <section id="m11" class="module" data-module>
+      <div class="moduleHeader">
+        <div>
+          <h3>11. ESM, eLancing, and VR design recommender</h3>
+          <p>Match the research question to a methodological tool that can help balance internal and external validity.</p>
+        </div>
+      </div>
+      <div class="moduleBody">
+        <div class="grid3">
+          <div class="miniCard">
+            <h4>Experience Sampling Methodology</h4>
+            <ul><li>Captures experiences, attitudes, emotions, and behaviors over time.</li><li>Useful for temporal sequencing and within-person causal ordering.</li><li>Natural settings support external validity.</li></ul>
+          </div>
+          <div class="miniCard">
+            <h4>eLancing field experiments</h4>
+            <ul><li>Online labor markets support field experiments.</li><li>Allows random assignment in a natural work environment.</li><li>Useful for manipulating tasks, teams, and information availability.</li></ul>
+          </div>
+          <div class="miniCard">
+            <h4>Virtual reality</h4>
+            <ul><li>Immersive simulations for sensitive, rare, or ethically difficult topics.</li><li>Allows random assignment and controlled realism.</li><li>Useful for studying reactions in realistic but safe environments.</li></ul>
+          </div>
+        </div>
+        <div class="grid3" style="margin-top:14px">
+          <div class="field"><label>Research question or phenomenon</label><textarea id="methodPhenomenon" data-track></textarea></div>
+          <div class="field"><label>Need repeated naturalistic measurement?</label><select id="needESM" data-track><option></option><option>High</option><option>Moderate</option><option>Low</option></select></div>
+          <div class="field"><label>Need field random assignment in online work?</label><select id="needELancing" data-track><option></option><option>High</option><option>Moderate</option><option>Low</option></select></div>
+          <div class="field"><label>Need immersive simulation or sensitive scenario?</label><select id="needVR" data-track><option></option><option>High</option><option>Moderate</option><option>Low</option></select></div>
+        </div>
+        <button onclick="recommendTool()">Recommend methodological tool</button>
+        <div id="toolRecommendation" class="diagnostic">Recommendation will appear here.</div>
+      </div>
+    </section>
+
+    <section id="m12" class="module" data-module>
+      <div class="moduleHeader">
+        <div>
+          <h3>12. Control-variable decision tree</h3>
+          <p>Decide whether each candidate control should be included, excluded, treated as focal, treated as exploratory, or discussed as a limitation.</p>
+        </div>
+      </div>
+      <div class="moduleBody">
+        <div class="callout"><strong>Control-variable principle:</strong> Controls alter the causal model and must receive the same conceptual and measurement scrutiny as focal variables.</div>
+        <div class="buttons"><button onclick="addControl()">Add candidate control</button><button class="secondary" onclick="renderControls()">Refresh decisions</button></div>
+        <div id="controlList"></div>
+        <h4>Control-variable decision output table</h4>
+        <div id="controlTableWrap"></div>
+      </div>
+    </section>
+
+    <section id="m13" class="module" data-module>
+      <div class="moduleHeader">
+        <div>
+          <h3>13. With-controls / without-controls reporting planner</h3>
+          <p>Plan transparent reporting so readers can evaluate how controls affect substantive conclusions.</p>
+        </div>
+      </div>
+      <div class="moduleBody">
+        <div class="checks">
+          <label class="check"><input type="checkbox" id="repDescriptives" data-track> Descriptive statistics for all controls</label>
+          <label class="check"><input type="checkbox" id="repCorrelations" data-track> Correlations among controls and focal variables</label>
+          <label class="check"><input type="checkbox" id="repReliability" data-track> Reliability evidence for controls</label>
+          <label class="check"><input type="checkbox" id="repWith" data-track> Results with controls</label>
+          <label class="check"><input type="checkbox" id="repWithout" data-track> Results without controls</label>
+          <label class="check"><input type="checkbox" id="repChange" data-track> Explanation of whether results change</label>
+          <label class="check"><input type="checkbox" id="repRetained" data-track> Explanation of why included controls were retained</label>
+          <label class="check"><input type="checkbox" id="repExcluded" data-track> Explanation of why excluded controls were not retained</label>
+          <label class="check"><input type="checkbox" id="repZeroOrder" data-track> Zero-order correlations</label>
+          <label class="check"><input type="checkbox" id="repCoefficientChange" data-track> Coefficient direction, significance, or interpretation changes</label>
+          <label class="check"><input type="checkbox" id="repSubstantiveMeaning" data-track> Whether controls alter the substantive meaning of X</label>
+        </div>
+        <div class="callout"><strong>Warnings:</strong> Controls can change the meaning of the predictor, reduce power, suppress relationships, change substantive conclusions, and require conceptual and measurement scrutiny.</div>
+        <button onclick="scoreReporting()">Assess reporting plan</button>
+        <div id="reportingScore" class="diagnostic">Reporting assessment will appear here.</div>
+      </div>
+    </section>
+
+    <section id="m14" class="module" data-module>
+      <div class="moduleHeader">
+        <div>
+          <h3>14. Manuscript language generator</h3>
+          <p>Generate editable text blocks for research relevance, causal logic, design decisions, controls, and limitations.</p>
+        </div>
+      </div>
+      <div class="moduleBody">
+        <button onclick="generateLanguage()">Generate manuscript language</button>
+        <div id="languageBlocks"></div>
+      </div>
+    </section>
+
+    <section id="m15" class="module" data-module>
+      <div class="moduleHeader">
+        <div>
+          <h3>15. Final research plan export</h3>
+          <p>Compile all responses into a polished Causal Inference Research Plan for review, revision, printing, copying, or download.</p>
+        </div>
+      </div>
+      <div class="moduleBody">
+        <div class="buttons">
+          <button onclick="saveState()">Save progress in browser local storage</button>
+          <button class="secondary" onclick="loadState()">Load saved progress</button>
+          <button class="warning" onclick="clearState()">Clear all responses</button>
+          <button onclick="generateReport(true)">Generate report</button>
+          <button class="secondary" onclick="window.print()">Print report</button>
+          <button class="secondary" onclick="downloadReport()">Download report as .txt</button>
+          <button class="secondary" onclick="copyReport()">Copy report</button>
+          <button class="secondary" onclick="generateLanguage(); copyAllLanguage()">Copy manuscript language</button>
+        </div>
+        <div id="reportPreview">Click “Generate report” to compile your Causal Inference Research Plan.</div>
+      </div>
+    </section>
+
+    <p class="footerNote">This tool is designed for pre-data-collection planning. It supports research judgment; it does not replace theory development, design expertise, statistical consultation, or ethical review.</p>
+  </main>
+</div>
+
+<script>
+(function(){
+  "use strict";
+
+  const storeKey = "causalInferencePlanningTool.v1";
+  const $ = (id) => document.getElementById(id);
+  const esc = (s) => String(s ?? "").replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+  const val = (id) => ($(id) ? $(id).value.trim() : "");
+  const checked = (id) => ($(id) ? $(id).checked : false);
+  const set = (id, value) => { if($(id)) $(id).value = value ?? ""; };
+  const setCheck = (id, value) => { if($(id)) $(id).checked = !!value; };
+  const ynScore = (v) => v === "Yes" || v === "High" || v === "Can collect" || v === "Can construct" || v === "Can be added" ? 2 : (v === "Partially" || v === "Moderate" || v === "Possible but uncertain" || v === "Possibly" || v === "Can be approximated" ? 1 : 0);
+
+  const methodInfo = [
+    {
+      name:"Randomized experiment",
+      use:"Use when X can be manipulated and units can be randomly assigned.",
+      rulesOut:"Selection and many omitted-variable explanations through random assignment.",
+      assumptions:"Manipulation integrity, compliance, valid measurement, no problematic attrition or spillovers.",
+      data:"Assigned condition, manipulation check, outcomes, covariates when needed.",
+      mistakes:"Treating convenience lab effects as universally generalizable; weak manipulations; ignoring attrition.",
+      strengths:"Strong internal validity and temporal sequencing.",
+      limitations:"May sacrifice realism or feasibility for sensitive or organizational phenomena.",
+      reporting:"Report assignment, manipulation, timing, checks, exclusions, attrition, and causal estimand."
+    },
+    {
+      name:"Quasi-experimental design",
+      use:"Use when exposure arises from policy, event, threshold, organizational change, or naturally occurring variation.",
+      rulesOut:"Some selection and history threats if comparison logic is credible.",
+      assumptions:"Design-specific assumptions such as parallel trends, continuity, stable timing, or no simultaneous shocks.",
+      data:"Exposed and comparison units, timing, pre/post measures, assignment rule when applicable.",
+      mistakes:"Calling any observational study quasi-experimental; ignoring alternative events and nonrandom assignment.",
+      strengths:"Can combine causal leverage and real-world setting.",
+      limitations:"Assumptions are often contestable and must be stress-tested.",
+      reporting:"Report assignment process, comparison group, timing, assumptions, and robustness checks."
+    },
+    {
+      name:"Longitudinal design",
+      use:"Use when temporal sequencing is needed and X, M, and Y unfold over time.",
+      rulesOut:"Reverse-causality threats better than cross-sectional designs.",
+      assumptions:"Appropriate time lag, stable measurement, attrition not biasing conclusions.",
+      data:"Repeated observations with theoretically justified timing.",
+      mistakes:"Using arbitrary lags; measuring X and Y too close or too far apart.",
+      strengths:"Improves temporal precedence and dynamic theory testing.",
+      limitations:"Does not by itself rule out all omitted variables.",
+      reporting:"Justify lag, measurement schedule, attrition, missing data, and temporal model."
+    },
+    {
+      name:"Experience sampling methodology",
+      use:"Use for within-person or within-unit experiences, attitudes, emotions, and behaviors as they occur.",
+      rulesOut:"Some recall bias and temporal-order ambiguity.",
+      assumptions:"Sufficient compliance, theoretically timed prompts, valid within-unit measures.",
+      data:"Repeated momentary surveys or observations in natural settings.",
+      mistakes:"Too many prompts; weak time-lag theory; ignoring nesting and compliance.",
+      strengths:"Naturalistic, temporally ordered within-unit evidence.",
+      limitations:"Participant burden and limited macro-level inference unless carefully linked.",
+      reporting:"Report prompt schedule, compliance, lag logic, within/between design, and missingness."
+    },
+    {
+      name:"eLancing field experiment",
+      use:"Use when tasks, team composition, or information can be manipulated in online labor markets.",
+      rulesOut:"Selection through random assignment while retaining a work-like field setting.",
+      assumptions:"Task realism, participant understanding, platform compliance, valid outcome capture.",
+      data:"Platform tasks, assigned conditions, behavioral outcomes, participant and task metadata.",
+      mistakes:"Using artificial tasks that do not resemble work; underreporting platform details.",
+      strengths:"Combines random assignment with natural online work environments.",
+      limitations:"Population and task generalizability must be argued.",
+      reporting:"Report platform, task, assignment, incentives, exclusions, manipulation, and outcomes."
+    },
+    {
+      name:"Virtual reality study",
+      use:"Use for sensitive, rare, dangerous, or ethically difficult scenarios requiring controlled realism.",
+      rulesOut:"Some artificiality of vignettes while allowing random assignment and immersive context.",
+      assumptions:"Immersion, scenario realism, valid behavioral or attitudinal measures.",
+      data:"Assigned VR conditions, immersion checks, behavioral/attitudinal outcomes.",
+      mistakes:"Assuming immersive equals externally valid without checks; neglecting simulator effects.",
+      strengths:"High control plus realistic experiential stimuli.",
+      limitations:"Cost, technical complexity, and possible sample constraints.",
+      reporting:"Report VR environment, immersion checks, assignment, scenario validation, and limitations."
+    },
+    {
+      name:"Matching / propensity scores",
+      use:"Use when comparable treated and untreated units can be constructed using pre-treatment covariates.",
+      rulesOut:"Observed pre-treatment differences that plausibly drive both X and Y.",
+      assumptions:"No unmeasured confounding after matching; reliable pre-treatment measures; sufficient overlap.",
+      data:"Treatment indicator, outcome, pre-treatment matching variables, balance diagnostics.",
+      mistakes:"Matching on post-treatment variables; categorizing continuous covariates unnecessarily; ignoring balance.",
+      strengths:"Improves comparability in observational designs.",
+      limitations:"Cannot solve unmeasured confounding and can fail with poor overlap.",
+      reporting:"Report variable rationale, pre-treatment status, algorithm, balance, common support, and sensitivity checks."
+    },
+    {
+      name:"Instrumental variables",
+      use:"Use only when a credible instrument predicts X and affects Y only through X while unrelated to omitted causes of Y.",
+      rulesOut:"Endogeneity from omitted variables if all IV assumptions hold.",
+      assumptions:"Relevance, independence, exclusion restriction, sufficient instrument strength.",
+      data:"Instrument, X, Y, covariates, first-stage diagnostics, robustness checks.",
+      mistakes:"Using weak instruments; asserting exclusion rather than justifying it; ignoring alternative pathways.",
+      strengths:"Can address specific endogeneity problems.",
+      limitations:"Assumptions are stringent and often unverifiable.",
+      reporting:"Report theory for each assumption, first-stage evidence, threats, sensitivity checks, and limitations."
+    },
+    {
+      name:"Control variables",
+      use:"Use when theory and evidence indicate a reliably measured variable is a plausible alternative explanation.",
+      rulesOut:"Specified observed alternative explanations if model is correctly specified.",
+      assumptions:"Correct theoretical specification, reliable measurement, no post-treatment control bias.",
+      data:"Control measures, reliability evidence, correlations, results with and without controls.",
+      mistakes:"Including controls because reviewers expect them, previous researchers used them, or they correlate in the data.",
+      strengths:"Can improve interpretation when grounded in theory and measurement.",
+      limitations:"Can change the meaning of predictors, reduce power, and alter conclusions.",
+      reporting:"Report why and how each control relates to focal variables; show results with and without controls."
+    },
+    {
+      name:"Counterfactual thinking",
+      use:"Use in every causal study to clarify the missing potential outcome and comparison logic.",
+      rulesOut:"Ambiguity about what causal effect means and what comparison is needed.",
+      assumptions:"Comparison approximates the missing counterfactual under stated conditions.",
+      data:"Design-specific data for treated and comparison conditions or units.",
+      mistakes:"Failing to specify the missing counterfactual; treating any comparison as credible.",
+      strengths:"Makes causal estimands explicit.",
+      limitations:"Requires implementation through a credible design or analytic strategy.",
+      reporting:"State potential outcomes, comparison logic, assumptions, and remaining limitations."
+    }
+  ];
+
+  const state = { rivals: [], matchVars: [], instruments: [], controls: [] };
+
+  window.addEventListener("DOMContentLoaded", () => {
+    renderMethodCards();
+    renderSliders();
+    addInitialDynamicRows();
+    bindInputs();
+    loadState(false);
+    updateProgress();
+    highlightNav();
+    window.addEventListener("scroll", highlightNav);
+  });
+
+  function bindInputs(){
+    document.querySelectorAll("input, textarea, select").forEach(el => {
+      el.addEventListener("input", () => { updateProgress(); });
+      el.addEventListener("change", () => { updateProgress(); });
+    });
+  }
+
+  function addInitialDynamicRows(){
+    if(!state.rivals.length) state.rivals.push(emptyRival());
+    if(!state.matchVars.length) state.matchVars.push(emptyMatch());
+    if(!state.instruments.length) state.instruments.push(emptyInstrument());
+    if(!state.controls.length) state.controls.push(emptyControl());
+    renderRivals(); renderMatchVars(); renderInstruments(); renderControls();
+  }
+
+  function activeInputs(){
+    return Array.from(document.querySelectorAll("[data-track]"));
+  }
+
+  function updateProgress(){
+    const inputs = activeInputs();
+    const complete = inputs.filter(el => el.type === "checkbox" ? el.checked : el.value.trim().length > 0).length;
+    const pct = inputs.length ? Math.round((complete / inputs.length) * 100) : 0;
+    $("progressText").textContent = pct + "%";
+    $("progressFill").style.width = pct + "%";
+    $("progressHint").textContent = pct < 30 ? "Start with the dashboard and modules 1–3 before committing to a design." :
+      pct < 70 ? "Good progress. Stress-test alternatives, validity, and controls before data collection." :
+      "Strong progress. Generate manuscript language and the final research plan.";
+  }
+
+  function highlightNav(){
+    const sections = Array.from(document.querySelectorAll("#dashboard, section.module"));
+    let current = sections[0].id;
+    for(const s of sections){
+      if(s.getBoundingClientRect().top < 140) current = s.id;
+    }
+    document.querySelectorAll("nav a").forEach(a => a.classList.toggle("active", a.getAttribute("href") === "#" + current));
+  }
+
+  window.scorePractical = function(){
+    let score = 0;
+    const textIds = ["topic","practicalProblem","beneficiaries","outcomes","theoryContribution","practicalContribution","actionDecision","userOfFindings","practiceChange","nonAcademicOutcome"];
+    textIds.forEach(id => { if(val(id).length > 15) score += 1; });
+    ["sciencePracticeGap","microMacroGap","designScience","decisionUse"].forEach(id => { if(checked(id)) score += 2; });
+    const max = textIds.length + 8;
+    const pct = Math.round(score / max * 100);
+    let cls = "bad", title = "Weak practical relevance; revise the research question.";
+    let feedback = "Specify a decision-maker problem, intended users, nonacademic outcomes, and what would change if the causal claim were supported.";
+    if(pct >= 75){ cls = "good"; title = "Strong practical relevance."; feedback = "The study has an explicit practical end, beneficiaries, actionable decision consequences, and credible relevance beyond the academic conversation."; }
+    else if(pct >= 45){ cls = "warn"; title = "Promising but needs clearer decision-maker relevance."; feedback = "Strengthen the decision context, specify whose action changes, and make the design-science or science-practice contribution more explicit."; }
+    $("practicalScore").className = "diagnostic " + cls;
+    $("practicalScore").innerHTML = `<strong>${title}</strong><br>Score: ${pct}%. ${feedback}`;
+  };
+
+  window.buildCausalStatement = function(){
+    const x = val("xVar") || "[X]";
+    const y = val("yVar") || "[Y]";
+    const m = val("mVar") || "[M]";
+    const z = val("zConditions") || "[conditions Z]";
+    const dir = val("effectDirection") ? ` in a ${val("effectDirection")} direction` : "";
+    set("causalStatement", `${x} is expected to affect ${y}${dir} through ${m} under ${z}.`);
+    updateProgress();
+  };
+
+  window.scoreCausalReadiness = function(){
+    let score = 0;
+    if(val("assocEvidence")) score++;
+    if(val("assocModel")) score++;
+    if(checked("assocPredicted")) score++;
+    if(val("designType") && val("designType") !== "Cross-sectional") score += 2;
+    if(val("timeLag")) score++;
+    if(val("temporalExplanation")) score++;
+    if(checked("xBeforeY")) score++;
+    if(val("reverseCausality")) score++;
+    if(val("rivalSummary")) score++;
+    if(val("omittedVars")) score++;
+    if(val("biasThreats")) score++;
+    if(val("addressAlternatives")) score += 2;
+    if(checked("rivalsAddressed")) score += 2;
+    const pct = Math.round(score / 17 * 100);
+    let cls = "bad", title = "Weak causal design; redesign before data collection.", feedback = "The plan does not yet establish temporal precedence or adequately rule out plausible alternatives.";
+    if(pct >= 75){ cls = "good"; title = "Strong causal design."; feedback = "The design addresses association, temporal precedence, and major rival explanations. Continue to document assumptions and robustness checks."; }
+    else if(pct >= 48){ cls = "warn"; title = "Moderate causal design; address remaining threats."; feedback = "The causal claim is plausible but still needs stronger temporal sequencing, comparison logic, or rival-explanation controls."; }
+    $("causalReadiness").className = "diagnostic " + cls;
+    $("causalReadiness").innerHTML = `<strong>${title}</strong><br>Readiness: ${pct}%. ${feedback}`;
+  };
+
+  function emptyRival(){ return {name:"", plausible:"", relatesX:false, relatesY:false, precedes:"", reliable:"", addressedBy:"", decision:"", plausibility:"High", threat:"High"}; }
+  window.addRival = function(){ syncRivals(); state.rivals.push(emptyRival()); renderRivals(); updateProgress(); };
+  function syncRivals(){
+    state.rivals.forEach((r,i) => {
+      ["name","plausible","precedes","reliable","addressedBy","decision","plausibility","threat"].forEach(k => {
+        const el = $(`rival_${i}_${k}`); if(el) r[k] = el.value;
+      });
+      r.relatesX = checked(`rival_${i}_relatesX`);
+      r.relatesY = checked(`rival_${i}_relatesY`);
+    });
+  }
+  window.renderRivals = function(){
+    syncRivals();
+    $("rivalList").innerHTML = state.rivals.map((r,i) => `
+      <div class="rowItem">
+        <div class="rowHeader"><strong>Rival explanation ${i+1}</strong><button class="secondary" onclick="removeRival(${i})">Remove</button></div>
+        <div class="grid2">
+          <div class="field"><label>Name of rival explanation</label><input data-track id="rival_${i}_name" value="${esc(r.name)}"></div>
+          <div class="field"><label>Why it is plausible</label><input data-track id="rival_${i}_plausible" value="${esc(r.plausible)}"></div>
+          <label class="check"><input data-track type="checkbox" id="rival_${i}_relatesX" ${r.relatesX?"checked":""}> Relates to X</label>
+          <label class="check"><input data-track type="checkbox" id="rival_${i}_relatesY" ${r.relatesY?"checked":""}> Relates to Y</label>
+          <div class="field"><label>Precedes X, Y, or both?</label><select data-track id="rival_${i}_precedes"><option></option>${opts(["X","Y","Both","Neither/unclear"],r.precedes)}</select></div>
+          <div class="field"><label>Can it be measured validly and reliably?</label><select data-track id="rival_${i}_reliable"><option></option>${opts(["Yes","No","Unclear"],r.reliable)}</select></div>
+          <div class="field"><label>Can be addressed through...</label><select data-track id="rival_${i}_addressedBy"><option></option>${opts(["Design","Matching","Controls","Instrumental variables","Quasi-experiment","Longitudinal design","ESM","eLancing","VR","Robustness checks","Limitation only"],r.addressedBy)}</select></div>
+          <div class="field"><label>Decision</label><select data-track id="rival_${i}_decision"><option></option>${opts(["Rule out through design","Measure and model","Discuss as limitation","Redesign study"],r.decision)}</select></div>
+          <div class="field"><label>Plausibility</label><select data-track id="rival_${i}_plausibility">${opts(["High","Low"],r.plausibility)}</select></div>
+          <div class="field"><label>Threat level</label><select data-track id="rival_${i}_threat">${opts(["High","Low"],r.threat)}</select></div>
+        </div>
+      </div>`).join("");
+    bindInputs();
+    updateMatrix();
+  };
+  window.removeRival = function(i){ syncRivals(); state.rivals.splice(i,1); renderRivals(); };
+
+  function updateMatrix(){
+    ["HH","HL","LH","LL"].forEach(k => {
+      const labels = {HH:"High plausibility / high threat",HL:"High plausibility / low threat",LH:"Low plausibility / high threat",LL:"Low plausibility / low threat"};
+      $("matrix"+k).innerHTML = `<h4>${labels[k]}</h4>`;
+    });
+    state.rivals.forEach(r => {
+      const key = (r.plausibility === "High" ? "H" : "L") + (r.threat === "High" ? "H" : "L");
+      const cls = r.threat === "High" ? "high" : "low";
+      $("matrix"+key).innerHTML += `<span class="tag ${cls}">${esc(r.name || "Unnamed threat")}</span>`;
+    });
+  }
+
+  function opts(arr, selected){
+    return arr.map(o => `<option ${o===selected?"selected":""}>${esc(o)}</option>`).join("");
+  }
+
+  function renderMethodCards(){
+    $("methodCards").innerHTML = methodInfo.map(m => `
+      <div class="methodCard">
+        <h4>${esc(m.name)}</h4>
+        <p><strong>When to use:</strong> ${esc(m.use)}</p>
+        <ul>
+          <li><strong>Rules out:</strong> ${esc(m.rulesOut)}</li>
+          <li><strong>Assumptions:</strong> ${esc(m.assumptions)}</li>
+          <li><strong>Data needed:</strong> ${esc(m.data)}</li>
+          <li><strong>Common mistakes:</strong> ${esc(m.mistakes)}</li>
+          <li><strong>Strengths:</strong> ${esc(m.strengths)}</li>
+          <li><strong>Limitations:</strong> ${esc(m.limitations)}</li>
+          <li><strong>Reporting:</strong> ${esc(m.reporting)}</li>
+        </ul>
+      </div>`).join("");
+  }
+
+  window.recommendProcedures = function(){
+    const scores = {};
+    methodInfo.forEach(m => scores[m.name] = 0);
+    if(val("qManipulate")==="Yes") scores["Randomized experiment"] += 3, scores["eLancing field experiment"] += 1, scores["Virtual reality study"] += 1;
+    if(val("qRandom")==="Yes") scores["Randomized experiment"] += 3, scores["eLancing field experiment"] += 2, scores["Virtual reality study"] += 2;
+    if(val("qNatural")==="Yes") scores["Quasi-experimental design"] += 3;
+    if(val("qPre")==="Yes" || val("qPre")==="Can collect") scores["Matching / propensity scores"] += 2, scores["Quasi-experimental design"] += 2, scores["Longitudinal design"] += 1;
+    if(val("qComparable")==="Yes" || val("qComparable")==="Can construct") scores["Matching / propensity scores"] += 3, scores["Quasi-experimental design"] += 2;
+    if(val("qInstrument")==="Yes" && val("qInstX")==="Yes" && val("qInstError")==="Yes" && val("qInstExclusion")==="Yes") scores["Instrumental variables"] += 5;
+    if(val("qInstrument")==="Possible but uncertain") scores["Instrumental variables"] += 1;
+    if(val("qTemporal")==="Yes" || val("qTemporal")==="Can be added") scores["Longitudinal design"] += 2, scores["Experience sampling methodology"] += 1, scores["Quasi-experimental design"] += 1;
+    if(val("qNaturalistic")==="Yes") scores["Experience sampling methodology"] += 2, scores["eLancing field experiment"] += 1, scores["Quasi-experimental design"] += 1;
+    if(val("qRepeated")==="Yes" || val("qRepeated")==="Possibly") scores["Experience sampling methodology"] += 4, scores["Longitudinal design"] += 3;
+    if(val("qSensitive")==="Yes") scores["Virtual reality study"] += 4;
+    scores["Counterfactual thinking"] += 2;
+    scores["Control variables"] += 1;
+    const ranked = Object.entries(scores).sort((a,b)=>b[1]-a[1]).filter(x => x[1] > 1).slice(0,5);
+    const html = ranked.map(([name,score]) => {
+      const m = methodInfo.find(mm => mm.name === name);
+      return `<li><strong>${esc(name)}</strong> — fit score ${score}. ${esc(m.use)} <em>Key caution:</em> ${esc(m.limitations)}</li>`;
+    }).join("");
+    const warning = val("qInstrument")==="Yes" && !(val("qInstX")==="Yes" && val("qInstError")==="Yes" && val("qInstExclusion")==="Yes") ?
+      "<p><strong>IV caution:</strong> Do not rely on an instrument unless relevance, independence, and exclusion are all defensible.</p>" : "";
+    $("procedureRecommendation").className = "diagnostic good";
+    $("procedureRecommendation").innerHTML = `<strong>Recommended design/procedure mix</strong><ol>${html || "<li>Complete the selector questions to receive recommendations.</li>"}</ol>${warning}<p>Use counterfactual logic regardless of design, and treat controls as theoretically justified design decisions rather than default model additions.</p>`;
+  };
+
+  window.generateCounterfactual = function(){
+    const text = `The study’s counterfactual logic is that the causal effect of ${val("xVar") || "[X]"} on ${val("yVar") || "[Y]"} is the difference between what would happen to the same unit if exposed to ${val("xVar") || "[X]"} (${val("cfTreated") || "treated potential outcome"}) and what would happen to that same unit if not exposed (${val("cfUntreated") || "untreated potential outcome"}). Because both potential outcomes cannot be observed simultaneously for the same unit, the study will approximate the missing counterfactual through ${val("cfApprox") || "[comparison group or design feature]"}. This comparison is credible to the extent that ${val("cfAssumptions") || "[assumptions]"} hold.`;
+    set("cfSummary", text);
+    updateProgress();
+  };
+
+  function emptyMatch(){ return {name:"", rationale:"", pre:false, reliable:"", categorized:false, loss:"", error:"", tooMany:false, propensity:""}; }
+  window.addMatchVar = function(){ syncMatchVars(); state.matchVars.push(emptyMatch()); renderMatchVars(); };
+  function syncMatchVars(){
+    state.matchVars.forEach((m,i) => {
+      ["name","rationale","reliable","loss","error","propensity"].forEach(k => { const el = $(`match_${i}_${k}`); if(el) m[k] = el.value; });
+      m.pre = checked(`match_${i}_pre`);
+      m.categorized = checked(`match_${i}_categorized`);
+      m.tooMany = checked(`match_${i}_tooMany`);
+    });
+  }
+  window.renderMatchVars = function(){
+    syncMatchVars();
+    $("matchList").innerHTML = state.matchVars.map((m,i)=>`
+      <div class="rowItem">
+        <div class="rowHeader"><strong>Matching variable ${i+1}</strong><button class="secondary" onclick="removeMatchVar(${i})">Remove</button></div>
+        <div class="grid3">
+          <div class="field"><label>Variable</label><input data-track id="match_${i}_name" value="${esc(m.name)}"></div>
+          <div class="field"><label>Rationale</label><input data-track id="match_${i}_rationale" value="${esc(m.rationale)}"></div>
+          <label class="check"><input data-track type="checkbox" id="match_${i}_pre" ${m.pre?"checked":""}> Pre-treatment variable</label>
+          <div class="field"><label>Measured reliably?</label><select data-track id="match_${i}_reliable"><option></option>${opts(["Yes","No","Unclear"],m.reliable)}</select></div>
+          <label class="check"><input data-track type="checkbox" id="match_${i}_categorized" ${m.categorized?"checked":""}> Continuous variable categorized?</label>
+          <div class="field"><label>Risk of information loss</label><select data-track id="match_${i}_loss"><option></option>${opts(["High","Moderate","Low"],m.loss)}</select></div>
+          <div class="field"><label>Risk of measurement error</label><select data-track id="match_${i}_error"><option></option>${opts(["High","Moderate","Low"],m.error)}</select></div>
+          <label class="check"><input data-track type="checkbox" id="match_${i}_tooMany" ${m.tooMany?"checked":""}> Risk of too many matching variables</label>
+          <div class="field"><label>Propensity score or multivariate composite appropriate?</label><select data-track id="match_${i}_propensity"><option></option>${opts(["Yes","No","Unclear"],m.propensity)}</select></div>
+        </div>
+      </div>`).join("");
+    bindInputs();
+    matchingDiagnostics();
+  };
+  window.removeMatchVar = function(i){ syncMatchVars(); state.matchVars.splice(i,1); renderMatchVars(); };
+  function matchingDiagnostics(){
+    const warnings = [];
+    state.matchVars.forEach(m => {
+      if(m.name && !m.pre) warnings.push(`Do not match on ${m.name} unless it is clearly pre-treatment.`);
+      if(m.categorized) warnings.push(`Avoid categorizing continuous variable ${m.name}; assess information loss.`);
+      if(m.reliable === "No" || m.reliable === "Unclear") warnings.push(`Measurement reliability for ${m.name} is insufficient or unclear.`);
+      if(m.tooMany) warnings.push(`Too many matching variables may impair matched-group formation; consider a theoretically justified composite or propensity score.`);
+    });
+    $("matchWarnings").className = warnings.length ? "diagnostic warn" : "diagnostic good";
+    $("matchWarnings").innerHTML = warnings.length ? `<strong>Warnings</strong><ul>${warnings.map(w=>`<li>${esc(w)}</li>`).join("")}</ul><p>Always assess balance after matching.</p>` : "<strong>Matching plan looks coherent.</strong> Still report pre-treatment rationale, measurement reliability, common support, and balance diagnostics.";
+    const vars = state.matchVars.filter(m=>m.name).map(m=>m.name).join(", ") || "[matching variables]";
+    set("matchingSummary", `The study will compare ${val("matchTreated") || "[treated group]"} with ${val("matchComparison") || "[comparison group]"} using ${vars}. Each matching variable is justified as a pre-treatment alternative explanation for the relationship between ${val("xVar") || "[X]"} and ${val("yVar") || "[Y]"}. Balance will be assessed after matching, and results will be interpreted in light of remaining unmeasured-confounding threats.`);
+  }
+
+  function emptyInstrument(){ return {name:"", predictX:"", unrelated:"", onlyThrough:"", evidence:"", threats:"", checks:""}; }
+  window.addInstrument = function(){ syncInstruments(); state.instruments.push(emptyInstrument()); renderInstruments(); };
+  function syncInstruments(){
+    state.instruments.forEach((m,i) => ["name","predictX","unrelated","onlyThrough","evidence","threats","checks"].forEach(k => { const el = $(`iv_${i}_${k}`); if(el) m[k] = el.value; }));
+  }
+  window.renderInstruments = function(){
+    syncInstruments();
+    $("instrumentList").innerHTML = state.instruments.map((m,i) => {
+      const rating = classifyIV(m);
+      return `<div class="rowItem">
+        <div class="rowHeader"><strong>Instrument ${i+1}: ${esc(m.name || "Unnamed")}</strong><button class="secondary" onclick="removeInstrument(${i})">Remove</button></div>
+        <div class="grid2">
+          <div class="field"><label>What is the instrument?</label><input data-track id="iv_${i}_name" value="${esc(m.name)}"></div>
+          <div class="field"><label>Why should it predict X?</label><textarea data-track id="iv_${i}_predictX">${esc(m.predictX)}</textarea></div>
+          <div class="field"><label>Why unrelated to omitted causes of Y?</label><textarea data-track id="iv_${i}_unrelated">${esc(m.unrelated)}</textarea></div>
+          <div class="field"><label>Why affects Y only through X?</label><textarea data-track id="iv_${i}_onlyThrough">${esc(m.onlyThrough)}</textarea></div>
+          <div class="field"><label>Evidence supporting each condition</label><textarea data-track id="iv_${i}_evidence">${esc(m.evidence)}</textarea></div>
+          <div class="field"><label>Threats to exclusion restriction</label><textarea data-track id="iv_${i}_threats">${esc(m.threats)}</textarea></div>
+          <div class="field"><label>Sensitivity or robustness checks</label><textarea data-track id="iv_${i}_checks">${esc(m.checks)}</textarea></div>
+        </div>
+        <div class="diagnostic ${rating.cls}"><strong>${rating.label}</strong><br>${rating.text}</div>
+      </div>`;
+    }).join("");
+    bindInputs();
+  };
+  window.removeInstrument = function(i){ syncInstruments(); state.instruments.splice(i,1); renderInstruments(); };
+  function classifyIV(m){
+    const filled = ["name","predictX","unrelated","onlyThrough","evidence","threats","checks"].filter(k => (m[k]||"").trim().length > 20).length;
+    if(filled >= 6) return {cls:"good",label:"Plausibly strong",text:"All three IV assumptions have at least some stated support. Still treat exclusion as a major vulnerability and report sensitivity checks."};
+    if(filled >= 3) return {cls:"warn",label:"Questionable; more justification needed",text:"The instrument has partial support but relevance, independence, or exclusion needs stronger evidence."};
+    return {cls:"bad",label:"Weak or invalid; do not use without redesign",text:"The instrument is not sufficiently justified. A weak or invalid IV can make estimates worse, not better."};
+  }
+
+  window.quasiRecommend = function(){
+    let msgs = [];
+    const d = val("quasiDesign");
+    if(!d) msgs.push("Select a quasi-experimental design.");
+    if(d === "Difference-in-differences") msgs.push("Assess parallel pre-treatment trends and explain why no simultaneous events differentially affected treated and comparison units.");
+    if(d === "Interrupted time series") msgs.push("Use enough pre- and post-intervention observations and rule out coincident shocks.");
+    if(d === "Regression discontinuity") msgs.push("Justify the cutoff, test for manipulation around the threshold, and report local interpretation.");
+    if(d === "Event study") msgs.push("Specify event windows, anticipation effects, comparison units, and concurrent events.");
+    if(d === "Policy-change design") msgs.push("Document policy timing, exposure rules, implementation fidelity, and other policy changes.");
+    if(d === "Matched comparison design") msgs.push("Use pre-treatment matching variables, assess balance, and discuss unmeasured confounding.");
+    if(val("quasiPrePost") !== "Yes") msgs.push("Pre/post measures are weak or missing; strengthen temporal evidence before data collection.");
+    if(val("quasiComparison") !== "Yes") msgs.push("A comparison group is weak or missing; construct one if possible.");
+    if(!val("quasiOtherEvents")) msgs.push("List other events that could explain the observed change.");
+    if(!val("quasiTiming")) msgs.push("Justify when the effect should occur.");
+    $("quasiOutput").className = msgs.length <= 3 ? "diagnostic good" : "diagnostic warn";
+    $("quasiOutput").innerHTML = `<strong>${esc(d || "Quasi-experimental")} planning guidance</strong><ul>${msgs.map(m=>`<li>${esc(m)}</li>`).join("")}</ul>`;
+  };
+
+  function renderSliders(){
+    const internal = ["Researcher control","Random assignment","Manipulation of X","Temporal sequencing"];
+    const external = ["Naturalistic setting","Real participants","Real tasks","Real consequences","Generalizability across people","Generalizability across settings","Generalizability across time"];
+    $("internalSliders").innerHTML = internal.map((x,i)=>slider(`int_${i}`,x)).join("");
+    $("externalSliders").innerHTML = external.map((x,i)=>slider(`ext_${i}`,x)).join("");
+  }
+  function slider(id,label){
+    return `<div class="rangeLine"><label for="${id}">${esc(label)}</label><input data-track id="${id}" type="range" min="0" max="4" value="0" oninput="scoreValidity()"></div>`;
+  }
+  window.scoreValidity = function(){
+    const ints = [0,1,2,3].map(i => Number(val(`int_${i}`) || 0));
+    const exts = [0,1,2,3,4,5,6].map(i => Number(val(`ext_${i}`) || 0));
+    const intPct = Math.round(ints.reduce((a,b)=>a+b,0) / 16 * 100);
+    const extPct = Math.round(exts.reduce((a,b)=>a+b,0) / 28 * 100);
+    $("internalScore").textContent = intPct + "%";
+    $("externalScore").textContent = extPct + "%";
+    let advice = [];
+    if(intPct < 50) advice.push("Internal validity is weak: add temporal sequencing, manipulation, comparison groups, random assignment, quasi-experimental logic, or theoretically justified controls.");
+    if(extPct < 50) advice.push("External validity is weak: use field settings, real tasks, realistic samples, ESM, eLancing, VR, replication across contexts, or multi-sample designs.");
+    if(intPct < 50 && extPct < 50) advice.push("Both internal and external validity are weak: redesign before data collection rather than relying on post hoc analysis.");
+    if(!advice.length) advice.push("The design has a promising validity balance. Still document the tradeoff and state limits on generalization and causal inference.");
+    $("validityAdvice").className = (intPct < 50 || extPct < 50) ? "diagnostic warn" : "diagnostic good";
+    $("validityAdvice").innerHTML = `<strong>Validity guidance</strong><ul>${advice.map(a=>`<li>${esc(a)}</li>`).join("")}</ul>`;
+  };
+
+  window.recommendTool = function(){
+    const scores = {
+      "Experience Sampling Methodology": ynScore(val("needESM")),
+      "eLancing field experiment": ynScore(val("needELancing")),
+      "Virtual Reality": ynScore(val("needVR"))
+    };
+    const ranked = Object.entries(scores).sort((a,b)=>b[1]-a[1]);
+    const top = ranked[0];
+    let rationale = "";
+    if(top[0] === "Experience Sampling Methodology") rationale = "because the question appears to require repeated naturalistic observations, temporal sequencing, or within-person causal ordering.";
+    if(top[0] === "eLancing field experiment") rationale = "because the question appears to require random assignment in a realistic online work setting.";
+    if(top[0] === "Virtual Reality") rationale = "because the question appears to involve sensitive, rare, ethically difficult, or immersive scenarios where controlled realism matters.";
+    if(top[1] === 0) rationale = "Complete the ratings to determine fit. Consider whether the phenomenon is dynamic, field-experimental, or simulation-sensitive.";
+    $("toolRecommendation").className = top[1] ? "diagnostic good" : "diagnostic warn";
+    $("toolRecommendation").innerHTML = `<strong>Recommended tool: ${esc(top[1] ? top[0] : "Not enough information")}</strong><br>${esc(rationale)}<br><br><span class="small">Phenomenon: ${esc(val("methodPhenomenon") || "[not specified]")}</span>`;
+  };
+
+  function emptyControl(){ return {name:"", reviewer:false, previous:false, correlation:false, alternative:false, conservative:false, theory:false, theoryText:"", relation:"", empirical:"", purpose:"", reliable:"", integral:"", decision:"", language:""}; }
+  window.addControl = function(){ syncControls(); state.controls.push(emptyControl()); renderControls(); };
+  function syncControls(){
+    state.controls.forEach((c,i) => {
+      ["name","theoryText","relation","empirical","purpose","reliable","integral","decision","language"].forEach(k => { const el = $(`ctrl_${i}_${k}`); if(el) c[k] = el.value; });
+      ["reviewer","previous","correlation","alternative","conservative","theory"].forEach(k => c[k] = checked(`ctrl_${i}_${k}`));
+    });
+  }
+  window.renderControls = function(){
+    syncControls();
+    state.controls.forEach(c => Object.assign(c, decideControl(c)));
+    $("controlList").innerHTML = state.controls.map((c,i)=>`
+      <div class="rowItem">
+        <div class="rowHeader"><strong>Candidate control ${i+1}: ${esc(c.name || "Unnamed")}</strong><button class="secondary" onclick="removeControl(${i})">Remove</button></div>
+        <div class="grid2">
+          <div class="field"><label>Candidate control</label><input data-track id="ctrl_${i}_name" value="${esc(c.name)}"></div>
+          <div class="checks">
+            <label class="check"><input data-track type="checkbox" id="ctrl_${i}_reviewer" ${c.reviewer?"checked":""}> Reviewer/editor expectation</label>
+            <label class="check"><input data-track type="checkbox" id="ctrl_${i}_previous" ${c.previous?"checked":""}> Previous researchers included it</label>
+            <label class="check"><input data-track type="checkbox" id="ctrl_${i}_correlation" ${c.correlation?"checked":""}> It correlates in my data</label>
+            <label class="check"><input data-track type="checkbox" id="ctrl_${i}_alternative" ${c.alternative?"checked":""}> It may be an alternative explanation</label>
+            <label class="check"><input data-track type="checkbox" id="ctrl_${i}_conservative" ${c.conservative?"checked":""}> I want a conservative/rigorous test</label>
+            <label class="check"><input data-track type="checkbox" id="ctrl_${i}_theory" ${c.theory?"checked":""}> There is a theoretical rationale</label>
+          </div>
+          <div class="field"><label>Theoretical rationale</label><textarea data-track id="ctrl_${i}_theoryText">${esc(c.theoryText)}</textarea></div>
+          <div class="field"><label>How does it relate to focal variables? Substantively or artificially?</label><textarea data-track id="ctrl_${i}_relation">${esc(c.relation)}</textarea></div>
+          <div class="field"><label>Has the relationship been empirically established?</label><select data-track id="ctrl_${i}_empirical"><option></option>${opts(["Yes","No","Unclear"],c.empirical)}</select></div>
+          <div class="field"><label>What purpose does including it serve?</label><select data-track id="ctrl_${i}_purpose"><option></option>${opts(["Eliminate alternative explanation","Incremental/discriminant validity","Improve model specification","Exploratory theory building","No valid purpose"],c.purpose)}</select></div>
+          <div class="field"><label>Measured reliably?</label><select data-track id="ctrl_${i}_reliable"><option></option>${opts(["Yes","No","Unclear"],c.reliable)}</select></div>
+          <div class="field"><label>Integral to the model?</label><select data-track id="ctrl_${i}_integral"><option></option>${opts(["Yes","No","Unclear"],c.integral)}</select></div>
+          <div class="field"><label>Decision</label><select data-track id="ctrl_${i}_decision"><option></option>${opts(["Include as control","Include as focal variable","Include as exploratory variable","Exclude","Discuss as limitation"],c.decision)}</select></div>
+          <div class="field"><label>Manuscript language</label><textarea data-track id="ctrl_${i}_language">${esc(c.language)}</textarea></div>
+        </div>
+        <div class="diagnostic ${c.cls}"><strong>Decision-tree recommendation:</strong> ${esc(c.recommendation)}</div>
+      </div>`).join("");
+    renderControlTable();
+    bindInputs();
+  };
+  window.removeControl = function(i){ syncControls(); state.controls.splice(i,1); renderControls(); };
+  function decideControl(c){
+    const reasons = [c.reviewer,c.previous,c.correlation,c.alternative,c.conservative,c.theory].filter(Boolean).length;
+    let recommendation = "Complete the rationale, theoretical basis, empirical basis, reliability, and role-in-model fields.";
+    let decision = c.decision, cls = "warn";
+    if(c.reviewer && reasons === 1){ recommendation = "Exclude. Reviewer/editor expectation alone is not a valid reason to include a control."; decision = decision || "Exclude"; cls = "bad"; }
+    else if(c.conservative && reasons === 1){ recommendation = "Exclude. Adding controls is not inherently conservative or rigorous."; decision = decision || "Exclude"; cls = "bad"; }
+    else if((c.previous || c.correlation) && !c.theory && !c.alternative){ recommendation = "Exclude unless you can add a theoretical rationale. Prior usage or empirical correlation alone is insufficient."; decision = decision || "Exclude"; cls = "bad"; }
+    else if(c.reliable === "No"){ recommendation = "Exclude or redesign measurement. A control that cannot be measured reliably cannot credibly parse variance."; decision = decision || "Exclude"; cls = "bad"; }
+    else if(c.integral === "Yes"){ recommendation = "Treat as a focal or exploratory variable rather than casually labeling it a control."; decision = decision || "Include as focal variable"; cls = "warn"; }
+    else if(c.theory && c.reliable === "Yes" && (c.alternative || c.purpose === "Eliminate alternative explanation")){ recommendation = "Include as a control or explicitly justify exclusion. It is theoretically justified, reliably measured, and plausibly addresses an alternative explanation."; decision = decision || "Include as control"; cls = "good"; }
+    else if(c.theory && c.reliable === "Yes"){ recommendation = "Potentially include, but explain what, how, and why it relates to focal variables and compare results with and without it."; decision = decision || "Include as control"; cls = "good"; }
+    if(!c.language && c.name){
+      c.language = `We considered ${c.name} as a potential control because [theory-based rationale]. This variable may relate to ${val("xVar") || "[X]"} and/or ${val("yVar") || "[Y]"} because [how/why]. We assessed its reliability and compared results with and without the control. Based on this evidence, we ${decision ? decision.toLowerCase() : "[include/exclude/reclassify]"} ${c.name} because [justification].`;
+    }
+    c.decision = decision;
+    return {recommendation, decision, cls};
+  }
+  function renderControlTable(){
+    if(!state.controls.length){ $("controlTableWrap").innerHTML = ""; return; }
+    $("controlTableWrap").innerHTML = `<table><thead><tr><th>Candidate control</th><th>Rationale</th><th>Theoretical basis</th><th>Empirical basis</th><th>Reliability evidence</th><th>Role in model</th><th>Decision</th><th>Manuscript language</th></tr></thead><tbody>${
+      state.controls.map(c => `<tr><td>${esc(c.name)}</td><td>${esc(reasonText(c))}</td><td>${esc(c.theoryText)}</td><td>${esc(c.empirical)}</td><td>${esc(c.reliable)}</td><td>${esc(c.integral === "Yes" ? "Integral" : "Nonintegral/unclear")}</td><td>${esc(c.decision)}</td><td>${esc(c.language)}</td></tr>`).join("")
+    }</tbody></table>`;
+  }
+  function reasonText(c){
+    const reasons = [];
+    if(c.reviewer) reasons.push("reviewer/editor expectation");
+    if(c.previous) reasons.push("previous researchers included it");
+    if(c.correlation) reasons.push("correlates with study variables");
+    if(c.alternative) reasons.push("alternative explanation");
+    if(c.conservative) reasons.push("conservative/rigorous test");
+    if(c.theory) reasons.push("theoretical rationale");
+    return reasons.join("; ");
+  }
+
+  window.scoreReporting = function(){
+    const ids = ["repDescriptives","repCorrelations","repReliability","repWith","repWithout","repChange","repRetained","repExcluded","repZeroOrder","repCoefficientChange","repSubstantiveMeaning"];
+    const n = ids.filter(checked).length;
+    const pct = Math.round(n/ids.length*100);
+    let cls = pct >= 80 ? "good" : pct >= 50 ? "warn" : "bad";
+    let msg = pct >= 80 ? "Strong reporting plan. Include the full rationale and with/without-controls comparison." :
+      pct >= 50 ? "Moderate reporting plan. Add missing correlations, reliability, or interpretation-change reporting." :
+      "Weak reporting plan. Readers will not be able to evaluate whether controls changed substantive conclusions.";
+    $("reportingScore").className = "diagnostic " + cls;
+    $("reportingScore").innerHTML = `<strong>${pct}% complete.</strong> ${msg}`;
+  };
+
+  const languageTemplates = [
+    ["Study relevance and practical end", () => `This study addresses ${val("practicalProblem") || "[practical problem]"} for ${val("beneficiaries") || "[intended beneficiaries]"}. The research is practically relevant because it examines ${val("outcomes") || "[outcomes]"} and can improve ${val("actionDecision") || "[actionable decision]"}. If the causal claim is supported, the findings would inform ${val("practiceChange") || "[change in practice]"}.`],
+    ["Causal claim", () => val("causalStatement") || `${val("xVar") || "[X]"} is expected to affect ${val("yVar") || "[Y]"} through ${val("mVar") || "[M]"} under ${val("zConditions") || "[conditions Z]"}.`],
+    ["Temporal sequencing", () => `The research design addresses temporal precedence by measuring or manipulating ${val("xVar") || "[X]"} before ${val("yVar") || "[Y]"}. The proposed lag is ${val("timeLag") || "[time lag]"}, which is appropriate because ${val("temporalExplanation") || "[theoretical justification]"}. Reverse-causality concerns are addressed by ${val("reverseCausality") || "[design or analytic approach]"}.`],
+    ["Alternative explanations", () => `We identified plausible alternative explanations, including ${val("rivalSummary") || "[rival explanations]"}. These alternatives could operate through ${val("omittedVars") || "[omitted variables or rival mechanisms]"}. The design addresses these threats through ${val("addressAlternatives") || "[design, measurement, or analysis]"}.`],
+    ["Counterfactual logic", () => val("cfSummary") || `The study’s counterfactual logic is that the effect of ${val("xVar") || "[X]"} on ${val("yVar") || "[Y]"} is assessed by comparing observed outcomes to a credible approximation of what would have occurred without exposure to ${val("xVar") || "[X]"}.`],
+    ["Matching plan", () => val("matchingSummary") || `The matching plan compares ${val("matchTreated") || "[treated group]"} with ${val("matchComparison") || "[comparison group]"} using theoretically justified pre-treatment variables. Balance will be assessed after matching.`],
+    ["Instrumental-variable justification", () => ivLanguage()],
+    ["Quasi-experimental design", () => `The study uses a ${val("quasiDesign") || "[quasi-experimental design]"} based on ${val("quasiChange") || "[naturally occurring change/intervention]"}. The exposed group is ${val("quasiExposed") || "[exposed units]"} and the comparison group is ${val("quasiUnexposed") || "[unexposed units]"}. The credibility of the design depends on ${val("quasiAssumptions") || "[assumptions]"}.`],
+    ["Internal/external validity tradeoff", () => `The study balances internal and external validity by combining ${internalFeatureText()} with ${externalFeatureText()}. Remaining limitations concern ${validityLimitationText()}.`],
+    ["Control-variable inclusion", () => controlLanguage("include")],
+    ["Control-variable exclusion", () => controlLanguage("exclude")],
+    ["With-controls / without-controls reporting", () => `We will report descriptive statistics, zero-order correlations, reliability evidence for controls, and results both with and without controls. We will explain whether controls change coefficient direction, statistical significance, substantive interpretation, or the meaning of ${val("xVar") || "[X]"}.`],
+    ["Limitations regarding causal inference", () => `Although the design strengthens causal inference, remaining limitations include ${val("biasThreats") || "[remaining threats]"}. Accordingly, causal conclusions will be framed in terms of the strength of association, temporal sequencing, counterfactual logic, and the degree to which alternative explanations were ruled out.`],
+    ["Control-variable template", () => `We considered several potentially relevant control variables including [A], [B], and [C]. Previous empirical research suggests a relationship between [control] and [focal variable]. Theory explains this relationship because [reason]. Given these relationships, ${val("xVar") || "[X]"} may relate to ${val("yVar") || "[Y]"} not because [primary theoretical explanation], but because [alternative explanation]. Thus, we examined whether it was necessary to parse out variance associated with these controls. Bivariate correlations indicated that [summary]. Results with and without controls [did/did not] change substantively. Therefore, we [included/excluded] [control variables] because [justification].`]
+  ];
+
+  function ivLanguage(){
+    syncInstruments();
+    const ivs = state.instruments.filter(i=>i.name);
+    if(!ivs.length) return "No instrumental variable is currently justified. An IV should be used only if relevance, independence, and exclusion can be defended theoretically and empirically.";
+    return ivs.map(iv => `We considered ${iv.name} as an instrument because ${iv.predictX || "[it predicts X]"}. Its credibility depends on the claim that it is unrelated to omitted causes of ${val("yVar") || "[Y]"} because ${iv.unrelated || "[independence rationale]"} and affects ${val("yVar") || "[Y]"} only through ${val("xVar") || "[X]"} because ${iv.onlyThrough || "[exclusion rationale]"}. We will report ${iv.evidence || "[supporting evidence]"} and assess threats including ${iv.threats || "[threats]"}.`).join("\n\n");
+  }
+
+  function internalFeatureText(){
+    const labels = ["researcher control","random assignment","manipulation of X","temporal sequencing"];
+    const high = labels.filter((_,i)=>Number(val(`int_${i}`))>=3);
+    return high.length ? high.join(", ") : "limited internal-validity features";
+  }
+  function externalFeatureText(){
+    const labels = ["naturalistic setting","real participants","real tasks","real consequences","generalizability across people","generalizability across settings","generalizability across time"];
+    const high = labels.filter((_,i)=>Number(val(`ext_${i}`))>=3);
+    return high.length ? high.join(", ") : "limited external-validity features";
+  }
+  function validityLimitationText(){
+    const intAvg = [0,1,2,3].reduce((a,i)=>a+Number(val(`int_${i}`)||0),0)/4;
+    const extAvg = [0,1,2,3,4,5,6].reduce((a,i)=>a+Number(val(`ext_${i}`)||0),0)/7;
+    if(intAvg < 2 && extAvg < 2) return "both causal leverage and generalizability, requiring redesign";
+    if(intAvg < 2) return "causal leverage, especially temporal sequencing, manipulation, comparison logic, or random assignment";
+    if(extAvg < 2) return "generalizability across people, settings, tasks, or time";
+    return "the usual design-specific assumptions and boundary conditions";
+  }
+  function controlLanguage(mode){
+    syncControls();
+    const filtered = state.controls.filter(c => mode === "include" ? (c.decision || "").includes("Include as control") : (c.decision || "").includes("Exclude"));
+    if(!filtered.length) return `No controls are currently marked for ${mode === "include" ? "inclusion" : "exclusion"}. Use the control-variable decision tree before finalizing this language.`;
+    return filtered.map(c => c.language || `${c.name} was ${mode === "include" ? "included" : "excluded"} because [justification].`).join("\n\n");
+  }
+
+  window.generateLanguage = function(){
+    generateCounterfactual();
+    matchingDiagnostics();
+    syncControls(); renderControlTable();
+    const blocks = languageTemplates.map(([title,fn],i) => {
+      const text = fn();
+      return `<div class="copyBox">
+        <h4>${esc(title)}</h4>
+        <textarea id="lang_${i}">${esc(text)}</textarea>
+        <div class="buttons"><button class="secondary" onclick="copyText('lang_${i}')">Copy this block</button></div>
+      </div>`;
+    }).join("");
+    $("languageBlocks").innerHTML = blocks;
+  };
+
+  window.copyText = async function(id){
+    const text = $(id).value;
+    try{ await navigator.clipboard.writeText(text); flash("Copied."); }
+    catch(e){ $(id).select(); document.execCommand("copy"); flash("Copied."); }
+  };
+
+  window.copyAllLanguage = async function(){
+    const texts = Array.from(document.querySelectorAll("#languageBlocks textarea")).map(t => t.value).join("\n\n");
+    if(!texts) { generateLanguage(); return copyAllLanguage(); }
+    try{ await navigator.clipboard.writeText(texts); flash("Manuscript language copied."); } catch(e){ flash("Copy failed; select and copy manually."); }
+  };
+
+  function collectFormState(){
+    const form = {};
+    activeInputs().forEach(el => { form[el.id] = el.type === "checkbox" ? el.checked : el.value; });
+    syncRivals(); syncMatchVars(); syncInstruments(); syncControls();
+    return {form, dynamic: state};
+  }
+  function applyFormState(saved){
+    if(!saved) return;
+    const form = saved.form || {};
+    Object.keys(form).forEach(id => {
+      const el = $(id);
+      if(!el) return;
+      if(el.type === "checkbox") el.checked = !!form[id]; else el.value = form[id] || "";
+    });
+    if(saved.dynamic){
+      state.rivals = saved.dynamic.rivals || [];
+      state.matchVars = saved.dynamic.matchVars || [];
+      state.instruments = saved.dynamic.instruments || [];
+      state.controls = saved.dynamic.controls || [];
+      addInitialDynamicRows();
+    }
+    renderRivals(); renderMatchVars(); renderInstruments(); renderControls();
+    scoreValidity(); updateProgress();
+  }
+  window.saveState = function(){
+    localStorage.setItem(storeKey, JSON.stringify(collectFormState()));
+    flash("Progress saved in this browser.");
+  };
+  window.loadState = function(show=true){
+    const raw = localStorage.getItem(storeKey);
+    if(raw){ applyFormState(JSON.parse(raw)); if(show) flash("Saved progress loaded."); }
+  };
+  window.clearState = function(){
+    if(!confirm("Clear all responses and saved browser progress?")) return;
+    localStorage.removeItem(storeKey);
+    document.querySelectorAll("input, textarea, select").forEach(el => {
+      if(el.type === "checkbox") el.checked = false;
+      else if(el.type === "range") el.value = 0;
+      else el.value = "";
+    });
+    state.rivals = [emptyRival()];
+    state.matchVars = [emptyMatch()];
+    state.instruments = [emptyInstrument()];
+    state.controls = [emptyControl()];
+    renderRivals(); renderMatchVars(); renderInstruments(); renderControls(); scoreValidity(); updateProgress();
+    $("reportPreview").textContent = "Responses cleared. Click “Generate report” after completing the modules.";
+    flash("Cleared.");
+  };
+
+  window.generateReport = function(scrollToReport=false){
+    syncRivals(); syncMatchVars(); syncInstruments(); syncControls(); matchingDiagnostics();
+    const report = [
+      "CAUSAL INFERENCE RESEARCH PLAN",
+      "Based on Aguinis, H. 2025. Research methodology: Best practices for rigorous, credible, and impactful research. SAGE.",
+      "",
+      "1. Research question",
+      val("topic") || "[Not specified]",
+      "",
+      "2. Practical problem",
+      val("practicalProblem") || "[Not specified]",
+      "",
+      "3. Theoretical contribution",
+      val("theoryContribution") || "[Not specified]",
+      "",
+      "4. Practical contribution",
+      val("practicalContribution") || "[Not specified]",
+      "",
+      "5. Causal claim",
+      val("causalStatement") || `${val("xVar") || "[X]"} is expected to affect ${val("yVar") || "[Y]"} through ${val("mVar") || "[M]"} under ${val("zConditions") || "[conditions Z]"}.`,
+      "",
+      "6. Unit and level of analysis",
+      `Unit of analysis: ${val("unitAnalysis") || "[Not specified]"}\nLevel of theory: ${val("levelTheory") || "[Not specified]"}\nLevel of measurement: ${val("levelMeasurement") || "[Not specified]"}\nTime frame: ${val("timeFrame") || "[Not specified]"}`,
+      "",
+      "7. Causal conditions assessment",
+      `Association evidence: ${val("assocEvidence") || "[Not specified]"}\nAssociation model/comparison: ${val("assocModel") || "[Not specified]"}\nTemporal precedence: ${val("temporalExplanation") || "[Not specified]"}\nReverse causality: ${val("reverseCausality") || "[Not specified]"}\nAlternative explanations: ${val("rivalSummary") || "[Not specified]"}\nHow alternatives are addressed: ${val("addressAlternatives") || "[Not specified]"}`,
+      "",
+      "8. Alternative explanations",
+      state.rivals.filter(r=>r.name || r.plausible).map((r,i)=>`${i+1}. ${r.name || "[Unnamed]"} — plausibility: ${r.plausibility}; threat: ${r.threat}; decision: ${r.decision || "[not specified]"}; addressed by: ${r.addressedBy || "[not specified]"}; rationale: ${r.plausible || "[not specified]"}`).join("\n") || "[No rival explanations entered]",
+      "",
+      "9. Selected design",
+      val("designType") || val("quasiDesign") || "[Not specified]",
+      "",
+      "10. Selected causal-inference procedures",
+      ($("procedureRecommendation").innerText || "[Run the procedure selector]").trim(),
+      "",
+      "11. Counterfactual logic",
+      val("cfSummary") || "[Not specified]",
+      "",
+      "12. Matching plan",
+      val("matchingSummary") || "[Not specified]",
+      "",
+      "13. Instrumental-variable plan",
+      ivLanguage(),
+      "",
+      "14. Quasi-experimental plan",
+      `Design: ${val("quasiDesign") || "[Not specified]"}\nChange/intervention: ${val("quasiChange") || "[Not specified]"}\nExposed: ${val("quasiExposed") || "[Not specified]"}\nUnexposed/comparison: ${val("quasiUnexposed") || "[Not specified]"}\nAssumptions: ${val("quasiAssumptions") || "[Not specified]"}`,
+      "",
+      "15. Internal/external validity assessment",
+      `Internal validity strength: ${$("internalScore").textContent}\nExternal validity strength: ${$("externalScore").textContent}\nAdvice: ${($("validityAdvice").innerText || "[Run validity assessment]").trim()}`,
+      "",
+      "16. ESM, eLancing, VR recommendation",
+      ($("toolRecommendation").innerText || "[Run tool recommender]").trim(),
+      "",
+      "17. Control-variable decisions",
+      state.controls.filter(c=>c.name).map((c,i)=>`${i+1}. ${c.name}: ${c.decision || "[not specified]"} — ${c.recommendation || ""}\nRationale: ${reasonText(c)}\nTheory: ${c.theoryText || "[not specified]"}\nReliability: ${c.reliable || "[not specified]"}\nLanguage: ${c.language || "[not specified]"}`).join("\n\n") || "[No controls entered]",
+      "",
+      "18. Reporting plan",
+      `With/without controls reporting: ${($("reportingScore").innerText || "[Run reporting assessment]").trim()}`,
+      "",
+      "19. Remaining limitations",
+      val("biasThreats") || "[Not specified]",
+      "",
+      "20. Revision priorities before data collection",
+      revisionPriorities()
+    ].join("\n");
+    $("reportPreview").textContent = report;
+    if(scrollToReport) location.hash = "#m15";
+    return report;
+  };
+
+  function revisionPriorities(){
+    const priorities = [];
+    if(!val("practicalProblem")) priorities.push("Clarify the practical problem and intended users.");
+    if(!val("causalStatement")) priorities.push("Write an explicit causal statement with X, Y, M, and boundary conditions.");
+    if(val("designType") === "Cross-sectional" || !val("temporalExplanation")) priorities.push("Strengthen temporal precedence; a cross-sectional design is vulnerable for causal inference.");
+    if(!val("addressAlternatives")) priorities.push("Specify how alternative explanations will be ruled out through design, measurement, or analysis.");
+    if(!state.rivals.some(r=>r.name)) priorities.push("Create a rival-explanations inventory.");
+    if(!state.controls.some(c=>c.name)) priorities.push("Evaluate candidate controls with theory, empirical evidence, reliability, and with/without-controls reporting.");
+    return priorities.length ? priorities.map((p,i)=>`${i+1}. ${p}`).join("\n") : "No major missing planning elements detected. Continue refining assumptions, measures, and reporting language.";
+  }
+
+  window.downloadReport = function(){
+    const report = generateReport(false);
+    const blob = new Blob([report], {type:"text/plain;charset=utf-8"});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "causal-inference-research-plan.txt";
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(url);
+  };
+
+  window.copyReport = async function(){
+    const report = generateReport(false);
+    try{ await navigator.clipboard.writeText(report); flash("Report copied."); } catch(e){ flash("Copy failed; select the report and copy manually."); }
+  };
+
+  function flash(msg){
+    const div = document.createElement("div");
+    div.textContent = msg;
+    div.style.position = "fixed";
+    div.style.right = "18px";
+    div.style.bottom = "18px";
+    div.style.background = "#0e2f51";
+    div.style.color = "white";
+    div.style.padding = "12px 16px";
+    div.style.borderRadius = "12px";
+    div.style.boxShadow = "0 10px 24px rgba(0,0,0,.18)";
+    div.style.zIndex = "9999";
+    document.body.appendChild(div);
+    setTimeout(()=>div.remove(), 1800);
+  }
+
+})();
+</script>
+<!-- Begin Countercentral code v 7.0 --> 
+<span id="wts2576"></span> 
+<script>var wts=document.createElement('script');wts.async=true; 
+wts.src='https://server2.countercentral.com/log7.js';document.head.appendChild(wts); 
+wts.onload = function(){ wtslog7(2576,1); }; 
+</script><noscript><a href="https://www.countercentral.com"> 
+<img src="https://server2.countercentral.com/7/1/2576.png"  
+alt="Countercentral web traffic analysis"></a></noscript> 
+<!-- End Countercentral code v 7.0 -->
+</body>
+</html>

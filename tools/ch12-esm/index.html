@@ -1,0 +1,1399 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Experience Sampling Methodology Study Designer</title>
+<style>
+:root{
+  --ink:#132238;
+  --muted:#5b6778;
+  --panel:#ffffff;
+  --soft:#f4f7fb;
+  --line:#d8e0eb;
+  --accent:#174ea6;
+  --accent-2:#0b6b61;
+  --warn:#9b5a00;
+  --bad:#a12424;
+  --good:#147344;
+  --shadow:0 12px 28px rgba(19,34,56,.10);
+  --radius:18px;
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{
+  margin:0;
+  font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
+  color:var(--ink);
+  background:linear-gradient(180deg,#eef4fb 0,#f9fbfe 35%,#ffffff 100%);
+  line-height:1.45;
+}
+a{color:var(--accent)}
+button,input,select,textarea{font:inherit}
+.skip-link{
+  position:absolute;left:-999px;top:8px;background:#fff;padding:10px;border:2px solid var(--accent);z-index:99;
+}
+.skip-link:focus{left:8px}
+.topbar{
+  position:sticky;top:0;z-index:50;
+  display:flex;gap:14px;align-items:center;justify-content:space-between;
+  padding:14px 22px;background:rgba(255,255,255,.94);backdrop-filter:blur(10px);
+  border-bottom:1px solid var(--line);
+}
+.brand{display:flex;gap:12px;align-items:center}
+.logo{
+  width:44px;height:44px;border-radius:14px;
+  background:linear-gradient(135deg,var(--accent),var(--accent-2));
+  color:#fff;display:grid;place-items:center;font-weight:800;letter-spacing:.5px;
+}
+.brand h1{font-size:1.05rem;margin:0}
+.brand p{font-size:.84rem;color:var(--muted);margin:0}
+.toolbar{display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end}
+.btn{
+  border:1px solid var(--line);background:#fff;color:var(--ink);
+  padding:8px 11px;border-radius:12px;cursor:pointer;
+  display:inline-flex;align-items:center;gap:6px;
+}
+.btn:hover,.btn:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(23,78,166,.12);outline:0}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:#fff}
+.btn.success{background:var(--accent-2);border-color:var(--accent-2);color:#fff}
+.btn.danger{background:#fff;border-color:#e5b5b5;color:var(--bad)}
+.btn.small{padding:6px 9px;border-radius:10px;font-size:.88rem}
+.file-input{display:none}
+.layout{display:grid;grid-template-columns:285px 1fr;gap:20px;max-width:1500px;margin:0 auto;padding:20px}
+.sidebar{
+  position:sticky;top:82px;align-self:start;max-height:calc(100vh - 100px);overflow:auto;
+  background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow);padding:14px;
+}
+.progress-wrap{padding:8px 4px 14px;border-bottom:1px solid var(--line);margin-bottom:10px}
+.progress-label{display:flex;justify-content:space-between;font-size:.9rem;color:var(--muted);margin-bottom:7px}
+.progress{height:10px;background:#e7edf6;border-radius:999px;overflow:hidden}
+.progress > div{height:100%;width:0;background:linear-gradient(90deg,var(--accent),var(--accent-2));transition:width .25s}
+.nav a{
+  display:block;text-decoration:none;color:var(--ink);padding:9px 10px;border-radius:10px;font-size:.92rem;
+}
+.nav a:hover,.nav a:focus,.nav a.active{background:#edf4ff;color:var(--accent);outline:0}
+main{min-width:0}
+.hero{
+  background:linear-gradient(135deg,#13335f,#0b6b61);
+  color:#fff;border-radius:24px;padding:28px;box-shadow:var(--shadow);margin-bottom:20px;
+}
+.hero h2{font-size:2rem;margin:0 0 8px}
+.hero p{max-width:970px;margin:0;color:#e7f1fb}
+.kpi-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px;margin-top:18px}
+.kpi{background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.2);border-radius:16px;padding:14px}
+.kpi b{display:block;font-size:1.35rem}
+.panel{
+  background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);
+  box-shadow:var(--shadow);margin:18px 0;overflow:hidden;
+}
+.panel-header{
+  width:100%;text-align:left;background:#fff;border:0;border-bottom:1px solid var(--line);
+  padding:18px 20px;display:flex;justify-content:space-between;align-items:center;cursor:pointer;
+}
+.panel-header h2{margin:0;font-size:1.15rem}
+.panel-header p{margin:4px 0 0;color:var(--muted);font-size:.92rem}
+.panel-body{padding:20px}
+.collapsed .panel-body{display:none}
+.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}
+.grid-3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px}
+.grid-4{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}
+.card{
+  border:1px solid var(--line);background:#fff;border-radius:16px;padding:15px;
+}
+.card.soft{background:var(--soft)}
+.card h3{margin:0 0 8px;font-size:1rem}
+label{display:block;font-weight:650;margin:0 0 6px}
+.help{display:block;color:var(--muted);font-size:.85rem;margin-top:3px}
+input[type=text],input[type=number],input[type=date],input[type=time],input[type=datetime-local],select,textarea{
+  width:100%;border:1px solid #cbd5e1;border-radius:12px;padding:10px 11px;background:#fff;color:var(--ink);
+}
+textarea{min-height:92px;resize:vertical}
+input[type=range]{width:100%}
+.checkrow{display:flex;gap:8px;align-items:flex-start;margin:7px 0}
+.checkrow input{margin-top:4px}
+.actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
+.output{
+  border:1px solid #c7d7ee;background:#f7fbff;border-radius:16px;padding:15px;margin-top:14px;min-height:54px;
+}
+.output h3{margin-top:0}
+.output:empty::before{content:"Generated output will appear here.";color:var(--muted)}
+.badge{
+  display:inline-block;padding:3px 8px;border-radius:999px;font-size:.8rem;font-weight:700;border:1px solid var(--line);background:#fff;margin:2px;
+}
+.badge.good{color:var(--good);border-color:#b7e0cb;background:#eefaf3}
+.badge.warn{color:var(--warn);border-color:#f2d39a;background:#fff7e8}
+.badge.bad{color:var(--bad);border-color:#efb6b6;background:#fff0f0}
+.risk-green{background:#eefaf3;border-color:#b7e0cb}
+.risk-yellow{background:#fff7e8;border-color:#f2d39a}
+.risk-red{background:#fff0f0;border-color:#efb6b6}
+table{width:100%;border-collapse:collapse;font-size:.92rem;background:#fff}
+th,td{border:1px solid var(--line);padding:8px;text-align:left;vertical-align:top}
+th{background:#f0f5fb}
+.table-wrap{overflow:auto;border:1px solid var(--line);border-radius:14px;margin-top:12px}
+pre{
+  white-space:pre-wrap;word-break:break-word;background:#0f172a;color:#e5edf8;border-radius:14px;padding:14px;overflow:auto;
+}
+.tooltip{
+  border-bottom:1px dotted var(--muted);cursor:help;position:relative;color:var(--accent);font-weight:650;
+}
+.tooltip:hover::after,.tooltip:focus::after{
+  content:attr(data-tip);position:absolute;left:0;top:1.6em;z-index:10;width:280px;background:#132238;color:#fff;
+  padding:10px;border-radius:10px;font-size:.83rem;font-weight:500;box-shadow:var(--shadow);
+}
+.tabs{display:flex;gap:8px;flex-wrap:wrap;margin:8px 0 14px}
+.tab{padding:8px 11px;border:1px solid var(--line);background:#fff;border-radius:999px;cursor:pointer}
+.tab.active{background:var(--accent);color:#fff;border-color:var(--accent)}
+.hidden{display:none!important}
+.footer{
+  max-width:1500px;margin:24px auto 40px;padding:18px 22px;color:var(--muted);font-size:.9rem;
+}
+dialog{
+  border:0;border-radius:22px;box-shadow:0 25px 80px rgba(0,0,0,.35);max-width:760px;padding:0;
+}
+dialog::backdrop{background:rgba(10,20,35,.45)}
+.dialog-body{padding:24px}
+.close-x{float:right}
+.notice{border-left:5px solid var(--accent);background:#f2f7ff;padding:12px 14px;border-radius:12px;margin:12px 0}
+.warning{border-left:5px solid var(--warn);background:#fff8ea;padding:12px 14px;border-radius:12px;margin:12px 0}
+.dangerbox{border-left:5px solid var(--bad);background:#fff1f1;padding:12px 14px;border-radius:12px;margin:12px 0}
+@media(max-width:1050px){
+  .layout{grid-template-columns:1fr}
+  .sidebar{position:relative;top:0;max-height:none}
+  .kpi-grid,.grid-4{grid-template-columns:repeat(2,minmax(0,1fr))}
+}
+@media(max-width:760px){
+  .topbar{align-items:flex-start;flex-direction:column}
+  .grid,.grid-3,.grid-4,.kpi-grid{grid-template-columns:1fr}
+  .hero h2{font-size:1.5rem}
+}
+@media print{
+  body{background:#fff;color:#000}
+  .topbar,.sidebar,.actions,.panel-header .chev,.btn,.file-input{display:none!important}
+  .layout{display:block;padding:0}
+  .hero,.panel{box-shadow:none;border:1px solid #999;break-inside:avoid}
+  .panel-body{display:block!important}
+  a{color:#000;text-decoration:none}
+}
+</style>
+</head>
+<body>
+<a class="skip-link" href="#main">Skip to main content</a>
+<header class="topbar" role="banner">
+  <div class="brand">
+    <div class="logo" aria-hidden="true">ESM</div>
+    <div>
+      <h1>Experience Sampling Methodology Study Designer</h1>
+      <p>Offline planning tool for ESM research in entrepreneurship, management, OB, psychology, and related fields.</p>
+    </div>
+  </div>
+  <div class="toolbar" aria-label="Global actions">
+    <button class="btn primary" onclick="exportJSON()">Export JSON</button>
+    <button class="btn" onclick="document.getElementById('jsonLoader').click()">Load saved JSON</button>
+    <input id="jsonLoader" class="file-input" type="file" accept="application/json,.json" onchange="loadJSON(event)">
+    <button class="btn" onclick="exportInputsCSV()">Export CSV</button>
+    <button class="btn" onclick="exportTextSummary()">Export text summary</button>
+    <button class="btn" onclick="printSummary()">Print summary</button>
+    <button class="btn" onclick="openAbout()">About</button>
+    <button class="btn danger" onclick="resetTool()">Reset tool</button>
+  </div>
+</header>
+
+<div class="layout">
+  <aside class="sidebar" aria-label="Section navigation">
+    <div class="progress-wrap">
+      <div class="progress-label"><span>Workflow completion</span><strong id="progressPct">0%</strong></div>
+      <div class="progress" aria-label="Workflow progress"><div id="progressBar"></div></div>
+    </div>
+    <nav class="nav" id="nav">
+      <a href="#dashboard">Dashboard</a>
+      <a href="#fit">A. ESM fit diagnostic</a>
+      <a href="#mapper">B. Research question mapper</a>
+      <a href="#protocol">C. Protocol selector</a>
+      <a href="#sample">D. Sample size planner</a>
+      <a href="#survey">E. Survey builder</a>
+      <a href="#schedule">F. Signaling and scheduling</a>
+      <a href="#technology">G. Technology/data capture</a>
+      <a href="#recruitment">H. Recruitment/orientation</a>
+      <a href="#compliance">I. Compliance dashboard</a>
+      <a href="#structure">J. Data structure builder</a>
+      <a href="#analysis">K. Analysis plan</a>
+      <a href="#audit">L. Validity and risk audit</a>
+      <a href="#ethics">M. Ethics, IRB, privacy</a>
+      <a href="#reporting">N. Reporting package</a>
+      <a href="#examples">Built-in examples</a>
+    </nav>
+  </aside>
+
+  <main id="main">
+    <section class="hero" id="dashboard">
+      <h2>Design, conduct, monitor, analyze, and report an ESM study.</h2>
+      <p>Use this tool to turn experience sampling methodology principles into concrete design decisions, checklists, templates, calculations, warnings, codebook entries, analysis syntax, and manuscript-ready outputs. All processing is local in this browser.</p>
+      <div class="kpi-grid" aria-label="Workflow cards">
+        <div class="kpi"><b id="dashFit">—</b><span>Fit score</span></div>
+        <div class="kpi"><b id="dashProtocol">—</b><span>Recommended protocol</span></div>
+        <div class="kpi"><b id="dashObs">—</b><span>Expected valid Level 1 observations</span></div>
+        <div class="kpi"><b id="dashRisk">—</b><span>Audit status</span></div>
+      </div>
+      <div class="actions">
+        <button class="btn success" onclick="generateAll()">Generate all current recommendations</button>
+        <button class="btn" onclick="document.getElementById('examples').scrollIntoView()">Load a built-in example</button>
+      </div>
+    </section>
+
+    <section class="panel" id="fit">
+      <button class="panel-header" onclick="togglePanel(this)" aria-expanded="true">
+        <span><h2>A. ESM fit diagnostic</h2><p>Assess whether the research question requires repeated real-time reports in natural settings.</p></span><span class="chev">▾</span>
+      </button>
+      <div class="panel-body">
+        <p class="notice">Rate each feature from 0 = not relevant to 4 = central to the study. Strong ESM candidates involve dynamic processes, short-lived states, within-person variability, person-by-situation interactions, ecological validity concerns, and recall-bias concerns.</p>
+        <div id="fitSliders" class="grid"></div>
+        <div class="actions">
+          <button class="btn primary" onclick="generateFit()">Generate fit recommendation</button>
+          <button class="btn" onclick="copyElement('fitOutput')">Copy output</button>
+        </div>
+        <div class="output" id="fitOutput" aria-live="polite"></div>
+      </div>
+    </section>
+
+    <section class="panel" id="mapper">
+      <button class="panel-header" onclick="togglePanel(this)" aria-expanded="true">
+        <span><h2>B. Research question-to-design mapper</h2><p>Translate a substantive question into ESM constructs, levels, mechanisms, and testable hypotheses.</p></span><span class="chev">▾</span>
+      </button>
+      <div class="panel-body">
+        <div class="grid">
+          <div><label for="domain">Research domain</label><input id="domain" type="text" placeholder="e.g., entrepreneurship, management, OB"></div>
+          <div><label for="focalPhenomenon">Focal phenomenon</label><input id="focalPhenomenon" type="text" placeholder="e.g., opportunity recognition, venture effort"></div>
+          <div><label for="predictors">Predictor variable(s)</label><input id="predictors" type="text" placeholder="e.g., momentary affect, social interaction quality"></div>
+          <div><label for="outcomes">Outcome variable(s)</label><input id="outcomes" type="text" placeholder="e.g., venture effort, opportunity evaluation"></div>
+          <div><label for="moderators">Moderator variable(s)</label><input id="moderators" type="text" placeholder="e.g., prior experience, venture stage"></div>
+          <div><label for="l1vars">Level 1 variables: momentary/occasion-level</label><input id="l1vars" type="text" placeholder="e.g., affect, effort, location, interaction"></div>
+          <div><label for="l2vars">Level 2 variables: person/team/venture/organization-level</label><input id="l2vars" type="text" placeholder="e.g., age, industry, trait self-efficacy"></div>
+          <div><label for="timescale">Expected time scale of process</label><input id="timescale" type="text" placeholder="e.g., hours, days, after client meetings"></div>
+          <div><label for="mechanism">Theoretical mechanism</label><input id="mechanism" type="text" placeholder="e.g., affect-as-information, resource mobilization"></div>
+          <div><label for="exampleRQ">Initial research question</label><textarea id="exampleRQ" placeholder="Write the question in your own words."></textarea></div>
+        </div>
+        <div class="card soft" style="margin-top:14px">
+          <h3>Example domains users can adapt</h3>
+          <p>Entrepreneurial affect and venture effort; opportunity discovery or evaluation; social interactions and opportunity recognition; stress and well-being; passion, motivation, self-efficacy, fear of failure, and work-family experiences; coping with setbacks or business failure.</p>
+        </div>
+        <div class="actions">
+          <button class="btn primary" onclick="generateMapper()">Generate design logic</button>
+          <button class="btn" onclick="copyElement('mapperOutput')">Copy output</button>
+        </div>
+        <div class="output" id="mapperOutput"></div>
+      </div>
+    </section>
+
+    <section class="panel" id="protocol">
+      <button class="panel-header" onclick="togglePanel(this)" aria-expanded="true">
+        <span><h2>C. Protocol selector</h2><p>Compare interval-contingent, event-contingent, and signal-contingent ESM protocols.</p></span><span class="chev">▾</span>
+      </button>
+      <div class="panel-body">
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Protocol</th><th>Best use cases</th><th>Advantages</th><th>Limitations</th><th>Data and burden implications</th></tr></thead>
+            <tbody>
+              <tr><td><strong>Interval-contingent</strong></td><td>Fixed times or predetermined intervals; daily recurring states.</td><td>Predictable, easy to explain, simpler schedule administration.</td><td>Fixed-time bias; expectancy effects; may miss irregular events.</td><td>Regular time grid; moderate burden if prompts are few.</td></tr>
+              <tr><td><strong>Event-contingent</strong></td><td>Specified events, rare events, social interactions, investor meetings, setback episodes, opportunity discovery.</td><td>Captures focal events close to occurrence; efficient for infrequent phenomena.</td><td>Requires clear event definitions; risk of underreporting; variable data density.</td><td>Irregular rows; burden tied to event frequency; inclusion/exclusion rules matter.</td></tr>
+              <tr><td><strong>Signal-contingent</strong></td><td>Random prompts within time windows; broad sampling of states and contexts.</td><td>Reduces fixed-time bias and expectancy effects; supports random sampling of real-world states.</td><td>More intrusive; requires careful spacing and compliance tracking.</td><td>Random time grid; burden depends on prompts/day and response window.</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="grid-3" style="margin-top:14px">
+          <div><label for="phenomFreq">Frequency of phenomenon</label><select id="phenomFreq"><option value="">Select</option><option>rare</option><option>occasional</option><option>frequent</option></select></div>
+          <div><label for="eventPredict">Predictability of event</label><select id="eventPredict"><option value="">Select</option><option>unpredictable</option><option>partly predictable</option><option>predictable</option></select></div>
+          <div><label for="randomNeed">Need for random sampling</label><select id="randomNeed"><option value="">Select</option><option>low</option><option>moderate</option><option>high</option></select></div>
+          <div><label for="expectancyRisk">Risk of expectancy effects</label><select id="expectancyRisk"><option value="">Select</option><option>low</option><option>moderate</option><option>high</option></select></div>
+          <div><label for="rareNeed">Need to capture rare events</label><select id="rareNeed"><option value="">Select</option><option>low</option><option>moderate</option><option>high</option></select></div>
+          <div><label for="scheduleRegularity">Participant schedule regularity</label><select id="scheduleRegularity"><option value="">Select</option><option>irregular</option><option>mixed</option><option>regular</option></select></div>
+          <div><label for="burdenTolerance">Expected respondent burden tolerance</label><select id="burdenTolerance"><option value="">Select</option><option>low</option><option>moderate</option><option>high</option></select></div>
+        </div>
+        <div class="actions">
+          <button class="btn primary" onclick="generateProtocol()">Recommend protocol</button>
+          <button class="btn" onclick="copyElement('protocolOutput')">Copy output</button>
+        </div>
+        <div class="output" id="protocolOutput"></div>
+      </div>
+    </section>
+
+    <section class="panel" id="sample">
+      <button class="panel-header" onclick="togglePanel(this)" aria-expanded="true">
+        <span><h2>D. Sample size and data-point planner</h2><p>Estimate Level 1 observations, compliance, missingness, attrition, burden, and multilevel-modeling readiness.</p></span><span class="chev">▾</span>
+      </button>
+      <div class="panel-body">
+        <div class="warning"><strong>Planning note:</strong> This calculator supports planning but does not replace a formal multilevel power analysis.</div>
+        <div class="grid-4">
+          <div><label for="nParticipants">Number of participants</label><input id="nParticipants" type="number" min="1" value="60"></div>
+          <div><label for="nDays">Number of study days</label><input id="nDays" type="number" min="1" value="14"></div>
+          <div><label for="promptsPerDay">Prompts per day</label><input id="promptsPerDay" type="number" min="0" step="1" value="4"></div>
+          <div><label for="complianceRate">Expected response rate/compliance (%)</label><input id="complianceRate" type="number" min="0" max="100" value="75"></div>
+          <div><label for="invalidRate">Expected invalid-response rate (%)</label><input id="invalidRate" type="number" min="0" max="100" value="5"></div>
+          <div><label for="attritionRate">Expected attrition rate (%)</label><input id="attritionRate" type="number" min="0" max="100" value="10"></div>
+          <div><label for="minObsNeeded">Minimum observations needed after missingness</label><input id="minObsNeeded" type="number" min="1" value="500"></div>
+          <div><label for="eventRate">Event-contingent expected events/person/day</label><input id="eventRate" type="number" min="0" step=".1" value="0"></div>
+        </div>
+        <div class="actions">
+          <button class="btn primary" onclick="calculateSample()">Calculate data points</button>
+          <button class="btn" onclick="copyElement('sampleOutput')">Copy output</button>
+        </div>
+        <div class="output" id="sampleOutput"></div>
+      </div>
+    </section>
+
+    <section class="panel" id="survey">
+      <button class="panel-header" onclick="togglePanel(this)" aria-expanded="true">
+        <span><h2>E. ESM survey builder</h2><p>Build a short momentary instrument, codebook, participant-facing survey, and CSV-ready variable list.</p></span><span class="chev">▾</span>
+      </button>
+      <div class="panel-body">
+        <div class="grid-4">
+          <div><label for="itemCategory">Category</label><select id="itemCategory"></select></div>
+          <div><label for="itemConstruct">Construct</label><input id="itemConstruct" type="text" placeholder="e.g., positive affect"></div>
+          <div><label for="itemWording">Exact item wording</label><input id="itemWording" type="text" placeholder="Right now, I feel enthusiastic."></div>
+          <div><label for="itemScale">Response scale</label><input id="itemScale" type="text" value="1 = not at all; 5 = extremely"></div>
+          <div><label for="itemLevel">Level</label><select id="itemLevel"><option>Level 1</option><option>Level 2</option></select></div>
+          <div><label for="itemRepeated">Repeated at each prompt?</label><select id="itemRepeated"><option>Yes</option><option>No</option></select></div>
+          <div><label for="itemEvent">Event-specific?</label><select id="itemEvent"><option>No</option><option>Yes</option></select></div>
+          <div><label for="itemSeconds">Expected completion time, seconds</label><input id="itemSeconds" type="number" min="1" value="8"></div>
+          <div><label for="itemRequired">Required?</label><select id="itemRequired"><option>Yes</option><option>No</option></select></div>
+          <div><label for="itemSkippable">Can be skipped?</label><select id="itemSkippable"><option>No</option><option>Yes</option></select></div>
+        </div>
+        <div class="actions">
+          <button class="btn success" onclick="addSurveyItem()">Add item</button>
+          <button class="btn" onclick="loadItemTemplate()">Show example item</button>
+          <button class="btn primary" onclick="generateSurveyOutputs()">Generate instrument/codebook</button>
+          <button class="btn" onclick="exportSurveyCSV()">Export variable list CSV</button>
+          <button class="btn" onclick="copyElement('surveyOutput')">Copy output</button>
+        </div>
+        <div class="output" id="burdenMeter"></div>
+        <div class="table-wrap"><table id="surveyTable"><thead><tr><th>#</th><th>Category</th><th>Construct</th><th>Wording</th><th>Scale</th><th>Level</th><th>Time</th><th>Action</th></tr></thead><tbody></tbody></table></div>
+        <div class="output" id="surveyOutput"></div>
+      </div>
+    </section>
+
+    <section class="panel" id="schedule">
+      <button class="panel-header" onclick="togglePanel(this)" aria-expanded="true">
+        <span><h2>F. Signaling and schedule generator</h2><p>Create interval- or signal-contingent prompt schedules and event-contingent reporting rules.</p></span><span class="chev">▾</span>
+      </button>
+      <div class="panel-body">
+        <div class="tabs" role="tablist">
+          <button class="tab active" onclick="switchTab('scheduleTab','timeSchedule')">Interval/signal schedule</button>
+          <button class="tab" onclick="switchTab('scheduleTab','eventSchedule')">Event definition builder</button>
+        </div>
+        <div id="timeSchedule" class="scheduleTab">
+          <div class="grid-4">
+            <div><label for="studyStart">Study start date</label><input id="studyStart" type="date"></div>
+            <div><label for="studyEnd">Study end date</label><input id="studyEnd" type="date"></div>
+            <div><label for="dailyStart">Daily start time</label><input id="dailyStart" type="time" value="10:00"></div>
+            <div><label for="dailyEnd">Daily end time</label><input id="dailyEnd" type="time" value="22:00"></div>
+            <div><label for="schedPrompts">Prompts per day</label><input id="schedPrompts" type="number" min="1" value="4"></div>
+            <div><label for="minGap">Minimum gap between prompts, minutes</label><input id="minGap" type="number" min="0" value="90"></div>
+            <div><label for="randomized">Schedule type</label><select id="randomized"><option value="random">Randomized within windows</option><option value="fixed">Fixed/evenly spaced</option></select></div>
+            <div><label for="validWindow">Response-validity window, minutes</label><input id="validWindow" type="number" min="1" value="120"></div>
+          </div>
+          <fieldset class="card" style="margin-top:14px">
+            <legend><strong>Days of week included</strong></legend>
+            <div class="grid-4">
+              <label class="checkrow"><input class="weekday" type="checkbox" value="1" checked> Monday</label>
+              <label class="checkrow"><input class="weekday" type="checkbox" value="2" checked> Tuesday</label>
+              <label class="checkrow"><input class="weekday" type="checkbox" value="3" checked> Wednesday</label>
+              <label class="checkrow"><input class="weekday" type="checkbox" value="4" checked> Thursday</label>
+              <label class="checkrow"><input class="weekday" type="checkbox" value="5" checked> Friday</label>
+              <label class="checkrow"><input class="weekday" type="checkbox" value="6"> Saturday</label>
+              <label class="checkrow"><input class="weekday" type="checkbox" value="0"> Sunday</label>
+            </div>
+          </fieldset>
+          <div style="margin-top:14px"><label for="noPromptBlocks">No-prompt blocks, one per line, HH:MM-HH:MM</label><textarea id="noPromptBlocks" placeholder="12:00-13:00&#10;17:30-18:30"></textarea></div>
+          <div class="actions">
+            <button class="btn primary" onclick="generateSchedule()">Generate schedule</button>
+            <button class="btn" onclick="exportScheduleCSV()">Export schedule CSV</button>
+            <button class="btn" onclick="copyElement('scheduleOutput')">Copy output</button>
+          </div>
+          <div class="output" id="scheduleOutput"></div>
+        </div>
+        <div id="eventSchedule" class="scheduleTab hidden">
+          <div class="grid">
+            <div><label for="eventTrigger">Triggering event</label><input id="eventTrigger" type="text" placeholder="e.g., significant social interaction with investor/customer/supplier"></div>
+            <div><label for="eventRespondWhen">When should participant respond?</label><input id="eventRespondWhen" type="text" value="Immediately after the event, preferably within 15 minutes"></div>
+            <div><label for="eventInclude">Inclusion criteria</label><textarea id="eventInclude" placeholder="e.g., interaction lasted at least 5 minutes and concerned venture opportunities, resources, or strategic decisions"></textarea></div>
+            <div><label for="eventExclude">Exclusion criteria</label><textarea id="eventExclude" placeholder="e.g., purely administrative interactions, duplicate reports, events shorter than 5 minutes"></textarea></div>
+            <div><label for="eventMax">Maximum reports per day</label><input id="eventMax" type="number" min="1" value="5"></div>
+            <div><label for="eventBackup">Backup reminders</label><input id="eventBackup" type="text" value="End-of-day reminder if no event report is received"></div>
+            <div><label for="eventMultiple">Multiple close events rule</label><input id="eventMultiple" type="text" value="Report the most consequential event first; separate reports if events are at least 30 minutes apart"></div>
+          </div>
+          <div class="actions">
+            <button class="btn primary" onclick="generateEventDefinition()">Generate event rules</button>
+            <button class="btn" onclick="copyElement('eventOutput')">Copy output</button>
+          </div>
+          <div class="output" id="eventOutput"></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="panel" id="technology">
+      <button class="panel-header" onclick="togglePanel(this)" aria-expanded="true">
+        <span><h2>G. Technology and data-capture planner</h2><p>Choose a prompting and response-capture approach and check operational readiness.</p></span><span class="chev">▾</span>
+      </button>
+      <div class="panel-body">
+        <div class="grid">
+          <div><label for="techChoice">Preferred technology approach</label><select id="techChoice"><option>Mobile app</option><option>Mobile web survey</option><option>SMS/text prompt with web survey link</option><option>Email prompt</option><option>Wearable/device-based prompt</option><option>Paper diary only as fallback</option></select></div>
+          <div><label for="techNotes">Technology constraints</label><textarea id="techNotes" placeholder="Participant devices, time zones, privacy constraints, institutional platform, budget, technical support."></textarea></div>
+        </div>
+        <div class="actions">
+          <button class="btn primary" onclick="generateTech()">Generate technology plan</button>
+          <button class="btn" onclick="copyElement('techOutput')">Copy output</button>
+        </div>
+        <div id="techChecklist" class="grid-3" style="margin-top:14px"></div>
+        <div class="output" id="techOutput"></div>
+      </div>
+    </section>
+
+    <section class="panel" id="recruitment">
+      <button class="panel-header" onclick="togglePanel(this)" aria-expanded="true">
+        <span><h2>H. Recruitment and orientation module</h2><p>Create participant-facing language, eligibility criteria, training checklist, incentives, and debriefing plan.</p></span><span class="chev">▾</span>
+      </button>
+      <div class="panel-body">
+        <div class="grid">
+          <div><label for="sampleSource">Sample source</label><input id="sampleSource" type="text" placeholder="e.g., business incubator, entrepreneurship center, managers in participating firms"></div>
+          <div><label for="eligibility">Eligibility criteria</label><input id="eligibility" type="text" placeholder="e.g., founder currently working on venture at least 20 hours/week"></div>
+          <div><label for="incentivePlan">Incentive plan</label><input id="incentivePlan" type="text" placeholder="e.g., base payment plus bonus for ≥80% valid responses"></div>
+          <div><label for="researcherAvailability">Researcher availability plan</label><input id="researcherAvailability" type="text" placeholder="e.g., same-day text/email support during data collection"></div>
+          <div><label for="orientationMode">Orientation mode</label><select id="orientationMode"><option>Live group orientation</option><option>Individual live orientation</option><option>Recorded orientation plus live Q&A</option><option>Written instructions only</option></select></div>
+          <div><label for="recruitmentTone">Participant value proposition</label><textarea id="recruitmentTone" placeholder="Explain why real-time data matter and why participation is meaningful."></textarea></div>
+        </div>
+        <div class="actions">
+          <button class="btn primary" onclick="generateRecruitment()">Generate scripts and checklist</button>
+          <button class="btn" onclick="copyElement('recruitmentOutput')">Copy output</button>
+        </div>
+        <div class="output" id="recruitmentOutput"></div>
+      </div>
+    </section>
+
+    <section class="panel" id="compliance">
+      <button class="panel-header" onclick="togglePanel(this)" aria-expanded="true">
+        <span><h2>I. Compliance monitoring and fieldwork dashboard</h2><p>Enter or paste fieldwork records and compute latency, valid responses, missingness, and follow-up alerts.</p></span><span class="chev">▾</span>
+      </button>
+      <div class="panel-body">
+        <div class="grid-4">
+          <div><label for="compID">Participant ID</label><input id="compID" type="text" placeholder="P001"></div>
+          <div><label for="promptSent">Prompt sent time</label><input id="promptSent" type="datetime-local"></div>
+          <div><label for="responseReceived">Response received time</label><input id="responseReceived" type="datetime-local"></div>
+          <div><label for="validResponse">Valid response?</label><select id="validResponse"><option>Yes</option><option>No</option></select></div>
+          <div><label for="missingReason">Reason for missingness</label><input id="missingReason" type="text" placeholder="late, skipped, technical issue"></div>
+          <div><label for="compNotes">Notes</label><input id="compNotes" type="text"></div>
+        </div>
+        <div class="actions">
+          <button class="btn success" onclick="addComplianceRow()">Add row</button>
+          <button class="btn primary" onclick="analyzeCompliance()">Analyze compliance</button>
+          <button class="btn" onclick="exportComplianceCSV()">Export compliance CSV</button>
+        </div>
+        <div style="margin-top:14px"><label for="compliancePaste">Or paste CSV: participant_id,prompt_sent,response_received,valid,reason,notes</label><textarea id="compliancePaste" placeholder="P001,2026-08-01 10:00,2026-08-01 10:24,Yes,,&#10;P001,2026-08-01 14:00,,No,missed,"></textarea></div>
+        <div class="actions"><button class="btn" onclick="parseComplianceCSV()">Parse pasted CSV</button><button class="btn" onclick="copyElement('complianceOutput')">Copy output</button></div>
+        <div class="table-wrap"><table id="complianceTable"><thead><tr><th>#</th><th>ID</th><th>Sent</th><th>Received</th><th>Latency</th><th>Valid</th><th>Reason</th><th>Notes</th><th>Action</th></tr></thead><tbody></tbody></table></div>
+        <div class="output" id="complianceOutput"></div>
+      </div>
+    </section>
+
+    <section class="panel" id="structure">
+      <button class="panel-header" onclick="togglePanel(this)" aria-expanded="true">
+        <span><h2>J. Data structure builder</h2><p>Generate stacked ESM templates: rows = occasions/responses; repeated responses nested within people, teams, ventures, or organizations.</p></span><span class="chev">▾</span>
+      </button>
+      <div class="panel-body">
+        <div class="notice">ESM data are nested because each participant contributes multiple response occasions. A stacked file uses one row per response occasion, with Level 1 variables repeated across rows and Level 2 variables merged by participant ID.</div>
+        <div class="actions">
+          <button class="btn primary" onclick="generateDataStructure()">Generate data templates</button>
+          <button class="btn" onclick="exportStackedTemplateCSV()">Export stacked-template CSV</button>
+          <button class="btn" onclick="copyElement('structureOutput')">Copy output</button>
+        </div>
+        <div class="output" id="structureOutput"></div>
+      </div>
+    </section>
+
+    <section class="panel" id="analysis">
+      <button class="panel-header" onclick="togglePanel(this)" aria-expanded="true">
+        <span><h2>K. Analysis plan generator</h2><p>Specify multilevel models, centering, random effects, lags, robustness checks, and interpretation language.</p></span><span class="chev">▾</span>
+      </button>
+      <div class="panel-body">
+        <div class="grid">
+          <div><label for="depVar">Primary dependent variable</label><input id="depVar" type="text" placeholder="e.g., venture_effort"></div>
+          <div><label for="l1Predictors">Primary Level 1 predictors</label><input id="l1Predictors" type="text" placeholder="e.g., positive_affect, negative_affect"></div>
+          <div><label for="l2Predictors">Primary Level 2 predictors</label><input id="l2Predictors" type="text" placeholder="e.g., prior_experience, venture_stage"></div>
+          <div><label for="crossMods">Cross-level moderators</label><input id="crossMods" type="text" placeholder="e.g., prior_experience"></div>
+          <div><label for="lagPred">Lagged predictors</label><input id="lagPred" type="text" placeholder="e.g., affect_t_minus_1"></div>
+          <div><label for="lagOut">Lagged outcomes</label><input id="lagOut" type="text" placeholder="e.g., effort_t_minus_1"></div>
+          <div><label for="randIntercept">Random intercepts</label><select id="randIntercept"><option>Yes</option><option>No</option></select></div>
+          <div><label for="randSlopes">Random slopes</label><select id="randSlopes"><option>Focal Level 1 predictor</option><option>None</option><option>Multiple Level 1 predictors</option></select></div>
+          <div><label for="centering">Centering strategy</label><select id="centering"><option>Person-mean center Level 1 predictors and include person means for between-person decomposition</option><option>Grand-mean center Level 2 predictors</option><option>Raw scores</option></select></div>
+          <div><label for="robustChecks">Robustness and sensitivity checks</label><textarea id="robustChecks" placeholder="e.g., alternative validity windows, day fixed effects, exclusion of low-compliance participants, lag alternatives, reverse-causality test"></textarea></div>
+        </div>
+        <div class="actions">
+          <button class="btn primary" onclick="generateAnalysis()">Generate analysis plan</button>
+          <button class="btn" onclick="copyElement('analysisOutput')">Copy output</button>
+        </div>
+        <div class="output" id="analysisOutput"></div>
+      </div>
+    </section>
+
+    <section class="panel" id="audit">
+      <button class="panel-header" onclick="togglePanel(this)" aria-expanded="true">
+        <span><h2>L. Validity and risk audit</h2><p>Check theoretical fit, protocol fit, burden, timing, compliance, technology, data structure, analysis alignment, ethics, and reporting.</p></span><span class="chev">▾</span>
+      </button>
+      <div class="panel-body">
+        <div class="actions">
+          <button class="btn primary" onclick="runAudit()">Run automated audit</button>
+          <button class="btn" onclick="copyElement('auditOutput')">Copy output</button>
+        </div>
+        <div class="output" id="auditOutput"></div>
+      </div>
+    </section>
+
+    <section class="panel" id="ethics">
+      <button class="panel-header" onclick="togglePanel(this)" aria-expanded="true">
+        <span><h2>M. Ethics, IRB, and privacy module</h2><p>Plan consent language, privacy safeguards, compensation, withdrawal, debriefing, and distress/sensitive-disclosure procedures.</p></span><span class="chev">▾</span>
+      </button>
+      <div class="panel-body">
+        <div class="warning"><strong>Not legal advice.</strong> Use these prompts to prepare an ethics/IRB submission, but consult your IRB, ethics board, and institutional policies.</div>
+        <div class="grid">
+          <div><label for="ethicsSensitive">Sensitive momentary data involved?</label><select id="ethicsSensitive"><option>No or minimal sensitivity</option><option>Some sensitive work/personal data</option><option>High sensitivity: health, distress, or identifiable risk</option></select></div>
+          <div><label for="ethicsSecurity">Data security plan</label><textarea id="ethicsSecurity" placeholder="Encryption, access controls, data retention, de-identification, secure transfer, device loss procedures."></textarea></div>
+          <div><label for="ethicsComp">Compensation details</label><textarea id="ethicsComp" placeholder="Base compensation, compliance bonuses, non-coercive wording, payment timing."></textarea></div>
+          <div><label for="ethicsDistress">Handling distress or sensitive disclosures</label><textarea id="ethicsDistress" placeholder="Participant support, researcher escalation protocol, optional skip rules."></textarea></div>
+        </div>
+        <div class="actions">
+          <button class="btn primary" onclick="generateEthics()">Generate ethics/IRB language</button>
+          <button class="btn" onclick="copyElement('ethicsOutput')">Copy output</button>
+        </div>
+        <div class="output" id="ethicsOutput"></div>
+      </div>
+    </section>
+
+    <section class="panel" id="reporting">
+      <button class="panel-header" onclick="togglePanel(this)" aria-expanded="true">
+        <span><h2>N. Reporting package generator</h2><p>Produce manuscript-ready methods text, appendix checklist, participant instructions, debriefing questions, launch checklist, and pre-registration checklist.</p></span><span class="chev">▾</span>
+      </button>
+      <div class="panel-body">
+        <div class="actions">
+          <button class="btn primary" onclick="generateReporting()">Generate reporting package</button>
+          <button class="btn" onclick="exportReportHTML()">Export printable HTML report</button>
+          <button class="btn" onclick="copyElement('reportingOutput')">Copy output</button>
+        </div>
+        <div class="output" id="reportingOutput"></div>
+      </div>
+    </section>
+
+    <section class="panel" id="examples">
+      <button class="panel-header" onclick="togglePanel(this)" aria-expanded="true">
+        <span><h2>Built-in example studies</h2><p>Load a plausible study and generate outputs automatically.</p></span><span class="chev">▾</span>
+      </button>
+      <div class="panel-body">
+        <div class="grid-3">
+          <div class="card">
+            <h3>Example 1: Entrepreneurial affect and venture effort</h3>
+            <p>Signal-contingent design assessing affect and effort multiple times daily.</p>
+            <button class="btn primary" onclick="loadExample(0)">Load example</button>
+          </div>
+          <div class="card">
+            <h3>Example 2: Social interactions and opportunity recognition</h3>
+            <p>Event-contingent design after consequential entrepreneurial social interactions.</p>
+            <button class="btn primary" onclick="loadExample(1)">Load example</button>
+          </div>
+          <div class="card">
+            <h3>Example 3: Managerial stress, work-family conflict, and well-being</h3>
+            <p>Hybrid interval/signal design for managers across workdays.</p>
+            <button class="btn primary" onclick="loadExample(2)">Load example</button>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+</div>
+
+<footer class="footer">
+  <strong>Credits.</strong> This tool is based on Uy, M. A., Foo, M.-D., & Aguinis, H. (2010). <em>Using Experience Sampling Methodology to Advance Entrepreneurship Theory and Research</em>, Organizational Research Methods, 13(1), 31–54, and on: Aguinis, H. 2025. <em>Research methodology: Best practices for rigorous, credible, and impactful research</em>. SAGE. https://collegepublishing.sagepub.com/products/research-methodology-1-280088
+</footer>
+
+<dialog id="aboutDialog" aria-labelledby="aboutTitle">
+  <div class="dialog-body">
+    <button class="btn small close-x" onclick="document.getElementById('aboutDialog').close()">Close</button>
+    <h2 id="aboutTitle">About this ESM Study Designer</h2>
+    <p>This offline tool helps researchers design, conduct, monitor, analyze, and report experience sampling methodology studies. It emphasizes dynamic person-by-situation interactions, ecological validity, within-person and between-person logic, reduced retrospective bias, careful protocol choice, sample and burden planning, compliance monitoring, stacked data, and multilevel analysis.</p>
+    <p><strong>Local-only operation:</strong> the file contains all CSS and JavaScript inline. It does not use external libraries, CDNs, APIs, fonts, or internet calls. Exported JSON, CSV, text, and HTML summaries are generated in your browser.</p>
+    <p><strong>Credits:</strong> Uy, M. A., Foo, M.-D., & Aguinis, H. (2010). <em>Using Experience Sampling Methodology to Advance Entrepreneurship Theory and Research</em>. Organizational Research Methods, 13(1), 31–54. Based also on: Aguinis, H. 2025. <em>Research methodology: Best practices for rigorous, credible, and impactful research</em>. SAGE. https://collegepublishing.sagepub.com/products/research-methodology-1-280088</p>
+  </div>
+</dialog>
+
+<script>
+"use strict";
+const $ = id => document.getElementById(id);
+const state = {
+  surveyItems: [],
+  scheduleRows: [],
+  complianceRows: [],
+  lastFit: null,
+  lastProtocol: "",
+  lastSample: null,
+  lastAudit: null
+};
+const fitCriteria = [
+  ["dynamic", "Dynamic processes unfolding over time"],
+  ["short", "Short-lived states, emotions, cognitions, decisions, events, or behaviors"],
+  ["within", "Within-person variability"],
+  ["interaction", "Person-by-situation interactions"],
+  ["ecology", "Ecological validity concerns"],
+  ["recall", "Retrospective recall bias concerns"],
+  ["temporal", "Temporal ordering or lagged relationships"],
+  ["realworld", "Entrepreneurial or managerial events in real-world settings"]
+];
+const categories = [
+  "Affect/emotions","Cognitions","Motivation","Effort","Opportunity discovery","Opportunity evaluation",
+  "Social interactions","Context/location","Work-family interface","Stress and well-being","Venture progress",
+  "Setbacks/failure","Open-ended momentary descriptions","Custom items"
+];
+const techDimensions = ["Unique participant IDs","Timestamp prompts and responses","Time-zone handling","Reminder system","Compliance dashboard","Secure data transfer","Backup procedure","Device compatibility testing","Pilot testing","Technical support plan"];
+const examples = [
+  {
+    domain:"Entrepreneurship",
+    focalPhenomenon:"Momentary affect and venture effort among start-up entrepreneurs",
+    predictors:"positive affect, negative affect",
+    outcomes:"venture effort on required and discretionary venture tasks",
+    moderators:"prior entrepreneurial experience, venture stage",
+    l1vars:"positive affect, negative affect, required effort, discretionary effort, location, social context",
+    l2vars:"prior experience, venture age, industry, founder role",
+    timescale:"multiple times per day across two work weeks",
+    mechanism:"affect-as-information and motivational signaling",
+    exampleRQ:"How do entrepreneurs' momentary affective states influence subsequent venture effort during the venture creation process?",
+    phenomFreq:"frequent", eventPredict:"unpredictable", randomNeed:"high", expectancyRisk:"high", rareNeed:"low", scheduleRegularity:"irregular", burdenTolerance:"moderate",
+    nParticipants:60,nDays:14,promptsPerDay:4,complianceRate:75,invalidRate:5,attritionRate:10,minObsNeeded:1500,eventRate:0,
+    depVar:"venture_effort", l1Predictors:"positive_affect, negative_affect", l2Predictors:"prior_experience, venture_stage", crossMods:"prior_experience", lagPred:"affect_t_minus_1", lagOut:"effort_t_minus_1",
+    sampleSource:"business incubators and university entrepreneurship centers", eligibility:"active founder or cofounder working on a venture", incentivePlan:"base payment plus compliance bonus for at least 80% valid responses",
+    items:[
+      ["Affect/emotions","Positive affect","Right now, I feel enthusiastic.","1 = not at all; 5 = extremely","Level 1","Yes","No",8,"Yes","No"],
+      ["Affect/emotions","Negative affect","Right now, I feel distressed.","1 = not at all; 5 = extremely","Level 1","Yes","No",8,"Yes","No"],
+      ["Effort","Required venture effort","Since the previous prompt, I put effort into venture tasks that were immediately required.","1 = none; 5 = a great deal","Level 1","Yes","No",10,"Yes","No"],
+      ["Effort","Discretionary venture effort","Since the previous prompt, I put effort into venture tasks beyond what was immediately required.","1 = none; 5 = a great deal","Level 1","Yes","No",10,"Yes","No"],
+      ["Context/location","Social context","Right now, who are you with?","alone; team; customer; investor; supplier; family; other","Level 1","Yes","No",8,"No","Yes"]
+    ]
+  },
+  {
+    domain:"Entrepreneurship",
+    focalPhenomenon:"Social interactions and opportunity recognition",
+    predictors:"frequency and quality of venture-relevant social interactions",
+    outcomes:"opportunity recognition and opportunity evaluation favorability",
+    moderators:"network diversity, founder experience",
+    l1vars:"interaction type, interaction quality, new information, opportunity idea, evaluation favorability",
+    l2vars:"network diversity, industry, founder experience",
+    timescale:"immediately after significant social interactions over 20 days",
+    mechanism:"information exposure and social-cognitive cue integration",
+    exampleRQ:"How do venture-relevant social interactions shape opportunity recognition and opportunity evaluation as interactions occur?",
+    phenomFreq:"occasional", eventPredict:"partly predictable", randomNeed:"moderate", expectancyRisk:"moderate", rareNeed:"high", scheduleRegularity:"irregular", burdenTolerance:"moderate",
+    nParticipants:80,nDays:20,promptsPerDay:0,complianceRate:70,invalidRate:7,attritionRate:12,minObsNeeded:700,eventRate:0.8,
+    depVar:"opportunity_recognition", l1Predictors:"interaction_quality, new_information", l2Predictors:"network_diversity, prior_experience", crossMods:"network_diversity", lagPred:"interaction_quality_t_minus_1", lagOut:"opportunity_recognition_t_minus_1",
+    sampleSource:"entrepreneurship centers, incubators, and founders in business plan competitions", eligibility:"active founder reporting at least three venture-relevant external interactions weekly", incentivePlan:"base payment plus bonus for timely event reports",
+    items:[
+      ["Social interactions","Interaction occurrence","What type of venture-relevant interaction just occurred?","customer; investor; supplier; mentor; team; other","Level 1","No","Yes",10,"Yes","No"],
+      ["Social interactions","Interaction quality","This interaction provided useful information for my venture.","1 = strongly disagree; 5 = strongly agree","Level 1","No","Yes",8,"Yes","No"],
+      ["Opportunity discovery","New opportunity idea","This interaction helped me identify a new opportunity.","1 = not at all; 5 = very much","Level 1","No","Yes",8,"Yes","No"],
+      ["Opportunity evaluation","Evaluation favorability","At this moment, how favorably do you evaluate the opportunity?","1 = very unfavorable; 5 = very favorable","Level 1","No","Yes",8,"No","Yes"]
+    ]
+  },
+  {
+    domain:"Management and organizational behavior",
+    focalPhenomenon:"Managerial stress, work-family conflict, and well-being",
+    predictors:"momentary work stress and work-family conflict",
+    outcomes:"psychological well-being and recovery",
+    moderators:"managerial level, family demands, perceived autonomy",
+    l1vars:"stress, work-family conflict, affect, recovery, well-being, location",
+    l2vars:"managerial level, family demands, autonomy, tenure",
+    timescale:"three prompts per workday for three weeks",
+    mechanism:"resource depletion and recovery",
+    exampleRQ:"How do managers' momentary stress and work-family conflict predict subsequent well-being across workdays?",
+    phenomFreq:"frequent", eventPredict:"predictable", randomNeed:"moderate", expectancyRisk:"moderate", rareNeed:"low", scheduleRegularity:"regular", burdenTolerance:"low",
+    nParticipants:100,nDays:15,promptsPerDay:3,complianceRate:80,invalidRate:5,attritionRate:8,minObsNeeded:1800,eventRate:0,
+    depVar:"well_being", l1Predictors:"momentary_stress, work_family_conflict", l2Predictors:"managerial_level, autonomy", crossMods:"autonomy", lagPred:"stress_t_minus_1", lagOut:"well_being_t_minus_1",
+    sampleSource:"managers in participating organizations", eligibility:"people managers working at least 30 hours per week", incentivePlan:"non-coercive organization-approved incentive plus individual feedback summary if approved by IRB",
+    items:[
+      ["Stress and well-being","Momentary stress","Right now, I feel stressed by my work demands.","1 = strongly disagree; 5 = strongly agree","Level 1","Yes","No",8,"Yes","No"],
+      ["Work-family interface","Work-family conflict","Since the previous prompt, work demands interfered with family or personal responsibilities.","1 = not at all; 5 = very much","Level 1","Yes","No",10,"Yes","No"],
+      ["Stress and well-being","Well-being","Right now, I feel psychologically well.","1 = not at all; 5 = very much","Level 1","Yes","No",8,"Yes","No"],
+      ["Context/location","Current context","Where are you right now?","worksite; home; commuting; client site; other","Level 1","Yes","No",6,"No","Yes"]
+    ]
+  }
+];
+
+function esc(x){return String(x ?? "").replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));}
+function getVal(id){const el=$(id); if(!el) return ""; return el.type==="checkbox" ? el.checked : el.value;}
+function setVal(id,val){const el=$(id); if(!el) return; if(el.type==="checkbox") el.checked=!!val; else el.value = val ?? "";}
+function num(id, def=0){const v=parseFloat(getVal(id)); return Number.isFinite(v)?v:def;}
+function cleanList(s){return String(s||"").split(",").map(x=>x.trim()).filter(Boolean);}
+function firstOr(s, fallback){const a=cleanList(s); return a[0] || s || fallback;}
+function slug(s, fallback="var"){return String(s||fallback).toLowerCase().replace(/[^a-z0-9]+/g,"_").replace(/^_|_$/g,"").slice(0,32) || fallback;}
+function download(filename, text, mime){
+  const blob = new Blob([text], {type:mime || "text/plain;charset=utf-8"});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href=url; a.download=filename; document.body.appendChild(a); a.click();
+  setTimeout(()=>{URL.revokeObjectURL(url); a.remove();}, 0);
+}
+function toCSV(rows){
+  return rows.map(row => row.map(cell => {
+    const s = String(cell ?? "");
+    return /[",\n]/.test(s) ? '"' + s.replace(/"/g,'""') + '"' : s;
+  }).join(",")).join("\n");
+}
+function collectState(){
+  const fields = {};
+  document.querySelectorAll("input,select,textarea").forEach(el=>{
+    if(!el.id || el.id === "jsonLoader") return;
+    if(el.type === "checkbox") fields[el.id] = el.checked;
+    else fields[el.id] = el.value;
+  });
+  fields.weekdays = Array.from(document.querySelectorAll(".weekday")).map(cb=>({value:cb.value, checked:cb.checked}));
+  state.fields = fields;
+  return {
+    version:"1.0",
+    exported_at:new Date().toISOString(),
+    fields,
+    surveyItems:state.surveyItems,
+    scheduleRows:state.scheduleRows,
+    complianceRows:state.complianceRows,
+    lastFit:state.lastFit,
+    lastProtocol:state.lastProtocol,
+    lastSample:state.lastSample,
+    lastAudit:state.lastAudit
+  };
+}
+function restoreState(data){
+  if(!data) return;
+  const fields = data.fields || {};
+  Object.keys(fields).forEach(k=>{
+    if(k==="weekdays") return;
+    setVal(k, fields[k]);
+  });
+  if(Array.isArray(fields.weekdays)){
+    fields.weekdays.forEach(w=>{
+      const cb = Array.from(document.querySelectorAll(".weekday")).find(x=>x.value==w.value);
+      if(cb) cb.checked=!!w.checked;
+    });
+  }
+  state.surveyItems = Array.isArray(data.surveyItems) ? data.surveyItems : [];
+  state.scheduleRows = Array.isArray(data.scheduleRows) ? data.scheduleRows : [];
+  state.complianceRows = Array.isArray(data.complianceRows) ? data.complianceRows : [];
+  state.lastFit = data.lastFit || null;
+  state.lastProtocol = data.lastProtocol || "";
+  state.lastSample = data.lastSample || null;
+  state.lastAudit = data.lastAudit || null;
+  renderSurveyTable();
+  renderComplianceTable();
+  updateBurden();
+  updateProgress();
+}
+function exportJSON(){download("esm-study-design.json", JSON.stringify(collectState(), null, 2), "application/json;charset=utf-8");}
+function loadJSON(event){
+  const file = event.target.files[0];
+  if(!file) return;
+  const reader = new FileReader();
+  reader.onload = () => {
+    try { restoreState(JSON.parse(reader.result)); generateAll(false); }
+    catch(e){ alert("The selected JSON file could not be loaded: " + e.message); }
+    event.target.value="";
+  };
+  reader.readAsText(file);
+}
+function exportInputsCSV(){
+  const data = collectState();
+  const rows = [["section","key","value"]];
+  Object.entries(data.fields).forEach(([k,v])=>{
+    if(k==="weekdays") rows.push(["schedule","weekdays",JSON.stringify(v)]);
+    else rows.push(["input",k,v]);
+  });
+  state.surveyItems.forEach((it,i)=>rows.push(["survey_item_"+(i+1),"item",JSON.stringify(it)]));
+  state.complianceRows.forEach((it,i)=>rows.push(["compliance_row_"+(i+1),"row",JSON.stringify(it)]));
+  download("esm-study-inputs.csv", toCSV(rows), "text/csv;charset=utf-8");
+}
+function textFromOutputs(){
+  const ids = ["fitOutput","mapperOutput","protocolOutput","sampleOutput","surveyOutput","scheduleOutput","eventOutput","techOutput","recruitmentOutput","complianceOutput","structureOutput","analysisOutput","auditOutput","ethicsOutput","reportingOutput"];
+  let parts = ["Experience Sampling Methodology Study Designer Summary", "Generated: " + new Date().toLocaleString(), ""];
+  ids.forEach(id=>{
+    const el=$(id);
+    if(el && el.textContent.trim()) parts.push("=== " + id.replace("Output","") + " ===\n" + el.textContent.trim() + "\n");
+  });
+  return parts.join("\n");
+}
+function exportTextSummary(){download("esm-study-summary.txt", textFromOutputs(), "text/plain;charset=utf-8");}
+function printSummary(){
+  generateReporting();
+  const html = buildReportHTML();
+  const w = window.open("", "_blank");
+  if(!w){ alert("Popup blocked. Use Export printable HTML report instead."); return; }
+  w.document.write(html); w.document.close(); w.focus(); setTimeout(()=>w.print(), 300);
+}
+function exportReportHTML(){download("esm-study-report.html", buildReportHTML(), "text/html;charset=utf-8");}
+function buildReportHTML(){
+  const body = $("reportingOutput").innerHTML || "<p>No reporting package has been generated yet.</p>";
+  return "<!DOCTYPE html><html><head><meta charset='utf-8'><title>ESM Study Report</title><style>body{font-family:system-ui,Arial,sans-serif;line-height:1.45;margin:32px;color:#111}h1,h2,h3{color:#132238}table{border-collapse:collapse;width:100%}td,th{border:1px solid #bbb;padding:6px}pre{white-space:pre-wrap;background:#f4f4f4;padding:12px}</style></head><body><h1>Experience Sampling Methodology Study Report</h1>" + body + "<hr><p>Generated locally by the Experience Sampling Methodology Study Designer.</p></body></html>";
+}
+function copyElement(id){
+  const el=$(id); if(!el) return;
+  const text = el.innerText || el.textContent || "";
+  navigator.clipboard?.writeText(text).then(()=>flash(el,"Copied to clipboard.")).catch(()=>{alert("Copy failed. Select the output manually and copy.");});
+}
+function flash(el,msg){
+  const old = el.getAttribute("data-flash");
+  const n = document.createElement("div");
+  n.className="badge good"; n.textContent=msg; el.prepend(n);
+  setTimeout(()=>n.remove(),1500);
+}
+function resetTool(){
+  if(!confirm("Reset all entered content and generated outputs?")) return;
+  document.querySelectorAll("input,select,textarea").forEach(el=>{
+    if(el.id==="jsonLoader") return;
+    if(el.type==="checkbox") el.checked = el.classList.contains("weekday") ? ["1","2","3","4","5"].includes(el.value) : false;
+    else if(el.type==="number") el.value = el.defaultValue || "";
+    else el.value = el.defaultValue || "";
+  });
+  document.querySelectorAll(".output").forEach(el=>el.innerHTML="");
+  state.surveyItems=[]; state.scheduleRows=[]; state.complianceRows=[]; state.lastFit=null; state.lastProtocol=""; state.lastSample=null; state.lastAudit=null;
+  initDefaults();
+  renderSurveyTable(); renderComplianceTable(); updateBurden(); updateDashboard(); updateProgress();
+}
+function openAbout(){ $("aboutDialog").showModal(); }
+function togglePanel(btn){
+  const panel=btn.closest(".panel");
+  panel.classList.toggle("collapsed");
+  btn.setAttribute("aria-expanded", !panel.classList.contains("collapsed"));
+}
+function switchTab(cls, id){
+  document.querySelectorAll("." + cls).forEach(x=>x.classList.add("hidden"));
+  $(id).classList.remove("hidden");
+  event.currentTarget.parentElement.querySelectorAll(".tab").forEach(b=>b.classList.remove("active"));
+  event.currentTarget.classList.add("active");
+}
+
+function init(){
+  const fitBox = $("fitSliders");
+  fitCriteria.forEach(([id,label])=>{
+    const div=document.createElement("div"); div.className="card";
+    div.innerHTML = `<label for="fit_${id}">${label}</label><input id="fit_${id}" type="range" min="0" max="4" value="0" oninput="updateRangeLabel('${id}')"><span class="help">Rating: <strong id="fit_${id}_label">0</strong>/4</span>`;
+    fitBox.appendChild(div);
+  });
+  const cat=$("itemCategory");
+  categories.forEach(c=>{const o=document.createElement("option"); o.textContent=c; cat.appendChild(o);});
+  const tech=$("techChecklist");
+  techDimensions.forEach((d,i)=>{const id="techCheck_"+i; const div=document.createElement("label"); div.className="checkrow card"; div.innerHTML=`<input type="checkbox" id="${id}"> ${esc(d)}`; tech.appendChild(div);});
+  document.querySelectorAll("input,select,textarea").forEach(el=>el.addEventListener("input", ()=>{updateDashboard(); updateProgress();}));
+  initDefaults();
+  updateBurden();
+  updateDashboard();
+  updateProgress();
+}
+function initDefaults(){
+  if(!$("studyStart").value){
+    const today = new Date();
+    const start = new Date(today.getFullYear(), today.getMonth(), today.getDate()+7);
+    const end = new Date(today.getFullYear(), today.getMonth(), today.getDate()+20);
+    $("studyStart").value = start.toISOString().slice(0,10);
+    $("studyEnd").value = end.toISOString().slice(0,10);
+  }
+}
+function updateRangeLabel(id){$("fit_"+id+"_label").textContent=$("fit_"+id).value; updateProgress();}
+function updateDashboard(){
+  $("dashFit").textContent = state.lastFit ? state.lastFit.score + "%" : "—";
+  $("dashProtocol").textContent = state.lastProtocol || "—";
+  $("dashObs").textContent = state.lastSample ? Math.round(state.lastSample.valid).toLocaleString() : "—";
+  $("dashRisk").textContent = state.lastAudit ? state.lastAudit.label : "—";
+}
+function updateProgress(){
+  const checks = [
+    !!state.lastFit,
+    !!(getVal("domain") && getVal("focalPhenomenon") && getVal("predictors") && getVal("outcomes")),
+    !!state.lastProtocol,
+    !!state.lastSample,
+    state.surveyItems.length>0,
+    state.scheduleRows.length>0 || !!getVal("eventTrigger"),
+    !!getVal("techChoice"),
+    !!(getVal("sampleSource") || getVal("eligibility")),
+    state.complianceRows.length>0,
+    state.surveyItems.length>0,
+    !!(getVal("depVar") && getVal("l1Predictors")),
+    !!state.lastAudit,
+    !!(getVal("ethicsSecurity") || getVal("ethicsSensitive")),
+    !!$("reportingOutput").textContent.trim()
+  ];
+  const pct = Math.round(checks.filter(Boolean).length / checks.length * 100);
+  $("progressPct").textContent=pct+"%";
+  $("progressBar").style.width=pct+"%";
+}
+
+function generateFit(){
+  let sum=0; fitCriteria.forEach(([id])=>sum += num("fit_"+id,0));
+  const pct=Math.round(sum/(fitCriteria.length*4)*100);
+  let cls,label,advice;
+  if(pct>=75){cls="good"; label="Strong fit for ESM"; advice="Use ESM as a central design feature. Prioritize protocol choice, participant burden, compliance monitoring, valid response windows, stacked data, and multilevel analysis.";}
+  else if(pct>=45){cls="warn"; label="Moderate fit; consider hybrid design"; advice="ESM may add value, but combine it with baseline surveys, archival data, interviews, or a shorter diary design. Clarify which constructs truly vary within persons over short time intervals.";}
+  else {cls="bad"; label="Weak fit; ESM may be unnecessary"; advice="A one-time survey, archival design, interview study, experiment, or conventional longitudinal design may be more efficient unless you can justify real-time within-person measurement.";}
+  state.lastFit={score:pct,label};
+  $("fitOutput").innerHTML = `<h3><span class="badge ${cls}">${label}</span> ESM fit score: ${pct}%</h3><p>${advice}</p><ul>
+    <li><strong>Launch criterion:</strong> ESM is most defensible when the theoretical process unfolds over time and cannot be captured accurately through retrospective reports.</li>
+    <li><strong>Design implication:</strong> Map each construct to Level 1 or Level 2 before writing items or analysis models.</li>
+    <li><strong>Risk to avoid:</strong> Do not use repeated prompts merely to increase sample size; use them to test within-person change, temporal order, or context-dependent processes.</li>
+  </ul>`;
+  updateDashboard(); updateProgress();
+}
+function generateMapper(){
+  const domain=getVal("domain")||"the focal domain";
+  const phenomenon=getVal("focalPhenomenon")||"the focal phenomenon";
+  const pred=getVal("predictors")||"momentary predictor";
+  const out=getVal("outcomes")||"momentary outcome";
+  const mod=getVal("moderators")||"a theoretically relevant moderator";
+  const l1=getVal("l1vars")||pred + ", " + out;
+  const l2=getVal("l2vars")||mod;
+  const time=getVal("timescale")||"the theoretically relevant time scale";
+  const mech=getVal("mechanism")||"the proposed mechanism";
+  const rq = `How does ${pred} influence ${out} through ${mech} over ${time} in ${domain}, and when does this relationship vary as a function of ${mod}?`;
+  $("mapperOutput").innerHTML = `<h3>Refined ESM research question</h3><p>${esc(rq)}</p>
+  <h3>Candidate hypotheses</h3>
+  <ol>
+    <li><strong>Within-person hypothesis:</strong> Within the same participant, occasions with higher ${esc(firstOr(pred,"predictor"))} than that participant's usual level will be followed by higher/lower ${esc(firstOr(out,"outcome"))}, depending on the theory.</li>
+    <li><strong>Between-person hypothesis:</strong> Participants with higher average ${esc(firstOr(pred,"predictor"))} across the study will differ in average ${esc(firstOr(out,"outcome"))} from other participants.</li>
+    <li><strong>Cross-level moderation hypothesis:</strong> ${esc(mod)} will moderate the within-person association between ${esc(firstOr(pred,"predictor"))} and ${esc(firstOr(out,"outcome"))}.</li>
+    <li><strong>Temporal-ordering hypothesis:</strong> ${esc(firstOr(pred,"predictor"))} at time <em>t</em> will predict ${esc(firstOr(out,"outcome"))} at time <em>t + 1</em>, controlling for prior ${esc(firstOr(out,"outcome"))} where defensible.</li>
+  </ol>
+  <h3>Level-of-analysis map</h3>
+  <table><tr><th>Level</th><th>Variables</th><th>Interpretation</th></tr>
+  <tr><td>Level 1: occasion/moment/event</td><td>${esc(l1)}</td><td>Within-person fluctuations captured repeatedly in natural settings.</td></tr>
+  <tr><td>Level 2: person/team/venture/organization</td><td>${esc(l2)}</td><td>Stable or baseline variables that explain between-person differences or moderate Level 1 relationships.</td></tr></table>
+  <h3>Threats if measured only once retrospectively</h3>
+  <ul><li>Recall bias and post-hoc rationalization.</li><li>Loss of temporal ordering and lagged-process evidence.</li><li>Conflation of within-person and between-person relationships.</li><li>Lower ecological validity because dynamic context is not measured as it occurs.</li></ul>`;
+  updateProgress();
+}
+function generateProtocol(){
+  const scores={Interval:0, Event:0, Signal:0};
+  const freq=getVal("phenomFreq"), pred=getVal("eventPredict"), random=getVal("randomNeed"), expectancy=getVal("expectancyRisk"), rare=getVal("rareNeed"), regular=getVal("scheduleRegularity"), burden=getVal("burdenTolerance");
+  if(freq==="rare" || rare==="high") scores.Event+=4;
+  if(freq==="occasional") scores.Event+=2;
+  if(pred==="predictable") scores.Interval+=2;
+  if(pred==="partly predictable") scores.Event+=1;
+  if(random==="high") scores.Signal+=4; else if(random==="moderate") scores.Signal+=2;
+  if(expectancy==="high") scores.Signal+=3;
+  if(regular==="regular") scores.Interval+=3; else if(regular==="irregular") scores.Signal+=2;
+  if(burden==="low") scores.Interval+=2; else if(burden==="high") scores.Signal+=1;
+  if(freq==="frequent") {scores.Signal+=2; scores.Interval+=1;}
+  const winner=Object.entries(scores).sort((a,b)=>b[1]-a[1])[0][0];
+  state.lastProtocol = winner + "-contingent";
+  const rationale = {
+    Interval:"The process appears compatible with fixed or predetermined assessments. Use this when timing predictability is acceptable and the study benefits from lower administrative complexity.",
+    Event:"The focal phenomenon is best captured immediately after a defined event. Use explicit triggering-event rules, inclusion/exclusion criteria, maximum daily reports, and end-of-day checks.",
+    Signal:"The design benefits from random prompts within defined windows. Use this when you need broad sampling of states and contexts while reducing fixed-time bias and expectancy effects."
+  }[winner];
+  $("protocolOutput").innerHTML = `<h3>Recommended protocol: <span class="badge good">${winner}-contingent ESM</span></h3><p>${rationale}</p>
+  <h3>Decision-tree logic</h3><ul>
+    <li><strong>Interval-contingent:</strong> strongest when schedules are regular, prompts can be fixed, and the burden needs to be predictable.</li>
+    <li><strong>Event-contingent:</strong> strongest when the event is rare, meaningful, and can be defined clearly enough for participants to recognize and report.</li>
+    <li><strong>Signal-contingent:</strong> strongest when random sampling is needed, expectancy effects are a risk, or the process varies unpredictably across the day.</li>
+  </ul>
+  <p><strong>Scores:</strong> Interval ${scores.Interval}; Event ${scores.Event}; Signal ${scores.Signal}.</p>`;
+  updateDashboard(); updateProgress();
+}
+function calculateSample(){
+  const n=num("nParticipants"), days=num("nDays"), ppd=num("promptsPerDay"), comp=num("complianceRate")/100, invalid=num("invalidRate")/100, attr=num("attritionRate")/100, min=num("minObsNeeded"), eventRate=num("eventRate");
+  const gross = eventRate>0 && ppd===0 ? n*days*eventRate : n*days*ppd;
+  const retainedN = n*(1-attr);
+  const valid = gross*(1-attr)*comp*(1-invalid);
+  const avg = retainedN>0 ? valid/retainedN : 0;
+  const warnings=[];
+  if(n<30) warnings.push(["bad","Participants are too few for most multilevel designs.","Increase Level 2 sample size or narrow claims to intensive within-case patterns."]);
+  else if(n<50) warnings.push(["warn","Participant count is modest.","Justify design, conduct formal multilevel power analysis, and avoid overfitting cross-level interactions."]);
+  if(ppd>8) warnings.push(["bad","Prompts per day may be too burdensome.","Reduce prompts, shorten survey, or use event-contingent reporting."]);
+  else if(ppd>5) warnings.push(["warn","Prompts per day are high.","Pilot test burden and monitor compliance closely."]);
+  if(days<5) warnings.push(["warn","Study duration may be too short for the theoretical process.","Extend duration or clarify that the process unfolds within days/hours."]);
+  if(comp<.70) warnings.push(["warn","Expected compliance is low.","Strengthen orientation, reminders, incentives, technical support, and survey brevity."]);
+  if(valid<min) warnings.push(["bad","Expected valid observations fall below your minimum target.","Increase participants, days, prompt frequency, or compliance; reduce missingness."]);
+  if(eventRate>0 && eventRate<.5) warnings.push(["warn","Event-contingent events may be rare.","Lengthen the study, broaden event definition, or add end-of-day event checks."]);
+  const mlm = n>=50 && avg>=20 && valid>=min ? "Likely adequate for a basic two-level model, pending formal multilevel power analysis." : "Potentially fragile for multilevel modeling; run a formal multilevel power analysis and simplify the model.";
+  state.lastSample={gross,retainedN,valid,avg,mlm};
+  $("sampleOutput").innerHTML = `<h3>Estimated data yield</h3><table><tr><th>Metric</th><th>Estimate</th></tr>
+    <tr><td>Total expected prompts/events before missingness</td><td>${Math.round(gross).toLocaleString()}</td></tr>
+    <tr><td>Retained participants after attrition</td><td>${retainedN.toFixed(1)}</td></tr>
+    <tr><td>Expected valid Level 1 observations</td><td>${Math.round(valid).toLocaleString()}</td></tr>
+    <tr><td>Average valid observations per retained participant</td><td>${avg.toFixed(1)}</td></tr>
+    <tr><td>Multilevel modeling readiness</td><td>${mlm}</td></tr></table>
+    <h3>Warnings and fixes</h3>${warnings.length? "<ul>"+warnings.map(w=>`<li><span class="badge ${w[0]}">${w[1]}</span> ${w[2]}</li>`).join("")+"</ul>" : "<p><span class='badge good'>No major planning warnings detected.</span></p>"}
+    <p><strong>Reminder:</strong> This calculator supports planning but does not replace a formal multilevel power analysis.</p>`;
+  updateDashboard(); updateProgress();
+}
+function loadItemTemplate(){
+  const c=getVal("itemCategory");
+  const templates = {
+    "Affect/emotions":["Positive affect","Right now, I feel enthusiastic.","1 = not at all; 5 = extremely"],
+    "Cognitions":["Opportunity focus","Right now, I am thinking about a possible business opportunity.","1 = not at all; 5 = very much"],
+    "Motivation":["Venture motivation","Right now, I feel motivated to work on my venture.","1 = not at all; 5 = extremely"],
+    "Effort":["Venture effort","Since the previous prompt, I invested effort in venture-related tasks.","1 = none; 5 = a great deal"],
+    "Opportunity discovery":["Opportunity insight","Since the previous prompt, I had a new insight about a possible opportunity.","0 = no; 1 = yes"],
+    "Opportunity evaluation":["Evaluation favorability","At this moment, how favorably do you evaluate this opportunity?","1 = very unfavorable; 5 = very favorable"],
+    "Social interactions":["Interaction quality","This interaction provided useful information for my venture.","1 = strongly disagree; 5 = strongly agree"],
+    "Context/location":["Current location","Where are you right now?","home; office; customer site; traveling; other"],
+    "Work-family interface":["Work-family conflict","Since the previous prompt, work demands interfered with family or personal responsibilities.","1 = not at all; 5 = very much"],
+    "Stress and well-being":["Momentary stress","Right now, I feel stressed.","1 = strongly disagree; 5 = strongly agree"],
+    "Venture progress":["Venture progress","Since the previous prompt, I made progress on an important venture task.","1 = none; 5 = substantial"],
+    "Setbacks/failure":["Setback","Since the previous prompt, I experienced a venture-related setback.","0 = no; 1 = yes"],
+    "Open-ended momentary descriptions":["Momentary description","Briefly describe the most important thing happening right now.","Open text"],
+    "Custom items":["Custom construct","Write the exact item wording here.","Specify response options"]
+  };
+  const t=templates[c]||templates["Custom items"];
+  setVal("itemConstruct",t[0]); setVal("itemWording",t[1]); setVal("itemScale",t[2]);
+}
+function addSurveyItem(){
+  const item=[getVal("itemCategory"),getVal("itemConstruct"),getVal("itemWording"),getVal("itemScale"),getVal("itemLevel"),getVal("itemRepeated"),getVal("itemEvent"),num("itemSeconds",8),getVal("itemRequired"),getVal("itemSkippable")];
+  if(!item[1] || !item[2]){ alert("Add a construct and exact item wording."); return; }
+  state.surveyItems.push(item);
+  renderSurveyTable(); updateBurden(); updateProgress();
+}
+function removeSurveyItem(i){ state.surveyItems.splice(i,1); renderSurveyTable(); updateBurden(); updateProgress(); }
+function renderSurveyTable(){
+  const tbody=$("surveyTable").querySelector("tbody"); tbody.innerHTML="";
+  state.surveyItems.forEach((it,i)=>{
+    const tr=document.createElement("tr");
+    tr.innerHTML=`<td>${i+1}</td><td>${esc(it[0])}</td><td>${esc(it[1])}</td><td>${esc(it[2])}</td><td>${esc(it[3])}</td><td>${esc(it[4])}</td><td>${esc(it[7])} sec</td><td><button class="btn small danger" onclick="removeSurveyItem(${i})">Remove</button></td>`;
+    tbody.appendChild(tr);
+  });
+}
+function updateBurden(){
+  const repeated = state.surveyItems.filter(it=>it[4]==="Level 1" && it[5]==="Yes");
+  const seconds = repeated.reduce((a,it)=>a+Number(it[7]||0),0);
+  const cls = seconds<=120 ? "good" : seconds<=180 ? "warn" : "bad";
+  const msg = seconds<=120 ? "Within the 2-minute target." : seconds<=180 ? "Slightly above 2 minutes; shorten items before launch." : "Too long for most ESM prompts; high burden and compliance risk.";
+  $("burdenMeter").innerHTML = `<h3>2-minute burden meter: <span class="badge ${cls}">${Math.round(seconds)} seconds</span></h3><p>${msg} Use shortened measures and, where defensible, carefully selected single-item measures to reduce burden.</p>`;
+}
+function surveyRows(){
+  const rows=[["variable_name","category","construct","item_wording","response_scale","level","repeated_each_prompt","event_specific","expected_seconds","required","skippable"]];
+  state.surveyItems.forEach((it,i)=>rows.push([slug(it[1],"item")+"_"+(i+1),...it]));
+  return rows;
+}
+function generateSurveyOutputs(){
+  if(!state.surveyItems.length){ alert("Add at least one survey item."); return; }
+  updateBurden();
+  const rows=surveyRows();
+  const participant = state.surveyItems.map((it,i)=>`${i+1}. ${esc(it[2])}<br><em>${esc(it[3])}</em>`).join("<br>");
+  const codebook = rows.slice(1).map(r=>`<tr><td>${esc(r[0])}</td><td>${esc(r[2])}</td><td>${esc(r[3])}</td><td>${esc(r[5])}</td><td>${esc(r[4])}</td></tr>`).join("");
+  $("surveyOutput").innerHTML = `<h3>Final survey instrument</h3><p>${participant}</p>
+    <h3>Participant-facing instruction</h3><p>Please answer based on what you are thinking, feeling, doing, or experiencing right now or since the previous prompt. There are no right or wrong answers. You may skip items identified as skippable. Please respond as soon as possible after the prompt.</p>
+    <h3>Researcher codebook and variable dictionary</h3><table><tr><th>Variable</th><th>Construct</th><th>Item wording</th><th>Level</th><th>Scale</th></tr>${codebook}</table>
+    <h3>CSV-ready variable list</h3><pre>${esc(toCSV(rows))}</pre>`;
+  updateProgress();
+}
+function exportSurveyCSV(){download("esm-survey-variable-list.csv", toCSV(surveyRows()), "text/csv;charset=utf-8");}
+
+function parseTime(t){const [h,m]=String(t||"00:00").split(":").map(Number); return h*60+(m||0);}
+function fmtTime(min){min=((Math.round(min)%1440)+1440)%1440; const h=Math.floor(min/60), m=min%60; return String(h).padStart(2,"0")+":"+String(m).padStart(2,"0");}
+function parseBlocks(s){
+  return String(s||"").split(/\n+/).map(line=>line.trim()).filter(Boolean).map(line=>{
+    const [a,b]=line.split("-"); return [parseTime(a),parseTime(b)];
+  }).filter(b=>Number.isFinite(b[0])&&Number.isFinite(b[1])&&b[1]>b[0]);
+}
+function inBlocks(min, blocks){return blocks.some(([a,b])=>min>=a && min<=b);}
+function generateDailyTimes(start,end,count,minGap,random,blocks){
+  const available=[]; for(let m=start;m<=end;m+=5){ if(!inBlocks(m,blocks)) available.push(m); }
+  const times=[];
+  if(count<=0 || end<=start) return times;
+  if(random){
+    let attempts=0;
+    while(times.length<count && attempts<2000){
+      attempts++;
+      const m=available[Math.floor(Math.random()*available.length)];
+      if(times.every(t=>Math.abs(t-m)>=minGap)) times.push(m);
+    }
+    times.sort((a,b)=>a-b);
+  } else {
+    const span=end-start;
+    for(let i=0;i<count;i++){
+      let m=count===1 ? Math.round((start+end)/2) : Math.round(start + (span*i/(count-1)));
+      let guard=0;
+      while(inBlocks(m,blocks) && guard<60){m+=5; guard++;}
+      times.push(m);
+    }
+  }
+  return times;
+}
+function generateSchedule(){
+  const startDate=new Date(getVal("studyStart")+"T00:00:00"), endDate=new Date(getVal("studyEnd")+"T00:00:00");
+  if(isNaN(startDate)||isNaN(endDate)||endDate<startDate){ alert("Enter a valid start and end date."); return; }
+  const included = Array.from(document.querySelectorAll(".weekday:checked")).map(cb=>Number(cb.value));
+  const ds=parseTime(getVal("dailyStart")), de=parseTime(getVal("dailyEnd")), count=num("schedPrompts",1), gap=num("minGap",0), blocks=parseBlocks(getVal("noPromptBlocks"));
+  const random=getVal("randomized")==="random";
+  const rows=[["date","day_of_week","prompt_number","prompt_time","valid_response_window_minutes","schedule_type"]];
+  const warnings=[];
+  if(de-ds < count*gap) warnings.push(["warn","The time window may be too narrow for the requested number of prompts and minimum gap."]);
+  if(ds<6*60 || de>23*60) warnings.push(["warn","Prompts may fall outside plausible waking/working hours."]);
+  for(let d=new Date(startDate); d<=endDate; d.setDate(d.getDate()+1)){
+    if(!included.includes(d.getDay())) continue;
+    const times=generateDailyTimes(ds,de,count,gap,random,blocks);
+    times.forEach((m,i)=>rows.push([d.toISOString().slice(0,10), d.toLocaleDateString(undefined,{weekday:"long"}), i+1, fmtTime(m), getVal("validWindow"), random?"signal-contingent randomized":"interval-contingent fixed"]));
+    if(times.length<count) warnings.push(["bad",`Only ${times.length} prompt times could be scheduled on ${d.toISOString().slice(0,10)} because of spacing/no-prompt constraints.`]);
+  }
+  state.scheduleRows=rows;
+  const table = rows.length>1 ? `<div class="table-wrap"><table><tr>${rows[0].map(h=>`<th>${esc(h)}</th>`).join("")}</tr>${rows.slice(1,51).map(r=>`<tr>${r.map(c=>`<td>${esc(c)}</td>`).join("")}</tr>`).join("")}</table></div>` : "<p>No dates matched the selected days of week.</p>";
+  $("scheduleOutput").innerHTML = `<h3>Generated schedule: ${rows.length-1} prompts</h3>${warnings.length? "<ul>"+warnings.map(w=>`<li><span class="badge ${w[0]}">${esc(w[1])}</span></li>`).join("")+"</ul>" : "<p><span class='badge good'>No major schedule warnings detected.</span></p>"}${table}<p class="help">Showing up to first 50 prompts in the browser. Export CSV for the full schedule.</p>`;
+  updateProgress();
+}
+function exportScheduleCSV(){ if(!state.scheduleRows.length) generateSchedule(); download("esm-schedule.csv", toCSV(state.scheduleRows), "text/csv;charset=utf-8");}
+function generateEventDefinition(){
+  const html = `<h3>Event-contingent reporting rules</h3><table>
+    <tr><th>Triggering event</th><td>${esc(getVal("eventTrigger")||"Define a concrete, recognizable event.")}</td></tr>
+    <tr><th>Inclusion criteria</th><td>${esc(getVal("eventInclude")||"Specify what counts as an event.")}</td></tr>
+    <tr><th>Exclusion criteria</th><td>${esc(getVal("eventExclude")||"Specify what does not count or should not be duplicated.")}</td></tr>
+    <tr><th>Response timing</th><td>${esc(getVal("eventRespondWhen"))}</td></tr>
+    <tr><th>Maximum reports/day</th><td>${esc(getVal("eventMax"))}</td></tr>
+    <tr><th>Backup reminders</th><td>${esc(getVal("eventBackup"))}</td></tr>
+    <tr><th>Multiple close events</th><td>${esc(getVal("eventMultiple"))}</td></tr>
+  </table><p><strong>Implementation advice:</strong> Train participants with examples and non-examples; pilot test event recognition; include an end-of-day check to identify missed events without encouraging reconstruction of details long after they occurred.</p>`;
+  $("eventOutput").innerHTML=html; updateProgress();
+}
+
+function generateTech(){
+  const choice=getVal("techChoice");
+  const profiles={
+    "Mobile app":["High convenience when participants install it successfully.","Strong timestamping and real-time compliance if configured.","Requires compatibility testing, data-security review, and support."],
+    "Mobile web survey":["Accessible on many devices; no installation.","Good timestamps and simple deployment.","Depends on reliable mobile internet and link delivery."],
+    "SMS/text prompt with web survey link":["Familiar prompt channel; useful reminders.","Good for rapid contact and compliance support.","Survey still depends on mobile web access and careful privacy wording."],
+    "Email prompt":["Low cost and easy for many workplace samples.","Poorer immediacy; notifications may be missed.","Use only when the process unfolds slowly or participants monitor email constantly."],
+    "Wearable/device-based prompt":["Can integrate passive sensing or physiological triggers.","Strong for context-aware prompts.","Higher privacy, cost, and technical-risk burden."],
+    "Paper diary only as fallback":["Accessible when devices are infeasible.","Weak timestamp verification and compliance tracking.","Use only as fallback; add strong instruction and audit procedures."]
+  };
+  const p=profiles[choice]||[];
+  $("techOutput").innerHTML = `<h3>Technology recommendation: ${esc(choice)}</h3><ul>${p.map(x=>`<li>${esc(x)}</li>`).join("")}</ul>
+    <h3>Comparison dimensions to document</h3><p>Accessibility, convenience, cost, timestamp accuracy, real-time compliance tracking, data export, participant burden, technical risk, and privacy/security issues.</p>
+    <h3>Constraints entered</h3><p>${esc(getVal("techNotes")||"No constraints entered.")}</p>
+    <p><strong>Pilot-test requirement:</strong> Before launch, test prompts, response links, timestamps, time zones, device compatibility, data export, reminder logic, and researcher support procedures.</p>`;
+  updateProgress();
+}
+
+function generateRecruitment(){
+  const source=getVal("sampleSource")||"the target sampling frame";
+  const elig=getVal("eligibility")||"the stated eligibility criteria";
+  const incentive=getVal("incentivePlan")||"a non-coercive incentive plan";
+  const support=getVal("researcherAvailability")||"a clear support channel during fieldwork";
+  $("recruitmentOutput").innerHTML = `<h3>Recruitment strategy</h3><p>Recruit participants from ${esc(source)} using eligibility criteria of ${esc(elig)}. Emphasize that the study captures real-time experiences as they occur, minimizes reliance on memory, and will be designed to reduce disruption.</p>
+  <h3>Initial contact script</h3><pre>Hello,
+
+We are conducting a research study about ${esc(getVal("focalPhenomenon")||"work and entrepreneurial experiences")} as they occur in daily life. Participation involves brief surveys during the study period. Each prompt should take about two minutes or less. Your responses will be treated confidentially and reported only in aggregate or de-identified form.
+
+You are eligible if you meet the following criteria: ${esc(elig)}.
+
+Participation is voluntary. The incentive plan is: ${esc(incentive)}. We will provide clear instructions, a practice prompt, technical support, and a debriefing after data collection.</pre>
+  <h3>Orientation script</h3><ol>
+    <li>Explain the research purpose and why real-time data are valuable.</li>
+    <li>Review consent, confidentiality, right to skip prompts, withdrawal, compensation, and data security.</li>
+    <li>Demonstrate the prompt and survey on the participant's actual device when possible.</li>
+    <li>Explain valid response windows, expected completion time, event definitions if applicable, and what to do if a prompt is missed.</li>
+    <li>Complete a practice prompt and answer participant questions.</li>
+    <li>Confirm ${esc(support)}.</li>
+  </ol>
+  <h3>Training checklist</h3><p>Eligibility confirmed; consent completed; participant ID assigned; baseline survey completed; device tested; practice prompt completed; schedule explained; support contact saved; debriefing plan explained.</p>`;
+  updateProgress();
+}
+function addComplianceRow(){
+  const row = {id:getVal("compID"), sent:getVal("promptSent"), received:getVal("responseReceived"), valid:getVal("validResponse"), reason:getVal("missingReason"), notes:getVal("compNotes")};
+  if(!row.id || !row.sent){ alert("Participant ID and prompt sent time are required."); return; }
+  state.complianceRows.push(row); renderComplianceTable(); updateProgress();
+}
+function parseDateAny(s){ if(!s) return null; const d=new Date(String(s).replace(" ","T")); return isNaN(d)?null:d; }
+function latency(row){ const s=parseDateAny(row.sent), r=parseDateAny(row.received); if(!s||!r) return null; return Math.round((r-s)/60000); }
+function renderComplianceTable(){
+  const tbody=$("complianceTable").querySelector("tbody"); tbody.innerHTML="";
+  state.complianceRows.forEach((row,i)=>{
+    const lat=latency(row);
+    const tr=document.createElement("tr");
+    tr.innerHTML=`<td>${i+1}</td><td>${esc(row.id)}</td><td>${esc(row.sent)}</td><td>${esc(row.received||"")}</td><td>${lat===null?"—":lat+" min"}</td><td>${esc(row.valid)}</td><td>${esc(row.reason||"")}</td><td>${esc(row.notes||"")}</td><td><button class="btn small danger" onclick="removeComplianceRow(${i})">Remove</button></td>`;
+    tbody.appendChild(tr);
+  });
+}
+function removeComplianceRow(i){ state.complianceRows.splice(i,1); renderComplianceTable(); updateProgress(); }
+function parseComplianceCSV(){
+  const lines=String(getVal("compliancePaste")||"").split(/\n+/).map(x=>x.trim()).filter(Boolean);
+  lines.forEach(line=>{
+    const cells=line.match(/("([^"]|"")*"|[^,]+)/g) || [];
+    const val=i=>String(cells[i]||"").replace(/^"|"$/g,"").replace(/""/g,'"').trim();
+    state.complianceRows.push({id:val(0), sent:val(1), received:val(2), valid:val(3)||"No", reason:val(4), notes:val(5)});
+  });
+  renderComplianceTable(); updateProgress();
+}
+function analyzeCompliance(){
+  if(!state.complianceRows.length){ alert("Add or paste compliance rows first."); return; }
+  const byId={}, byDay={}, validWindow=num("validWindow",120);
+  let total=0, valid=0, invalid=0, late=0, missing=0;
+  state.complianceRows.forEach(row=>{
+    total++;
+    const lat=latency(row);
+    const isValid = String(row.valid).toLowerCase().startsWith("y");
+    if(isValid) valid++; else invalid++;
+    if(row.received==="" || !row.received) missing++;
+    if(lat!==null && lat>validWindow) late++;
+    byId[row.id]=byId[row.id]||{total:0,valid:0,late:0,missing:0};
+    byId[row.id].total++; if(isValid) byId[row.id].valid++; if(lat!==null && lat>validWindow) byId[row.id].late++; if(!row.received) byId[row.id].missing++;
+    const day=(row.sent||"").slice(0,10); byDay[day]=byDay[day]||{total:0,valid:0}; byDay[day].total++; if(isValid) byDay[day].valid++;
+  });
+  const follow = Object.entries(byId).filter(([id,x])=>x.valid/x.total<.70 || x.late>1 || x.missing>1);
+  const idRows=Object.entries(byId).map(([id,x])=>`<tr><td>${esc(id)}</td><td>${x.total}</td><td>${x.valid}</td><td>${Math.round(x.valid/x.total*100)}%</td><td>${x.late}</td><td>${x.missing}</td></tr>`).join("");
+  const dayRows=Object.entries(byDay).map(([day,x])=>`<tr><td>${esc(day)}</td><td>${x.total}</td><td>${x.valid}</td><td>${Math.round(x.valid/x.total*100)}%</td></tr>`).join("");
+  $("complianceOutput").innerHTML = `<h3>Compliance summary</h3><table><tr><th>Total prompts</th><th>Valid</th><th>Invalid</th><th>Missing</th><th>Late beyond ${validWindow} min</th><th>Overall compliance</th></tr>
+    <tr><td>${total}</td><td>${valid}</td><td>${invalid}</td><td>${missing}</td><td>${late}</td><td>${Math.round(valid/total*100)}%</td></tr></table>
+    <h3>Compliance by participant</h3><table><tr><th>ID</th><th>Total</th><th>Valid</th><th>Compliance</th><th>Late</th><th>Missing</th></tr>${idRows}</table>
+    <h3>Compliance by day</h3><table><tr><th>Day</th><th>Total</th><th>Valid</th><th>Compliance</th></tr>${dayRows}</table>
+    <h3>Alerts</h3>${follow.length? "<ul>"+follow.map(([id,x])=>`<li><span class="badge warn">${esc(id)} needs follow-up</span> Low compliance, repeated missingness, or late responses. Check technical issues, burden, and participant understanding.</li>`).join("")+"</ul>" : "<p><span class='badge good'>No participant follow-up alerts detected.</span></p>"}`;
+  updateProgress();
+}
+function complianceRowsCSV(){
+  const rows=[["participant_id","prompt_sent","response_received","latency_minutes","valid","reason","notes"]];
+  state.complianceRows.forEach(r=>rows.push([r.id,r.sent,r.received,latency(r)??"",r.valid,r.reason,r.notes]));
+  return rows;
+}
+function exportComplianceCSV(){download("esm-compliance.csv", toCSV(complianceRowsCSV()), "text/csv;charset=utf-8");}
+
+function structureRows(){
+  const vars = state.surveyItems.map((it,i)=>slug(it[1],"item")+"_"+(i+1));
+  const headers=["participant_id","date","prompt_sent_time","response_received_time","response_latency_minutes","valid_response","day_number","prompt_number","event_type",...vars,"lagged_primary_predictor","lagged_primary_outcome","notes"];
+  return [headers];
+}
+function generateDataStructure(){
+  const headers=structureRows()[0];
+  const sample=[
+    headers,
+    headers.map(h=>{
+      const demo={participant_id:"P001",date:"2026-08-01",prompt_sent_time:"10:00",response_received_time:"10:18",response_latency_minutes:"18",valid_response:"1",day_number:"1",prompt_number:"1",event_type:"signal",lagged_primary_predictor:"",lagged_primary_outcome:"",notes:""};
+      return demo[h] ?? "3";
+    }),
+    headers.map(h=>{
+      const demo={participant_id:"P001",date:"2026-08-01",prompt_sent_time:"14:00",response_received_time:"14:11",response_latency_minutes:"11",valid_response:"1",day_number:"1",prompt_number:"2",event_type:"signal",lagged_primary_predictor:"3",lagged_primary_outcome:"3",notes:""};
+      return demo[h] ?? "4";
+    })
+  ];
+  $("structureOutput").innerHTML = `<h3>Stacked data template</h3><p>Each row is one ESM response occasion. Repeated rows are nested within participant IDs; team-, venture-, or organization-level nesting can be added as additional identifiers.</p>
+    <pre>${esc(toCSV([headers]))}</pre>
+    <h3>Example stacked dataset</h3><pre>${esc(toCSV(sample))}</pre>
+    <h3>Data dictionary</h3><ul><li><strong>participant_id:</strong> unique ID linking Level 1 and Level 2 data.</li><li><strong>prompt_sent_time / response_received_time:</strong> used to compute latency and validity.</li><li><strong>valid_response:</strong> 1 if response falls inside the study's validity window and meets quality rules.</li><li><strong>lagged variables:</strong> computed after sorting by participant and time.</li></ul>
+    <h3>Merge plan</h3><p>Maintain a baseline Level 2 file with one row per participant. Merge it into the stacked Level 1 file using participant_id. Verify one-to-many merge integrity, duplicate IDs, time zones, and missing participant IDs before analysis.</p>
+    <h3>Missing-data log</h3><p>Track missing prompt, late response, technical failure, skipped item, participant withdrawal, and invalid timestamp separately so missingness mechanisms can be evaluated.</p>`;
+  updateProgress();
+}
+function exportStackedTemplateCSV(){download("esm-stacked-data-template.csv", toCSV(structureRows()), "text/csv;charset=utf-8");}
+
+function generateAnalysis(){
+  const y=slug(getVal("depVar")||getVal("outcomes")||"outcome","outcome");
+  const x=slug(firstOr(getVal("l1Predictors")||getVal("predictors"),"l1_predictor"),"l1_predictor");
+  const z=slug(firstOr(getVal("l2Predictors")||getVal("moderators"),"l2_predictor"),"l2_predictor");
+  const m=slug(firstOr(getVal("crossMods")||getVal("moderators"),"moderator"),"moderator");
+  const lag=slug(firstOr(getVal("lagPred"),"lagged_predictor"),"lagged_predictor");
+  const lagY=slug(firstOr(getVal("lagOut"),"lagged_outcome"),"lagged_outcome");
+  const randSlope = getVal("randSlopes")==="None" ? "(1 | participant_id)" : `(1 + ${x}_wp | participant_id)`;
+  $("analysisOutput").innerHTML = `<h3>Plain-language analysis plan</h3><p>Use multilevel modeling because repeated ESM responses are nested within participants. Estimate within-person effects by person-mean centering Level 1 predictors and, when testing between-person differences, include each participant's mean on the same predictor. Include random intercepts and random slopes when theoretically justified and supported by the data.</p>
+  <h3>Readable multilevel model notation</h3><pre>Level 1:
+${y}<sub>ti</sub> = β<sub>0i</sub> + β<sub>1i</sub>(${x}<sub>ti</sub> - ${x}&#772;<sub>i</sub>) + β<sub>2</sub>${lag}<sub>t-1,i</sub> + β<sub>3</sub>${lagY}<sub>t-1,i</sub> + e<sub>ti</sub>
+
+Level 2:
+β<sub>0i</sub> = γ<sub>00</sub> + γ<sub>01</sub>${z}<sub>i</sub> + u<sub>0i</sub>
+β<sub>1i</sub> = γ<sub>10</sub> + γ<sub>11</sub>${m}<sub>i</sub> + u<sub>1i</sub></pre>
+  <h3>Example R lme4 syntax</h3><pre>library(lme4)
+model <- lmer(${y} ~ ${x}_wp + ${x}_bp + ${z} + ${x}_wp:${m} + ${lag} + ${lagY} + ${randSlope}, data = esm)</pre>
+  <h3>Example Stata mixed syntax</h3><pre>mixed ${y} c.${x}_wp c.${x}_bp c.${z} c.${x}_wp##c.${m} c.${lag} c.${lagY} || participant_id: ${getVal("randSlopes")==="None" ? "" : "c."+x+"_wp"}, covariance(unstructured)</pre>
+  <h3>Example Mplus-style conceptual syntax</h3><pre>%WITHIN%
+  ${y} ON ${x}_wp ${lag} ${lagY};
+  s | ${y} ON ${x}_wp;
+%BETWEEN%
+  ${y} ON ${z} ${x}_bp;
+  s ON ${m};</pre>
+  <h3>Interpretation guide</h3><ul><li>The within-person coefficient answers whether a participant reports different outcomes at moments when the predictor is higher than that participant's usual level.</li><li>The between-person coefficient answers whether participants with higher average predictor levels differ from other participants.</li><li>A cross-level interaction means that a Level 2 variable changes the within-person slope.</li><li>Temporal ordering helps but does not by itself prove causality; rule out plausible alternative explanations and test reverse or lagged alternatives.</li></ul>
+  <h3>Robustness and sensitivity checks</h3><p>${esc(getVal("robustChecks")||"Use alternative validity windows, exclude very low-compliance participants, add day or prompt controls, compare random-effects structures, test lag alternatives, inspect nonlinear effects, and test reverse directionality.")}</p>`;
+  updateProgress();
+}
+function runAudit(){
+  const warnings=[];
+  const fit=state.lastFit?.score ?? 0;
+  if(fit<45) warnings.push(["red","Theoretical fit is weak.","Clarify why the process requires real-time repeated assessment or use another design."]);
+  else if(fit<75) warnings.push(["yellow","Theoretical fit is moderate.","Use a hybrid design and explicitly state which constructs require ESM."]);
+  if(!state.lastProtocol) warnings.push(["yellow","Protocol has not been selected.","Run the protocol selector and align it with phenomenon frequency and predictability."]);
+  const burdenSeconds = state.surveyItems.filter(it=>it[4]==="Level 1"&&it[5]==="Yes").reduce((a,it)=>a+Number(it[7]||0),0);
+  if(burdenSeconds>180) warnings.push(["red","Survey burden is too high.","Reduce items until each prompt can be completed in about 2 minutes or less."]);
+  else if(burdenSeconds>120) warnings.push(["yellow","Survey burden exceeds 2 minutes.","Shorten measures and pilot test."]);
+  if(!state.lastSample) warnings.push(["yellow","Sample/data-yield plan not calculated.","Run the data-point planner and conduct a formal multilevel power analysis."]);
+  else if(state.lastSample.avg<15) warnings.push(["red","Average observations per participant is low.","Increase days/prompts or improve compliance."]);
+  if(!state.scheduleRows.length && !getVal("eventTrigger")) warnings.push(["yellow","No prompt schedule or event definition exists.","Generate schedule or define event-contingent rules."]);
+  if(!getVal("techNotes") && !Array.from(document.querySelectorAll("[id^='techCheck_']")).some(cb=>cb.checked)) warnings.push(["yellow","Technology feasibility is underdocumented.","Document timestamping, reminders, secure transfer, backup, compatibility, pilot testing, and support."]);
+  if(!getVal("depVar") || !getVal("l1Predictors")) warnings.push(["yellow","Analysis plan is incomplete.","Specify dependent variable, Level 1 predictors, Level 2 predictors/moderators, centering, and random effects."]);
+  if(!getVal("ethicsSecurity")) warnings.push(["yellow","Ethics/privacy plan is incomplete.","Add consent, confidentiality, data-security, skip/withdrawal, compensation, and debriefing language."]);
+  const red=warnings.filter(w=>w[0]==="red").length, yellow=warnings.filter(w=>w[0]==="yellow").length;
+  let label, cls;
+  if(red>0){label="Red = serious design problem"; cls="risk-red";}
+  else if(yellow>0){label="Yellow = revise before launch"; cls="risk-yellow";}
+  else {label="Green = ready"; cls="risk-green";}
+  state.lastAudit={label, red, yellow};
+  $("auditOutput").innerHTML = `<div class="card ${cls}"><h3>${label}</h3><p>Red warnings: ${red}. Yellow warnings: ${yellow}.</p></div>
+  <h3>Audit checks</h3>${warnings.length? "<ul>"+warnings.map(w=>`<li><span class="badge ${w[0]==="red"?"bad":"warn"}">${esc(w[1])}</span> ${esc(w[2])}</li>`).join("")+"</ul>" : "<p><span class='badge good'>No major design warnings detected. Still pilot test and consult the relevant IRB or ethics board.</span></p>"}
+  <h3>Readiness domains reviewed</h3><p>Theoretical fit, protocol fit, measurement burden, timing fit, ecological validity, recall-bias reduction, compliance feasibility, participant intrusiveness, technology feasibility, sample/data-point adequacy, data-structure readiness, analysis-plan alignment, ethics/privacy readiness, and reporting completeness.</p>`;
+  updateDashboard(); updateProgress();
+}
+function generateEthics(){
+  $("ethicsOutput").innerHTML = `<h3>IRB/ethics prompts</h3><ul>
+    <li><strong>Consent:</strong> Participants will receive brief prompts during the study period and may skip prompts or withdraw without penalty.</li>
+    <li><strong>Prompt burden:</strong> State frequency, duration, daily windows, validity window, and expected completion time per prompt.</li>
+    <li><strong>Confidentiality:</strong> Use unique participant IDs; store contact information separately from response data; report only aggregate or de-identified results.</li>
+    <li><strong>Sensitive data:</strong> ${esc(getVal("ethicsSensitive"))}. Minimize unnecessary sensitive content and specify who can access identifiable records.</li>
+    <li><strong>Data security:</strong> ${esc(getVal("ethicsSecurity")||"Specify encryption, secure transfer, access control, retention period, and deletion procedures.")}</li>
+    <li><strong>Compensation:</strong> ${esc(getVal("ethicsComp")||"Specify base payment and compliance incentives in non-coercive language.")}</li>
+    <li><strong>Distress/sensitive disclosures:</strong> ${esc(getVal("ethicsDistress")||"Specify optional skip rules, participant support, and escalation procedures if required by the IRB.")}</li>
+    <li><strong>Debriefing:</strong> Ask about disruption, technical issues, comprehension of event definitions, and perceived burden.</li>
+  </ul>
+  <h3>Sample consent language</h3><pre>You will be asked to complete brief surveys during the study period. Each survey is expected to take about two minutes or less. Some prompts may arrive during normal daily activities; you may skip any prompt that is inconvenient, unsafe, or uncomfortable. Your participation is voluntary, and you may withdraw at any time. The research team will protect your confidentiality by using participant IDs, limiting access to data, and reporting results in aggregate or de-identified form.</pre>
+  <p><strong>Reminder:</strong> This tool does not provide legal advice. Consult your IRB or ethics board.</p>`;
+  updateProgress();
+}
+function generateReporting(){
+  const protocol = state.lastProtocol || "the selected ESM protocol";
+  const sample = state.lastSample ? `${Math.round(state.lastSample.valid).toLocaleString()} expected valid Level 1 observations` : "the planned Level 1 observations";
+  const window = getVal("validWindow") || "120";
+  const constructs = state.surveyItems.map(it=>it[1]).join(", ") || getVal("l1vars") || "the focal constructs";
+  $("reportingOutput").innerHTML = `<h3>Manuscript-ready ESM methods summary</h3>
+  <p>The study uses ${esc(protocol)} to examine ${esc(getVal("focalPhenomenon")||"a dynamic process")} in ${esc(getVal("domain")||"the target domain")}. ESM is appropriate because the focal process involves change over time, momentary states or events, within-person variability, person-by-situation context, and the need to reduce retrospective recall bias. Participants will provide repeated reports in their natural environments, allowing analyses of both within-person and between-person relationships.</p>
+  <p>Participants will be recruited from ${esc(getVal("sampleSource")||"the target sampling frame")} using the eligibility criterion: ${esc(getVal("eligibility")||"to be specified")}. The planned design includes ${esc(getVal("nParticipants")||"N")} participants across ${esc(getVal("nDays")||"the study period")} days, with ${esc(getVal("promptsPerDay")||"the planned number of")} prompts per day when applicable. The expected data yield is ${esc(sample)}. Responses received beyond ${esc(window)} minutes after the prompt will be flagged as invalid unless the protocol specifies a different validity rule.</p>
+  <p>The ESM survey includes the following constructs: ${esc(constructs)}. The instrument is designed to be brief, with an intended completion time of about two minutes or less per prompt. Technology will be implemented using ${esc(getVal("techChoice")||"the selected platform")}, with timestamping, participant IDs, reminder procedures, secure transfer, device testing, compliance monitoring, and technical support procedures documented before launch.</p>
+  <p>The data will be structured in stacked format, with one row per response occasion and repeated observations nested within participants. Level 1 variables include ${esc(getVal("l1vars")||getVal("l1Predictors")||"momentary predictors and outcomes")}; Level 2 variables include ${esc(getVal("l2vars")||getVal("l2Predictors")||"person-, team-, venture-, or organization-level predictors")}. Analyses will use multilevel models with appropriate centering, random intercepts and slopes where defensible, lagged predictors or outcomes when theory requires temporal ordering, and robustness checks including compliance and validity-window sensitivity analyses.</p>
+  <h3>Appendix checklist</h3><ul><li>Protocol rationale and schedule table.</li><li>Survey instrument with item wording and response scales.</li><li>Participant instructions and event definitions if applicable.</li><li>Compliance criteria, valid response window, and missing-data rules.</li><li>Stacked data structure and variable dictionary.</li><li>Analysis model equations and syntax.</li><li>Ethics, privacy, and debriefing procedures.</li></ul>
+  <h3>Participant instructions</h3><pre>Please respond as soon as you can after each prompt, ideally immediately. Answer based on what you are experiencing right now or since the previous prompt, according to the item wording. Do not answer while driving or in any unsafe situation. You may skip prompts that are inconvenient or uncomfortable. Contact the research team if you experience technical problems.</pre>
+  <h3>Debriefing questions</h3><ol><li>How disruptive were the prompts?</li><li>Were any items confusing or hard to answer in the moment?</li><li>Did the response window feel reasonable?</li><li>Did you experience technical problems?</li><li>For event-contingent studies: were the event definition and examples clear?</li><li>What would make participation easier?</li></ol>
+  <h3>Study launch checklist</h3><p>IRB/ethics approval; participant IDs; finalized survey; pilot test; device/platform testing; schedule generation; reminder system; secure export; compliance dashboard; support channel; incentive tracking; debriefing plan.</p>
+  <h3>Pre-registration checklist</h3><p>Research questions; hypotheses; Level 1/Level 2 variable definitions; protocol; sampling plan; exclusion/validity rules; missing-data handling; centering strategy; model specification; lag structure; robustness checks; deviations log.</p>`;
+  updateProgress();
+}
+function generateAll(scroll=true){
+  generateFit(); generateMapper(); generateProtocol(); calculateSample(); generateSurveyOutputsSafe(); generateScheduleSafe(); generateEventDefinition(); generateTech(); generateRecruitment(); analyzeComplianceSafe(); generateDataStructure(); generateAnalysis(); generateEthics(); runAudit(); generateReporting();
+  if(scroll) $("dashboard").scrollIntoView();
+}
+function generateSurveyOutputsSafe(){ if(state.surveyItems.length) generateSurveyOutputs(); }
+function generateScheduleSafe(){ try{ generateSchedule(); }catch(e){} }
+function analyzeComplianceSafe(){ if(state.complianceRows.length) analyzeCompliance(); }
+function loadExample(i){
+  const ex=examples[i]; if(!ex) return;
+  Object.keys(ex).forEach(k=>{ if($(k)) setVal(k, ex[k]); });
+  state.surveyItems = ex.items.map(x=>x.slice());
+  renderSurveyTable(); updateBurden();
+  for(const [id] of fitCriteria) setVal("fit_"+id, i===1 && id==="short" ? 3 : 4), updateRangeLabel(id);
+  if(i===1){setVal("eventTrigger","A significant venture-relevant social interaction"); setVal("eventInclude","Interaction lasts at least 5 minutes and involves customers, investors, suppliers, mentors, partners, or team members discussing venture-relevant information."); setVal("eventExclude","Purely administrative interactions, duplicate interactions, and interactions with no venture-relevant content.");}
+  else {setVal("eventTrigger","");}
+  setVal("techNotes","Use mobile-friendly prompts, timestamp each prompt and response, test participant devices, and maintain same-day technical support.");
+  setVal("ethicsSecurity","Use unique participant IDs, separate contact information from responses, restrict data access to the research team, store files on institution-approved encrypted systems, and report de-identified results.");
+  generateAll(false);
+  $("dashboard").scrollIntoView();
+}
+function exportStackIfNeeded(){ if(!state.scheduleRows.length) generateSchedule(); }
+window.addEventListener("DOMContentLoaded", init);
+</script>
+<!-- Begin Countercentral code v 7.0 --> 
+<span id="wts2576"></span> 
+<script>var wts=document.createElement('script');wts.async=true; 
+wts.src='https://server2.countercentral.com/log7.js';document.head.appendChild(wts); 
+wts.onload = function(){ wtslog7(2576,1); }; 
+</script><noscript><a href="https://www.countercentral.com"> 
+<img src="https://server2.countercentral.com/7/1/2576.png"  
+alt="Countercentral web traffic analysis"></a></noscript> 
+<!-- End Countercentral code v 7.0 --> 
+</body>
+</html>

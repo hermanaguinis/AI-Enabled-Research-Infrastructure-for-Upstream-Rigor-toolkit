@@ -1,0 +1,1112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Ethical Research Design and Implementation Tool</title>
+<style>
+  :root{
+    --bg:#f5f7fb;
+    --panel:#ffffff;
+    --ink:#172033;
+    --muted:#5e697a;
+    --line:#d8deea;
+    --brand:#1f5f91;
+    --brand-dark:#16466c;
+    --accent:#e6f1fb;
+    --warn:#8a4b00;
+    --warn-bg:#fff4df;
+    --danger:#9b1c1c;
+    --danger-bg:#fff1f1;
+    --ok:#17623a;
+    --ok-bg:#eaf8ef;
+    --focus:#ffbf47;
+    --shadow:0 10px 25px rgba(18,35,60,.10);
+    --radius:16px;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);font-family:Arial, Helvetica, sans-serif;line-height:1.45}
+  a{color:var(--brand-dark)}
+  header{background:linear-gradient(135deg,var(--brand-dark),var(--brand));color:#fff;padding:26px 28px 22px;box-shadow:var(--shadow)}
+  header h1{margin:0 0 8px;font-size:clamp(1.7rem,3vw,2.6rem);letter-spacing:.01em}
+  header p{margin:6px 0;max-width:1180px}
+  .credit{font-size:.96rem;opacity:.95;background:rgba(255,255,255,.12);padding:10px 12px;border-radius:12px;display:inline-block;margin-top:10px}
+  .app{display:grid;grid-template-columns:310px 1fr;gap:18px;max-width:1500px;margin:18px auto;padding:0 18px 28px}
+  nav{position:sticky;top:12px;align-self:start;background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow);padding:14px;max-height:calc(100vh - 24px);overflow:auto}
+  nav h2{font-size:1rem;margin:0 0 8px;color:var(--brand-dark)}
+  .navbtn{display:flex;justify-content:space-between;align-items:center;width:100%;border:1px solid transparent;background:transparent;color:var(--ink);text-align:left;padding:10px 10px;border-radius:10px;cursor:pointer;font-weight:700;margin:2px 0}
+  .navbtn:hover,.navbtn.active{background:var(--accent);border-color:#bed5ec}
+  .pill{display:inline-flex;align-items:center;gap:6px;padding:3px 8px;border-radius:999px;background:#edf2f7;color:#25364d;font-size:.77rem;font-weight:700;white-space:nowrap}
+  .pill.ready{background:var(--ok-bg);color:var(--ok)}
+  .pill.revise{background:#fff9db;color:#5c4b00}
+  .pill.risk{background:var(--warn-bg);color:var(--warn)}
+  .pill.stop{background:var(--danger-bg);color:var(--danger)}
+  .toolbar{display:flex;flex-wrap:wrap;gap:8px;margin:12px 0 0}
+  button,.buttonlike{border:1px solid #9bb7cf;border-radius:10px;background:#fff;color:var(--brand-dark);font-weight:700;padding:9px 12px;cursor:pointer;text-decoration:none;display:inline-block}
+  button.primary{background:var(--brand);color:#fff;border-color:var(--brand)}
+  button.danger{background:#fff;border-color:#e6a5a5;color:var(--danger)}
+  button:hover,.buttonlike:hover{filter:brightness(.97)}
+  button:focus,input:focus,textarea:focus,select:focus,.navbtn:focus{outline:3px solid var(--focus);outline-offset:2px}
+  main{min-width:0}
+  section.module{display:none;background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow);padding:22px;margin-bottom:18px}
+  section.module.active{display:block}
+  section h2{margin:0 0 8px;font-size:1.65rem;color:var(--brand-dark)}
+  section h3{margin:22px 0 8px;font-size:1.12rem;color:#25364d}
+  section h4{margin:16px 0 8px;color:#25364d}
+  .lead{color:var(--muted);margin:0 0 16px;max-width:1050px}
+  .grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
+  .grid.three{grid-template-columns:repeat(3,minmax(0,1fr))}
+  .grid.four{grid-template-columns:repeat(4,minmax(0,1fr))}
+  .card{background:#fbfcff;border:1px solid var(--line);border-radius:14px;padding:14px;margin:10px 0}
+  .callout{border-left:5px solid var(--brand);background:var(--accent);padding:12px 14px;border-radius:12px;margin:12px 0;color:#1e3851}
+  .warning{border-left:5px solid var(--warn);background:var(--warn-bg);padding:12px 14px;border-radius:12px;margin:12px 0;color:#5c3500}
+  .dangerbox{border-left:5px solid var(--danger);background:var(--danger-bg);padding:12px 14px;border-radius:12px;margin:12px 0;color:#5d1010}
+  .okbox{border-left:5px solid var(--ok);background:var(--ok-bg);padding:12px 14px;border-radius:12px;margin:12px 0;color:#103f26}
+  label{display:block;font-weight:700;margin:8px 0 5px}
+  .check label{display:flex;gap:9px;align-items:flex-start;font-weight:500;margin:8px 0;color:#263245}
+  input[type="text"], input[type="email"], input[type="number"], select, textarea{width:100%;border:1px solid #b9c4d2;border-radius:10px;padding:10px 11px;font:inherit;background:#fff;color:var(--ink)}
+  textarea{min-height:92px;resize:vertical}
+  textarea.short{min-height:60px}
+  textarea.tall{min-height:170px}
+  .small{font-size:.9rem;color:var(--muted)}
+  .scorebar{height:12px;background:#e8edf5;border-radius:999px;overflow:hidden;border:1px solid #d6deeb}
+  .scorebar span{display:block;height:100%;width:0;background:var(--brand);transition:width .25s}
+  .scoregrid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin:14px 0}
+  .scorecard{border:1px solid var(--line);border-radius:14px;padding:12px;background:#fff}
+  .scorecard strong{font-size:1.2rem}
+  table{width:100%;border-collapse:collapse;margin:10px 0;background:#fff}
+  th,td{border:1px solid var(--line);padding:8px;text-align:left;vertical-align:top}
+  th{background:#eef4fb;color:#213b55}
+  td input, td textarea, td select{margin:0}
+  .output{font-family:Arial, Helvetica, sans-serif;min-height:170px;background:#fcfdff}
+  .copyrow{display:flex;justify-content:space-between;gap:10px;align-items:center;margin-top:12px}
+  .hidden{display:none!important}
+  .meter{display:flex;gap:4px;align-items:center;margin:8px 0}
+  .meter span{height:12px;flex:1;background:#e6ebf2;border-radius:8px;border:1px solid #d4dce8}
+  .meter.low span:nth-child(-n+1), .meter.med span:nth-child(-n+2), .meter.high span:nth-child(-n+3), .meter.critical span:nth-child(-n+4){background:#1f5f91}
+  .meter.high span:nth-child(-n+3){background:#b46b00}.meter.critical span:nth-child(-n+4){background:#b42318}
+  .sticky-summary{position:sticky;top:12px;z-index:2;background:#fff;border:1px solid var(--line);border-radius:14px;padding:12px;margin-bottom:14px;box-shadow:0 6px 18px rgba(18,35,60,.08)}
+  details{border:1px solid var(--line);border-radius:12px;padding:10px 12px;background:#fff;margin:10px 0}
+  summary{font-weight:700;color:var(--brand-dark);cursor:pointer}
+  .kbd{font-family:Consolas, monospace;background:#edf2f7;border:1px solid #cbd6e3;border-radius:6px;padding:1px 5px}
+  footer{max-width:1500px;margin:0 auto 28px;padding:0 18px;color:var(--muted);font-size:.9rem}
+  @media (max-width:980px){.app{grid-template-columns:1fr}nav{position:static;max-height:none}.grid,.grid.three,.grid.four,.scoregrid{grid-template-columns:1fr}.toolbar{gap:6px}}
+  @media print{nav,.toolbar,.copyrow,button{display:none!important}.app{display:block;margin:0;padding:0}section.module{display:block;box-shadow:none;border:none;page-break-inside:avoid}header{box-shadow:none}.sticky-summary{position:static;box-shadow:none}}
+</style>
+</head>
+<body>
+<header>
+  <h1>Ethical Research Design and Implementation Tool</h1>
+  <p>Interactive planning workspace for designing, conducting, monitoring, and reporting ethical research in management, psychology, entrepreneurship, social and behavioral science, education, health-adjacent social research, and related fields.</p>
+  <p class="credit"><strong>Based on:</strong> Aguinis, H. 2025. <em>Research methodology: Best practices for rigorous, credible, and impactful research</em>. SAGE. https://collegepublishing.sagepub.com/products/research-methodology-1-280088</p>
+  <div class="toolbar" aria-label="Global actions">
+    <button class="primary" onclick="saveState(true)">Save progress</button>
+    <button onclick="window.print()">Print</button>
+    <button onclick="exportText()">Export plain-text ethics plan</button>
+    <button onclick="exportJSON()">Export JSON project file</button>
+    <label class="buttonlike" for="importFile">Import JSON</label><input id="importFile" type="file" accept="application/json,.json" class="hidden">
+    <button class="danger" onclick="resetTool()">Reset tool</button>
+  </div>
+</header>
+<div class="app">
+<nav aria-label="Tool modules">
+  <h2>Modules</h2>
+  <button class="navbtn active" data-target="profile">1. Project profile <span id="nav-profile" class="pill">0%</span></button>
+  <button class="navbtn" data-target="due">2. Due diligence <span id="nav-due" class="pill">0%</span></button>
+  <button class="navbtn" data-target="recruitment">3. Recruitment <span id="nav-recruitment" class="pill">0%</span></button>
+  <button class="navbtn" data-target="rights">4. Participant rights <span id="nav-rights" class="pill">0%</span></button>
+  <button class="navbtn" data-target="field">5. Field settings <span id="nav-field" class="pill">0%</span></button>
+  <button class="navbtn" data-target="reporting">6. Reporting <span id="nav-reporting" class="pill">0%</span></button>
+  <button class="navbtn" data-target="online">7. Online / MTurk <span id="nav-online" class="pill">0%</span></button>
+  <button class="navbtn" data-target="enforcement">8. Enforcement <span id="nav-enforcement" class="pill">0%</span></button>
+  <button class="navbtn" data-target="dilemma">9. Dilemma simulator <span id="nav-dilemma" class="pill">0%</span></button>
+  <button class="navbtn" data-target="final">10. Final action plan <span id="nav-final" class="pill">View</span></button>
+  <div class="card">
+    <strong>Overall readiness</strong>
+    <div class="scorebar" aria-hidden="true"><span id="overallBar"></span></div>
+    <p><span id="overallPct" class="pill">0%</span> <span id="overallStatus" class="pill stop">Do Not Launch Yet</span></p>
+    <p class="small" id="autosaveMsg">Autosave is on.</p>
+  </div>
+</nav>
+<main>
+  <div class="sticky-summary">
+    <strong>Current decision:</strong> <span id="topStatus">Complete the profile to begin.</span>
+    <div id="topFlags" class="small"></div>
+  </div>
+
+  <section id="profile" class="module active" aria-labelledby="profile-title">
+    <h2 id="profile-title">1. Project Profile and Ethical Philosophy</h2>
+    <p class="lead">Start by defining the study, the people affected by it, and the ethical reasoning that will guide decisions when duties and consequences conflict.</p>
+    <div class="grid">
+      <div><label for="studyTitle">Study title</label><input id="studyTitle" type="text" placeholder="Example: Employee voice and supervisor response study" data-module="profile"></div>
+      <div><label for="researchQuestion">Research question</label><input id="researchQuestion" type="text" placeholder="What question will the study answer?" data-module="profile"></div>
+      <div><label for="targetPopulation">Target population</label><input id="targetPopulation" type="text" placeholder="Students, employees, applicants, managers, online workers..." data-module="profile"></div>
+      <div><label for="recruitmentSource">Recruitment source</label><input id="recruitmentSource" type="text" placeholder="Participant pool, organization, online platform..." data-module="profile"></div>
+      <div><label for="setting">Setting</label><select id="setting" data-module="profile"><option value="">Select</option><option>Laboratory</option><option>Online survey or experiment</option><option>Organization or field setting</option><option>School or university</option><option>Public setting / naturalistic observation</option><option>Archival / existing data</option><option>Other</option></select></div>
+      <div><label for="dataType">Data type</label><input id="dataType" type="text" placeholder="Survey, interview, observation, archival, performance data..." data-module="profile"></div>
+    </div>
+    <h3>Core study characteristics</h3>
+    <div class="grid four check">
+      <label><input id="humanParticipants" type="checkbox" data-module="profile"> Human participants are involved</label>
+      <label><input id="minorsIncluded" type="checkbox" data-module="profile"> Minors are included</label>
+      <label><input id="vulnerableIncluded" type="checkbox" data-module="profile"> Vulnerable, exploited, or discriminated-against groups are included</label>
+      <label><input id="deceptionUsed" type="checkbox" data-module="profile"> Deception or incomplete disclosure is used</label>
+      <label><input id="onlineStudy" type="checkbox" data-module="profile"> The study is online</label>
+      <label><input id="mturkStudy" type="checkbox" data-module="profile"> MTurk or another crowdsourcing platform is used</label>
+      <label><input id="fieldStudy" type="checkbox" data-module="profile"> The study occurs in an organization or field setting</label>
+      <label><input id="identifiableData" type="checkbox" data-module="profile"> Identifiable data are collected</label>
+      <label><input id="sensitiveData" type="checkbox" data-module="profile"> Sensitive personal, employment, legal, or reputational data are collected</label>
+      <label><input id="compensationUsed" type="checkbox" data-module="profile"> Compensation, course credit, or another inducement is offered</label>
+      <label><input id="researcherAuthority" type="checkbox" data-module="profile"> Researcher has authority over participants</label>
+      <label><input id="sponsorAccessRisk" type="checkbox" data-module="profile"> Sponsor may want individual-level information</label>
+    </div>
+    <div class="grid">
+      <div>
+        <label for="irbStatus">IRB / ethics review status</label>
+        <select id="irbStatus" data-module="profile">
+          <option value="not-addressed">Not addressed yet</option>
+          <option value="not-human">Not human-participant research</option>
+          <option value="exempt-considered">Exemption may apply; documentation planned</option>
+          <option value="expedited-considered">Expedited review may apply; submission planned</option>
+          <option value="full-review-planned">Full review likely; submission planned</option>
+          <option value="approved">Approved or formally determined</option>
+        </select>
+      </div>
+      <div>
+        <label for="riskLevel">Highest plausible participant risk</label>
+        <select id="riskLevel" data-module="profile"><option value="minimal">Minimal</option><option value="moderate">Moderate</option><option value="serious">Serious or more than minimal</option><option value="unknown">Unknown / not yet assessed</option></select>
+      </div>
+    </div>
+    <h3>Ethical philosophy comparison</h3>
+    <div class="grid">
+      <div class="card"><h4>Utilitarian lens</h4><p class="small">Ask whether the expected benefits to participants, science, society, practice, and the public outweigh costs and risks, including the cost of not conducting the study.</p><label for="utilBenefits">Expected benefits and beneficiaries</label><textarea id="utilBenefits" data-module="profile"></textarea><label for="utilHarms">Costs, harms, and likelihood/severity</label><textarea id="utilHarms" data-module="profile"></textarea><label for="costOfNotDoing">Costs of not conducting this research</label><textarea id="costOfNotDoing" data-module="profile"></textarea></div>
+      <div class="card"><h4>Deontological lens</h4><p class="small">Ask whether the study respects duties and principles such as truthfulness, autonomy, privacy, fidelity, fairness, confidentiality, and respect for persons regardless of likely outcomes.</p><label for="dutiesPrinciples">Duties and principles at stake</label><textarea id="dutiesPrinciples" data-module="profile"></textarea><label for="nonNegotiables">Non-negotiable ethical boundaries</label><textarea id="nonNegotiables" data-module="profile"></textarea><label for="dilemmaLens">Where consequences and duties conflict</label><textarea id="dilemmaLens" data-module="profile"></textarea></div>
+    </div>
+    <div id="profileWarnings"></div>
+  </section>
+
+  <section id="due" class="module" aria-labelledby="due-title">
+    <h2 id="due-title">2. Ethical Due Diligence Before the Study</h2>
+    <p class="lead">Complete this before recruitment. Ethical research starts with competence, sound design, clear rules, and an explicit benefit-risk analysis.</p>
+    <div class="callout"><strong>Decision rule:</strong> Do not launch until IRB requirements are addressed, risks have mitigation plans, and the research design is capable of producing valid conclusions.</div>
+    <div class="grid">
+      <div class="card check">
+        <h3>Pre-study planning checklist</h3>
+        <label><input type="checkbox" id="dueEthicsBefore" data-module="due"> Ethical issues were considered before the study began.</label>
+        <label><input type="checkbox" id="dueCompetence" data-module="due"> Team competence and supervision are adequate for the methods, sample, and setting.</label>
+        <label><input type="checkbox" id="dueGuidelines" data-module="due"> Applicable ethical codes, institutional rules, federal/state requirements, and professional guidelines are identified.</label>
+        <label><input type="checkbox" id="dueTraining" data-module="due"> Required training, such as CITI or comparable ethics training, is complete or scheduled.</label>
+        <label><input type="checkbox" id="dueSoundDesign" data-module="due"> Design is theory-based, scientifically sound, methodologically appropriate, and capable of valid conclusions.</label>
+        <label><input type="checkbox" id="dueBenefits" data-module="due"> Benefits to participants, science, society, and practice are articulated.</label>
+        <label><input type="checkbox" id="dueNotConducting" data-module="due"> Costs of not conducting the research have been considered.</label>
+        <label><input type="checkbox" id="dueRiskTypes" data-module="due"> Physical, psychological, social, employment, legal, reputational, and privacy risks were assessed.</label>
+        <label><input type="checkbox" id="dueIRB" data-module="due"> IRB or ethics-review pathway has been determined and documented.</label>
+        <label><input type="checkbox" id="dueIndependentInput" data-module="due"> Impartial input was sought from peers, potential participants, ethics experts, or others.</label>
+      </div>
+      <div class="card">
+        <h3>Benefit-risk analysis</h3>
+        <label for="benefitRiskSummary">Summary of benefits, risks, and ethical acceptability</label><textarea id="benefitRiskSummary" class="tall" data-module="due"></textarea>
+        <label for="riskMitigationPlan">Risk mitigation plan</label><textarea id="riskMitigationPlan" class="tall" data-module="due"></textarea>
+        <label for="missingPreIRB">Known missing items before IRB submission</label><textarea id="missingPreIRB" data-module="due"></textarea>
+        <div class="copyrow"><strong>Pre-IRB readiness</strong><span id="dueReadiness" class="pill">0%</span></div><div class="scorebar"><span id="dueBar"></span></div>
+      </div>
+    </div>
+    <div id="dueWarnings"></div>
+  </section>
+
+  <section id="recruitment" class="module" aria-labelledby="recruitment-title">
+    <h2 id="recruitment-title">3. Recruitment and Participant Selection</h2>
+    <p class="lead">Use this module to prevent coercion, excessive inducements, false promises, unrealistic expectations, and unfair or culturally insensitive recruitment.</p>
+    <div class="grid">
+      <div class="card check">
+        <h3>Universal recruitment safeguards</h3>
+        <label><input type="checkbox" id="recVoluntary" data-module="recruitment"> Recruitment materials state that participation is voluntary.</label>
+        <label><input type="checkbox" id="recWithdrawal" data-module="recruitment"> Participants can decline or withdraw without penalty.</label>
+        <label><input type="checkbox" id="recNoFalsePromises" data-module="recruitment"> Recruitment avoids false promises and unrealistic expectations.</label>
+        <label><input type="checkbox" id="recFairComp" data-module="recruitment"> Compensation or credit is fair, proportionate, and not excessive for the risk level.</label>
+        <label><input type="checkbox" id="recAlternative" data-module="recruitment"> Alternatives are provided when course credit or required participation is used.</label>
+        <label><input type="checkbox" id="recThirdParty" data-module="recruitment"> Third-party recruitment is used when the researcher has authority over potential participants.</label>
+        <label><input type="checkbox" id="recCultural" data-module="recruitment"> Cultural sensitivity has been assessed for the target population.</label>
+        <label><input type="checkbox" id="recCommunity" data-module="recruitment"> Members of studied communities are meaningfully involved when appropriate.</label>
+      </div>
+      <div class="card">
+        <h3>Coercion risk meter</h3>
+        <div id="coercionMeter" class="meter"><span></span><span></span><span></span><span></span></div>
+        <p id="coercionText" class="small">Complete the items below to estimate coercion risk.</p>
+        <div class="check">
+          <label><input type="checkbox" id="recOwnStudents" data-module="recruitment"> Researcher recruits students from own class.</label>
+          <label><input type="checkbox" id="recGradeCredit" data-module="recruitment"> Participation affects grade, extra credit, or required course credit.</label>
+          <label><input type="checkbox" id="recEmployee" data-module="recruitment"> Employees, job applicants, or subordinates are recruited.</label>
+          <label><input type="checkbox" id="recHighInducement" data-module="recruitment"> Payment or inducement may be hard for participants to refuse.</label>
+          <label><input type="checkbox" id="recNoAlternative" data-module="recruitment"> No equivalent alternative assignment or benefit is available.</label>
+          <label><input type="checkbox" id="recPenaltyFear" data-module="recruitment"> Participants may fear negative consequences if they refuse.</label>
+        </div>
+      </div>
+    </div>
+    <details open><summary>Participant-pool panels</summary>
+      <div class="grid three">
+        <div class="card"><h4>University participant pools</h4><label for="studentPoolPlan">Extra credit, alternatives, learning value, withdrawal, and instructor-student safeguards</label><textarea id="studentPoolPlan" data-module="recruitment"></textarea></div>
+        <div class="card"><h4>Minors</h4><div class="check"><label><input type="checkbox" id="minorParentalConsent" data-module="recruitment"> Parental/guardian consent is planned.</label><label><input type="checkbox" id="minorAssent" data-module="recruitment"> Age-appropriate minor assent is planned.</label><label><input type="checkbox" id="minorVoluntary" data-module="recruitment"> Minors are told participation is voluntary and can stop anytime.</label></div><label for="minorExplanation">Age-appropriate explanation</label><textarea id="minorExplanation" data-module="recruitment"></textarea></div>
+        <div class="card"><h4>Volunteers and compensated participants</h4><label for="volunteerPlan">Inducement, fairness, and expectation-management plan</label><textarea id="volunteerPlan" data-module="recruitment"></textarea></div>
+        <div class="card"><h4>Employees and job applicants</h4><label for="employeePlan">Employment, applicant, supervisor-access, and no-penalty safeguards</label><textarea id="employeePlan" data-module="recruitment"></textarea></div>
+        <div class="card"><h4>Online participants</h4><label for="onlineRecruitmentPlan">Eligibility, compensation, contact, withdrawal, and platform-specific safeguards</label><textarea id="onlineRecruitmentPlan" data-module="recruitment"></textarea></div>
+        <div class="card"><h4>Traditionally exploited or discriminated-against groups</h4><label for="exploitedGroupPlan">Cultural sensitivity, community involvement, and harm-avoidance plan</label><textarea id="exploitedGroupPlan" data-module="recruitment"></textarea></div>
+      </div>
+    </details>
+    <label for="recruitmentScript">Recruitment script draft</label><textarea id="recruitmentScript" class="tall" data-module="recruitment" placeholder="Draft text participants will see..."></textarea>
+    <div id="recruitmentWarnings"></div>
+  </section>
+
+  <section id="rights" class="module" aria-labelledby="rights-title">
+    <h2 id="rights-title">4. Participant Rights During Execution</h2>
+    <p class="lead">Protect participants from harm and protect their rights to informed consent, privacy, confidentiality/anonymity, protection from deception, and debriefing.</p>
+    <div class="grid">
+      <div class="card check">
+        <h3>Rights-protection workspace</h3>
+        <label><input type="checkbox" id="rightHarm" data-module="rights"> Physical and psychological harm have been minimized.</label>
+        <label><input type="checkbox" id="rightConsent" data-module="rights"> Informed consent process is complete and comprehensible.</label>
+        <label><input type="checkbox" id="rightPrivacy" data-module="rights"> Privacy is protected, including sensitive questions and withdrawal rights.</label>
+        <label><input type="checkbox" id="rightConfidentiality" data-module="rights"> Confidentiality and/or anonymity protections are documented.</label>
+        <label><input type="checkbox" id="rightDeception" data-module="rights"> Deception has been justified as necessary or ruled out.</label>
+        <label><input type="checkbox" id="rightDebriefing" data-module="rights"> Debriefing procedure is planned.</label>
+      </div>
+      <div class="card"><h3>Execution risk controls</h3><label for="executionRiskControls">How the team will monitor distress, adverse events, withdrawal, and participant questions during data collection</label><textarea id="executionRiskControls" class="tall" data-module="rights"></textarea></div>
+    </div>
+    <h3>Consent-form builder</h3>
+    <div class="grid three">
+      <div><label for="consentPurpose">Study purpose</label><textarea id="consentPurpose" data-module="rights"></textarea></div>
+      <div><label for="consentTasks">Tasks and time involved</label><textarea id="consentTasks" data-module="rights"></textarea></div>
+      <div><label for="consentEligibility">Eligibility criteria</label><textarea id="consentEligibility" data-module="rights"></textarea></div>
+      <div><label for="consentRisks">Risks</label><textarea id="consentRisks" data-module="rights"></textarea></div>
+      <div><label for="consentBenefits">Benefits</label><textarea id="consentBenefits" data-module="rights"></textarea></div>
+      <div><label for="consentCompensation">Compensation or course credit</label><textarea id="consentCompensation" data-module="rights"></textarea></div>
+      <div><label for="consentVoluntary">Voluntary participation</label><textarea id="consentVoluntary" data-module="rights"></textarea></div>
+      <div><label for="consentWithdraw">Right to decline or withdraw without consequences</label><textarea id="consentWithdraw" data-module="rights"></textarea></div>
+      <div><label for="consentConditions">Conditions influencing willingness to participate</label><textarea id="consentConditions" data-module="rights"></textarea></div>
+      <div><label for="consentConfidentiality">Confidentiality/anonymity protections</label><textarea id="consentConfidentiality" data-module="rights"></textarea></div>
+      <div><label for="consentDataAccess">Data access and storage</label><textarea id="consentDataAccess" data-module="rights"></textarea></div>
+      <div><label for="consentLimits">Limits to confidentiality</label><textarea id="consentLimits" data-module="rights"></textarea></div>
+      <div><label for="researcherContact">Researcher contact information</label><textarea id="researcherContact" data-module="rights"></textarea></div>
+      <div><label for="irbContact">IRB or institutional contact information</label><textarea id="irbContact" data-module="rights"></textarea></div>
+      <div><label for="signedConsentDecision">Signed consent decision</label><select id="signedConsentDecision" data-module="rights"><option value="">Select</option><option>Signed consent is appropriate</option><option>Consent without signature is safer</option><option>Waiver or alteration will be requested</option><option>Not applicable</option></select></div>
+    </div>
+    <h3>Privacy, confidentiality, and anonymity planner</h3>
+    <div class="grid">
+      <div><label for="privacyPlan">Sensitive questions, unwanted information, information withholding, unauthorized release, and withdrawal-rights plan</label><textarea id="privacyPlan" class="tall" data-module="rights"></textarea></div>
+      <div><label for="confidentialityPlan">Identifiable data, code numbers, linking files, access permissions, destruction of identifiers, group reporting, and limits to confidentiality</label><textarea id="confidentialityPlan" class="tall" data-module="rights"></textarea></div>
+    </div>
+    <h3>Deception decision tree</h3>
+    <div class="grid three">
+      <div><label for="deceptionJustification">Why deception or incomplete disclosure is necessary</label><textarea id="deceptionJustification" data-module="rights"></textarea></div>
+      <div><label for="deceptionAlternatives">Feasible alternatives considered and why they are inadequate</label><textarea id="deceptionAlternatives" data-module="rights"></textarea></div>
+      <div><label for="deceptionValue">Why research value outweighs potential harm</label><textarea id="deceptionValue" data-module="rights"></textarea></div>
+      <div><label for="deceptionOptOut">How participants are told they may receive incomplete/misleading information and may opt out</label><textarea id="deceptionOptOut" data-module="rights"></textarea></div>
+      <div><label for="debriefingPlan">Debriefing plan</label><textarea id="debriefingPlan" data-module="rights"></textarea></div>
+      <div><label for="dehoaxDesensitize">Dehoaxing and desensitizing steps</label><textarea id="dehoaxDesensitize" data-module="rights"></textarea></div>
+    </div>
+    <h3>Debriefing-script generator inputs</h3>
+    <div class="grid three">
+      <div><label for="debriefPurpose">Study purpose</label><textarea id="debriefPurpose" data-module="rights"></textarea></div>
+      <div><label for="debriefPrior">Prior research background</label><textarea id="debriefPrior" data-module="rights"></textarea></div>
+      <div><label for="debriefContribution">How this study contributes</label><textarea id="debriefContribution" data-module="rights"></textarea></div>
+      <div><label for="debriefApplication">Potential application of findings</label><textarea id="debriefApplication" data-module="rights"></textarea></div>
+      <div><label for="debriefQuestions">How participants can ask questions</label><textarea id="debriefQuestions" data-module="rights"></textarea></div>
+      <div><label for="debriefFindings">Option to receive study findings</label><textarea id="debriefFindings" data-module="rights"></textarea></div>
+    </div>
+    <div id="rightsWarnings"></div>
+  </section>
+
+  <section id="field" class="module" aria-labelledby="field-title">
+    <h2 id="field-title">5. Ethical Research in Field and Organizational Settings</h2>
+    <p class="lead">Use this module when a corporate, nonprofit, school, public-sector, or other organization is involved. Define roles and protect participants even when organizational interests differ.</p>
+    <div class="grid">
+      <div class="card check">
+        <h3>Field-setting checklist</h3>
+        <label><input type="checkbox" id="fieldRole" data-module="field"> Researcher role is clear: researcher, consultant, evaluator, advisor, or other.</label>
+        <label><input type="checkbox" id="fieldSponsorExpectations" data-module="field"> Sponsor expectations and possible conflicts with research ethics are identified.</label>
+        <label><input type="checkbox" id="fieldNoJobRequirement" data-module="field"> Employees will not experience participation as part of the job.</label>
+        <label><input type="checkbox" id="fieldNoSupervisorAccess" data-module="field"> Supervisors/managers cannot learn individual responses.</label>
+        <label><input type="checkbox" id="fieldThirdParty" data-module="field"> Third-party recruitment will be used when appropriate.</label>
+        <label><input type="checkbox" id="fieldNoPenalty" data-module="field"> Refusal or withdrawal will not affect employment, grades, services, or standing.</label>
+        <label><input type="checkbox" id="fieldParticipantCommitment" data-module="field"> Committed-to-participant approach is adopted when participant and sponsor interests differ.</label>
+        <label><input type="checkbox" id="fieldPrinciples" data-module="field"> Non-negotiable ethical principles are stated before data collection.</label>
+      </div>
+      <div class="card"><h3>Red-flag scenario evaluator</h3><div class="check"><label><input type="checkbox" id="fieldOrgIndividualData" data-module="field"> Organization requests individual-level participant data.</label><label><input type="checkbox" id="fieldEmploymentUse" data-module="field"> Organization wants to use results for employment, promotion, discipline, admission, or service decisions.</label><label><input type="checkbox" id="fieldSuppressFindings" data-module="field"> Sponsor pressures the researcher to suppress or soften negative findings.</label><label><input type="checkbox" id="fieldAmbiguousRole" data-module="field"> Researcher role as consultant/evaluator/researcher is ambiguous.</label></div><label for="fieldCorrectiveActions">Corrective actions for any selected scenario</label><textarea id="fieldCorrectiveActions" data-module="field"></textarea></div>
+    </div>
+    <label for="fieldAgreement">Field agreement checklist for sponsor</label><textarea id="fieldAgreement" class="tall" data-module="field" placeholder="Specify access, confidentiality, reporting, publication rights, sponsor role, participant protections, and non-negotiable principles."></textarea>
+    <div id="fieldWarnings"></div>
+  </section>
+
+  <section id="reporting" class="module" aria-labelledby="reporting-title">
+    <h2 id="reporting-title">6. Ethical Reporting of Results</h2>
+    <p class="lead">Ethics continues after data collection. Use this module to prevent misrepresentation, censoring, plagiarism, inappropriate authorship credit, and improper data-sharing practices.</p>
+    <div class="grid">
+      <div class="card check">
+        <h3>Reporting-integrity checklist</h3>
+        <label><input type="checkbox" id="repNoFalsify" data-module="reporting"> Findings will not be falsified, fabricated, distorted, omitted, or selectively reported.</label>
+        <label><input type="checkbox" id="repBlindCoding" data-module="reporting"> Biased data recording is prevented, especially when coders know hypotheses or conditions.</label>
+        <label><input type="checkbox" id="repCheckNumbers" data-module="reporting"> Data entry, analysis, syntax, coding, tables, figures, and reported numbers will be checked.</label>
+        <label><input type="checkbox" id="repCorrectErrors" data-module="reporting"> Discovered errors will be corrected immediately.</label>
+        <label><input type="checkbox" id="repContradictory" data-module="reporting"> Contradictory, unfavorable, null, or sponsor-inconvenient findings will be reported honestly.</label>
+        <label><input type="checkbox" id="repDetail" data-module="reporting"> Methodology, analyses, findings, and limitations will be reported in enough detail for evaluation and replication.</label>
+        <label><input type="checkbox" id="repPlagiarism" data-module="reporting"> Plagiarism, idea theft, text recycling, and self-plagiarism safeguards are in place.</label>
+        <label><input type="checkbox" id="repContributionAuthorship" data-module="reporting"> Authorship credit is based on substantial contributions, not status, seniority, power, routine tasks, or data entry alone.</label>
+        <label><input type="checkbox" id="repDiscussEarly" data-module="reporting"> Authorship order and expected contributions were discussed early and will be revised as contributions change.</label>
+        <label><input type="checkbox" id="repDataPlan" data-module="reporting"> Data-sharing and retention plan supports reproducibility while protecting confidentiality and ownership restrictions.</label>
+      </div>
+      <div class="card"><h3>Critical reporting risks</h3><div class="check"><label><input type="checkbox" id="repSuppressPermit" data-module="reporting"> Reporting plan permits suppression of unfavorable or contradictory findings.</label><label><input type="checkbox" id="repAuthorshipStatus" data-module="reporting"> Authorship credit or order may be based on status, power, or seniority rather than contribution.</label><label><input type="checkbox" id="repNoReplicationData" data-module="reporting"> Replication data requests would be refused without confidentiality, ownership, or legal justification.</label></div><label for="reportingCorrectionPlan">Correction plan for selected risks</label><textarea id="reportingCorrectionPlan" data-module="reporting"></textarea></div>
+    </div>
+    <h3>Authorship contribution matrix</h3>
+    <p class="small">Enter names or initials and rate contribution as none, minor, substantial, or lead.</p>
+    <table id="authorshipTable">
+      <thead><tr><th>Contributor</th><th>Conceptualization</th><th>Design</th><th>Data collection</th><th>Data analysis</th><th>Interpretation</th><th>Writing</th><th>Revision</th><th>Supervision / funding / admin</th></tr></thead>
+      <tbody>
+        <tr><td><input id="author1" data-module="reporting" placeholder="Name"></td><td><select id="author1Concept" data-module="reporting"><option>None</option><option>Minor</option><option>Substantial</option><option>Lead</option></select></td><td><select id="author1Design" data-module="reporting"><option>None</option><option>Minor</option><option>Substantial</option><option>Lead</option></select></td><td><select id="author1Data" data-module="reporting"><option>None</option><option>Minor</option><option>Substantial</option><option>Lead</option></select></td><td><select id="author1Analysis" data-module="reporting"><option>None</option><option>Minor</option><option>Substantial</option><option>Lead</option></select></td><td><select id="author1Interp" data-module="reporting"><option>None</option><option>Minor</option><option>Substantial</option><option>Lead</option></select></td><td><select id="author1Writing" data-module="reporting"><option>None</option><option>Minor</option><option>Substantial</option><option>Lead</option></select></td><td><select id="author1Revision" data-module="reporting"><option>None</option><option>Minor</option><option>Substantial</option><option>Lead</option></select></td><td><select id="author1Other" data-module="reporting"><option>None</option><option>Minor</option><option>Substantial</option><option>Lead</option></select></td></tr>
+        <tr><td><input id="author2" data-module="reporting" placeholder="Name"></td><td><select id="author2Concept" data-module="reporting"><option>None</option><option>Minor</option><option>Substantial</option><option>Lead</option></select></td><td><select id="author2Design" data-module="reporting"><option>None</option><option>Minor</option><option>Substantial</option><option>Lead</option></select></td><td><select id="author2Data" data-module="reporting"><option>None</option><option>Minor</option><option>Substantial</option><option>Lead</option></select></td><td><select id="author2Analysis" data-module="reporting"><option>None</option><option>Minor</option><option>Substantial</option><option>Lead</option></select></td><td><select id="author2Interp" data-module="reporting"><option>None</option><option>Minor</option><option>Substantial</option><option>Lead</option></select></td><td><select id="author2Writing" data-module="reporting"><option>None</option><option>Minor</option><option>Substantial</option><option>Lead</option></select></td><td><select id="author2Revision" data-module="reporting"><option>None</option><option>Minor</option><option>Substantial</option><option>Lead</option></select></td><td><select id="author2Other" data-module="reporting"><option>None</option><option>Minor</option><option>Substantial</option><option>Lead</option></select></td></tr>
+        <tr><td><input id="author3" data-module="reporting" placeholder="Name"></td><td><select id="author3Concept" data-module="reporting"><option>None</option><option>Minor</option><option>Substantial</option><option>Lead</option></select></td><td><select id="author3Design" data-module="reporting"><option>None</option><option>Minor</option><option>Substantial</option><option>Lead</option></select></td><td><select id="author3Data" data-module="reporting"><option>None</option><option>Minor</option><option>Substantial</option><option>Lead</option></select></td><td><select id="author3Analysis" data-module="reporting"><option>None</option><option>Minor</option><option>Substantial</option><option>Lead</option></select></td><td><select id="author3Interp" data-module="reporting"><option>None</option><option>Minor</option><option>Substantial</option><option>Lead</option></select></td><td><select id="author3Writing" data-module="reporting"><option>None</option><option>Minor</option><option>Substantial</option><option>Lead</option></select></td><td><select id="author3Revision" data-module="reporting"><option>None</option><option>Minor</option><option>Substantial</option><option>Lead</option></select></td><td><select id="author3Other" data-module="reporting"><option>None</option><option>Minor</option><option>Substantial</option><option>Lead</option></select></td></tr>
+      </tbody>
+    </table>
+    <label for="dataRetentionPlan">Data sharing and retention plan</label><textarea id="dataRetentionPlan" class="tall" data-module="reporting"></textarea>
+    <div id="reportingWarnings"></div>
+  </section>
+
+  <section id="online" class="module" aria-labelledby="online-title">
+    <h2 id="online-title">7. Online Participant and MTurk Ethics</h2>
+    <p class="lead">Specialized safeguards for MTurk and other online platforms. The four major challenges are self-misrepresentation, participant non-naivete, participant communities, and perceived researcher unfairness.</p>
+    <div class="grid">
+      <div class="card check"><h3>Planning checklist</h3>
+        <label><input type="checkbox" id="onQuals" data-module="online"> Qualifications for screening participants are specified.</label>
+        <label><input type="checkbox" id="onScreener" data-module="online"> Screener study will be used when appropriate; all screener completers are paid.</label>
+        <label><input type="checkbox" id="onNoEligibilityCues" data-module="online"> Eligibility cues that invite self-misrepresentation are avoided.</label>
+        <label><input type="checkbox" id="onCountryLanguage" data-module="online"> Country/language/IP restrictions or measurement-equivalence plan is decided in advance.</label>
+        <label><input type="checkbox" id="onNaivete" data-module="online"> Master Worker / highly experienced participant use, or familiarity screening, is decided.</label>
+        <label><input type="checkbox" id="onCompRules" data-module="online"> Clear compensation rules are formulated.</label>
+        <label><input type="checkbox" id="onFairWage" data-module="online"> Pay is fair, including at least approximately minimum wage for U.S. samples when applicable.</label>
+        <label><input type="checkbox" id="onRejectCriteria" data-module="online"> Rejection criteria are decided in advance.</label>
+        <label><input type="checkbox" id="onConsentRules" data-module="online"> Compensation and rejection rules are disclosed in the consent form.</label>
+        <label><input type="checkbox" id="onCaptcha" data-module="online"> CAPTCHA or comparable human verification is included.</label>
+        <label><input type="checkbox" id="onIDs" data-module="online"> Platform IDs are collected when appropriate and prior-participant database is maintained.</label>
+        <label><input type="checkbox" id="onAttention" data-module="online"> At least two attention checks are used, including at least one open-ended qualitative item.</label>
+        <label><input type="checkbox" id="onQuitContact" data-module="online"> Quit study and contact researcher options appear on relevant pages.</label>
+        <label><input type="checkbox" id="onAccurateHIT" data-module="online"> HIT/post states accurate time, tasks, eligibility, compensation, and avoids hypothesis-revealing cues.</label>
+      </div>
+      <div class="card check"><h3>Execution checklist</h3>
+        <label><input type="checkbox" id="onPilot" data-module="online"> Pilot test with approximately 10 to 30 participants and open-ended feedback question.</label>
+        <label><input type="checkbox" id="onMonitorCommunities" data-module="online"> Participant communities will be monitored when appropriate for confusion, leaked information, or perceived unfairness.</label>
+        <label><input type="checkbox" id="onRespondPrompt" data-module="online"> Participant questions and concerns will receive prompt responses.</label>
+        <label><input type="checkbox" id="onScreeningTools" data-module="online"> Data will be screened using multiple tools: effort, attention checks, response patterns, response times, long strings, within-session consistency, IP/duplicate checks, and open-ended responses.</label>
+        <label><input type="checkbox" id="onFastCompletion" data-module="online"> Ultra-fast completion is flagged, including less than one or two seconds per item.</label>
+        <label><input type="checkbox" id="onIPCareful" data-module="online"> IP screening is used cautiously because VPNs, VPSs, and shared devices complicate interpretation.</label>
+        <label><input type="checkbox" id="onApprove48" data-module="online"> Compensation decisions will be made within 24 to 48 hours.</label>
+        <label><input type="checkbox" id="onExplainReject" data-module="online"> Reasons for rejected compensation will be explained.</label>
+      </div>
+    </div>
+    <h3>Compensation fairness audit</h3>
+    <div class="grid three">
+      <div><label for="onlineMinutes">Estimated minutes</label><input id="onlineMinutes" type="number" min="0" step="1" data-module="online"></div>
+      <div><label for="onlinePay">Payment per completed study</label><input id="onlinePay" type="number" min="0" step="0.01" data-module="online"></div>
+      <div><label for="onlineMinWage">Benchmark hourly wage</label><input id="onlineMinWage" type="number" min="0" step="0.01" value="7.25" data-module="online"></div>
+    </div>
+    <p id="wageAudit" class="callout">Enter minutes and payment to calculate an implied hourly rate.</p>
+    <div class="grid">
+      <div><label for="onlineEligibilityPlan">Eligibility and screening plan</label><textarea id="onlineEligibilityPlan" data-module="online"></textarea></div>
+      <div><label for="onlineFairnessPlan">Participant fairness and communication plan</label><textarea id="onlineFairnessPlan" data-module="online"></textarea></div>
+    </div>
+    <div id="onlineWarnings"></div>
+  </section>
+
+  <section id="enforcement" class="module" aria-labelledby="enforcement-title">
+    <h2 id="enforcement-title">8. Enforcement, Misconduct Prevention, and Complaint Resolution</h2>
+    <p class="lead">Prevent misconduct across planning, recruitment, execution, reporting, and peer review; prepare a proportionate complaint-response process.</p>
+    <div class="grid three">
+      <div class="card"><h3>Trimming</h3><p>Selecting, editing, or deleting data to remove inconsistent findings, such as unjustified outlier omission or data dropping.</p></div>
+      <div class="card"><h3>Cooking</h3><p>Altering data to support expected results or hypotheses.</p></div>
+      <div class="card"><h3>Forging</h3><p>Falsifying data instead of collecting them.</p></div>
+      <div class="card"><h3>Plagiarism</h3><p>Using another person’s work or ideas without credit or claiming another’s contribution as one’s own.</p></div>
+      <div class="card"><h3>Censoring</h3><p>Withholding, suppressing, or failing to report results because they are inconvenient, contradictory, or sponsor-unfavorable.</p></div>
+      <div class="card"><h3>Unjustified authorship</h3><p>Giving or taking authorship credit based on status, power, routine work, or unearned seniority.</p></div>
+    </div>
+    <div class="grid">
+      <div class="card check"><h3>Misconduct-prevention mechanisms</h3>
+        <label><input type="checkbox" id="enCodes" data-module="enforcement"> All team members will study applicable ethics codes.</label>
+        <label><input type="checkbox" id="enIRB" data-module="enforcement"> IRB approval or determination will be obtained when required.</label>
+        <label><input type="checkbox" id="enReplication" data-module="enforcement"> Replication, robustness checks, and reproducibility are supported where feasible.</label>
+        <label><input type="checkbox" id="enExpertFeedback" data-module="enforcement"> Expert feedback will be secured before, during, and after the study.</label>
+        <label><input type="checkbox" id="enPeerReview" data-module="enforcement"> Peer review is used to detect quality problems, errors, and misconduct.</label>
+        <label><input type="checkbox" id="enReviewEthics" data-module="enforcement"> Peer-review ethics risks such as idea theft, bias, and unfair criticism are recognized.</label>
+        <label><input type="checkbox" id="enDataAuditTrail" data-module="enforcement"> Data, code, analysis decisions, and exclusions will have an audit trail.</label>
+        <label><input type="checkbox" id="enComplaintChannel" data-module="enforcement"> Participants and team members know how to raise concerns.</label>
+      </div>
+      <div class="card"><h3>Complaint-resolution guide</h3><div class="check"><label><input type="checkbox" id="enInformalMinor" data-module="enforcement"> Informal resolution will be used only for minor issues caused by lack of knowledge or sensitivity.</label><label><input type="checkbox" id="enFormalSerious" data-module="enforcement"> Serious violations will be reported formally to the relevant institutional office, IRB, journal, professional association, or ethics committee.</label><label><input type="checkbox" id="enCooperate" data-module="enforcement"> If accused, the team will cooperate fully and communicate promptly.</label><label><input type="checkbox" id="enNoFrivolous" data-module="enforcement"> Frivolous complaints will be avoided.</label></div><label for="complaintPlan">Complaint response plan</label><textarea id="complaintPlan" data-module="enforcement"></textarea></div>
+    </div>
+    <label for="misconductPlan">Misconduct prevention plan</label><textarea id="misconductPlan" class="tall" data-module="enforcement"></textarea>
+    <div id="enforcementWarnings"></div>
+  </section>
+
+  <section id="dilemma" class="module" aria-labelledby="dilemma-title">
+    <h2 id="dilemma-title">9. Ethical Dilemma Simulator and Deception Case Analysis</h2>
+    <p class="lead">Use the bogus pipeline as the central case. The method deceives participants into believing a fake device can detect lies, often to reduce socially desirable responding about sensitive topics.</p>
+    <div class="grid">
+      <div class="card"><h3>Utilitarian debate panel</h3><p class="small">Document demonstrable benefits, lack of alternatives, empirical evidence, risk mitigation, and debriefing effectiveness.</p><label for="bplBenefits">Benefits and evidence</label><textarea id="bplBenefits" data-module="dilemma"></textarea><label for="bplRiskEvidence">Evidence about harm, trust, distress, or professional damage</label><textarea id="bplRiskEvidence" data-module="dilemma"></textarea></div>
+      <div class="card"><h3>Deontological debate panel</h3><p class="small">Document duties and values: truthfulness, autonomy, privacy, fidelity, dignity, and respect for persons.</p><label for="bplDuties">Duties violated or protected</label><textarea id="bplDuties" data-module="dilemma"></textarea><label for="bplNonNegotiable">Non-negotiable boundaries</label><textarea id="bplNonNegotiable" data-module="dilemma"></textarea></div>
+    </div>
+    <div class="card check"><h3>Special concerns</h3>
+      <label><input type="checkbox" id="dilActiveLie" data-module="dilemma"> Active lying rather than mere omission.</label>
+      <label><input type="checkbox" id="dilSelfIncrim" data-module="dilemma"> Personal or self-incriminating information is collected.</label>
+      <label><input type="checkbox" id="dilDistress" data-module="dilemma"> Participants may experience psychological distress from unwanted truths.</label>
+      <label><input type="checkbox" id="dilChildren" data-module="dilemma"> Children or vulnerable participants are involved.</label>
+      <label><input type="checkbox" id="dilWithdrawLoss" data-module="dilemma"> Practical ability to withdraw voluntarily may be weakened.</label>
+      <label><input type="checkbox" id="dilTrustDamage" data-module="dilemma"> Potential damage to trust in researchers or the research profession.</label>
+      <label><input type="checkbox" id="dilClearBenefits" data-module="dilemma"> Clear benefits, lack of alternatives, mitigation, and strong debriefing are documented.</label>
+    </div>
+    <div class="grid three">
+      <div><label for="dilemmaDecision">Would you use deception or the bogus pipeline?</label><select id="dilemmaDecision" data-module="dilemma"><option value="">Select</option><option>No</option><option>Yes, only under narrow conditions</option><option>Yes, with safeguards and IRB approval</option><option>Undecided / needs more evidence</option></select></div>
+      <div><label for="dilemmaConditions">Conditions under which it would be acceptable</label><textarea id="dilemmaConditions" data-module="dilemma"></textarea></div>
+      <div><label for="dilemmaEvidenceNeeded">Evidence needed before proceeding</label><textarea id="dilemmaEvidenceNeeded" data-module="dilemma"></textarea></div>
+    </div>
+    <label for="dilemmaSafeguards">Safeguards and debriefing commitments</label><textarea id="dilemmaSafeguards" class="tall" data-module="dilemma"></textarea>
+    <div id="dilemmaWarnings"></div>
+  </section>
+
+  <section id="final" class="module" aria-labelledby="final-title">
+    <h2 id="final-title">10. Final Ethics Action Plan</h2>
+    <p class="lead">This dashboard aggregates scores, flags critical risks, and generates editable outputs for IRB applications, preregistrations, protocols, consent forms, study documentation, and reporting checklists.</p>
+    <div class="scoregrid">
+      <div class="scorecard"><strong id="finalOverallPct">0%</strong><br>Overall ethical readiness</div>
+      <div class="scorecard"><strong id="finalStatus">Do Not Launch Yet</strong><br>Launch recommendation</div>
+      <div class="scorecard"><strong id="flagCount">0</strong><br>Critical red flags</div>
+      <div class="scorecard"><strong id="missingCount">0</strong><br>Required actions</div>
+    </div>
+    <h3>Critical red flags</h3><textarea id="criticalRedFlags" class="output" data-no-save="true"></textarea>
+    <h3>Required before-launch actions</h3><textarea id="beforeLaunchActions" class="output" data-no-save="true"></textarea>
+    <h3>Recommended improvements</h3><textarea id="recommendedImprovements" class="output" data-no-save="true"></textarea>
+    <div class="grid">
+      <div><div class="copyrow"><h3>IRB preparation checklist</h3><button onclick="copyText('irbChecklist')">Copy</button></div><textarea id="irbChecklist" class="output" data-no-save="true"></textarea></div>
+      <div><div class="copyrow"><h3>Consent form draft</h3><button onclick="copyText('consentDraft')">Copy</button></div><textarea id="consentDraft" class="output" data-no-save="true"></textarea></div>
+      <div><div class="copyrow"><h3>Debriefing script</h3><button onclick="copyText('debriefingScript')">Copy</button></div><textarea id="debriefingScript" class="output" data-no-save="true"></textarea></div>
+      <div><div class="copyrow"><h3>Recruitment safeguards</h3><button onclick="copyText('recruitmentSafeguards')">Copy</button></div><textarea id="recruitmentSafeguards" class="output" data-no-save="true"></textarea></div>
+      <div><div class="copyrow"><h3>Field-setting agreement checklist</h3><button onclick="copyText('fieldOutput')">Copy</button></div><textarea id="fieldOutput" class="output" data-no-save="true"></textarea></div>
+      <div><div class="copyrow"><h3>MTurk / online checklist</h3><button onclick="copyText('onlineOutput')">Copy</button></div><textarea id="onlineOutput" class="output" data-no-save="true"></textarea></div>
+      <div><div class="copyrow"><h3>Reporting integrity checklist</h3><button onclick="copyText('reportingOutput')">Copy</button></div><textarea id="reportingOutput" class="output" data-no-save="true"></textarea></div>
+      <div><div class="copyrow"><h3>Authorship discussion memo</h3><button onclick="copyText('authorshipMemo')">Copy</button></div><textarea id="authorshipMemo" class="output" data-no-save="true"></textarea></div>
+      <div><div class="copyrow"><h3>Data sharing and retention plan</h3><button onclick="copyText('dataSharingOutput')">Copy</button></div><textarea id="dataSharingOutput" class="output" data-no-save="true"></textarea></div>
+      <div><div class="copyrow"><h3>Misconduct prevention plan</h3><button onclick="copyText('misconductOutput')">Copy</button></div><textarea id="misconductOutput" class="output" data-no-save="true"></textarea></div>
+      <div><div class="copyrow"><h3>Complaint response plan</h3><button onclick="copyText('complaintOutput')">Copy</button></div><textarea id="complaintOutput" class="output" data-no-save="true"></textarea></div>
+      <div><div class="copyrow"><h3>Ethical dilemma memo</h3><button onclick="copyText('dilemmaMemo')">Copy</button></div><textarea id="dilemmaMemo" class="output" data-no-save="true"></textarea></div>
+    </div>
+    <div class="warning"><strong>Boundary:</strong> This tool supports ethical planning and documentation. It does not replace IRB review, institutional policy, legal advice, funder requirements, journal requirements, or applicable professional codes.</div>
+  </section>
+</main>
+</div>
+<footer>
+  <p>All CSS and JavaScript are inline; no external libraries, fonts, images, CDNs, or internet calls are used. Progress is stored only in this browser through localStorage.</p>
+</footer>
+<script>
+(function(){
+  const storageKey = 'ethicalResearchDesignImplementationTool_v1';
+  const moduleIds = ['profile','due','recruitment','rights','field','reporting','online','enforcement','dilemma'];
+  const moduleLabels = {profile:'Project profile',due:'Due diligence',recruitment:'Recruitment',rights:'Participant rights',field:'Field settings',reporting:'Reporting',online:'Online / MTurk',enforcement:'Enforcement',dilemma:'Dilemma simulator'};
+  const $ = (sel, root=document) => root.querySelector(sel);
+  const $$ = (sel, root=document) => Array.from(root.querySelectorAll(sel));
+  const val = id => { const el = document.getElementById(id); return el ? (el.type === 'checkbox' ? el.checked : (el.value || '').trim()) : ''; };
+  const checked = id => !!val(id);
+  const nonempty = id => String(val(id)).length > 0;
+
+  function init(){
+    $$('.navbtn').forEach(btn => btn.addEventListener('click', () => openModule(btn.dataset.target)));
+    $$('input, textarea, select').forEach(el => {
+      if(el.id === 'importFile') return;
+      el.addEventListener('input', updateAll);
+      el.addEventListener('change', updateAll);
+    });
+    $('#importFile').addEventListener('change', importJSON);
+    loadState();
+    updateAll();
+  }
+
+  function openModule(id){
+    $$('.module').forEach(sec => sec.classList.remove('active'));
+    $('#' + id).classList.add('active');
+    $$('.navbtn').forEach(btn => btn.classList.toggle('active', btn.dataset.target === id));
+    window.scrollTo({top:0, behavior:'smooth'});
+  }
+
+  function collectState(){
+    const state = {savedAt:new Date().toISOString(), fields:{}};
+    $$('input, textarea, select').forEach(el => {
+      if(!el.id || el.dataset.noSave === 'true' || el.id === 'importFile') return;
+      state.fields[el.id] = el.type === 'checkbox' ? el.checked : el.value;
+    });
+    return state;
+  }
+
+  window.saveState = function(showMessage){
+    localStorage.setItem(storageKey, JSON.stringify(collectState()));
+    if(showMessage){
+      $('#autosaveMsg').textContent = 'Saved at ' + new Date().toLocaleTimeString() + '.';
+    }
+  };
+
+  function loadState(){
+    try{
+      const raw = localStorage.getItem(storageKey);
+      if(!raw) return;
+      const state = JSON.parse(raw);
+      Object.entries(state.fields || {}).forEach(([id,value]) => {
+        const el = document.getElementById(id);
+        if(!el) return;
+        if(el.type === 'checkbox') el.checked = !!value;
+        else el.value = value;
+      });
+      if(state.savedAt) $('#autosaveMsg').textContent = 'Loaded saved progress from ' + new Date(state.savedAt).toLocaleString() + '.';
+    }catch(e){ console.warn('Could not load saved state', e); }
+  }
+
+  window.resetTool = function(){
+    if(!confirm('Reset all fields and delete saved browser progress?')) return;
+    $$('input, textarea, select').forEach(el => {
+      if(el.id === 'importFile' || el.dataset.noSave === 'true') return;
+      if(el.type === 'checkbox') el.checked = false;
+      else if(el.tagName === 'SELECT') el.selectedIndex = 0;
+      else el.value = '';
+    });
+    $('#onlineMinWage').value = '7.25';
+    localStorage.removeItem(storageKey);
+    updateAll();
+    $('#autosaveMsg').textContent = 'Reset complete.';
+  };
+
+  function scoreModule(id){
+    const inputs = $$('[data-module="' + id + '"]').filter(el => el.dataset.noSave !== 'true');
+    let possible = 0, earned = 0;
+    inputs.forEach(el => {
+      if(el.type === 'checkbox'){
+        possible += 1;
+        if(el.checked) earned += 1;
+      } else if(el.tagName === 'SELECT'){
+        possible += 1;
+        if(el.value && !['not-addressed','unknown',''].includes(el.value)) earned += 1;
+      } else if(el.tagName === 'TEXTAREA' || el.type === 'text' || el.type === 'email' || el.type === 'number'){
+        possible += .5;
+        if((el.value || '').trim().length > 0) earned += .5;
+      }
+    });
+    return possible ? Math.round((earned / possible) * 100) : 0;
+  }
+
+  function statusForScore(score, hasCritical){
+    if(hasCritical) return {label:'Do Not Launch Yet', cls:'stop'};
+    if(score >= 80) return {label:'Ready', cls:'ready'};
+    if(score >= 60) return {label:'Needs Revision', cls:'revise'};
+    return {label:'High Risk', cls:'risk'};
+  }
+
+  function getRedFlags(){
+    const flags = [];
+    const irbUnaddressed = checked('humanParticipants') && ['not-addressed',''].includes(val('irbStatus'));
+    if(irbUnaddressed) flags.push('Human participants are involved and required IRB/ethics review has not been addressed.');
+    if((val('riskLevel') === 'serious' || val('riskLevel') === 'unknown') && !nonempty('riskMitigationPlan')) flags.push('Participant risk is serious or unknown and no mitigation plan is documented.');
+    if(checked('minorsIncluded') && (!checked('minorParentalConsent') || !checked('minorAssent'))) flags.push('Minors are included without complete parental/guardian consent and minor assent planning.');
+    if(checked('deceptionUsed') && (!nonempty('deceptionJustification') || !nonempty('debriefingPlan'))) flags.push('Deception is used without both a clear justification and a debriefing plan.');
+    if(checked('identifiableData') && checked('sensitiveData') && (!checked('rightConfidentiality') || !nonempty('confidentialityPlan'))) flags.push('Identifiable sensitive data are collected without sufficient confidentiality protections.');
+    if(checked('compensationUsed') && (checked('recHighInducement') || checked('recNoAlternative') || !checked('recFairComp'))) flags.push('Compensation or course credit may be coercive and no adequate fairness/alternative safeguard is documented.');
+    if(checked('fieldStudy') && (checked('fieldOrgIndividualData') || checked('sponsorAccessRisk')) && !checked('fieldNoSupervisorAccess')) flags.push('Organizational sponsors may access individual-level participant data.');
+    if(checked('repSuppressPermit') || checked('fieldSuppressFindings')) flags.push('Reporting or sponsor plan permits suppressing unfavorable or contradictory findings.');
+    if(checked('repAuthorshipStatus') || !checked('repContributionAuthorship')) flags.push('Authorship credit may be based on status rather than substantial contribution.');
+    if((checked('mturkStudy') || checked('onlineStudy')) && (!checked('onRejectCriteria') || !checked('onConsentRules'))) flags.push('Online/MTurk compensation rejection criteria are not decided and disclosed in advance.');
+    if(checked('fieldEmploymentUse')) flags.push('The organization may use research results for employment, promotion, discipline, admission, or service decisions.');
+    if(checked('dilChildren') && checked('dilActiveLie')) flags.push('The deception dilemma involves children or vulnerable participants and active lying.');
+    return flags;
+  }
+
+  function moduleWarnings(){
+    setBox('profileWarnings', profileWarningText());
+    setBox('dueWarnings', dueWarningText());
+    setBox('recruitmentWarnings', recruitmentWarningText());
+    setBox('rightsWarnings', rightsWarningText());
+    setBox('fieldWarnings', fieldWarningText());
+    setBox('reportingWarnings', reportingWarningText());
+    setBox('onlineWarnings', onlineWarningText());
+    setBox('enforcementWarnings', enforcementWarningText());
+    setBox('dilemmaWarnings', dilemmaWarningText());
+  }
+
+  function warn(lines, type='warning'){
+    if(!lines.length) return '<div class="okbox"><strong>No module-specific red flags detected.</strong> Continue completing the remaining documentation.</div>';
+    return '<div class="' + (type === 'danger' ? 'dangerbox' : 'warning') + '"><strong>Action needed:</strong><ul>' + lines.map(x => '<li>' + escapeHTML(x) + '</li>').join('') + '</ul></div>';
+  }
+  function setBox(id, html){ const el = $('#' + id); if(el) el.innerHTML = html; }
+  function escapeHTML(s){ return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+
+  function profileWarningText(){
+    const lines = [];
+    if(checked('humanParticipants') && ['not-addressed',''].includes(val('irbStatus'))) lines.push('Address IRB/ethics review before any recruitment or data collection.');
+    if(checked('deceptionUsed') && !nonempty('dilemmaLens')) lines.push('Use the dilemma lens to compare benefits/harms with duties such as truthfulness, autonomy, privacy, and fidelity.');
+    if(checked('fieldStudy') && !checked('fieldStudy')) lines.push('Field setting detected. Complete the field module.');
+    if(checked('sensitiveData') && !checked('identifiableData')) lines.push('Confirm whether sensitive data are truly non-identifiable; otherwise activate identifiable-data safeguards.');
+    return warn(lines, lines.length ? 'danger' : 'warning');
+  }
+  function dueWarningText(){
+    const lines = [];
+    if(!checked('dueCompetence')) lines.push('Document team competence and supervision before participant contact.');
+    if(!checked('dueSoundDesign')) lines.push('A low-quality design is less ethically defensible because it can expose participants to burden without valid knowledge.');
+    if((val('riskLevel') === 'serious' || val('riskLevel') === 'unknown') && !nonempty('riskMitigationPlan')) lines.push('Risk mitigation must be documented for serious or uncertain risks.');
+    if(!checked('dueIRB') && checked('humanParticipants')) lines.push('Determine and document the IRB review pathway.');
+    return warn(lines, lines.length ? 'danger' : 'warning');
+  }
+  function recruitmentWarningText(){
+    const lines = [];
+    if(checked('recOwnStudents') && !checked('recThirdParty')) lines.push('Use third-party recruitment when recruiting your own students or participants under your authority.');
+    if(checked('recGradeCredit') && !checked('recAlternative')) lines.push('Provide an equivalent alternative assignment or credit path.');
+    if(checked('minorsIncluded') && (!checked('minorParentalConsent') || !checked('minorAssent'))) lines.push('Complete parental/guardian consent and age-appropriate minor assent planning.');
+    if(checked('recHighInducement')) lines.push('Reassess whether compensation could induce participation despite meaningful risk.');
+    return warn(lines, lines.length ? 'danger' : 'warning');
+  }
+  function rightsWarningText(){
+    const lines = [];
+    ['consentPurpose','consentTasks','consentRisks','consentVoluntary','consentWithdraw','consentConfidentiality','researcherContact','irbContact'].forEach(id => { if(checked('humanParticipants') && !nonempty(id)) lines.push('Consent builder is missing: ' + labelFor(id) + '.'); });
+    if(checked('identifiableData') && !nonempty('confidentialityPlan')) lines.push('Create a confidentiality/anonymity plan for identifiable data.');
+    if(checked('deceptionUsed') && !nonempty('debriefingPlan')) lines.push('Deception is selected but no debriefing plan is entered.');
+    if(checked('deceptionUsed') && !nonempty('dehoaxDesensitize')) lines.push('Add dehoaxing and desensitizing steps for deception.');
+    return warn(lines, lines.length ? 'danger' : 'warning');
+  }
+  function fieldWarningText(){
+    const lines = [];
+    if(checked('fieldStudy') && !checked('fieldRole')) lines.push('Define whether you are acting as researcher, consultant, evaluator, advisor, or another role.');
+    if(checked('fieldOrgIndividualData')) lines.push('Reject or renegotiate sponsor requests for individual-level participant data.');
+    if(checked('fieldEmploymentUse')) lines.push('Prevent use of research data for employment, discipline, promotion, grades, services, or standing.');
+    if(checked('fieldSuppressFindings')) lines.push('State in the sponsor agreement that results cannot be suppressed because they are negative or inconvenient.');
+    return warn(lines, lines.length ? 'danger' : 'warning');
+  }
+  function reportingWarningText(){
+    const lines = [];
+    if(checked('repSuppressPermit')) lines.push('Revise the reporting plan so contradictory, unfavorable, or sponsor-inconvenient findings are reported.');
+    if(checked('repAuthorshipStatus') || !checked('repContributionAuthorship')) lines.push('Document authorship decisions based on substantial contributions.');
+    if(!checked('repCheckNumbers')) lines.push('Add independent checks for data entry, syntax, analyses, tables, figures, and reported numbers.');
+    if(!checked('repDataPlan')) lines.push('Create a data-sharing and retention plan that respects confidentiality and ownership restrictions.');
+    return warn(lines, lines.length ? 'danger' : 'warning');
+  }
+  function onlineWarningText(){
+    const lines = [];
+    if((checked('onlineStudy') || checked('mturkStudy')) && !checked('onConsentRules')) lines.push('Disclose compensation and rejection rules in the consent form.');
+    if((checked('onlineStudy') || checked('mturkStudy')) && !checked('onAttention')) lines.push('Use at least two attention checks, including one open-ended qualitative item.');
+    if((checked('onlineStudy') || checked('mturkStudy')) && !checked('onApprove48')) lines.push('Plan to approve or deny compensation within 24 to 48 hours.');
+    if(hourlyRate() !== null && hourlyRate() < Number(val('onlineMinWage') || 7.25)) lines.push('Implied hourly compensation is below the benchmark entered. Reassess fairness or burden.');
+    return warn(lines, lines.length ? 'danger' : 'warning');
+  }
+  function enforcementWarningText(){
+    const lines = [];
+    if(!checked('enCodes')) lines.push('Require all research-team members to review applicable ethics codes.');
+    if(checked('humanParticipants') && !checked('enIRB')) lines.push('Include IRB approval or determination as a misconduct-prevention mechanism.');
+    if(!checked('enDataAuditTrail')) lines.push('Create an audit trail for data, code, analysis decisions, exclusions, and corrections.');
+    if(!checked('enComplaintChannel')) lines.push('Add a channel for participants and team members to raise concerns.');
+    return warn(lines, lines.length ? 'danger' : 'warning');
+  }
+  function dilemmaWarningText(){
+    const lines = [];
+    if(checked('deceptionUsed') && !nonempty('bplBenefits')) lines.push('Document empirical or practical benefits before justifying deception.');
+    if(checked('dilActiveLie') && !nonempty('dilemmaSafeguards')) lines.push('Active lying requires strong safeguards, clear opt-out language, and robust debriefing.');
+    if(checked('dilSelfIncrim')) lines.push('Self-incriminating information requires special protections, limits to confidentiality, and possibly consent without signature.');
+    if(checked('dilChildren')) lines.push('Deception involving children or vulnerable participants requires especially strong justification and protections.');
+    return warn(lines, lines.length ? 'danger' : 'warning');
+  }
+
+  function labelFor(id){
+    const label = document.querySelector('label[for="' + id + '"]');
+    return label ? label.textContent.trim() : id;
+  }
+
+  function updateAll(){
+    const scores = {};
+    moduleIds.forEach(id => { scores[id] = scoreModule(id); });
+    const flags = getRedFlags();
+    const overall = Math.round(moduleIds.reduce((sum,id) => sum + scores[id],0) / moduleIds.length);
+    const status = statusForScore(overall, flags.length > 0);
+    moduleIds.forEach(id => {
+      const pill = $('#nav-' + id);
+      if(pill){
+        pill.textContent = scores[id] + '%';
+        pill.className = 'pill ' + statusForScore(scores[id], false).cls;
+      }
+    });
+    $('#overallBar').style.width = overall + '%';
+    $('#overallPct').textContent = overall + '%';
+    $('#overallPct').className = 'pill ' + status.cls;
+    $('#overallStatus').textContent = status.label;
+    $('#overallStatus').className = 'pill ' + status.cls;
+    $('#topStatus').textContent = status.label + ' - overall readiness ' + overall + '%. ' + (flags.length ? 'Critical issues must be addressed before launch.' : 'No critical red flags detected.');
+    $('#topFlags').textContent = flags.length ? flags.slice(0,3).join(' | ') + (flags.length > 3 ? ' | ...' : '') : 'Continue completing modules and updating generated outputs.';
+    $('#dueReadiness').textContent = scores.due + '%';
+    $('#dueReadiness').className = 'pill ' + statusForScore(scores.due, false).cls;
+    $('#dueBar').style.width = scores.due + '%';
+    updateCoercionMeter();
+    updateWageAudit();
+    moduleWarnings();
+    generateOutputs(scores, flags, status, overall);
+    saveState(false);
+  }
+
+  function updateCoercionMeter(){
+    const riskItems = ['recOwnStudents','recGradeCredit','recEmployee','recHighInducement','recNoAlternative','recPenaltyFear','researcherAuthority'];
+    let n = riskItems.filter(checked).length;
+    if(checked('recThirdParty')) n -= 1;
+    if(checked('recAlternative')) n -= 1;
+    if(checked('recFairComp')) n -= 1;
+    n = Math.max(0,n);
+    const meter = $('#coercionMeter');
+    meter.className = 'meter ' + (n >= 5 ? 'critical' : n >= 3 ? 'high' : n >= 1 ? 'med' : 'low');
+    const label = n >= 5 ? 'Critical coercion risk' : n >= 3 ? 'High coercion risk' : n >= 1 ? 'Moderate coercion risk' : 'Low coercion risk';
+    $('#coercionText').textContent = label + '. Corrective recommendations: third-party recruitment, equivalent alternatives, no-penalty withdrawal, proportionate compensation, and explicit separation from grades, employment, services, or standing.';
+  }
+
+  function hourlyRate(){
+    const minutes = Number(val('onlineMinutes'));
+    const pay = Number(val('onlinePay'));
+    if(!minutes || !pay) return null;
+    return pay / (minutes / 60);
+  }
+  function updateWageAudit(){
+    const rate = hourlyRate();
+    const bench = Number(val('onlineMinWage') || 7.25);
+    const el = $('#wageAudit');
+    if(rate === null){ el.className = 'callout'; el.textContent = 'Enter minutes and payment to calculate an implied hourly rate.'; return; }
+    el.className = rate >= bench ? 'okbox' : 'warning';
+    el.textContent = 'Implied hourly rate: $' + rate.toFixed(2) + '/hour. Benchmark: $' + bench.toFixed(2) + '/hour. ' + (rate >= bench ? 'Compensation meets or exceeds the entered benchmark.' : 'Compensation is below the entered benchmark; revise pay, reduce burden, or document context-specific justification.');
+  }
+
+  function generateOutputs(scores, flags, status, overall){
+    $('#finalOverallPct').textContent = overall + '%';
+    $('#finalStatus').textContent = status.label;
+    $('#flagCount').textContent = flags.length;
+    const missing = requiredActions(flags, scores);
+    $('#missingCount').textContent = missing.length;
+    $('#criticalRedFlags').value = flags.length ? flags.map((f,i)=> (i+1) + '. ' + f).join('\n') : 'No critical red flags detected by the current entries.';
+    $('#beforeLaunchActions').value = missing.length ? missing.map((f,i)=> (i+1) + '. ' + f).join('\n') : 'No required before-launch actions generated from current entries. Continue institutional review and documentation.';
+    $('#recommendedImprovements').value = recommended(scores).join('\n');
+    $('#irbChecklist').value = irbText();
+    $('#consentDraft').value = consentText();
+    $('#debriefingScript').value = debriefText();
+    $('#recruitmentSafeguards').value = recruitmentText();
+    $('#fieldOutput').value = fieldText();
+    $('#onlineOutput').value = onlineText();
+    $('#reportingOutput').value = reportingText();
+    $('#authorshipMemo').value = authorshipText();
+    $('#dataSharingOutput').value = dataSharingText();
+    $('#misconductOutput').value = misconductText();
+    $('#complaintOutput').value = complaintText();
+    $('#dilemmaMemo').value = dilemmaText();
+  }
+
+  function requiredActions(flags, scores){
+    const actions = [...flags];
+    moduleIds.forEach(id => { if(scores[id] < 60) actions.push('Complete or revise the ' + moduleLabels[id] + ' module; current score is ' + scores[id] + '%.'); });
+    return Array.from(new Set(actions));
+  }
+  function recommended(scores){
+    const out = [];
+    moduleIds.forEach(id => { if(scores[id] < 80 && scores[id] >= 60) out.push('- Strengthen ' + moduleLabels[id] + ' documentation; current score is ' + scores[id] + '%.'); });
+    out.push('- Ask an impartial reviewer, potential participant, or ethics expert to review benefit-risk analysis and consent language.');
+    out.push('- Pilot all participant-facing materials for comprehension, burden, and unintended pressure.');
+    out.push('- Keep an audit trail for ethical decisions, protocol changes, analysis decisions, and corrections.');
+    return out;
+  }
+  function line(label, content){ return label + ': ' + ((content && String(content).trim()) ? String(content).trim() : '[complete]'); }
+  function bullets(items){ return items.map(x => '- ' + x).join('\n'); }
+
+  function irbText(){
+    return [
+      'IRB PREPARATION CHECKLIST',
+      line('Study title', val('studyTitle')),
+      line('Research question', val('researchQuestion')),
+      line('Target population', val('targetPopulation')),
+      line('Recruitment source', val('recruitmentSource')),
+      line('Setting', val('setting')),
+      line('Data type', val('dataType')),
+      line('IRB/ethics review status', val('irbStatus')),
+      '',
+      'Core determinations:',
+      bullets([
+        'Human participants: ' + yesno('humanParticipants'),
+        'Minors: ' + yesno('minorsIncluded'),
+        'Vulnerable/exploited/discriminated-against groups: ' + yesno('vulnerableIncluded'),
+        'Deception/incomplete disclosure: ' + yesno('deceptionUsed'),
+        'Online/crowdsourcing: ' + (checked('onlineStudy') || checked('mturkStudy') ? 'Yes' : 'No'),
+        'Organization or field setting: ' + yesno('fieldStudy'),
+        'Identifiable/sensitive data: ' + (checked('identifiableData') || checked('sensitiveData') ? 'Yes' : 'No'),
+        'Compensation/course credit: ' + yesno('compensationUsed')
+      ]),
+      '',
+      line('Benefit-risk summary', val('benefitRiskSummary')),
+      line('Risk mitigation plan', val('riskMitigationPlan')),
+      line('Costs of not conducting the study', val('costOfNotDoing')),
+      line('Impartial input plan', checked('dueIndependentInput') ? 'Completed or planned' : 'Needed'),
+      line('Missing pre-IRB items', val('missingPreIRB'))
+    ].join('\n');
+  }
+
+  function consentText(){
+    return [
+      'CONSENT FORM DRAFT',
+      'Purpose: ' + fallback('consentPurpose', val('researchQuestion')),
+      'What you will do and time involved: ' + fallback('consentTasks', '[describe tasks, estimated time, and whether completion must be in one sitting]'),
+      'Eligibility: ' + fallback('consentEligibility', val('targetPopulation')),
+      'Risks: ' + fallback('consentRisks', '[describe risks, including stress, privacy, employment, legal, social, reputational, and normal computer-use risks as applicable]'),
+      'Benefits: ' + fallback('consentBenefits', '[describe direct and indirect benefits; do not overpromise]'),
+      'Compensation or course credit: ' + fallback('consentCompensation', '[describe amount, timing, eligibility, alternatives, and rejection rules if online]'),
+      'Voluntary participation: ' + fallback('consentVoluntary', 'Participation is voluntary.'),
+      'Right to decline or withdraw: ' + fallback('consentWithdraw', 'You may decline or withdraw at any time without penalty or negative consequences.'),
+      'Conditions that may influence willingness to participate: ' + fallback('consentConditions', '[describe sensitive questions, deception/incomplete disclosure, discomfort, or other conditions]'),
+      'Confidentiality/anonymity: ' + fallback('consentConfidentiality', '[describe how identities and data will be protected and whether responses are anonymous]'),
+      'Data access and storage: ' + fallback('consentDataAccess', '[who will access data, where data will be stored, retention period, and destruction of identifiers]'),
+      'Limits to confidentiality: ' + fallback('consentLimits', '[state legal, safety, institutional, or other limits]'),
+      'Researcher contact: ' + fallback('researcherContact', '[name, department, email, phone]'),
+      'IRB/institutional contact: ' + fallback('irbContact', '[IRB or institutional contact for questions about rights or complaints]'),
+      'Signed consent decision: ' + fallback('signedConsentDecision', '[signed consent, consent without signature, waiver/alteration, or not applicable]')
+    ].join('\n\n');
+  }
+
+  function debriefText(){
+    return [
+      'DEBRIEFING SCRIPT',
+      'Thank you for participating. The purpose of this study is: ' + fallback('debriefPurpose', fallback('consentPurpose','[complete]')),
+      'Prior research background: ' + fallback('debriefPrior','[summarize prior research at an appropriate reading level]'),
+      'How this study contributes: ' + fallback('debriefContribution','[explain how the current study adds to knowledge]'),
+      'Potential application of findings: ' + fallback('debriefApplication','[explain possible practical applications without overpromising]'),
+      checked('deceptionUsed') ? 'Dehoaxing: ' + fallback('dehoaxDesensitize','[explain the deception or incomplete disclosure, remove misinformation, and explain why it was necessary]') : 'No deception was used. If any information was withheld to avoid biasing responses, explain it here.',
+      'Participant questions: ' + fallback('debriefQuestions','[tell participants how to ask questions now or later]'),
+      'Receiving findings: ' + fallback('debriefFindings','[explain how participants can request a summary of results]')
+    ].join('\n\n');
+  }
+
+  function recruitmentText(){
+    return [
+      'RECRUITMENT SCRIPT SAFEGUARDS',
+      line('Draft script', val('recruitmentScript')),
+      '',
+      'Required safeguards:',
+      bullets([
+        'State that participation is voluntary and refusal has no penalty.',
+        'State that participants may withdraw without negative consequences.',
+        'Avoid false promises and unrealistic expectations.',
+        'Use fair, proportionate compensation or course credit with equivalent alternatives.',
+        checked('researcherAuthority') || checked('recOwnStudents') ? 'Use third-party recruitment because the researcher has authority over potential participants.' : 'Document why direct recruitment does not create undue pressure.',
+        checked('minorsIncluded') ? 'Obtain parental/guardian consent and age-appropriate minor assent.' : 'Confirm whether minors are excluded or how eligibility is verified.',
+        checked('vulnerableIncluded') ? 'Use culturally sensitive recruitment and meaningful involvement of the studied community when appropriate.' : 'Confirm whether special population safeguards are needed.'
+      ]),
+      '',
+      line('Student pool plan', val('studentPoolPlan')),
+      line('Employee/applicant plan', val('employeePlan')),
+      line('Exploited/discriminated-against group plan', val('exploitedGroupPlan'))
+    ].join('\n');
+  }
+
+  function fieldText(){
+    return [
+      'FIELD-SETTING AGREEMENT CHECKLIST',
+      bullets([
+        'Define role: researcher, consultant, evaluator, advisor, or other.',
+        'State sponsor expectations and conflicts with research ethics before data collection.',
+        'Specify that participation is not part of the job, grade, service, or standing.',
+        'Prevent supervisors/managers/sponsors from accessing individual-level participant responses.',
+        'State that refusal or withdrawal has no negative consequences.',
+        'Use third-party recruitment when authority or pressure could exist.',
+        'Commit to participant well-being even when organizational interests differ.',
+        'State non-negotiable principles: confidentiality, truthful reporting, no employment use, no suppression of findings.'
+      ]),
+      '',
+      line('Sponsor agreement draft', val('fieldAgreement')),
+      line('Corrective actions for red-flag scenarios', val('fieldCorrectiveActions'))
+    ].join('\n');
+  }
+
+  function onlineText(){
+    const rate = hourlyRate();
+    return [
+      'MTURK / ONLINE PARTICIPANT CHECKLIST',
+      bullets([
+        'Screen qualifications without advertising cues that invite self-misrepresentation.',
+        'Use screener studies when appropriate and pay everyone who completes the screener.',
+        'Decide country/language/IP restrictions or measurement-equivalence plan in advance.',
+        'Decide whether highly experienced participants are appropriate or screen for non-naivete.',
+        'Disclose compensation, rejection criteria, timing, and participant contact procedures in consent materials.',
+        'Use informed consent and CAPTCHA or comparable human-verification procedures.',
+        'Collect platform IDs and maintain a prior-participant database when appropriate.',
+        'Use at least two attention checks, including one open-ended qualitative item.',
+        'Provide quit study and contact researcher options on relevant pages.',
+        'Pilot test with about 10 to 30 participants and open-ended feedback.',
+        'Screen data promptly with multiple tools and avoid relying only on IP checks.',
+        'Approve or deny compensation within 24 to 48 hours and explain any rejection.'
+      ]),
+      '',
+      line('Eligibility and screening plan', val('onlineEligibilityPlan')),
+      line('Fairness and communication plan', val('onlineFairnessPlan')),
+      rate === null ? 'Compensation audit: [enter time and pay]' : 'Compensation audit: $' + rate.toFixed(2) + '/hour implied rate using current entries.'
+    ].join('\n');
+  }
+
+  function reportingText(){
+    return [
+      'REPORTING INTEGRITY CHECKLIST',
+      bullets([
+        'Report results honestly and accurately; do not falsify, fabricate, distort, omit, or selectively report.',
+        'Avoid biased data recording, especially when coders know hypotheses or treatment conditions.',
+        'Check data entry, analysis syntax, coding, tables, figures, and reported numbers.',
+        'Correct discovered errors immediately and transparently.',
+        'Report findings that contradict hypotheses, prior research, sponsor preferences, or researcher beliefs.',
+        'Provide enough methodological and analytic detail for evaluation and replication.',
+        'Avoid plagiarism, idea theft, text recycling, and self-plagiarism.',
+        'Base authorship credit and order on substantial contributions, not status or power.',
+        'Discuss authorship early and revise agreements as contributions change.',
+        'Retain and share data for reproducibility when appropriate, while protecting confidentiality and ownership restrictions.'
+      ]),
+      '',
+      line('Correction plan', val('reportingCorrectionPlan'))
+    ].join('\n');
+  }
+
+  function authorshipText(){
+    const rows = [1,2,3].map(i => authorLine(i)).filter(Boolean);
+    return [
+      'AUTHORSHIP DISCUSSION MEMO',
+      'Authorship and order should be based on actual substantial contributions, including conceptualization, design, analysis, interpretation, writing, revision, supervision, funding, and project administration. Seniority, status, power, routine tasks, or data entry alone should not determine authorship.',
+      '',
+      rows.length ? rows.join('\n') : '[Enter contributors in the authorship matrix.]',
+      '',
+      'Agreement: We will revisit authorship order when responsibilities change, deadlines are missed, or contributions become materially different from the original plan. If disagreement cannot be resolved, we will consult a neutral third party or applicable institutional/professional guidance.'
+    ].join('\n');
+  }
+  function authorLine(i){
+    const name = val('author' + i);
+    if(!name) return '';
+    const cats = [['Conceptualization','Concept'],['Design','Design'],['Data collection','Data'],['Data analysis','Analysis'],['Interpretation','Interp'],['Writing','Writing'],['Revision','Revision'],['Supervision/funding/admin','Other']];
+    return '- ' + name + ': ' + cats.map(([lab,suf]) => lab + '=' + val('author' + i + suf)).join('; ');
+  }
+
+  function dataSharingText(){
+    return [
+      'DATA SHARING AND RETENTION PLAN',
+      line('Plan', val('dataRetentionPlan')),
+      '',
+      'Minimum elements to confirm:',
+      bullets([
+        'Retention period and location are specified.',
+        'Access permissions are restricted to authorized research-team members.',
+        'Identifiers and linking files are secured or destroyed when no longer needed.',
+        'Data-sharing conditions distinguish reproducibility/replication from new research uses.',
+        'Confidentiality, legal, contractual, and organizational-ownership limits are documented.',
+        'A de-identified or synthetic sharing option is considered when raw data cannot be shared.'
+      ])
+    ].join('\n');
+  }
+  function misconductText(){
+    return [
+      'MISCONDUCT PREVENTION PLAN',
+      line('Plan', val('misconductPlan')),
+      '',
+      bullets([
+        'Train all team members on applicable ethical codes and institutional rules.',
+        'Obtain IRB approval or determination when required.',
+        'Maintain an audit trail for raw data, exclusions, coding, transformations, analysis syntax, and reporting decisions.',
+        'Use expert feedback and peer review to detect theory, method, analysis, and reporting problems.',
+        'Prevent trimming, cooking, forging, plagiarism, censoring, unjustified authorship credit, and unjustified refusal to provide replication data.',
+        'Recognize peer-review ethical issues, including idea theft, reviewer bias, and unfair criticism.'
+      ])
+    ].join('\n');
+  }
+  function complaintText(){
+    return [
+      'COMPLAINT RESPONSE PLAN',
+      line('Plan', val('complaintPlan')),
+      '',
+      bullets([
+        'Use informal resolution only for minor issues caused by lack of knowledge or sensitivity.',
+        'Use formal reporting for serious violations through the relevant institutional office, IRB, journal, professional association, or ethics committee.',
+        'Cooperate fully if accused and respond with timely communication.',
+        'Avoid frivolous complaints intended to harm another person.',
+        'Possible sanctions may include reprimand, censure, expulsion, stipulated resignation, supervision, training, treatment, or probation.'
+      ])
+    ].join('\n');
+  }
+  function dilemmaText(){
+    return [
+      'ETHICAL DILEMMA JUSTIFICATION MEMO',
+      line('Decision', val('dilemmaDecision')),
+      line('Utilitarian benefits and evidence', val('bplBenefits')),
+      line('Utilitarian risk evidence', val('bplRiskEvidence')),
+      line('Deontological duties and values', val('bplDuties')),
+      line('Non-negotiable boundaries', val('bplNonNegotiable')),
+      '',
+      'Special concerns selected:',
+      bullets([
+        'Active lying: ' + yesno('dilActiveLie'),
+        'Self-incriminating information: ' + yesno('dilSelfIncrim'),
+        'Psychological distress: ' + yesno('dilDistress'),
+        'Children/vulnerable participants: ' + yesno('dilChildren'),
+        'Loss of practical withdrawal ability: ' + yesno('dilWithdrawLoss'),
+        'Damage to trust in research: ' + yesno('dilTrustDamage'),
+        'Clear benefits, no alternatives, mitigation, and debriefing documented: ' + yesno('dilClearBenefits')
+      ]),
+      '',
+      line('Acceptable conditions', val('dilemmaConditions')),
+      line('Evidence needed before proceeding', val('dilemmaEvidenceNeeded')),
+      line('Safeguards and debriefing commitments', val('dilemmaSafeguards'))
+    ].join('\n');
+  }
+  function fallback(id, alt){ const v = val(id); return v || alt || '[complete]'; }
+  function yesno(id){ return checked(id) ? 'Yes' : 'No'; }
+
+  window.copyText = function(id){
+    const el = document.getElementById(id);
+    if(!el) return;
+    el.select();
+    try{ document.execCommand('copy'); }catch(e){}
+  };
+  window.exportText = function(){
+    const ids = ['criticalRedFlags','beforeLaunchActions','recommendedImprovements','irbChecklist','consentDraft','debriefingScript','recruitmentSafeguards','fieldOutput','onlineOutput','reportingOutput','authorshipMemo','dataSharingOutput','misconductOutput','complaintOutput','dilemmaMemo'];
+    const text = ids.map(id => document.getElementById(id).value).join('\n\n---\n\n');
+    download('ethical_research_plan.txt','text/plain', text);
+  };
+  window.exportJSON = function(){
+    download('ethical_research_project.json','application/json', JSON.stringify(collectState(), null, 2));
+  };
+  function importJSON(evt){
+    const file = evt.target.files[0];
+    if(!file) return;
+    const reader = new FileReader();
+    reader.onload = () => {
+      try{
+        const state = JSON.parse(reader.result);
+        Object.entries(state.fields || {}).forEach(([id,value]) => {
+          const el = document.getElementById(id);
+          if(!el || el.dataset.noSave === 'true') return;
+          if(el.type === 'checkbox') el.checked = !!value; else el.value = value;
+        });
+        updateAll();
+        alert('Project imported.');
+      }catch(e){ alert('Could not import JSON file.'); }
+    };
+    reader.readAsText(file);
+    evt.target.value = '';
+  }
+  function download(filename, type, content){
+    const blob = new Blob([content], {type});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url; a.download = filename; document.body.appendChild(a); a.click();
+    setTimeout(() => { URL.revokeObjectURL(url); a.remove(); }, 0);
+  }
+
+  document.addEventListener('DOMContentLoaded', init);
+})();
+</script>
+<!-- Begin Countercentral code v 7.0 --> 
+<span id="wts2576"></span> 
+<script>var wts=document.createElement('script');wts.async=true; 
+wts.src='https://server2.countercentral.com/log7.js';document.head.appendChild(wts); 
+wts.onload = function(){ wtslog7(2576,1); }; 
+</script><noscript><a href="https://www.countercentral.com"> 
+<img src="https://server2.countercentral.com/7/1/2576.png"  
+alt="Countercentral web traffic analysis"></a></noscript> 
+<!-- End Countercentral code v 7.0 --> 
+</body>
+</html>

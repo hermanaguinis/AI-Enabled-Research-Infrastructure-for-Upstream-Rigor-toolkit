@@ -1,0 +1,1051 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Qualitative Research Transparency &amp; Replicability Tool</title>
+<style>
+:root{
+  --bg:#f4f6f8;
+  --panel:#ffffff;
+  --ink:#1c2733;
+  --muted:#5a6b7b;
+  --line:#d8e0e8;
+  --brand:#1f5f8b;
+  --brand-dark:#164762;
+  --accent:#2e8b6f;
+  --warn:#c47d0e;
+  --bad:#b23a48;
+  --good:#2e8b6f;
+  --l1:#b23a48;
+  --l2:#c47d0e;
+  --l3:#c9a227;
+  --l4:#2e8b6f;
+  --na:#7a8794;
+  --shadow:0 1px 3px rgba(20,40,60,.10),0 6px 18px rgba(20,40,60,.06);
+  --radius:12px;
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{
+  margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,"Georgia",serif;
+  background:var(--bg);color:var(--ink);line-height:1.55;font-size:16px;
+  -webkit-font-smoothing:antialiased;
+}
+a{color:var(--brand)}
+h1,h2,h3,h4{line-height:1.25;margin:0 0 .4em}
+p{margin:0 0 .7em}
+button{font-family:inherit;cursor:pointer}
+.wrap{max-width:1240px;margin:0 auto;padding:0 18px}
+
+/* ---------- Header ---------- */
+header.top{
+  background:linear-gradient(135deg,var(--brand-dark),var(--brand));
+  color:#fff;padding:22px 0 20px;box-shadow:var(--shadow);
+}
+header.top h1{font-size:1.55rem;margin-bottom:4px;font-weight:700;letter-spacing:.2px}
+header.top .sub{color:#d6e6f2;font-size:.95rem;max-width:820px}
+.header-row{display:flex;justify-content:space-between;align-items:flex-start;gap:18px;flex-wrap:wrap}
+.mode-box{background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.28);border-radius:10px;padding:10px 12px;min-width:220px}
+.mode-box .mlabel{font-size:.72rem;text-transform:uppercase;letter-spacing:.8px;color:#cfe2f0;margin-bottom:6px;display:block}
+.switch{display:flex;background:rgba(0,0,0,.18);border-radius:8px;padding:3px;gap:3px}
+.switch button{flex:1;border:0;background:transparent;color:#dfeaf3;padding:7px 8px;border-radius:6px;font-size:.82rem;font-weight:600}
+.switch button[aria-pressed="true"]{background:#fff;color:var(--brand-dark)}
+.mode-hint{font-size:.72rem;color:#cfe2f0;margin-top:6px}
+
+/* ---------- Layout ---------- */
+.layout{display:grid;grid-template-columns:1fr 340px;gap:22px;margin-top:22px;align-items:start}
+@media(max-width:960px){.layout{grid-template-columns:1fr}}
+
+/* ---------- Tabs ---------- */
+.tabs{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:16px;position:sticky;top:0;background:var(--bg);padding:10px 0;z-index:20}
+.tabs button{
+  border:1px solid var(--line);background:var(--panel);color:var(--muted);
+  padding:9px 14px;border-radius:999px;font-size:.86rem;font-weight:600;display:flex;align-items:center;gap:8px;
+}
+.tabs button .cnt{font-size:.7rem;background:var(--bg);border:1px solid var(--line);border-radius:999px;padding:1px 7px;color:var(--muted)}
+.tabs button[aria-selected="true"]{background:var(--brand);color:#fff;border-color:var(--brand)}
+.tabs button[aria-selected="true"] .cnt{background:rgba(255,255,255,.25);border-color:transparent;color:#fff}
+
+.phase-intro{background:#eef4f9;border-left:4px solid var(--brand);padding:12px 16px;border-radius:0 8px 8px 0;margin-bottom:16px;font-size:.9rem;color:#33475a}
+
+/* ---------- Criterion card ---------- */
+.card{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow);margin-bottom:18px;overflow:hidden}
+.card-head{padding:16px 18px;display:flex;gap:14px;align-items:flex-start;border-bottom:1px solid var(--line);flex-wrap:wrap}
+.cnum{background:var(--brand);color:#fff;width:38px;height:38px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:1.05rem;flex-shrink:0}
+.card-head .ctitle{flex:1;min-width:200px}
+.card-head h3{font-size:1.12rem;margin-bottom:2px}
+.card-head .cdef{font-size:.88rem;color:var(--muted);margin:0}
+.statuschip{font-size:.72rem;font-weight:700;padding:5px 11px;border-radius:999px;white-space:nowrap;align-self:center;border:1px solid transparent}
+.statuschip.s0{background:#eef1f4;color:var(--muted);border-color:var(--line)}
+.statuschip.s1{background:#f7e4e6;color:var(--l1)}
+.statuschip.s2{background:#faedd8;color:var(--l2)}
+.statuschip.s3{background:#f7f0d4;color:#8a7212}
+.statuschip.s4{background:#dcefe7;color:var(--l4)}
+.statuschip.sna{background:#e9edf1;color:var(--na)}
+
+.card-body{padding:16px 18px}
+.sect-label{font-size:.72rem;text-transform:uppercase;letter-spacing:.7px;color:var(--muted);font-weight:700;margin:2px 0 9px}
+
+/* Anchors */
+.anchors{display:grid;gap:9px;margin-bottom:6px}
+.anchor{border:1px solid var(--line);border-radius:9px;padding:11px 13px;display:flex;gap:11px;align-items:flex-start;cursor:pointer;transition:.12s}
+.anchor:hover{border-color:var(--brand);background:#f7fafc}
+.anchor input{margin-top:3px;flex-shrink:0;width:17px;height:17px;accent-color:var(--brand)}
+.anchor .lvlbadge{font-weight:700;font-size:.78rem;padding:2px 9px;border-radius:6px;color:#fff;flex-shrink:0;min-width:66px;text-align:center}
+.lb1{background:var(--l1)}.lb2{background:var(--l2)}.lb3{background:var(--l3)}.lb4{background:var(--l4)}.lbna{background:var(--na)}
+.anchor .atext{font-size:.9rem}
+.anchor .atext .aname{font-weight:600;display:block;margin-bottom:1px}
+.anchor.selected{border-color:var(--brand);background:#eef5fb;box-shadow:inset 0 0 0 1px var(--brand)}
+.anchor.na-anchor.selected{border-color:var(--na);background:#eef0f2;box-shadow:inset 0 0 0 1px var(--na)}
+
+.na-just{margin-top:8px;display:none}
+.na-just.show{display:block}
+.na-just textarea{width:100%}
+
+/* Details / recommendation / exemplar */
+.disclosure{border:1px solid var(--line);border-radius:9px;margin-top:14px;overflow:hidden}
+.disclosure summary{padding:11px 14px;font-weight:600;font-size:.9rem;cursor:pointer;list-style:none;display:flex;justify-content:space-between;align-items:center;background:#fbfcfd}
+.disclosure summary::-webkit-details-marker{display:none}
+.disclosure summary .chev{transition:.2s;color:var(--muted)}
+.disclosure[open] summary .chev{transform:rotate(180deg)}
+.disclosure .dbody{padding:12px 14px;border-top:1px solid var(--line);font-size:.9rem}
+.rec{background:#f0f7f3;border-left:3px solid var(--accent);padding:9px 12px;border-radius:0 6px 6px 0;margin:0 0 10px;font-size:.9rem}
+.exemplar{font-size:.85rem;color:var(--muted)}
+.exemplar b{color:var(--ink)}
+.gw{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px}
+@media(max-width:560px){.gw{grid-template-columns:1fr}}
+.gw div{border-radius:8px;padding:9px 11px;font-size:.83rem}
+.gw .good{background:#e7f3ee;border:1px solid #bfe0d3}
+.gw .weak{background:#f9e9ea;border:1px solid #e6c6ca}
+.gw .lab{font-weight:700;font-size:.72rem;text-transform:uppercase;letter-spacing:.5px;margin-bottom:3px;display:block}
+.gw .good .lab{color:var(--good)}
+.gw .weak .lab{color:var(--bad)}
+
+/* write-it-now */
+.writebox{margin-top:14px}
+textarea{
+  width:100%;border:1px solid var(--line);border-radius:8px;padding:10px 12px;font-family:inherit;font-size:.9rem;
+  resize:vertical;min-height:72px;color:var(--ink);background:#fff;
+}
+textarea:focus,select:focus,button:focus-visible,.anchor:focus-within{outline:2px solid var(--brand);outline-offset:1px}
+.hint{font-size:.78rem;color:var(--muted);margin:5px 0 0}
+
+/* checklist */
+.checklist{list-style:none;padding:0;margin:8px 0 0}
+.checklist li{display:flex;gap:10px;align-items:flex-start;padding:7px 0;border-bottom:1px dashed var(--line);font-size:.88rem}
+.checklist li:last-child{border-bottom:0}
+.checklist input{margin-top:3px;width:16px;height:16px;accent-color:var(--accent);flex-shrink:0}
+.checklist li.done label{text-decoration:line-through;color:var(--muted)}
+
+/* replication tags */
+.reptags{display:flex;gap:5px;flex-wrap:wrap;margin-top:8px}
+.reptag{font-size:.68rem;font-weight:700;padding:2px 8px;border-radius:999px;letter-spacing:.3px}
+.reptag.exact{background:#e4edf5;color:var(--brand-dark)}
+.reptag.emp{background:#efe8f3;color:#6b3f86}
+.reptag.con{background:#e9f2ea;color:#3c6b46}
+
+/* ---------- Dashboard (sidebar) ---------- */
+.sidebar{position:sticky;top:70px}
+@media(max-width:960px){.sidebar{position:static}}
+.dash{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow);padding:18px;margin-bottom:16px}
+.dash h2{font-size:1.05rem;display:flex;align-items:center;gap:8px}
+.overall{text-align:center;padding:8px 0 12px;border-bottom:1px solid var(--line);margin-bottom:14px}
+.overall .num{font-size:2.6rem;font-weight:800;color:var(--brand);line-height:1}
+.overall .den{font-size:1rem;color:var(--muted);font-weight:600}
+.overall .lbl{font-size:.76rem;text-transform:uppercase;letter-spacing:.7px;color:var(--muted);margin-top:4px}
+.overall .meta{font-size:.78rem;color:var(--muted);margin-top:6px}
+
+.repblock{margin-bottom:14px}
+.repblock:last-child{margin-bottom:0}
+.repblock .rhead{display:flex;justify-content:space-between;align-items:center;margin-bottom:5px}
+.repblock .rname{font-weight:700;font-size:.9rem}
+.repblock .rsig{font-size:.72rem;font-weight:700;padding:2px 9px;border-radius:999px}
+.rsig.ready{background:#dcefe7;color:var(--good)}
+.rsig.notyet{background:#f7e4e6;color:var(--bad)}
+.rsig.partial{background:#faedd8;color:var(--warn)}
+.bar{height:12px;background:#eef1f4;border-radius:999px;overflow:hidden;border:1px solid var(--line)}
+.bar span{display:block;height:100%;border-radius:999px;transition:width .3s ease,background .3s}
+.repblock .rmeta{font-size:.74rem;color:var(--muted);margin-top:4px;display:flex;justify-content:space-between;gap:8px}
+.repblock .rdesc{font-size:.72rem;color:var(--muted);margin-top:2px}
+
+/* radar */
+.radar-wrap{text-align:center;margin-bottom:6px}
+svg.radar{max-width:100%;height:auto}
+
+.legend{font-size:.72rem;color:var(--muted);margin-top:10px;border-top:1px solid var(--line);padding-top:10px}
+.legend .row{display:flex;align-items:center;gap:6px;margin-bottom:3px}
+.legend .sw{width:11px;height:11px;border-radius:3px;flex-shrink:0}
+
+.actions{display:flex;flex-direction:column;gap:8px}
+.btn{border:1px solid var(--brand);background:var(--brand);color:#fff;padding:10px 12px;border-radius:8px;font-weight:600;font-size:.88rem;text-align:center;display:flex;align-items:center;justify-content:center;gap:8px}
+.btn:hover{background:var(--brand-dark)}
+.btn.sec{background:#fff;color:var(--brand)}
+.btn.sec:hover{background:#eef5fb}
+.btn.ghost{background:#fff;color:var(--muted);border-color:var(--line)}
+.btn.ghost:hover{background:#f4f6f8}
+
+/* reviewer banner */
+.rev-banner{display:none;background:#f3ece0;border:1px solid #e2d2b6;border-radius:10px;padding:11px 14px;font-size:.86rem;color:#6b5220;margin-bottom:16px}
+body.reviewer .rev-banner{display:block}
+body.reviewer .writebox .wlabel .author-only{display:none}
+body.reviewer .anchors .sect-label-author{display:none}
+
+/* ---------- Modal ---------- */
+.modal-back{position:fixed;inset:0;background:rgba(15,28,40,.55);display:none;align-items:center;justify-content:center;z-index:100;padding:18px}
+.modal-back.show{display:flex}
+.modal{background:#fff;border-radius:14px;max-width:820px;width:100%;max-height:88vh;display:flex;flex-direction:column;box-shadow:0 20px 60px rgba(0,0,0,.3)}
+.modal header{background:var(--brand-dark);color:#fff;padding:14px 18px;border-radius:14px 14px 0 0;display:flex;justify-content:space-between;align-items:center}
+.modal header h2{margin:0;font-size:1.1rem}
+.modal .mclose{background:transparent;border:0;color:#fff;font-size:1.5rem;line-height:1;padding:0 4px}
+.modal .mbody{padding:18px;overflow:auto}
+.modal textarea{min-height:340px;font-size:.85rem;font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
+.modal .mfoot{padding:12px 18px;border-top:1px solid var(--line);display:flex;gap:10px;justify-content:flex-end;flex-wrap:wrap}
+.copy-note{font-size:.8rem;color:var(--accent);align-self:center;margin-right:auto;opacity:0;transition:.2s}
+.copy-note.show{opacity:1}
+
+/* ---------- Footer ---------- */
+footer.credits{background:#eef2f6;border-top:1px solid var(--line);margin-top:34px;padding:24px 0;font-size:.84rem;color:var(--muted)}
+footer.credits .wrap>div{margin-bottom:8px}
+footer.credits b{color:var(--ink)}
+footer.credits a{word-break:break-word}
+
+/* skip link */
+.skip{position:absolute;left:-999px;top:0;background:#fff;color:var(--brand);padding:8px 14px;border-radius:0 0 8px 0;z-index:200}
+.skip:focus{left:0}
+
+/* ---------- Print ---------- */
+#report-print{display:none}
+@media print{
+  header.top,.tabs,.sidebar .actions,.mode-box,.rev-banner,.phase-intro .noprint,.skip,.disclosure summary .chev{display:none !important}
+  body{background:#fff;font-size:11.5pt}
+  .layout{display:block}
+  #app-main{display:none !important}
+  #report-print{display:block !important}
+  .pr-crit{page-break-inside:avoid;border:1px solid #ccc;border-radius:8px;padding:10px 12px;margin-bottom:12px}
+  .pr-head{display:flex;justify-content:space-between;font-weight:700;border-bottom:1px solid #ddd;padding-bottom:5px;margin-bottom:6px}
+  .pr-block{margin:6px 0}
+  .pr-label{font-size:9pt;text-transform:uppercase;letter-spacing:.5px;color:#555;font-weight:700}
+  .pr-score-tbl{width:100%;border-collapse:collapse;margin:10px 0}
+  .pr-score-tbl td,.pr-score-tbl th{border:1px solid #bbb;padding:6px 8px;font-size:10pt;text-align:left}
+  @page{margin:1.5cm}
+}
+</style>
+</head>
+<body>
+<a class="skip" href="#app-main">Skip to content</a>
+
+<header class="top">
+  <div class="wrap header-row">
+    <div>
+      <h1>Transparency &amp; Replicability Tool for Qualitative Research</h1>
+      <p class="sub">Implement the 12 transparency criteria of Aguinis &amp; Solarino (2019) with behaviorally-anchored self-assessment, live replication-readiness scoring, manuscript-ready drafting, and reviewer feedback generation.</p>
+    </div>
+    <div class="mode-box">
+      <span class="mlabel">Working mode</span>
+      <div class="switch" role="tablist" aria-label="Working mode">
+        <button id="mode-author"  role="tab" aria-pressed="true"  onclick="setMode('author')">✍️ Author</button>
+        <button id="mode-reviewer" role="tab" aria-pressed="false" onclick="setMode('reviewer')">🔍 Reviewer</button>
+      </div>
+      <p class="mode-hint" id="mode-hint">Author mode: plan, self-assess, and draft your methods section.</p>
+    </div>
+  </div>
+</header>
+
+<main class="wrap" id="app-main">
+
+  <div class="rev-banner">
+    <b>Reviewer / Editor mode.</b> Rate each criterion as you find it disclosed in the manuscript. The tool converts your ratings into developmental feedback you can paste into a review. No single criterion has veto power over publication — transparency is a cumulative continuum.
+  </div>
+
+  <div class="tabs" role="tablist" aria-label="Research phases" id="tabs"></div>
+
+  <div class="layout">
+    <section id="content-area" aria-live="polite"></section>
+
+    <aside class="sidebar" aria-label="Scoring dashboard">
+      <div class="dash">
+        <h2>📊 Live scoring</h2>
+        <div class="overall">
+          <div><span class="num" id="ov-num">–</span><span class="den"> / 4.0</span></div>
+          <div class="lbl">Overall transparency</div>
+          <div class="meta" id="ov-meta">Rate criteria to begin</div>
+        </div>
+
+        <div class="radar-wrap" id="radar-wrap"></div>
+
+        <div id="rep-indicators"></div>
+
+        <div class="legend">
+          <div class="row"><span class="sw" style="background:var(--l1)"></span>1 · Not mentioned</div>
+          <div class="row"><span class="sw" style="background:var(--l2)"></span>2 · Mentioned, not elaborated</div>
+          <div class="row"><span class="sw" style="background:var(--l3)"></span>3 · Partially met</div>
+          <div class="row"><span class="sw" style="background:var(--l4)"></span>4 · Met (replication possible)</div>
+          <div class="row"><span class="sw" style="background:var(--na)"></span>N/A · Excluded from averages</div>
+        </div>
+      </div>
+
+      <div class="dash">
+        <h2>⬇️ Export</h2>
+        <div class="actions">
+          <button class="btn" onclick="printReport()">🖨️ Printable report (PDF)</button>
+          <button class="btn sec" onclick="openMarkdown()">📋 Copy Markdown summary</button>
+          <button class="btn ghost" onclick="resetAll()">↺ Reset all entries</button>
+        </div>
+      </div>
+    </aside>
+  </div>
+</main>
+
+<!-- Markdown modal -->
+<div class="modal-back" id="md-modal" role="dialog" aria-modal="true" aria-labelledby="md-title">
+  <div class="modal">
+    <header><h2 id="md-title">Markdown / plain-text summary</h2><button class="mclose" aria-label="Close" onclick="closeMarkdown()">×</button></header>
+    <div class="mbody"><textarea id="md-out" readonly aria-label="Markdown summary output"></textarea></div>
+    <div class="mfoot">
+      <span class="copy-note" id="copy-note">Copied to clipboard ✓</span>
+      <button class="btn sec" onclick="copyMarkdown()">Copy to clipboard</button>
+      <button class="btn ghost" onclick="closeMarkdown()">Close</button>
+    </div>
+  </div>
+</div>
+
+<!-- Print-only report -->
+<div id="report-print"></div>
+
+<footer class="credits">
+  <div class="wrap">
+    <div><b>Primary source.</b> Aguinis, H., &amp; Solarino, A. M. 2019. Transparency and replicability in qualitative research: The case of interviews with elite informants. <i>Strategic Management Journal</i>, 40(8): 1291–1315.</div>
+    <div><b>Recommended companion.</b> Aguinis, H. 2025. <i>Research methodology: Best practices for rigorous, credible, and impactful research.</i> SAGE. <a href="https://collegepublishing.sagepub.com/products/research-methodology-1-280088" target="_blank" rel="noopener">collegepublishing.sagepub.com/products/research-methodology-1-280088</a></div>
+    <div style="font-size:.78rem;margin-top:6px">This tool operationalizes the 12 criteria and 4-point BARS from Aguinis &amp; Solarino (2019). Transparency is a cumulative continuum: no single criterion holds veto power over publication, and criteria that do not fit a study's design or ontology may be marked <i>Not applicable</i> with a justification. The criteria extend Lincoln &amp; Guba's (1985) notion of "thick description" and apply to purely qualitative and mixed-methods research alike. All work stays in your browser's memory for this session only — nothing is uploaded or stored.</div>
+  </div>
+</footer>
+
+<script>
+/* ============================================================
+   DATA MODEL — 12 criteria (Aguinis & Solarino, 2019)
+   ============================================================ */
+const PHASES = [
+  {id:"design",     name:"Design",          emoji:"🧭", crits:[1,2,3,4,5],
+   intro:"Design decisions define who and what you study and your relationship to it. These five criteria underpin <b>conceptual replication</b> (robustness — same population, different procedures)."},
+  {id:"measurement",name:"Measurement",     emoji:"🎙️", crits:[6,7,8,9],
+   intro:"Measurement covers how interactions are captured and how field realities were handled. These criteria are central to <b>empirical replication</b> (generalizability — same procedures, different population)."},
+  {id:"analysis",   name:"Analysis",        emoji:"🧩", crits:[10,11],
+   intro:"Analysis covers how raw material becomes first-order codes and higher-order themes. Together with measurement criteria, these support <b>empirical replication</b>."},
+  {id:"disclosure", name:"Data disclosure", emoji:"🗄️", crits:[12],
+   intro:"Data disclosure concerns access to raw materials — the condition that makes <b>exact replication</b> and independent error-checking possible."}
+];
+
+const ANCHOR_META = [
+  {lvl:1, name:"Criterion not mentioned",           short:"Not mentioned",            desc:"Complete absence of information; replication not possible.", cls:"lb1"},
+  {lvl:2, name:"Criterion mentioned but not elaborated", short:"Mentioned, not elaborated", desc:"Mentioned, but no additional information; replication highly unlikely.", cls:"lb2"},
+  {lvl:3, name:"Criterion partially met",           short:"Partially met",            desc:"Some elements present but information missing or incomplete; replication unlikely.", cls:"lb3"},
+  {lvl:4, name:"Criterion met",                      short:"Met",                      desc:"Detailed or full disclosure; replication possible.", cls:"lb4"}
+];
+
+const CRITERIA = [
+  {
+    id:1, phase:"design", title:"Kind of qualitative method",
+    def:"The particular qualitative methodology used (e.g., action research, case study, grounded theory, ethnography, phenomenology, narrative research).",
+    anchors:[
+      "Does not describe the approach.",
+      "Mentions an approach but does not describe it.",
+      "Describes key elements of the approach but does not name it.",
+      "Clearly identifies the approach used."
+    ],
+    rec:"Be explicit about the specific kind of qualitative method used, since different methods carry different assumptions, goals, and interpretation rules.",
+    exemplar:"Monteiro &amp; Birkinshaw (2017); Ma &amp; Seidl (2018).",
+    good:"“We used a grounded-theory approach (Glaser &amp; Strauss, 1967), building theory inductively through constant comparison across interviews.”",
+    weak:"“We conducted a qualitative study of the firm.” (No named method; assumptions and interpretation rules are unknown.)",
+    checklist:[
+      "Name the specific qualitative methodology (e.g., grounded theory, case study, ethnography).",
+      "Cite the foundational methodological reference(s) you follow.",
+      "State the epistemological/ontological assumptions the method carries.",
+      "Explain why this method fits your research question and goals."
+    ]
+  },
+  {
+    id:2, phase:"design", title:"Research setting",
+    def:"The physical, social, and cultural milieu — firm conditions, industry, participants' social status, power structure, norms, culture, and economic conditions.",
+    anchors:[
+      "Does not describe the setting.",
+      "Identifies the setting without describing the pre-existing conditions that make it appropriate.",
+      "Describes only the key pre-existing conditions.",
+      "Offers a detailed, rich description beyond the key conditions."
+    ],
+    rec:"Provide detailed contextual information about the setting so readers can judge appropriateness and transferability.",
+    exemplar:"Wood (2009).",
+    good:"“Data were collected in three family-owned automotive suppliers (250–600 employees) during a post-2008 industry downturn, in a region with strong union norms and a paternalistic ownership culture.”",
+    weak:"“The study took place in a manufacturing firm.” (No pre-existing conditions that make the setting appropriate.)",
+    checklist:[
+      "Describe the industry, market, and economic conditions during data collection.",
+      "Describe the organization(s): size, ownership, structure, and relevant history.",
+      "Describe social/cultural norms, status, and power structures in the setting.",
+      "Explain what pre-existing conditions make this setting appropriate for the question, plus rich contextual detail beyond them."
+    ]
+  },
+  {
+    id:3, phase:"design", title:"Position of researcher (insider–outsider continuum)",
+    def:"The researcher's relationship with the organization and participants; closer relationships place the researcher nearer the insider end of the continuum.",
+    anchors:[
+      "Does not disclose the researcher's position.",
+      "Mentions but does not describe a relationship.",
+      "Describes the type of relationship with participants/organization.",
+      "Clearly positions the researcher on the insider–outsider continuum."
+    ],
+    rec:"Provide detailed information on pre-existing relationships and on relationships developed during data collection, and locate yourself on the insider–outsider continuum.",
+    exemplar:"Gioia &amp; Chittipeddi (1991).",
+    good:"“One author had been an external consultant to the firm for two years before the study (a near-insider position), while the second author had no prior contact (outsider), allowing us to cross-check interpretations.”",
+    weak:"“The researchers had access to the firm.” (Nature and closeness of the relationship are unspecified.)",
+    checklist:[
+      "Disclose any pre-existing relationships with the organization or participants.",
+      "Describe relationships that developed during data collection.",
+      "Explicitly locate each researcher on the insider–outsider continuum.",
+      "Discuss how your position may have shaped access, rapport, and interpretation."
+    ]
+  },
+  {
+    id:4, phase:"design", title:"Sampling procedures",
+    def:"The procedures used to select participants or cases (e.g., convenience, purposive, theoretical, snowball, stratified sampling).",
+    anchors:[
+      "Does not describe sampling.",
+      "Describes the sampling procedure.",
+      "Describes the sampling procedure and the kind of variability sought.",
+      "Describes the variability sought and how participants/cases were identified."
+    ],
+    rec:"Be explicit about sampling procedures, especially because qualitative samples are typically non-probabilistic.",
+    exemplar:"Ferlie, Fitzgerald, Wood, &amp; Hawkins (2005).",
+    good:"“We used theoretical sampling to maximize variation in tenure and function, identifying informants iteratively from an org chart and prior interviews until categories were saturated.”",
+    weak:"“We interviewed 20 managers.” (Selection logic and the variability sought are absent.)",
+    checklist:[
+      "Name the sampling strategy (purposive, theoretical, snowball, stratified, convenience, etc.).",
+      "Describe the kind of variability or contrast the sample was designed to capture.",
+      "Explain exactly how participants/cases were identified and recruited.",
+      "Justify why the sampling logic fits your method and question."
+    ]
+  },
+  {
+    id:5, phase:"design", title:"Relative importance of participants/cases",
+    def:"The composition of the final sample and the relative contribution of each participant or case to the findings.",
+    anchors:[
+      "Does not describe the final sample or the importance of participant types.",
+      "Describes the final sample.",
+      "Describes the final sample and identifies key participants.",
+      "Describes how each participant was instrumental to developing one or more themes."
+    ],
+    rec:"Be explicit about the contribution each key informant made to the findings.",
+    exemplar:"Shaffer &amp; Hillman (2000).",
+    good:"“Two divisional CEOs were pivotal to the ‘legitimacy’ theme, while frontline staff primarily informed the ‘workaround’ theme; Table 2 maps each informant to the themes they shaped.”",
+    weak:"“Our sample included executives and employees.” (Relative contribution of participants is not addressed.)",
+    checklist:[
+      "Describe the composition of the final sample (roles, counts, characteristics).",
+      "Identify which participants/cases were most consequential.",
+      "Map each key informant to the theme(s) they helped develop (e.g., in a table).",
+      "Explain why those informants were instrumental to those themes."
+    ]
+  },
+  {
+    id:6, phase:"measurement", title:"Documenting interactions with participants",
+    def:"How interviews and other observations were documented and transcribed (audio, video, notations).",
+    anchors:[
+      "Does not describe how interactions were documented.",
+      "Describes how some interactions were documented.",
+      "Describes how each interaction was documented.",
+      "Describes how each interaction was documented and the associated content."
+    ],
+    rec:"Document interactions and specify which types of interaction led to the development of a theme.",
+    exemplar:"Bruton, Ahlstrom, &amp; Wan (2003); Shaffer &amp; Hillman (2000).",
+    good:"“All 34 interviews were audio-recorded and transcribed verbatim (612 pages); field notes captured 11 site observations; Appendix A links interaction types to the themes they informed.”",
+    weak:"“Interviews were recorded.” (Unclear which interactions, whether all were captured, or what content resulted.)",
+    checklist:[
+      "State how each interaction was captured (audio, video, notes) and transcribed.",
+      "Report completeness (all vs. some interactions) and volume (e.g., pages, hours).",
+      "Describe the content/type of each documented interaction.",
+      "Specify which interaction types led to the development of each theme."
+    ]
+  },
+  {
+    id:7, phase:"measurement", title:"Saturation point",
+    def:"The point at which no new insights or themes emerge while collecting data and drawing conclusions.",
+    anchors:[
+      "Does not describe when saturation was reached.",
+      "Reports whether saturation was reached.",
+      "Describes how saturation was reached.",
+      "Describes the precise criteria used to conclude that saturation was reached."
+    ],
+    rec:"Identify the saturation point and describe the judgment calls made in defining and measuring it.",
+    exemplar:"Guest, Bunce, &amp; Johnson (2006).",
+    good:"“We concluded saturation when three consecutive interviews produced no new first-order codes; this occurred at interview 27 of 32 (coding log in Appendix C).”",
+    weak:"“Saturation was reached.” (No definition, threshold, or evidence.)",
+    checklist:[
+      "State whether saturation was reached.",
+      "Describe how saturation was assessed during data collection and analysis.",
+      "Specify the precise criterion/threshold used to declare saturation.",
+      "Disclose the judgment calls involved in defining and measuring it."
+    ]
+  },
+  {
+    id:8, phase:"measurement", title:"Unexpected opportunities, challenges, and events",
+    def:"Unexpected opportunities (e.g., access to new data), challenges (e.g., a unit dropping out), and events (e.g., a new CEO, market changes) during any research stage.",
+    anchors:[
+      "Does not describe whether any occurred.",
+      "Reports whether any occurred.",
+      "Describes those that occurred and how they were handled.",
+      "Describes those that occurred, how they were handled, and the implications."
+    ],
+    rec:"Report what unexpected events occurred, how they were handled, and their implications for the study.",
+    exemplar:"Michel (2014).",
+    good:"“Midway through fieldwork the firm appointed a new CEO, shifting strategy; we added six interviews to capture the change and treat pre/post periods separately in analysis (see Limitations).”",
+    weak:"“Data collection proceeded as planned.” (No acknowledgment of field contingencies or their handling.)",
+    checklist:[
+      "State whether unexpected opportunities, challenges, or events occurred.",
+      "Describe each event concretely.",
+      "Explain how you handled each one.",
+      "Discuss the implications for design, data, and conclusions."
+    ]
+  },
+  {
+    id:9, phase:"measurement", title:"Management of power imbalance",
+    def:"The differential exercise of control, authority, or influence between researcher and participants during the research process.",
+    anchors:[
+      "Does not describe how they addressed the power imbalance between researcher and participants.",
+      "Reports whether there was any power imbalance with the participants.",
+      "Describes the strategies used to address a general power imbalance with participants.",
+      "Describes specific strategies used to address power imbalance with specific participants."
+    ],
+    rec:"Report whether a power imbalance exists between researcher and participants and how it was addressed (e.g., institutional endorsement, self-acquaintance, timing of sensitive questions).",
+    exemplar:"Yeung (1995); Stephens (2007).",
+    good:"“Interviewing sitting CEOs created a status imbalance; we secured a board member's endorsement, opened with rapport-building, and deferred sensitive governance questions to late in each interview.”",
+    weak:"“We interviewed senior executives.” (Power dynamics and any mitigation are not addressed.)",
+    checklist:[
+      "State whether a power imbalance existed with participants.",
+      "Describe the general strategies used to manage it.",
+      "Describe specific strategies used with specific (types of) participants.",
+      "Explain how these strategies affected data quality and candor."
+    ]
+  },
+  {
+    id:10, phase:"analysis", title:"Data coding and first-order codes",
+    def:"The process through which data are categorized to facilitate analysis (e.g., structural, in vivo, open/initial, descriptive, narrative, or emotional coding).",
+    anchors:[
+      "Does not describe first-order coding nor disclose the first-order codes.",
+      "Offers a general statement about first-order coding but does not specify a particular approach.",
+      "Describes the first-order coding methodology (e.g., in vivo coding) and presents the first-order code list.",
+      "Describes the first-order coding methodology and presents the full first-order code list."
+    ],
+    rec:"Be clear about the type of coding strategies adopted for first-order codes.",
+    exemplar:"Dacin, Munir, &amp; Tracey (2010).",
+    good:"“We applied in vivo and descriptive coding to transcripts; the full list of 47 first-order codes with example quotations appears in Appendix D.”",
+    weak:"“We coded the data thematically.” (No named approach and no code list provided.)",
+    checklist:[
+      "Name the first-order coding approach (in vivo, open, descriptive, structural, etc.).",
+      "Describe who coded, how, and how disagreements were resolved.",
+      "Present the full list of first-order codes (with illustrative quotations).",
+      "Make the coding process reproducible from the description alone."
+    ]
+  },
+  {
+    id:11, phase:"analysis", title:"Data analysis and second-/higher-order codes",
+    def:"Classification and interpretation of material by identifying relationships that tie first-order codes into higher-order themes (e.g., focused, axial, theoretical, elaborative, longitudinal, selective coding).",
+    anchors:[
+      "Does not disclose how data analysis was performed nor disclose the second-order codes.",
+      "Describes how key themes were identified in generic terms.",
+      "Describes the second-order coding methodology (e.g., axial coding) and presents the second-order code list.",
+      "Describes the second-order coding methodology and presents the full higher-order code list with the first-order codes that generated them."
+    ],
+    rec:"Be clear about how the data were analyzed to move from first-order codes to higher-order themes.",
+    exemplar:"Klingebiel &amp; Joseph (2016).",
+    good:"“Using axial coding we grouped 47 first-order codes into 12 second-order themes and 3 aggregate dimensions; the full data structure (Gioia diagram) is in Figure 2.”",
+    weak:"“Themes emerged from the data.” (No analytic procedure and no mapping from codes to themes.)",
+    checklist:[
+      "Name the higher-order coding/analysis approach (axial, focused, selective, etc.).",
+      "Describe how first-order codes were aggregated into themes and dimensions.",
+      "Present the full higher-order code list.",
+      "Show which first-order codes generated each higher-order theme (e.g., a data structure/Gioia diagram)."
+    ]
+  },
+  {
+    id:12, phase:"disclosure", title:"Data disclosure (raw material availability)",
+    def:"Availability of raw materials — any information collected before analysis, such as transcripts and video recordings.",
+    anchors:[
+      "Does not mention whether raw materials are available.",
+      "Mentions raw materials without making them available.",
+      "Makes some materials available or available on request.",
+      "Makes raw materials fully available (e.g., posted in a data repository)."
+    ],
+    rec:"Make raw materials available (directly, in a repository, or by request); if not sharing, state why. This criterion is necessary for exact replication and useful for error-checking.",
+    exemplar:"Gao, Zuzul, Jones, &amp; Khanna (2017).",
+    good:"“De-identified transcripts and the coding scheme are deposited at the OSF repository (DOI provided); recordings are available from the authors under a data-use agreement.”",
+    weak:"“Data are available upon reasonable request.” with no scope stated, or no mention at all of raw-material availability.",
+    checklist:[
+      "State clearly whether raw materials are available.",
+      "Specify the mechanism: repository (with DOI/URL), on request, or direct appendix.",
+      "Address de-identification, ethics, and confidentiality constraints.",
+      "If not sharing, explain explicitly why (and what is available instead)."
+    ]
+  }
+];
+
+/* Replication-type requirements */
+const REPLICATION = {
+  exact:      {name:"Exact replication",      short:"Exact",      desc:"Same population, same procedures.",   crits:[1,2,3,4,5,6,7,8,9,10,11,12], cls:"exact"},
+  empirical:  {name:"Empirical replication",  short:"Empirical",  desc:"Same procedures, different population (generalizability).", crits:[1,6,7,8,9,10,11], cls:"emp"},
+  conceptual: {name:"Conceptual replication", short:"Conceptual", desc:"Same population, different procedures (robustness).",  crits:[2,3,4,5], cls:"con"}
+};
+/* which replication types each criterion feeds */
+function repTagsFor(id){
+  const t=[];
+  if(REPLICATION.exact.crits.includes(id)) t.push({cls:"exact",label:"Exact"});
+  if(REPLICATION.empirical.crits.includes(id)) t.push({cls:"emp",label:"Empirical"});
+  if(REPLICATION.conceptual.crits.includes(id)) t.push({cls:"con",label:"Conceptual"});
+  return t;
+}
+
+/* ============================================================
+   STATE (in-memory only — no storage APIs)
+   ============================================================ */
+const state = {};              // id -> {level:1..4|null, na:false, naJust:"", text:"", checks:{}}
+CRITERIA.forEach(c=>{ state[c.id]={level:null, na:false, naJust:"", text:"", checks:{}}; });
+let mode = "author";
+let activePhase = "design";
+
+/* ============================================================
+   RENDER: tabs
+   ============================================================ */
+function renderTabs(){
+  const el=document.getElementById("tabs");
+  el.innerHTML="";
+  PHASES.forEach(p=>{
+    const rated=p.crits.filter(id=>state[id].level!==null||state[id].na).length;
+    const b=document.createElement("button");
+    b.setAttribute("role","tab");
+    b.setAttribute("aria-selected", activePhase===p.id ? "true":"false");
+    b.innerHTML=`<span>${p.emoji} ${p.name}</span><span class="cnt">${rated}/${p.crits.length}</span>`;
+    b.onclick=()=>{activePhase=p.id; renderTabs(); renderContent(); window.scrollTo({top:0,behavior:"smooth"});};
+    el.appendChild(b);
+  });
+}
+
+/* ============================================================
+   RENDER: criterion cards for active phase
+   ============================================================ */
+function renderContent(){
+  const area=document.getElementById("content-area");
+  const phase=PHASES.find(p=>p.id===activePhase);
+  area.innerHTML="";
+
+  const intro=document.createElement("div");
+  intro.className="phase-intro";
+  intro.innerHTML=`<b>${phase.emoji} ${phase.name} phase.</b> ${phase.intro}`;
+  area.appendChild(intro);
+
+  phase.crits.forEach(id=>{
+    const c=CRITERIA.find(x=>x.id===id);
+    area.appendChild(buildCard(c));
+  });
+}
+
+function statusChip(id){
+  const s=state[id];
+  if(s.na) return {cls:"sna",txt:"N/A"};
+  if(s.level===null) return {cls:"s0",txt:"Not rated"};
+  return {cls:"s"+s.level, txt:"Level "+s.level+" · "+ANCHOR_META[s.level-1].short};
+}
+
+function buildCard(c){
+  const s=state[c.id];
+  const card=document.createElement("div");
+  card.className="card";
+  card.id="crit-"+c.id;
+
+  const chip=statusChip(c.id);
+  const tags=repTagsFor(c.id).map(t=>`<span class="reptag ${t.cls}">${t.label}</span>`).join("");
+
+  /* anchors */
+  let anchorsHTML="";
+  ANCHOR_META.forEach(a=>{
+    const sel = (!s.na && s.level===a.lvl) ? "selected":"";
+    anchorsHTML+=`
+      <label class="anchor ${sel}" for="c${c.id}-l${a.lvl}">
+        <input type="radio" id="c${c.id}-l${a.lvl}" name="c${c.id}" value="${a.lvl}" ${(!s.na&&s.level===a.lvl)?"checked":""}
+               onchange="setLevel(${c.id},${a.lvl})" aria-label="Level ${a.lvl}: ${a.name}. ${a.desc}">
+        <span class="lvlbadge ${a.cls}">Level ${a.lvl}</span>
+        <span class="atext"><span class="aname">${a.name}</span>${c.anchors[a.lvl-1]}</span>
+      </label>`;
+  });
+  /* N/A */
+  const naSel = s.na ? "selected":"";
+  anchorsHTML+=`
+    <label class="anchor na-anchor ${naSel}" for="c${c.id}-na">
+      <input type="radio" id="c${c.id}-na" name="c${c.id}" value="na" ${s.na?"checked":""}
+             onchange="setNA(${c.id})" aria-label="Not applicable to this study">
+      <span class="lvlbadge lbna">N/A</span>
+      <span class="atext"><span class="aname">Not applicable</span>This criterion does not fit the study's design or ontological perspective (provide a justification).</span>
+    </label>`;
+
+  /* checklist */
+  let checksHTML="";
+  c.checklist.forEach((item,i)=>{
+    const done = s.checks[i] ? "done":"";
+    checksHTML+=`<li class="${done}">
+      <input type="checkbox" id="chk-${c.id}-${i}" ${s.checks[i]?"checked":""} onchange="toggleCheck(${c.id},${i})"
+             aria-label="Action to reach level 4: ${item.replace(/"/g,'&quot;')}">
+      <label for="chk-${c.id}-${i}">${item}</label></li>`;
+  });
+
+  const writeLabel = `<span class="wlabel"><b>✍️ Write it now.</b> <span class="author-only">Draft the exact sentence(s) you will place in your manuscript to satisfy this criterion.</span></span>`;
+  const reviewerLabel = `<span class="wlabel"><b>🔍 Reviewer note.</b> Record what the manuscript does/does not disclose and the specific improvement you will request.</span>`;
+
+  card.innerHTML=`
+    <div class="card-head">
+      <div class="cnum">${c.id}</div>
+      <div class="ctitle">
+        <h3>${c.title}</h3>
+        <p class="cdef">${c.def}</p>
+        <div class="reptags">${tags}</div>
+      </div>
+      <span class="statuschip ${chip.cls}" id="chip-${c.id}">${chip.txt}</span>
+    </div>
+    <div class="card-body">
+      <div class="sect-label" id="rate-label-${c.id}">${mode==="reviewer"?"Rate as disclosed in the manuscript":"Rate your current disclosure level"}</div>
+      <div class="anchors" role="radiogroup" aria-labelledby="rate-label-${c.id}">${anchorsHTML}</div>
+      <div class="na-just ${s.na?"show":""}" id="naj-${c.id}">
+        <textarea placeholder="Justify why this criterion is not applicable to this study…" oninput="setNAJust(${c.id},this.value)" aria-label="Justification for not applicable">${escapeHTML(s.naJust)}</textarea>
+      </div>
+
+      <div class="writebox">
+        <div class="sect-label">${mode==="reviewer"?reviewerLabel:writeLabel}</div>
+        <textarea placeholder="${mode==="reviewer"?'e.g., The method is named but the epistemological assumptions are missing; please add…':'Type the sentence(s) you will add to your Methods section…'}" oninput="setText(${c.id},this.value)" aria-label="Manuscript text or reviewer note for criterion ${c.id}">${escapeHTML(s.text)}</textarea>
+      </div>
+
+      <details class="disclosure">
+        <summary>💡 Recommendation, exemplar &amp; good-vs-weak examples <span class="chev">▾</span></summary>
+        <div class="dbody">
+          <div class="rec"><b>What to do:</b> ${c.rec}</div>
+          <div class="exemplar"><b>Published exemplar:</b> ${c.exemplar}</div>
+          <div class="gw">
+            <div class="good"><span class="lab">Strong disclosure</span>${c.good}</div>
+            <div class="weak"><span class="lab">Weak disclosure</span>${c.weak}</div>
+          </div>
+        </div>
+      </details>
+
+      <details class="disclosure">
+        <summary>✅ Checklist — move this criterion to Level 4 <span class="chev">▾</span></summary>
+        <div class="dbody"><ul class="checklist">${checksHTML}</ul></div>
+      </details>
+    </div>`;
+  return card;
+}
+
+function escapeHTML(s){return (s||"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");}
+
+/* ============================================================
+   STATE MUTATORS
+   ============================================================ */
+function setLevel(id,lvl){
+  state[id].level=lvl; state[id].na=false; state[id].naJust="";
+  refreshCard(id); renderTabs(); updateDashboard();
+}
+function setNA(id){
+  state[id].na=true; state[id].level=null;
+  refreshCard(id); renderTabs(); updateDashboard();
+}
+function setNAJust(id,v){ state[id].naJust=v; }
+function setText(id,v){ state[id].text=v; }
+function toggleCheck(id,i){
+  state[id].checks[i]=!state[id].checks[i];
+  const li=document.querySelector(`#chk-${id}-${i}`).closest("li");
+  if(li) li.classList.toggle("done", state[id].checks[i]);
+}
+function refreshCard(id){
+  const old=document.getElementById("crit-"+id);
+  if(old){ const nw=buildCard(CRITERIA.find(c=>c.id===id)); old.replaceWith(nw); }
+}
+
+/* ============================================================
+   SCORING
+   ============================================================ */
+function applicableScores(ids){
+  // returns array of levels for criteria that are rated (1-4) and not N/A, within the given id set
+  return ids.map(id=>state[id]).filter(s=>!s.na && s.level!==null).map(s=>s.level);
+}
+function meanOf(arr){ return arr.length? arr.reduce((a,b)=>a+b,0)/arr.length : null; }
+
+function repReadiness(rep){
+  // Consider criteria required by this replication type, excluding N/A ones.
+  const required = rep.crits.filter(id=>!state[id].na);
+  const rated = required.filter(id=>state[id].level!==null);
+  const metL4 = required.filter(id=>state[id].level===4);
+  const levels = required.map(id=>state[id].level).filter(v=>v!==null);
+  const mean = meanOf(levels);
+  const pct = mean!==null ? (mean/4*100) : 0;
+
+  let sig="notyet", sigTxt="Not yet";
+  if(required.length===0){ sig="notyet"; sigTxt="No criteria"; }
+  else if(rated.length<required.length){ sig="partial"; sigTxt="Incomplete"; }
+  else if(metL4.length===required.length){ sig="ready"; sigTxt="Ready"; }
+  else { sig="notyet"; sigTxt="Not yet"; }
+
+  return {required:required.length, rated:rated.length, metL4:metL4.length, mean, pct, sig, sigTxt};
+}
+
+function barColor(pct){
+  if(pct>=87.5) return "var(--l4)";     // ~ level 3.5+
+  if(pct>=62.5) return "var(--l3)";
+  if(pct>=37.5) return "var(--l2)";
+  return "var(--l1)";
+}
+
+function updateDashboard(){
+  // overall
+  const all=applicableScores(CRITERIA.map(c=>c.id));
+  const ovMean=meanOf(all);
+  document.getElementById("ov-num").textContent = ovMean!==null ? ovMean.toFixed(2) : "–";
+  const naCount=CRITERIA.filter(c=>state[c.id].na).length;
+  const ratedCount=all.length;
+  document.getElementById("ov-meta").textContent =
+    ratedCount? `${ratedCount} criteria rated${naCount?` · ${naCount} N/A`:""}` : "Rate criteria to begin";
+
+  // replication indicators
+  const cont=document.getElementById("rep-indicators");
+  cont.innerHTML="";
+  Object.values(REPLICATION).forEach(rep=>{
+    const r=repReadiness(rep);
+    const div=document.createElement("div");
+    div.className="repblock";
+    div.innerHTML=`
+      <div class="rhead">
+        <span class="rname">${rep.short} <span class="reptag ${rep.cls}" style="vertical-align:middle">${rep.crits.length} crit.</span></span>
+        <span class="rsig ${r.sig}">${r.sigTxt}</span>
+      </div>
+      <div class="bar"><span style="width:${r.pct.toFixed(0)}%;background:${barColor(r.pct)}"></span></div>
+      <div class="rmeta"><span>${r.metL4}/${r.required} at Level 4</span><span>${r.mean!==null?r.mean.toFixed(2)+" / 4":"–"}</span></div>
+      <div class="rdesc">${rep.desc} Requires all its criteria at Level 4 for full readiness.</div>`;
+    cont.appendChild(div);
+  });
+
+  renderRadar();
+}
+
+/* radar chart of all 12 criteria */
+function renderRadar(){
+  const wrap=document.getElementById("radar-wrap");
+  const n=CRITERIA.length, cx=150, cy=140, R=100;
+  const rings=[0.25,0.5,0.75,1];
+  let g="";
+  // grid rings
+  rings.forEach(rr=>{
+    let pts="";
+    for(let i=0;i<n;i++){
+      const ang=(-90 + i*360/n)*Math.PI/180;
+      pts+=`${(cx+Math.cos(ang)*R*rr).toFixed(1)},${(cy+Math.sin(ang)*R*rr).toFixed(1)} `;
+    }
+    g+=`<polygon points="${pts}" fill="none" stroke="#dde4ea" stroke-width="1"/>`;
+  });
+  // spokes + labels
+  for(let i=0;i<n;i++){
+    const ang=(-90 + i*360/n)*Math.PI/180;
+    const x=cx+Math.cos(ang)*R, y=cy+Math.sin(ang)*R;
+    g+=`<line x1="${cx}" y1="${cy}" x2="${x.toFixed(1)}" y2="${y.toFixed(1)}" stroke="#e4e9ee" stroke-width="1"/>`;
+    const lx=cx+Math.cos(ang)*(R+13), ly=cy+Math.sin(ang)*(R+13);
+    g+=`<text x="${lx.toFixed(1)}" y="${(ly+3).toFixed(1)}" font-size="9" fill="#5a6b7b" text-anchor="middle">${CRITERIA[i].id}</text>`;
+  }
+  // data polygon
+  let dpts="", dots="";
+  let any=false;
+  for(let i=0;i<n;i++){
+    const s=state[CRITERIA[i].id];
+    const val = s.na ? 0 : (s.level||0);
+    if(val>0) any=true;
+    const frac=val/4;
+    const ang=(-90 + i*360/n)*Math.PI/180;
+    const x=cx+Math.cos(ang)*R*frac, y=cy+Math.sin(ang)*R*frac;
+    dpts+=`${x.toFixed(1)},${y.toFixed(1)} `;
+    if(val>0) dots+=`<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="2.6" fill="var(--brand)"/>`;
+  }
+  const poly = any? `<polygon points="${dpts}" fill="rgba(31,95,139,.18)" stroke="var(--brand)" stroke-width="1.6"/>`:"";
+  wrap.innerHTML=`<svg class="radar" viewBox="0 0 300 285" role="img" aria-label="Radar chart of transparency levels across the 12 criteria">
+    ${g}${poly}${dots}
+    <text x="${cx}" y="275" font-size="9" fill="#8895a2" text-anchor="middle">Each spoke = criterion 1–12 · radius = level 1–4</text>
+  </svg>`;
+}
+
+/* ============================================================
+   MODE
+   ============================================================ */
+function setMode(m){
+  mode=m;
+  document.body.classList.toggle("reviewer", m==="reviewer");
+  document.getElementById("mode-author").setAttribute("aria-pressed", m==="author");
+  document.getElementById("mode-reviewer").setAttribute("aria-pressed", m==="reviewer");
+  document.getElementById("mode-hint").textContent = m==="reviewer"
+    ? "Reviewer mode: rate the manuscript and generate developmental feedback."
+    : "Author mode: plan, self-assess, and draft your methods section.";
+  renderContent();
+}
+
+/* ============================================================
+   MARKDOWN EXPORT
+   ============================================================ */
+function buildMarkdown(){
+  const all=applicableScores(CRITERIA.map(c=>c.id));
+  const ov=meanOf(all);
+  let md=`# Transparency & Replicability Assessment\n`;
+  md+=`_Based on Aguinis & Solarino (2019), Strategic Management Journal, 40(8): 1291–1315 — 12 criteria, 4-point BARS._\n\n`;
+  md+=`**Mode:** ${mode==="reviewer"?"Reviewer / Editor":"Author"}  \n`;
+  md+=`**Overall transparency:** ${ov!==null?ov.toFixed(2):"–"} / 4.00 (mean across ${all.length} applicable, rated criteria)\n\n`;
+
+  md+=`## Replication readiness\n\n`;
+  md+=`| Replication type | Criteria required | At Level 4 | Mean | Signal |\n|---|---|---|---|---|\n`;
+  Object.values(REPLICATION).forEach(rep=>{
+    const r=repReadiness(rep);
+    md+=`| ${rep.name} (${rep.desc}) | ${r.required} | ${r.metL4}/${r.required} | ${r.mean!==null?r.mean.toFixed(2):"–"} | ${r.sigTxt} |\n`;
+  });
+  md+=`\n> Full readiness for a replication type requires every one of its (non-N/A) criteria to be at Level 4.\n\n`;
+
+  md+=`## Criterion-by-criterion\n\n`;
+  PHASES.forEach(p=>{
+    md+=`### ${p.name} phase\n\n`;
+    p.crits.forEach(id=>{
+      const c=CRITERIA.find(x=>x.id===id), s=state[id];
+      const lvl = s.na ? "N/A" : (s.level!==null? `Level ${s.level} — ${ANCHOR_META[s.level-1].short}` : "Not rated");
+      md+=`**${c.id}. ${c.title.replace(/&amp;/g,"&")}** — ${lvl}\n`;
+      if(s.na && s.naJust) md+=`- _N/A justification:_ ${s.naJust}\n`;
+      if(s.text) md+=`- ${mode==="reviewer"?"Reviewer note":"Manuscript text"}: ${s.text}\n`;
+      const open=c.checklist.map((it,i)=>({it,done:!!s.checks[i]})).filter(x=>!x.done);
+      if(!s.na && s.level!==4 && open.length){
+        md+=`- Remaining actions to reach Level 4:\n`;
+        open.forEach(x=>md+=`  - [ ] ${x.it}\n`);
+      }
+      md+=`\n`;
+    });
+  });
+
+  if(mode==="reviewer") md+=reviewerFeedback();
+
+  md+=`---\nGenerated with the Transparency & Replicability Tool. Companion: Aguinis, H. 2025. Research Methodology: Best Practices for Rigorous, Credible, and Impactful Research. SAGE.\n`;
+  return md;
+}
+
+function reviewerFeedback(){
+  let out=`## Developmental feedback (paste-ready)\n\n`;
+  const met=[], improve=[], missing=[], na=[];
+  CRITERIA.forEach(c=>{
+    const s=state[c.id];
+    if(s.na){ na.push(c); return; }
+    if(s.level===4) met.push(c);
+    else if(s.level===null) missing.push(c);
+    else improve.push(c);
+  });
+  out+=`Transparency is a cumulative continuum; no single criterion has veto power over publication. The assessment below is developmental.\n\n`;
+  if(met.length){
+    out+=`**Criteria fully met (Level 4):** ${met.map(c=>c.id+" "+c.title.replace(/&amp;/g,"&")).join("; ")}.\n\n`;
+  }
+  if(improve.length){
+    out+=`**Criteria needing improvement:**\n`;
+    improve.forEach(c=>{
+      const s=state[c.id];
+      out+=`- **${c.id}. ${c.title.replace(/&amp;/g,"&")}** (currently Level ${s.level}). ${c.rec} Consider the exemplar: ${c.exemplar.replace(/&amp;/g,"&")}.\n`;
+    });
+    out+=`\n`;
+  }
+  if(missing.length){
+    out+=`**Criteria not yet rated / not addressed:** ${missing.map(c=>c.id+" "+c.title.replace(/&amp;/g,"&")).join("; ")}.\n\n`;
+  }
+  if(na.length){
+    out+=`**Marked not applicable:** ${na.map(c=>c.id+" "+c.title.replace(/&amp;/g,"&")).join("; ")}.\n\n`;
+  }
+  return out;
+}
+
+function openMarkdown(){
+  document.getElementById("md-out").value=buildMarkdown();
+  document.getElementById("md-modal").classList.add("show");
+  document.getElementById("copy-note").classList.remove("show");
+}
+function closeMarkdown(){ document.getElementById("md-modal").classList.remove("show"); }
+function copyMarkdown(){
+  const ta=document.getElementById("md-out");
+  ta.select(); ta.setSelectionRange(0,99999);
+  let ok=false;
+  try{ ok=document.execCommand("copy"); }catch(e){}
+  if(navigator.clipboard){ navigator.clipboard.writeText(ta.value).catch(()=>{}); ok=true; }
+  if(ok) document.getElementById("copy-note").classList.add("show");
+}
+
+/* ============================================================
+   PRINT REPORT
+   ============================================================ */
+function buildPrintReport(){
+  const all=applicableScores(CRITERIA.map(c=>c.id));
+  const ov=meanOf(all);
+  let h=`<h1 style="border-bottom:2px solid #164762;padding-bottom:6px">Transparency &amp; Replicability Assessment</h1>`;
+  h+=`<p style="font-size:10pt;color:#444">Based on Aguinis &amp; Solarino (2019), <i>Strategic Management Journal</i>, 40(8): 1291–1315 · 12 criteria, 4-point behaviorally-anchored rating scale · Mode: ${mode==="reviewer"?"Reviewer/Editor":"Author"} · Generated ${new Date().toLocaleDateString()}</p>`;
+  h+=`<h2>Summary scores</h2>`;
+  h+=`<p><b>Overall transparency:</b> ${ov!==null?ov.toFixed(2):"–"} / 4.00 (mean across ${all.length} applicable, rated criteria)</p>`;
+  h+=`<table class="pr-score-tbl"><tr><th>Replication type</th><th>Definition</th><th>At Level 4</th><th>Mean</th><th>Signal</th></tr>`;
+  Object.values(REPLICATION).forEach(rep=>{
+    const r=repReadiness(rep);
+    h+=`<tr><td><b>${rep.name}</b></td><td>${rep.desc}</td><td>${r.metL4}/${r.required}</td><td>${r.mean!==null?r.mean.toFixed(2):"–"}</td><td>${r.sigTxt}</td></tr>`;
+  });
+  h+=`</table><p style="font-size:9.5pt;color:#555">Full readiness for a replication type requires every one of its (non-N/A) criteria at Level 4. Transparency is a cumulative continuum: no single criterion has veto power over publication.</p>`;
+
+  h+=`<h2>Criterion-by-criterion</h2>`;
+  PHASES.forEach(p=>{
+    h+=`<h3 style="color:#164762">${p.name} phase</h3>`;
+    p.crits.forEach(id=>{
+      const c=CRITERIA.find(x=>x.id===id), s=state[id];
+      const lvl = s.na ? "N/A" : (s.level!==null? `Level ${s.level} — ${ANCHOR_META[s.level-1].name}` : "Not rated");
+      h+=`<div class="pr-crit"><div class="pr-head"><span>${c.id}. ${c.title}</span><span>${lvl}</span></div>`;
+      h+=`<div class="pr-block"><span class="pr-label">Definition:</span> ${c.def}</div>`;
+      if(s.na && s.naJust) h+=`<div class="pr-block"><span class="pr-label">N/A justification:</span> ${escapeHTML(s.naJust)}</div>`;
+      if(s.text) h+=`<div class="pr-block"><span class="pr-label">${mode==="reviewer"?"Reviewer note":"Manuscript text"}:</span> ${escapeHTML(s.text)}</div>`;
+      h+=`<div class="pr-block"><span class="pr-label">Recommendation:</span> ${c.rec}</div>`;
+      h+=`<div class="pr-block"><span class="pr-label">Exemplar:</span> ${c.exemplar}</div>`;
+      const open=c.checklist.map((it,i)=>({it,done:!!s.checks[i]})).filter(x=>!x.done);
+      if(!s.na && s.level!==4 && open.length){
+        h+=`<div class="pr-block"><span class="pr-label">Actions to reach Level 4:</span><ul style="margin:4px 0">`;
+        open.forEach(x=>h+=`<li>${x.it}</li>`); h+=`</ul></div>`;
+      }
+      h+=`</div>`;
+    });
+  });
+  if(mode==="reviewer"){
+    h+=`<h2>Developmental feedback</h2><div style="white-space:pre-wrap;font-size:10.5pt">${escapeHTML(reviewerFeedback().replace(/\*\*/g,"").replace(/^## .*\n/,""))}</div>`;
+  }
+  h+=`<hr><p style="font-size:9pt;color:#666">Companion: Aguinis, H. 2025. <i>Research Methodology: Best Practices for Rigorous, Credible, and Impactful Research.</i> SAGE. https://collegepublishing.sagepub.com/products/research-methodology-1-280088</p>`;
+  document.getElementById("report-print").innerHTML=h;
+}
+function printReport(){ buildPrintReport(); window.print(); }
+
+/* ============================================================
+   RESET
+   ============================================================ */
+function resetAll(){
+  if(!confirm("Clear all ratings, notes, checklists, and drafted text? This cannot be undone.")) return;
+  CRITERIA.forEach(c=>{ state[c.id]={level:null,na:false,naJust:"",text:"",checks:{}}; });
+  renderTabs(); renderContent(); updateDashboard();
+}
+
+/* keyboard: Esc closes modal */
+document.addEventListener("keydown",e=>{ if(e.key==="Escape") closeMarkdown(); });
+
+/* ============================================================
+   INIT
+   ============================================================ */
+renderTabs();
+renderContent();
+updateDashboard();
+</script>
+<!-- Begin Countercentral code v 7.0 --> 
+<span id="wts2576"></span> 
+<script>var wts=document.createElement('script');wts.async=true; 
+wts.src='https://server2.countercentral.com/log7.js';document.head.appendChild(wts); 
+wts.onload = function(){ wtslog7(2576,1); }; 
+</script><noscript><a href="https://www.countercentral.com"> 
+<img src="https://server2.countercentral.com/7/1/2576.png"  
+alt="Countercentral web traffic analysis"></a></noscript> 
+<!-- End Countercentral code v 7.0 --> 
+</body>
+</html>

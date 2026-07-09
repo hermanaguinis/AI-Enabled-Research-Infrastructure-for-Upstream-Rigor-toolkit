@@ -1,0 +1,1237 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Scholarly Impact Toolkit</title>
+<style>
+  :root{
+    --bg:#f6f4ef;
+    --panel:#ffffff;
+    --ink:#20303f;
+    --ink-soft:#4a5a68;
+    --muted:#6f7d89;
+    --line:#dfe2df;
+    --brand:#1f5d70;      /* deep teal */
+    --brand-2:#2b7a8f;
+    --brand-ink:#0e3a48;
+    --accent:#b8863b;     /* warm ochre */
+    --accent-soft:#f3e9d6;
+    --ok:#2f7d4f;
+    --warn:#b4531f;
+    --danger:#a5342b;
+    /* dimension colors */
+    --dim-theory:#2b6f8f;
+    --dim-edu:#4f8a4a;
+    --dim-org:#b8863b;
+    --dim-soc:#8a5aa8;
+    --shadow:0 1px 2px rgba(20,40,55,.06),0 6px 20px rgba(20,40,55,.07);
+    --radius:14px;
+  }
+  *{box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{
+    margin:0;background:var(--bg);color:var(--ink);
+    font-family:"Iowan Old Style","Palatino Linotype",Georgia,"Times New Roman",serif;
+    line-height:1.55;font-size:16px;
+  }
+  .sans{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif}
+  h1,h2,h3,h4{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;line-height:1.2;color:var(--brand-ink)}
+  a{color:var(--brand)}
+  button{font-family:inherit;cursor:pointer}
+  .wrap{max-width:1080px;margin:0 auto;padding:0 20px}
+  .skip{position:absolute;left:-999px;top:0;background:var(--brand);color:#fff;padding:10px 16px;z-index:100;border-radius:0 0 8px 0}
+  .skip:focus{left:0}
+
+  /* Header */
+  header.top{background:linear-gradient(135deg,var(--brand),var(--brand-2));color:#fff;box-shadow:var(--shadow)}
+  header.top .wrap{display:flex;align-items:center;gap:16px;padding-top:18px;padding-bottom:18px;flex-wrap:wrap}
+  .logo{width:44px;height:44px;flex:0 0 auto}
+  .brand-txt h1{color:#fff;margin:0;font-size:1.35rem;letter-spacing:.2px}
+  .brand-txt p{margin:2px 0 0;color:#dbeef2;font-size:.82rem;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif}
+  .top-actions{margin-left:auto;display:flex;gap:8px;flex-wrap:wrap}
+  .top-actions button{
+    background:rgba(255,255,255,.14);color:#fff;border:1px solid rgba(255,255,255,.35);
+    padding:8px 14px;border-radius:999px;font-size:.85rem;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
+  }
+  .top-actions button:hover{background:rgba(255,255,255,.26)}
+  .top-actions button[aria-pressed="true"]{background:#fff;color:var(--brand-ink);font-weight:600}
+
+  /* Layout */
+  main{padding:26px 0 70px}
+  .view{display:none;animation:fade .3s ease}
+  .view.active{display:block}
+  @keyframes fade{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+
+  /* Landing */
+  .hero{text-align:center;padding:14px 0 6px}
+  .hero h2{font-size:2rem;margin:.2em 0 .1em}
+  .hero .lede{max-width:720px;margin:0 auto 6px;color:var(--ink-soft);font-size:1.06rem}
+  .dims{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin:26px 0 8px}
+  .dim{background:var(--panel);border:1px solid var(--line);border-top:4px solid var(--c);border-radius:var(--radius);padding:16px;box-shadow:var(--shadow)}
+  .dim h4{margin:0 0 4px;font-size:1rem}
+  .dim .who{font-size:.8rem;color:var(--muted);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;text-transform:uppercase;letter-spacing:.5px}
+  .dim p{margin:8px 0 0;font-size:.86rem;color:var(--ink-soft)}
+  .principles{background:var(--accent-soft);border:1px solid #e6d4ad;border-radius:var(--radius);padding:16px 20px;margin:20px 0 6px}
+  .principles h3{margin:0 0 8px;font-size:1rem;color:var(--brand-ink)}
+  .principles ul{margin:0;padding-left:20px}
+  .principles li{margin:4px 0;font-size:.92rem;color:var(--ink-soft)}
+  .paths{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin:28px 0}
+  .pathcard{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);padding:24px;box-shadow:var(--shadow);display:flex;flex-direction:column}
+  .pathcard .tag{font-size:.72rem;letter-spacing:1px;text-transform:uppercase;color:var(--accent);font-weight:700;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif}
+  .pathcard h3{margin:6px 0 8px;font-size:1.3rem}
+  .pathcard p{color:var(--ink-soft);font-size:.95rem;margin:0 0 12px}
+  .pathcard ul{margin:0 0 18px;padding-left:18px;color:var(--ink-soft);font-size:.9rem}
+  .pathcard ul li{margin:3px 0}
+  .btn{
+    background:var(--brand);color:#fff;border:none;padding:12px 20px;border-radius:10px;font-size:.98rem;font-weight:600;
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;box-shadow:var(--shadow)
+  }
+  .btn:hover{background:var(--brand-ink)}
+  .btn.block{width:100%;margin-top:auto}
+  .btn.ghost{background:transparent;color:var(--brand);border:1.5px solid var(--brand);box-shadow:none}
+  .btn.ghost:hover{background:var(--brand);color:#fff}
+  .btn.sm{padding:8px 14px;font-size:.85rem}
+  .btn.accent{background:var(--accent)}
+  .btn.accent:hover{background:#93692b}
+
+  /* Path pages */
+  .pagehead{display:flex;align-items:flex-start;gap:16px;flex-wrap:wrap;margin-bottom:8px}
+  .pagehead .backl{background:none;border:none;color:var(--brand);font-size:.9rem;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;padding:6px 0}
+  .pagehead h2{margin:2px 0 2px;font-size:1.7rem}
+  .pagehead p{margin:0;color:var(--ink-soft);max-width:640px}
+  .progwrap{margin-left:auto;min-width:220px;text-align:right}
+  .progbar{height:12px;background:#e7e9e5;border-radius:999px;overflow:hidden;margin-top:6px;border:1px solid var(--line)}
+  .progbar > i{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--brand),var(--accent));transition:width .4s ease}
+  .progwrap .lbl{font-size:.78rem;color:var(--muted);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif}
+
+  /* Module accordion */
+  .module{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);margin:14px 0;box-shadow:var(--shadow);overflow:hidden}
+  .module > .mhead{display:flex;align-items:center;gap:14px;padding:16px 18px;width:100%;background:none;border:none;text-align:left}
+  .module > .mhead:hover{background:#fafbfa}
+  .mnum{flex:0 0 auto;width:34px;height:34px;border-radius:9px;background:var(--accent-soft);color:var(--accent);display:flex;align-items:center;justify-content:center;font-weight:700;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif}
+  .mhead .mt{flex:1}
+  .mhead .mt h3{margin:0;font-size:1.08rem}
+  .mhead .mt .sub{font-size:.82rem;color:var(--muted);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif}
+  .mstate{flex:0 0 auto;font-size:.72rem;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;padding:4px 10px;border-radius:999px;background:#eef1ee;color:var(--muted);white-space:nowrap}
+  .mstate.done{background:#e2f1e8;color:var(--ok)}
+  .chev{flex:0 0 auto;transition:transform .25s;color:var(--muted)}
+  .module.open .chev{transform:rotate(180deg)}
+  .mbody{display:none;padding:2px 20px 22px;border-top:1px solid var(--line)}
+  .module.open .mbody{display:block}
+  .mbody .intro{color:var(--ink-soft);margin:14px 0 10px}
+
+  /* Generic UI pieces */
+  .chips{display:flex;flex-wrap:wrap;gap:10px;margin:10px 0}
+  .chip{
+    display:inline-flex;align-items:center;gap:8px;border:1.5px solid var(--line);background:#fff;border-radius:999px;
+    padding:8px 14px;font-size:.9rem;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;color:var(--ink);
+  }
+  .chip .dot{width:11px;height:11px;border-radius:50%;background:var(--c,#ccc)}
+  .chip[aria-pressed="true"]{border-color:var(--c,var(--brand));background:var(--pick,#eef5f7);font-weight:600}
+  .chip:hover{border-color:var(--c,var(--brand))}
+
+  .checkline{display:flex;gap:12px;align-items:flex-start;padding:11px 12px;border:1px solid var(--line);border-radius:10px;margin:8px 0;background:#fff}
+  .checkline:hover{border-color:var(--brand-2)}
+  .checkline input[type=checkbox]{margin-top:3px;width:18px;height:18px;accent-color:var(--brand);flex:0 0 auto}
+  .checkline .ctxt{flex:1}
+  .checkline .ctxt .ct{font-weight:600;font-size:.95rem}
+  .checkline .ctxt .cd{font-size:.85rem;color:var(--ink-soft);margin-top:2px}
+  .checkline .tags{margin-top:6px;display:flex;gap:6px;flex-wrap:wrap}
+  .tagpill{font-size:.68rem;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;padding:2px 8px;border-radius:999px;color:#fff;letter-spacing:.3px}
+
+  textarea,input[type=text],input[type=number],select{
+    width:100%;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;font-size:.92rem;color:var(--ink);
+    border:1.5px solid var(--line);border-radius:9px;padding:10px 12px;background:#fff;resize:vertical
+  }
+  textarea:focus,input:focus,select:focus,.chip:focus,.btn:focus,button:focus{outline:3px solid rgba(43,122,143,.35);outline-offset:1px}
+  label.fld{display:block;font-size:.82rem;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;color:var(--ink-soft);margin:10px 0 4px;font-weight:600}
+
+  .callout{border-left:4px solid var(--accent);background:var(--accent-soft);padding:12px 16px;border-radius:0 10px 10px 0;margin:14px 0;font-size:.9rem;color:var(--brand-ink)}
+  .callout.warn{border-color:var(--warn);background:#fbeee6;color:#7a3413}
+  .callout.ok{border-color:var(--ok);background:#e6f2ea;color:#1d5a38}
+  .callout strong{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif}
+
+  /* Tooltip / info */
+  .info{display:inline-flex;align-items:center;justify-content:center;width:17px;height:17px;border-radius:50%;
+    background:var(--brand);color:#fff;font-size:.68rem;font-weight:700;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
+    cursor:help;position:relative;margin-left:6px;vertical-align:middle;border:none;flex:0 0 auto}
+  .info:hover .tip,.info:focus .tip{opacity:1;visibility:visible;transform:translateY(0)}
+  .tip{position:absolute;bottom:130%;left:50%;transform:translate(-50%,6px);width:250px;background:var(--brand-ink);color:#fff;
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;font-weight:400;font-size:.78rem;line-height:1.4;
+    padding:10px 12px;border-radius:9px;opacity:0;visibility:hidden;transition:.18s;z-index:40;box-shadow:var(--shadow);text-align:left}
+  .tip::after{content:"";position:absolute;top:100%;left:50%;transform:translateX(-50%);border:6px solid transparent;border-top-color:var(--brand-ink)}
+
+  /* Two-column pros/cons */
+  .pc{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin:12px 0}
+  .pc .col{border:1px solid var(--line);border-radius:12px;padding:14px 16px;background:#fff}
+  .pc .col.adv{border-top:4px solid var(--ok)}
+  .pc .col.dis{border-top:4px solid var(--danger)}
+  .pc .col h4{margin:0 0 8px;font-size:.98rem}
+  .pc .col ul{margin:0;padding-left:18px}
+  .pc .col li{font-size:.86rem;margin:5px 0;color:var(--ink-soft)}
+
+  /* Portfolio allocator */
+  .alloc-row{display:flex;align-items:center;gap:12px;margin:10px 0}
+  .alloc-row .aname{flex:0 0 200px;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;font-size:.9rem;display:flex;align-items:center;gap:8px}
+  .alloc-row input[type=range]{flex:1;accent-color:var(--c,var(--brand))}
+  .alloc-row .aval{flex:0 0 62px;text-align:right;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;font-weight:700}
+  .alloc-row .aval input{width:56px;text-align:right;padding:5px 6px}
+  .allocbar{height:26px;border-radius:8px;overflow:hidden;display:flex;border:1px solid var(--line);margin:12px 0}
+  .allocbar > span{display:flex;align-items:center;justify-content:center;color:#fff;font-size:.72rem;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;transition:width .3s;min-width:0;overflow:hidden}
+  .sumtag{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;font-weight:700;padding:4px 12px;border-radius:999px}
+  .sumtag.ok{background:#e2f1e8;color:var(--ok)}
+  .sumtag.bad{background:#fbe6e2;color:var(--danger)}
+
+  .facultycard{border:1px solid var(--line);border-radius:12px;padding:14px 16px;margin:12px 0;background:#fbfcfb}
+  .facultycard .fchd{display:flex;gap:10px;align-items:center;margin-bottom:6px}
+  .facultycard .fchd input{flex:1;font-weight:600}
+  .rm{background:none;border:none;color:var(--danger);font-size:.85rem;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif}
+
+  /* radar */
+  .radar-flex{display:grid;grid-template-columns:1fr 1fr;gap:20px;align-items:center}
+  .sliders .srow{margin:14px 0}
+  .sliders .srow .top{display:flex;justify-content:space-between;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;font-size:.86rem;margin-bottom:3px}
+  .sliders .srow .top b{color:var(--c)}
+  .sliders input[type=range]{width:100%;accent-color:var(--c,var(--brand))}
+
+  /* idea generator */
+  .idea{border:1px solid var(--line);border-radius:12px;padding:14px 16px;margin:10px 0;background:#fff}
+  .idea h4{margin:0 0 4px;font-size:1rem}
+  .idea p{margin:0 0 8px;font-size:.86rem;color:var(--ink-soft)}
+  .idea .touches{display:flex;gap:6px;flex-wrap:wrap;align-items:center}
+  .idea .touches .lbl{font-size:.72rem;color:var(--muted);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif}
+
+  /* summary */
+  .summary-block{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);padding:22px 26px;box-shadow:var(--shadow);margin:14px 0}
+  .summary-block h3{border-bottom:2px solid var(--accent-soft);padding-bottom:6px}
+  .summary-block h4{margin:16px 0 4px;color:var(--brand)}
+  .summary-block ul{margin:4px 0}
+  .empty{color:var(--muted);font-style:italic}
+  .kv{display:flex;gap:8px;margin:3px 0;font-size:.92rem}
+  .kv b{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;min-width:120px;color:var(--ink-soft)}
+
+  footer.site{border-top:1px solid var(--line);background:#eef0ec;padding:26px 0;font-size:.85rem;color:var(--ink-soft)}
+  footer.site .wrap{display:flex;gap:20px;flex-wrap:wrap;align-items:flex-start}
+  footer.site .cite{flex:1;min-width:260px}
+  footer.site strong{color:var(--brand-ink)}
+  footer.site a{word-break:break-word}
+
+  /* About modal */
+  .modal-bg{display:none;position:fixed;inset:0;background:rgba(14,30,40,.55);z-index:200;align-items:center;justify-content:center;padding:20px}
+  .modal-bg.open{display:flex}
+  .modal{background:#fff;max-width:640px;width:100%;max-height:88vh;overflow:auto;border-radius:16px;padding:28px 30px;box-shadow:0 20px 60px rgba(0,0,0,.3)}
+  .modal h2{margin-top:0}
+  .modal .x{float:right;background:none;border:none;font-size:1.5rem;color:var(--muted);line-height:1}
+  .modal p{color:var(--ink-soft);font-size:.94rem}
+
+  .toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(20px);background:var(--brand-ink);color:#fff;
+    padding:12px 22px;border-radius:999px;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;font-size:.9rem;
+    opacity:0;transition:.3s;z-index:300;box-shadow:var(--shadow)}
+  .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+
+  @media (max-width:760px){
+    .dims{grid-template-columns:1fr 1fr}
+    .paths{grid-template-columns:1fr}
+    .pc{grid-template-columns:1fr}
+    .radar-flex{grid-template-columns:1fr}
+    .alloc-row .aname{flex-basis:130px}
+    .progwrap{margin-left:0;text-align:left;width:100%}
+    .pagehead h2{font-size:1.4rem}
+  }
+
+  @media print{
+    header.top,.top-actions,footer.site,.backl,.btn,.no-print,.module > .mhead .chev,.info{display:none !important}
+    body{background:#fff;font-size:12pt}
+    .view{display:none !important}
+    #printView{display:block !important}
+    .summary-block{box-shadow:none;border:1px solid #bbb;break-inside:avoid}
+  }
+</style>
+</head>
+<body>
+<a href="#main" class="skip">Skip to content</a>
+
+<header class="top">
+  <div class="wrap">
+    <svg class="logo" viewBox="0 0 64 64" aria-hidden="true">
+      <circle cx="32" cy="32" r="30" fill="rgba(255,255,255,.12)" stroke="rgba(255,255,255,.5)" stroke-width="2"/>
+      <circle cx="32" cy="16" r="6" fill="#dbeef2"/>
+      <circle cx="48" cy="32" r="6" fill="#f3e9d6"/>
+      <circle cx="32" cy="48" r="6" fill="#dbeef2"/>
+      <circle cx="16" cy="32" r="6" fill="#f3e9d6"/>
+      <circle cx="32" cy="32" r="7" fill="#fff"/>
+      <line x1="32" y1="24" x2="32" y2="26" stroke="#fff" stroke-width="2"/>
+      <line x1="40" y1="32" x2="42" y2="32" stroke="#fff" stroke-width="2"/>
+      <line x1="32" y1="40" x2="32" y2="38" stroke="#fff" stroke-width="2"/>
+      <line x1="24" y1="32" x2="22" y2="32" stroke="#fff" stroke-width="2"/>
+    </svg>
+    <div class="brand-txt">
+      <h1>Scholarly Impact Toolkit</h1>
+      <p>A practical companion for rigorous, credible, and impactful research</p>
+    </div>
+    <div class="top-actions sans">
+      <button id="navHome" onclick="go('home')" aria-pressed="true">Home</button>
+      <button id="navA" onclick="go('pathA')" aria-pressed="false">Administrators</button>
+      <button id="navB" onclick="go('pathB')" aria-pressed="false">Researchers</button>
+      <button id="navPlan" onclick="go('plan')" aria-pressed="false">My Impact Plan</button>
+      <button onclick="openAbout()">About</button>
+    </div>
+  </div>
+</header>
+
+<main id="main">
+<div class="wrap">
+
+<!-- ============ HOME ============ -->
+<section id="home" class="view active" aria-label="Home">
+  <div class="hero">
+    <h2>Enhance your scholarly impact</h2>
+    <p class="lede">Scholarly impact is <em>multidimensional</em> and <em>multistakeholder</em>. This toolkit turns a validated framework into interactive, trackable actions — and compiles your choices into an exportable impact plan.</p>
+  </div>
+
+  <div class="dims" role="list" aria-label="The four dimensions of scholarly impact">
+    <div class="dim" style="--c:var(--dim-theory)" role="listitem">
+      <div class="who">Other researchers</div>
+      <h4>Theory &amp; Research</h4>
+      <p>Influence on the thinking and work of other scholars — measured by citations, h-index, and related metrics.</p>
+    </div>
+    <div class="dim" style="--c:var(--dim-edu)" role="listitem">
+      <div class="who">Students</div>
+      <h4>Education</h4>
+      <p>Long-lasting influence on student development by disseminating relevant knowledge and its applications.</p>
+    </div>
+    <div class="dim" style="--c:var(--dim-org)" role="listitem">
+      <div class="who">Practitioners</div>
+      <h4>Organizations</h4>
+      <p>Influence on managers and consultants who apply the knowledge that research generates.</p>
+    </div>
+    <div class="dim" style="--c:var(--dim-soc)" role="listitem">
+      <div class="who">Policy makers</div>
+      <h4>Society</h4>
+      <p>Influence on legislators and government officials who shape policy for the public good.</p>
+    </div>
+  </div>
+
+  <div class="principles">
+    <h3>Core principles the toolkit is built on</h3>
+    <ul>
+      <li>Impact on one dimension does <strong>not</strong> imply impact on the others — each needs its own measure.</li>
+      <li>Be <strong>locally sensitive</strong>: institutions and individuals have different strategic priorities that shift over time.</li>
+      <li>The dimensions are <strong>complementary, not mutually exclusive</strong>.</li>
+      <li>A single action can affect <strong>multiple dimensions and stakeholders simultaneously</strong>.</li>
+      <li>The model is flexible, expandable, scalable, and adaptable — so you can <strong>add or reweight dimensions</strong> to fit your context.</li>
+    </ul>
+  </div>
+
+  <h3 class="sans" style="text-align:center;margin:30px 0 4px;color:var(--brand-ink)">Choose your path</h3>
+  <div class="paths">
+    <div class="pathcard">
+      <span class="tag">Path A</span>
+      <h3>University administrators</h3>
+      <p>Department chairs, deans, research-center directors, and VPs for research who set priorities, rewards, and resource allocation.</p>
+      <ul>
+        <li>Align impact goals with actions &amp; resources</li>
+        <li>Portfolio-based performance &amp; rewards</li>
+        <li>Strategic journal-list decisions</li>
+        <li>Build a strong doctoral program</li>
+        <li>Promote practical knowledge &amp; applications</li>
+      </ul>
+      <button class="btn block" onclick="go('pathA')">Enter administrator path →</button>
+    </div>
+    <div class="pathcard">
+      <span class="tag">Path B</span>
+      <h3>Researchers &amp; educators</h3>
+      <p>Faculty and aspiring faculty who generate impact through research, teaching, and service across career stages.</p>
+      <ul>
+        <li>Build a personal scholarly impact plan</li>
+        <li>Become an "academic decathlete"</li>
+        <li>Affect multiple dimensions at once</li>
+        <li>Leverage social media for external reach</li>
+      </ul>
+      <button class="btn block" onclick="go('pathB')">Enter researcher path →</button>
+    </div>
+  </div>
+
+  <div class="callout" style="text-align:center">
+    Your work is saved in memory as you go. Visit <button class="btn ghost sm" onclick="go('plan')">My Impact Plan</button> any time to review, print, or download everything you have built.
+  </div>
+  <p class="sans" style="text-align:center;font-size:.78rem;color:var(--muted)">Nothing you enter leaves your browser. Selections are held in memory for this session only.</p>
+</section>
+
+<!-- ============ PATH A ============ -->
+<section id="pathA" class="view" aria-label="Administrator path">
+  <div class="pagehead">
+    <div>
+      <button class="backl sans" onclick="go('home')">← All paths</button>
+      <h2>Path A · University administrators</h2>
+      <p>Five recommendations for aligning leadership decisions with the impact dimensions your institution values. Work through each module and check off actions as you commit to them.</p>
+    </div>
+    <div class="progwrap sans">
+      <span class="lbl" id="progA-lbl">0% complete</span>
+      <div class="progbar"><i id="progA-bar"></i></div>
+    </div>
+  </div>
+  <div id="modulesA"></div>
+</section>
+
+<!-- ============ PATH B ============ -->
+<section id="pathB" class="view" aria-label="Researcher path">
+  <div class="pagehead">
+    <div>
+      <button class="backl sans" onclick="go('home')">← All paths</button>
+      <h2>Path B · Researchers &amp; educators</h2>
+      <p>Four recommendations for building a deliberate, multi-dimensional impact profile across the arc of your career. Everything you enter flows into your exportable plan.</p>
+    </div>
+    <div class="progwrap sans">
+      <span class="lbl" id="progB-lbl">0% complete</span>
+      <div class="progbar"><i id="progB-bar"></i></div>
+    </div>
+  </div>
+  <div id="modulesB"></div>
+</section>
+
+<!-- ============ PLAN ============ -->
+<section id="plan" class="view" aria-label="My Impact Plan">
+  <div class="pagehead">
+    <div>
+      <button class="backl sans" onclick="go('home')">← Home</button>
+      <h2>My Impact Plan</h2>
+      <p>A compiled view of every selection, weight, horizon goal, and committed action. Print it, or download it as a file to keep and share.</p>
+    </div>
+    <div class="progwrap sans no-print" style="display:flex;gap:8px;justify-content:flex-end;align-items:center;flex-wrap:wrap">
+      <button class="btn accent sm" onclick="downloadPlan('md')">⬇ Markdown</button>
+      <button class="btn accent sm" onclick="downloadPlan('html')">⬇ HTML</button>
+      <button class="btn sm" onclick="window.print()">🖨 Print / PDF</button>
+    </div>
+  </div>
+  <div id="planContent"></div>
+</section>
+
+<!-- print-only container -->
+<div id="printView" style="display:none"></div>
+
+</div>
+</main>
+
+<footer class="site">
+  <div class="wrap">
+    <div class="cite">
+      <strong>About this toolkit.</strong> The recommendations operationalized here derive from the scholarly-impact framework of
+      Herman Aguinis, Larry Yu, and Cevat Tosun, developed in the peer-reviewed article and integrated into the body of work below.
+      <p style="margin:10px 0 0">
+        <strong>Primary source (please credit):</strong><br>
+        Aguinis, H. 2025. <em>Research methodology: Best practices for rigorous, credible, and impactful research.</em> SAGE.<br>
+        <a href="https://collegepublishing.sagepub.com/products/research-methodology-1-280088" target="_blank" rel="noopener">https://collegepublishing.sagepub.com/products/research-methodology-1-280088</a>
+      </p>
+      <p style="margin:8px 0 0;font-size:.8rem;color:var(--muted)">
+        Framework origin: Aguinis, H., Yu, L., &amp; Tosun, C. (2021). How to enhance scholarly impact: recommendations for university administrators, researchers and educators.
+        <em>International Journal of Contemporary Hospitality Management, 33</em>(8), 2485–2499.
+      </p>
+    </div>
+    <div style="flex:0 0 auto">
+      <button class="btn ghost sm" onclick="openAbout()">About &amp; attribution</button>
+    </div>
+  </div>
+</footer>
+
+<!-- About modal -->
+<div class="modal-bg" id="aboutModal" role="dialog" aria-modal="true" aria-labelledby="aboutTitle">
+  <div class="modal">
+    <button class="x" onclick="closeAbout()" aria-label="Close">&times;</button>
+    <h2 id="aboutTitle">About the Scholarly Impact Toolkit</h2>
+    <p>This is a practical companion for improving the impact of research. It translates a validated, multidimensional and multistakeholder model of scholarly impact into interactive modules, trackable actions, and an exportable action plan.</p>
+    <p>Scholarly impact is defined across four dimensions — <strong>Theory &amp; Research</strong> (other researchers), <strong>Education</strong> (students), <strong>Organizations</strong> (practitioners), and <strong>Society</strong> (policy makers). Impact on one dimension does not imply impact on the others; the dimensions are complementary, and single actions can touch several at once. The model is flexible, expandable, scalable, and adaptable to different institutions and career stages.</p>
+    <p><strong>The recommendations implemented here derive from the following body of work, which should be credited:</strong></p>
+    <p style="background:var(--accent-soft);padding:12px 14px;border-radius:10px;color:var(--brand-ink)">
+      Aguinis, H. 2025. <em>Research methodology: Best practices for rigorous, credible, and impactful research.</em> SAGE.<br>
+      <a href="https://collegepublishing.sagepub.com/products/research-methodology-1-280088" target="_blank" rel="noopener">https://collegepublishing.sagepub.com/products/research-methodology-1-280088</a>
+    </p>
+    <p style="font-size:.85rem;color:var(--muted)">The underlying framework was first published as Aguinis, H., Yu, L., &amp; Tosun, C. (2021), <em>International Journal of Contemporary Hospitality Management, 33</em>(8), 2485–2499 (CC BY 4.0).</p>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+/* =========================================================================
+   Scholarly Impact Toolkit — all state in memory, no storage, no libraries
+   ========================================================================= */
+
+/* ---- Dimension metadata ---- */
+const DIMS = [
+  {id:'theory', label:'Theory & Research', who:'Other researchers', color:'#2b6f8f'},
+  {id:'edu',    label:'Education',         who:'Students',          color:'#4f8a4a'},
+  {id:'org',    label:'Organizations',     who:'Practitioners',     color:'#b8863b'},
+  {id:'soc',    label:'Society',           who:'Policy makers',     color:'#8a5aa8'}
+];
+const DIM = Object.fromEntries(DIMS.map(d=>[d.id,d]));
+
+/* ---- In-memory application state ---- */
+const state = {
+  role:null,
+  open:{}, // module open/closed
+  // Path A
+  a1:{priorities:new Set(), notes:''},
+  a2:{faculty:[]}, // {id,name,weights:{theory,edu,org,soc}}
+  a3:{journals:new Set(), notes:''},
+  a4:{checks:{}},
+  a5:{checks:{}, notes:''},
+  aChecks:{}, // generic per-module completion checkboxes keyed "modId:itemId"
+  // Path B
+  b1:{near:{dims:new Set(),how:''}, mid:{dims:new Set(),how:''}, long:{dims:new Set(),how:''}, foundation:{}},
+  b2:{scores:{}, roles:{}},
+  b3:{picked:new Set(), notes:''},
+  b4:{channels:new Set(), routine:'', audience:new Set()},
+  bChecks:{}
+};
+DIMS.forEach(d=>{ state.b2.scores[d.id]=3; });
+
+/* ---- tiny helpers ---- */
+const $=(s,r=document)=>r.querySelector(s);
+const $$=(s,r=document)=>[...r.querySelectorAll(s)];
+const el=(t,a={},...kids)=>{const n=document.createElement(t);for(const k in a){if(k==='class')n.className=a[k];else if(k==='html')n.innerHTML=a[k];else if(k.startsWith('on'))n.addEventListener(k.slice(2),a[k]);else n.setAttribute(k,a[k]);}kids.flat().forEach(c=>n.appendChild(typeof c==='string'?document.createTextNode(c):c));return n;};
+function toast(msg){const t=$('#toast');t.textContent=msg;t.classList.add('show');clearTimeout(t._t);t._t=setTimeout(()=>t.classList.remove('show'),2200);}
+function dimPill(id){const d=DIM[id];return `<span class="tagpill" style="background:${d.color}">${d.label}</span>`;}
+function esc(s){return (s||'').replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));}
+
+/* ---- info tooltip ---- */
+function info(text){
+  return `<button class="info" aria-label="More information" tabindex="0">i<span class="tip">${text}</span></button>`;
+}
+
+/* ---- Navigation ---- */
+function go(id){
+  $$('.view').forEach(v=>v.classList.remove('active'));
+  $('#'+id).classList.add('active');
+  const map={home:'navHome',pathA:'navA',pathB:'navB',plan:'navPlan'};
+  $$('.top-actions button[aria-pressed]').forEach(b=>b.setAttribute('aria-pressed','false'));
+  if(map[id]) $('#'+map[id]).setAttribute('aria-pressed','true');
+  if(id==='plan') renderPlan();
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
+/* ---- Module scaffold ---- */
+function moduleShell(path, idx, num, title, sub, bodyBuilder){
+  const modId = path+idx;
+  const open = !!state.open[modId];
+  const wrap = el('div',{class:'module'+(open?' open':''),id:'mod-'+modId});
+  const head = el('button',{class:'mhead',type:'button','aria-expanded':open?'true':'false',onclick:()=>{
+    state.open[modId]=!state.open[modId];
+    wrap.classList.toggle('open');
+    head.setAttribute('aria-expanded',state.open[modId]?'true':'false');
+  }});
+  head.append(
+    el('span',{class:'mnum'},String(num)),
+    el('span',{class:'mt'},
+      el('h3',{},title),
+      el('span',{class:'sub'},sub)
+    ),
+    el('span',{class:'mstate',id:'state-'+modId},'Not started'),
+    el('span',{class:'chev',html:'▾'})
+  );
+  const body = el('div',{class:'mbody'});
+  bodyBuilder(body, modId);
+  wrap.append(head, body);
+  return wrap;
+}
+
+/* ---- completion checkbox (drives progress) ---- */
+function completionRow(store, key, labelHtml){
+  const id = key.replace(/[^a-z0-9]/gi,'_');
+  const row = el('label',{class:'checkline',for:id});
+  const cb = el('input',{type:'checkbox',id});
+  cb.checked = !!store[key];
+  cb.addEventListener('change',()=>{ store[key]=cb.checked; refreshProgress(); refreshStates(); });
+  row.append(cb, el('span',{class:'ctxt',html:labelHtml}));
+  return row;
+}
+
+/* =========================================================================
+   PATH A MODULES
+   ========================================================================= */
+function buildPathA(){
+  const root = $('#modulesA'); root.innerHTML='';
+
+  /* --- A1 Alignment checker --- */
+  root.append(moduleShell('a',1,1,'Align impact goals with actions & resources',
+    'Pick your strategic priorities; the tool surfaces matching actions and flags misalignment risk.',
+    (b,modId)=>{
+      b.append(el('p',{class:'intro',html:'Select the impact dimension(s) your unit is prioritizing '+info('The recommendation is not to invest in one dimension over another, but to make resource allocations that directly match your strategic priorities.')+'. Recommended actions will appear below.'}));
+      const chips = el('div',{class:'chips'});
+      DIMS.forEach(d=>{
+        const c=el('button',{class:'chip',type:'button','aria-pressed':state.a1.priorities.has(d.id)?'true':'false',style:`--c:${d.color};--pick:${d.color}22`},
+          el('span',{class:'dot',style:`--c:${d.color}`}), d.label);
+        c.addEventListener('click',()=>{
+          state.a1.priorities.has(d.id)?state.a1.priorities.delete(d.id):state.a1.priorities.add(d.id);
+          c.setAttribute('aria-pressed',state.a1.priorities.has(d.id)?'true':'false');
+          renderA1Actions(out); refreshStates();
+        });
+        chips.append(c);
+      });
+      b.append(chips);
+      const out = el('div',{}); b.append(out);
+      renderA1Actions(out);
+      b.append(el('label',{class:'fld'},'Alignment notes (resources you will commit)'));
+      const ta=el('textarea',{rows:'2',placeholder:'e.g., reduced teaching loads for top researchers, summer support, endowed-chair fundraising target…'});
+      ta.value=state.a1.notes; ta.addEventListener('input',()=>state.a1.notes=ta.value);
+      b.append(ta);
+    }));
+
+  /* --- A2 Portfolio weighting --- */
+  root.append(moduleShell('a',2,2,'Portfolio-based performance & rewards',
+    'Allocate weights across the four dimensions per faculty member. Weights must sum to 100%.',
+    (b,modId)=>{
+      b.append(el('p',{class:'intro',html:'Not all faculty can influence all dimensions at a similarly high level. Use a <strong>portfolio approach</strong> '+info('Different faculty excel on different dimensions. Each valuable contribution should be recognized and rewarded — and weights can change over time as interests and career stage shift.')+': give each person a weighting that reflects their strengths, and adjust it over time.'}));
+      const list=el('div',{id:'facList'}); b.append(list);
+      b.append(el('button',{class:'btn ghost sm',onclick:()=>{addFaculty();}},'＋ Add faculty member'));
+      renderFaculty(list);
+    }));
+
+  /* --- A3 Journal list --- */
+  root.append(moduleShell('a',3,3,'Be strategic in selecting a journal list',
+    'Weigh the pros and cons of an "A-journal" list, then build a list matched to the impact you want.',
+    (b,modId)=>{
+      b.append(el('p',{class:'intro',html:'A journal list is a management tool — powerful, but only if used strategically '+info('Chiefly relying on A-journals narrows focus to other researchers and can crowd out education, organizations, and society impact.')+'. Review both sides, then choose journal types matched to the dimensions you want to affect.'}));
+      const pc=el('div',{class:'pc'});
+      pc.append(
+        el('div',{class:'col adv'},el('h4',{html:'✓ Advantages of an A-list'}),el('ul',{},
+          ...['Sets standards for determining the value of research',
+              'Shows transparency and fairness in assessment and rewards',
+              'Reduces bias held by reviewers from other fields',
+              'Protects junior faculty from biased decisions',
+              'Establishes guidelines for doctoral training & early-career development'
+             ].map(t=>el('li',{},t)))),
+        el('div',{class:'col dis'},el('h4',{html:'✕ Disadvantages of over-reliance'}),el('ul',{},
+          ...['Increases questionable research practices (QRPs)',
+              'Encourages reciprocal sham authorship & inflated credit',
+              'Narrows focus onto other researchers exclusively',
+              'Stifles innovative exploration and new theorizing',
+              'Discourages communication with external stakeholders',
+              'Over-rewards immediately monetizable work (e.g., summer support) over mentoring & institution-building'
+             ].map(t=>el('li',{},t))))
+      );
+      b.append(pc);
+      b.append(el('div',{class:'callout',html:'<strong>Builder.</strong> Beyond top theory-and-research journals, include outlets matched to the dimensions you want to influence:'}));
+      const opts=[
+        {id:'top',label:'Top-tier / SSCI-indexed research journals',dim:'theory'},
+        {id:'teach',label:'Scholarship-of-teaching journals (e.g., hospitality & tourism education)',dim:'edu'},
+        {id:'prac',label:'Practitioner / bridging journals for managers & consultants',dim:'org'},
+        {id:'policy',label:'Policy-oriented outlets reaching government & society',dim:'soc'},
+        {id:'cases',label:'Case journals (teaching cases influencing multiple stakeholders)',dim:'edu'}
+      ];
+      const chips=el('div',{class:'chips'});
+      opts.forEach(o=>{
+        const d=DIM[o.dim];
+        const c=el('button',{class:'chip',type:'button','aria-pressed':state.a3.journals.has(o.id)?'true':'false',style:`--c:${d.color};--pick:${d.color}22`},
+          el('span',{class:'dot',style:`--c:${d.color}`}),o.label);
+        c.addEventListener('click',()=>{
+          state.a3.journals.has(o.id)?state.a3.journals.delete(o.id):state.a3.journals.add(o.id);
+          c.setAttribute('aria-pressed',state.a3.journals.has(o.id)?'true':'false'); refreshStates();
+        });
+        chips.append(c);
+      });
+      b.append(chips);
+      b.append(el('label',{class:'fld'},'Specific journals to add to your list'));
+      const ta=el('textarea',{rows:'2',placeholder:'List candidate journals by name…'});
+      ta.value=state.a3.notes; ta.addEventListener('input',()=>state.a3.notes=ta.value); b.append(ta);
+    }));
+
+  /* --- A4 Doctoral program --- */
+  root.append(moduleShell('a',4,4,'Develop a strong doctoral program',
+    'A long-term investment that pays off across every impact dimension.',
+    (b,modId)=>{
+      b.append(el('p',{class:'intro',html:'Investing in doctoral education is a long-term commitment '+info('Benefits are not just publications (theory & research) but reputation, loyal alumni, and future field leaders — influencing education, organizations, and society too.')+' that strengthens several dimensions at once. Commit to the practices below:'}));
+      const items=[
+        {k:'teach',t:'Provide teaching opportunities',d:'So doctoral students develop pedagogical skills.',dims:['edu']},
+        {k:'bridge',t:'Mentor students to write practitioner-oriented / bridging articles early',d:'Learning to bridge theory and practice from the start of their careers.',dims:['org','theory']},
+        {k:'reputation',t:'Take a long-term strategic view of funding & support',d:'Loyal alumni become professors and field leaders who elevate the program\'s reputation.',dims:['theory','soc']},
+        {k:'dop',t:'Consider a Doctorate-of-Practice program',d:'Produces influential practitioner-scholars for external (organizations & society) impact.',dims:['org','soc']}
+      ];
+      items.forEach(it=>{
+        b.append(completionRow(state.a4.checks, it.k,
+          `<span class="ct">${it.t}</span><span class="cd">${it.d}</span><span class="tags">${it.dims.map(dimPill).join('')}</span>`));
+      });
+    }));
+
+  /* --- A5 Practical knowledge --- */
+  root.append(moduleShell('a',5,5,'Promote practical knowledge & applications',
+    'Bridge the research–education and research–practice gaps to grow external impact.',
+    (b,modId)=>{
+      b.append(el('p',{class:'intro',html:'To enhance impact on organizations and society, integrate education and research with industry practice '+info('Practical industry skills are often undervalued next to top-journal publications; deliberate structures close that gap.')+'. Plan the actions you will institutionalize:'}));
+      const items=[
+        {k:'coord',t:'Coordinate with development, career, and alumni offices',d:'Formulate a strategy for broader industry exposure for faculty.',dims:['org']},
+        {k:'partner',t:'Forge partnerships with private organizations & public agencies',d:'Provide faculty and students access for experiential learning and applied research.',dims:['org','soc']},
+        {k:'consult',t:'Institutionalize faculty consulting tied to student projects',d:'Student involvement in consulting also enhances the education dimension.',dims:['org','edu']},
+        {k:'sabbatical',t:'Incentivize applied-research sabbaticals',d:'Encourage spending part of a sabbatical inside an organization rather than another university.',dims:['org']}
+      ];
+      items.forEach(it=>{
+        b.append(completionRow(state.a5.checks, it.k,
+          `<span class="ct">${it.t}</span><span class="cd">${it.d}</span><span class="tags">${it.dims.map(dimPill).join('')}</span>`));
+      });
+      b.append(el('label',{class:'fld'},'Named partners / programs to pursue'));
+      const ta=el('textarea',{rows:'2',placeholder:'e.g., local tourism board, alumni-owned firms, applied-research host organizations…'});
+      ta.value=state.a5.notes; ta.addEventListener('input',()=>state.a5.notes=ta.value); b.append(ta);
+    }));
+
+  refreshStates(); refreshProgress();
+}
+
+/* ---- A1 dynamic actions ---- */
+const A1_ACTIONS = {
+  theory:['Recruit senior faculty with known research records for endowed chairs & professorships',
+          'Engage in external fundraising to support research',
+          'Establish formal mentoring programs for early-career faculty',
+          'Provide ongoing methodological training so skills stay current',
+          'Give administrators at all levels clear guidelines for measuring impact on theory & research'],
+  edu:['Reward teaching excellence and scholarship of teaching',
+       'Create mentoring for pedagogical development',
+       'Recognize textbooks and teaching cases as valued contributions'],
+  org:['Institutionalize faculty consulting linked to applied projects',
+       'Build partnerships with private organizations for applied research',
+       'Reward practitioner-oriented and bridging publications'],
+  soc:['Support faculty engagement with policy makers and public agencies',
+       'Value expert testimony and evidence-based policy contributions',
+       'Fund dissemination that reaches society beyond academia']
+};
+function renderA1Actions(out){
+  out.innerHTML='';
+  const picks=[...state.a1.priorities];
+  if(!picks.length){ out.append(el('p',{class:'empty sans'},'Select at least one priority to see matching actions.')); return; }
+  picks.forEach(p=>{
+    const d=DIM[p];
+    const box=el('div',{class:'callout ok',style:`border-color:${d.color};background:${d.color}12;color:${d.color}`});
+    box.append(el('strong',{},`Recommended actions · ${d.label}`));
+    const ul=el('ul',{style:'margin:6px 0 0'}); A1_ACTIONS[p].forEach(a=>ul.append(el('li',{},a))); box.append(ul);
+    out.append(box);
+  });
+  // misalignment flag
+  if(state.a1.priorities.has('theory')){
+    out.append(el('div',{class:'callout warn',html:'<strong>⚠ Misalignment risk.</strong> Aspiring to research impact without matching resources — reduced teaching loads for top researchers and summer support — tends to drive your most impactful performers away. Confirm the resources below match the goal.'}));
+  }
+  if(state.a1.priorities.size>=3){
+    out.append(el('div',{class:'callout',html:'<strong>Note.</strong> Prioritizing many dimensions at once dilutes signal. Be locally sensitive: weight what matters most for your unit right now, and revisit over time.'}));
+  }
+}
+
+/* ---- A2 faculty portfolio ---- */
+function addFaculty(name){
+  state.a2.faculty.push({id:'f'+Date.now()+Math.random().toString(36).slice(2,5),
+    name:name||('Faculty member '+(state.a2.faculty.length+1)),
+    weights:{theory:25,edu:25,org:25,soc:25}});
+  renderFaculty($('#facList')); refreshStates();
+}
+function renderFaculty(list){
+  list.innerHTML='';
+  if(!state.a2.faculty.length){ list.append(el('p',{class:'empty sans'},'No faculty yet. Add one to allocate impact weights.')); return; }
+  state.a2.faculty.forEach(f=>{
+    const card=el('div',{class:'facultycard'});
+    const hd=el('div',{class:'fchd'});
+    const nm=el('input',{type:'text',value:f.name,'aria-label':'Faculty name'});
+    nm.addEventListener('input',()=>f.name=nm.value);
+    hd.append(nm, el('button',{class:'rm sans',onclick:()=>{state.a2.faculty=state.a2.faculty.filter(x=>x!==f);renderFaculty(list);refreshStates();}},'Remove'));
+    card.append(hd);
+    DIMS.forEach(d=>{
+      const row=el('div',{class:'alloc-row',style:`--c:${d.color}`});
+      const rng=el('input',{type:'range',min:'0',max:'100',step:'5',value:f.weights[d.id],'aria-label':d.label+' weight'});
+      const num=el('input',{type:'number',min:'0',max:'100',value:f.weights[d.id],'aria-label':d.label+' weight percent'});
+      const sync=(v)=>{v=Math.max(0,Math.min(100,+v||0));f.weights[d.id]=v;rng.value=v;num.value=v;updateAllocBar(f,bar,sum);};
+      rng.addEventListener('input',()=>sync(rng.value));
+      num.addEventListener('input',()=>sync(num.value));
+      row.append(el('span',{class:'aname'},el('span',{class:'dot',style:`width:11px;height:11px;border-radius:50%;background:${d.color};display:inline-block`}),d.label),
+                 rng, el('span',{class:'aval'},num));
+      card.append(row);
+    });
+    const bar=el('div',{class:'allocbar'});
+    const sum=el('div',{style:'display:flex;justify-content:space-between;align-items:center;margin-top:8px;font-family:sans-serif'});
+    card.append(bar,sum);
+    updateAllocBar(f,bar,sum);
+    list.append(card);
+  });
+}
+function facultyTotal(f){return DIMS.reduce((s,d)=>s+(+f.weights[d.id]||0),0);}
+function updateAllocBar(f,bar,sum){
+  const total=facultyTotal(f);
+  bar.innerHTML='';
+  DIMS.forEach(d=>{
+    const w=+f.weights[d.id]||0; if(w<=0)return;
+    const seg=el('span',{style:`width:${w}%;background:${d.color}`}, w>=8?w+'%':'');
+    bar.append(seg);
+  });
+  sum.innerHTML='';
+  const ok=total===100;
+  sum.append(el('span',{class:'sans',style:'font-size:.82rem;color:var(--muted)'},'Weights must total 100%'),
+             el('span',{class:'sumtag '+(ok?'ok':'bad')}, ok?('✓ '+total+'%'):(total+'% — '+(total>100?'over by '+(total-100):'short by '+(100-total)))));
+}
+
+/* =========================================================================
+   PATH B MODULES
+   ========================================================================= */
+function buildPathB(){
+  const root=$('#modulesB'); root.innerHTML='';
+
+  /* B1 personal plan across horizons */
+  root.append(moduleShell('b',1,1,'Develop your personal scholarly impact plan',
+    'Set goals for near-term (1–2 yrs), mid-range (3–6 yrs), and longer-term (6+ yrs) horizons.',
+    (b,modId)=>{
+      b.append(el('p',{class:'intro',html:'Ask: <em>When do I want to have an impact on which dimensions and stakeholders, and how exactly?</em> '+info('Credible, impactful work rests on top-notch research training and minimizing questionable research practices (QRPs).')}));
+      const horizons=[
+        {k:'near',t:'Near term',s:'1–2 years'},
+        {k:'mid',t:'Mid-range',s:'3–6 years'},
+        {k:'long',t:'Longer term',s:'6+ years'}
+      ];
+      horizons.forEach(h=>{
+        const box=el('div',{class:'facultycard'});
+        box.append(el('div',{class:'fchd'},el('strong',{class:'sans'},`${h.t} `),el('span',{class:'sans',style:'color:var(--muted);font-size:.82rem'},h.s)));
+        const chips=el('div',{class:'chips'});
+        DIMS.forEach(d=>{
+          const on=state.b1[h.k].dims.has(d.id);
+          const c=el('button',{class:'chip',type:'button','aria-pressed':on?'true':'false',style:`--c:${d.color};--pick:${d.color}22`},
+            el('span',{class:'dot',style:`--c:${d.color}`}),d.label);
+          c.addEventListener('click',()=>{
+            state.b1[h.k].dims.has(d.id)?state.b1[h.k].dims.delete(d.id):state.b1[h.k].dims.add(d.id);
+            c.setAttribute('aria-pressed',state.b1[h.k].dims.has(d.id)?'true':'false'); refreshStates();
+          });
+          chips.append(c);
+        });
+        box.append(chips);
+        const ta=el('textarea',{rows:'2',placeholder:'How will you achieve impact on these stakeholders in this horizon?'});
+        ta.value=state.b1[h.k].how; ta.addEventListener('input',()=>{state.b1[h.k].how=ta.value;refreshStates();});
+        box.append(ta);
+        b.append(box);
+      });
+      b.append(el('div',{class:'callout',html:'<strong>Foundation.</strong> Impactful work of any kind starts here:'}));
+      b.append(completionRow(state.b1.foundation,'training','<span class="ct">Secure top-notch research training</span><span class="cd">Indispensable for high-quality, valid, trustworthy research.</span>'));
+      b.append(completionRow(state.b1.foundation,'qrp','<span class="ct">Commit to minimizing questionable research practices (QRPs)</span><span class="cd">Credibility is the precondition for impact on every dimension.</span>'));
+    }));
+
+  /* B2 academic decathlete + radar */
+  root.append(moduleShell('b',2,2,'Become an academic decathlete',
+    'Rate yourself across the four dimensions and multiple faculty roles; see your profile as a radar chart.',
+    (b,modId)=>{
+      b.append(el('p',{class:'intro',html:'The goal is not to excel in <em>all</em> dimensions '+info('Like a decathlete, aim to be strong across several events. Priorities shift across career stages — before tenure many focus on theory & research and education, broadening later.')+' — but in <strong>some</strong>, with priorities shifting across career stages. Rate your current impact (1 = low, 5 = high):'}));
+      const flex=el('div',{class:'radar-flex'});
+      const sliders=el('div',{class:'sliders'});
+      DIMS.forEach(d=>{
+        const srow=el('div',{class:'srow',style:`--c:${d.color}`});
+        const top=el('div',{class:'top'});
+        const val=el('span',{},state.b2.scores[d.id]);
+        top.append(el('b',{style:`color:${d.color}`},d.label), val);
+        const rng=el('input',{type:'range',min:'1',max:'5',step:'1',value:state.b2.scores[d.id],'aria-label':d.label+' self-rating'});
+        rng.addEventListener('input',()=>{state.b2.scores[d.id]=+rng.value;val.textContent=rng.value;drawRadar(canvas);refreshStates();});
+        srow.append(top,rng); sliders.append(srow);
+      });
+      const canvasWrap=el('div',{style:'display:flex;justify-content:center'});
+      const canvas=el('canvas',{width:'320',height:'300','role':'img','aria-label':'Radar chart of self-rated impact across the four dimensions'});
+      canvasWrap.append(canvas);
+      flex.append(sliders,canvasWrap);
+      b.append(flex);
+
+      b.append(el('label',{class:'fld'},'Which faculty roles are you actively developing? '+info('Decathletes take on many roles: teaching different student types, academic and applied research, administration, editorial-board / editor work, and consulting.')));
+      const roles=[
+        'Teaching undergraduates','Teaching graduate students','Teaching doctoral students','Teaching executives',
+        'Academic research','Applied research','Administrative / leadership role','Editorial board membership',
+        'Associate editor / editor','Consulting practice'
+      ];
+      const chips=el('div',{class:'chips'});
+      roles.forEach(r=>{
+        const on=!!state.b2.roles[r];
+        const c=el('button',{class:'chip',type:'button','aria-pressed':on?'true':'false',style:'--c:var(--brand);--pick:#eef5f7'},r);
+        c.addEventListener('click',()=>{state.b2.roles[r]=!state.b2.roles[r];c.setAttribute('aria-pressed',state.b2.roles[r]?'true':'false');refreshStates();});
+        chips.append(c);
+      });
+      b.append(chips);
+      setTimeout(()=>drawRadar(canvas),0);
+    }));
+
+  /* B3 multiple dimensions simultaneously */
+  root.append(moduleShell('b',3,3,'Affect multiple impact dimensions simultaneously',
+    'Pick synergistic activities; see which dimensions each one touches.',
+    (b,modId)=>{
+      b.append(el('p',{class:'intro',html:'The dimensions are not mutually exclusive. Start with rigorous, high-quality research '+info('Do not wait until tenure to broaden impact — by then it may be too late to adjust your impact mindset.')+', then choose activities that reach several stakeholders at once:'}));
+      const ideas=[
+        {k:'rigor',t:'Rigorous, high-quality research',d:'The starting point — establishes a visible research identity and network.',dims:['theory']},
+        {k:'bridge',t:'Bridging / practitioner-oriented articles',d:'Make research relevant, make a difference, and improve teaching — students enjoy their professors\' practical articles.',dims:['org','edu','theory']},
+        {k:'textbook',t:'Author a textbook',d:'Integrates academic and applied sources; a long-lasting influence on students who become practitioners.',dims:['edu','org']},
+        {k:'cases',t:'Write teaching cases',d:'Influence other academics, students, and external stakeholders simultaneously.',dims:['edu','theory','org']},
+        {k:'earlybroad',t:'Broaden impact before tenure',d:'Adopt a multi-dimensional mindset early rather than waiting.',dims:['theory','edu','org','soc']}
+      ];
+      ideas.forEach(it=>{
+        const idea=el('div',{class:'idea'});
+        const on=state.b3.picked.has(it.k);
+        const head=el('div',{style:'display:flex;justify-content:space-between;gap:10px;align-items:flex-start'});
+        head.append(el('div',{},el('h4',{},it.t),el('p',{},it.d)));
+        const btn=el('button',{class:'btn '+(on?'':'ghost')+' sm',type:'button'}, on?'✓ In my plan':'Add to plan');
+        btn.addEventListener('click',()=>{
+          if(state.b3.picked.has(it.k)){state.b3.picked.delete(it.k);btn.className='btn ghost sm';btn.textContent='Add to plan';}
+          else{state.b3.picked.add(it.k);btn.className='btn sm';btn.textContent='✓ In my plan';}
+          refreshStates();
+        });
+        head.append(btn); idea.append(head);
+        const t=el('div',{class:'touches'});
+        t.append(el('span',{class:'lbl'},'Touches:'));
+        it.dims.forEach(d=>t.insertAdjacentHTML('beforeend',dimPill(d)));
+        idea.append(t); b.append(idea);
+      });
+      b.append(el('label',{class:'fld'},'Your synergy ideas / working titles'));
+      const ta=el('textarea',{rows:'2',placeholder:'e.g., bridging article from my last study; case based on a partner organization…'});
+      ta.value=state.b3.notes; ta.addEventListener('input',()=>state.b3.notes=ta.value); b.append(ta);
+    }));
+
+  /* B4 social media */
+  root.append(moduleShell('b',4,4,'Leverage social media for external reach',
+    'Move beyond listservs and conferences to reach practitioners and policy makers.',
+    (b,modId)=>{
+      b.append(el('p',{class:'intro',html:'Listservs, e-newsletters, e-journals, and conferences mainly reach other researchers '+info('Social media lets you interact with and influence a broader, global audience — especially external stakeholders.')+'. Add channels that reach external stakeholders:'}));
+      b.append(el('label',{class:'fld'},'Dissemination channels to activate'));
+      const channels=['LinkedIn','X / Twitter','Facebook','YouTube / video','Personal / lab blog','Podcast appearances','Op-eds & press'];
+      const chips=el('div',{class:'chips'});
+      channels.forEach(ch=>{
+        const on=state.b4.channels.has(ch);
+        const c=el('button',{class:'chip',type:'button','aria-pressed':on?'true':'false',style:'--c:var(--brand);--pick:#eef5f7'},ch);
+        c.addEventListener('click',()=>{state.b4.channels.has(ch)?state.b4.channels.delete(ch):state.b4.channels.add(ch);c.setAttribute('aria-pressed',state.b4.channels.has(ch)?'true':'false');refreshStates();});
+        chips.append(c);
+      });
+      b.append(chips);
+      b.append(el('label',{class:'fld'},'External audiences to prioritize'));
+      const auds=[{t:'Practitioners (managers, consultants)',d:'org'},{t:'Policy makers (legislators, officials)',d:'soc'},{t:'Students & prospective students',d:'edu'},{t:'Fellow researchers',d:'theory'}];
+      const achips=el('div',{class:'chips'});
+      auds.forEach(a=>{
+        const d=DIM[a.d];const on=state.b4.audience.has(a.t);
+        const c=el('button',{class:'chip',type:'button','aria-pressed':on?'true':'false',style:`--c:${d.color};--pick:${d.color}22`},el('span',{class:'dot',style:`--c:${d.color}`}),a.t);
+        c.addEventListener('click',()=>{state.b4.audience.has(a.t)?state.b4.audience.delete(a.t):state.b4.audience.add(a.t);c.setAttribute('aria-pressed',state.b4.audience.has(a.t)?'true':'false');refreshStates();});
+        achips.append(c);
+      });
+      b.append(achips);
+      b.append(el('label',{class:'fld'},'My simple dissemination routine'));
+      const ta=el('textarea',{rows:'3',placeholder:'e.g., Share one plain-language takeaway per new paper on LinkedIn; post a monthly thread summarizing a key finding; tag relevant practitioner groups…'});
+      ta.value=state.b4.routine; ta.addEventListener('input',()=>{state.b4.routine=ta.value;refreshStates();});
+      b.append(ta);
+    }));
+
+  refreshStates(); refreshProgress();
+}
+
+/* ---- Radar chart (no libraries) ---- */
+function drawRadar(canvas){
+  const ctx=canvas.getContext('2d');
+  const W=canvas.width,H=canvas.height,cx=W/2,cy=H/2+6,R=105,N=DIMS.length,max=5;
+  ctx.clearRect(0,0,W,H);
+  // grid rings
+  for(let ring=1;ring<=max;ring++){
+    ctx.beginPath();
+    for(let i=0;i<=N;i++){
+      const a=(-Math.PI/2)+(i%N)*(2*Math.PI/N), r=R*ring/max;
+      const x=cx+r*Math.cos(a),y=cy+r*Math.sin(a);
+      i===0?ctx.moveTo(x,y):ctx.lineTo(x,y);
+    }
+    ctx.strokeStyle=ring===max?'#c7cdc9':'#e4e7e3';ctx.lineWidth=1;ctx.stroke();
+  }
+  // axes + labels
+  DIMS.forEach((d,i)=>{
+    const a=(-Math.PI/2)+i*(2*Math.PI/N);
+    const x=cx+R*Math.cos(a),y=cy+R*Math.sin(a);
+    ctx.beginPath();ctx.moveTo(cx,cy);ctx.lineTo(x,y);ctx.strokeStyle='#e4e7e3';ctx.stroke();
+    ctx.fillStyle=d.color;ctx.font='600 11px -apple-system,Segoe UI,Roboto,sans-serif';
+    ctx.textAlign=Math.abs(Math.cos(a))<0.3?'center':(Math.cos(a)>0?'left':'right');
+    ctx.textBaseline=Math.abs(Math.sin(a))<0.3?'middle':(Math.sin(a)>0?'top':'bottom');
+    const lx=cx+(R+14)*Math.cos(a),ly=cy+(R+14)*Math.sin(a);
+    // short labels to fit
+    const short={theory:'Theory',edu:'Education',org:'Organizations',soc:'Society'}[d.id];
+    ctx.fillText(short,lx,ly);
+  });
+  // data polygon
+  ctx.beginPath();
+  DIMS.forEach((d,i)=>{
+    const a=(-Math.PI/2)+i*(2*Math.PI/N), r=R*(state.b2.scores[d.id]/max);
+    const x=cx+r*Math.cos(a),y=cy+r*Math.sin(a);
+    i===0?ctx.moveTo(x,y):ctx.lineTo(x,y);
+  });
+  ctx.closePath();
+  ctx.fillStyle='rgba(31,93,112,.20)';ctx.fill();
+  ctx.strokeStyle='#1f5d70';ctx.lineWidth=2;ctx.stroke();
+  DIMS.forEach((d,i)=>{
+    const a=(-Math.PI/2)+i*(2*Math.PI/N), r=R*(state.b2.scores[d.id]/max);
+    const x=cx+r*Math.cos(a),y=cy+r*Math.sin(a);
+    ctx.beginPath();ctx.arc(x,y,4,0,2*Math.PI);ctx.fillStyle=d.color;ctx.fill();
+    ctx.strokeStyle='#fff';ctx.lineWidth=1.5;ctx.stroke();
+  });
+}
+
+/* =========================================================================
+   PROGRESS + STATE
+   ========================================================================= */
+function moduleComplete(path,idx){
+  if(path==='a'){
+    if(idx===1) return state.a1.priorities.size>0;
+    if(idx===2) return state.a2.faculty.length>0 && state.a2.faculty.every(f=>facultyTotal(f)===100);
+    if(idx===3) return state.a3.journals.size>0;
+    if(idx===4) return Object.values(state.a4.checks).filter(Boolean).length>0;
+    if(idx===5) return Object.values(state.a5.checks).filter(Boolean).length>0;
+  } else {
+    if(idx===1) return ['near','mid','long'].some(h=>state.b1[h].dims.size>0);
+    if(idx===2) return Object.values(state.b2.roles).some(Boolean);
+    if(idx===3) return state.b3.picked.size>0;
+    if(idx===4) return state.b4.channels.size>0;
+  }
+  return false;
+}
+function moduleStarted(path,idx){
+  if(path==='a'){
+    if(idx===1) return state.a1.priorities.size>0||state.a1.notes;
+    if(idx===2) return state.a2.faculty.length>0;
+    if(idx===3) return state.a3.journals.size>0||state.a3.notes;
+    if(idx===4) return Object.values(state.a4.checks).some(Boolean);
+    if(idx===5) return Object.values(state.a5.checks).some(Boolean)||state.a5.notes;
+  } else {
+    if(idx===1) return ['near','mid','long'].some(h=>state.b1[h].dims.size>0||state.b1[h].how)||Object.values(state.b1.foundation).some(Boolean);
+    if(idx===2) return Object.values(state.b2.roles).some(Boolean)||DIMS.some(d=>state.b2.scores[d.id]!==3);
+    if(idx===3) return state.b3.picked.size>0||state.b3.notes;
+    if(idx===4) return state.b4.channels.size>0||state.b4.routine||state.b4.audience.size>0;
+  }
+  return false;
+}
+function refreshStates(){
+  ['a','b'].forEach(p=>{
+    const n=p==='a'?5:4;
+    for(let i=1;i<=n;i++){
+      const s=$('#state-'+p+i); if(!s)continue;
+      if(moduleComplete(p,i)){s.textContent='Complete';s.classList.add('done');}
+      else if(moduleStarted(p,i)){s.textContent='In progress';s.classList.remove('done');}
+      else{s.textContent='Not started';s.classList.remove('done');}
+    }
+  });
+  refreshProgress();
+}
+function refreshProgress(){
+  [['a',5,'progA'],['b',4,'progB']].forEach(([p,n,pre])=>{
+    let done=0;for(let i=1;i<=n;i++)if(moduleComplete(p,i))done++;
+    const pct=Math.round(done/n*100);
+    const bar=$('#'+pre+'-bar'),lbl=$('#'+pre+'-lbl');
+    if(bar)bar.style.width=pct+'%';
+    if(lbl)lbl.textContent=pct+'% complete · '+done+'/'+n+' modules';
+  });
+}
+
+/* =========================================================================
+   MY IMPACT PLAN — compile + render + export
+   ========================================================================= */
+function planModel(){
+  const m={admin:{},research:{}};
+  // A1
+  m.admin.priorities=[...state.a1.priorities].map(id=>DIM[id].label);
+  m.admin.alignNotes=state.a1.notes;
+  // A2
+  m.admin.faculty=state.a2.faculty.map(f=>({name:f.name,weights:DIMS.map(d=>({label:d.label,w:f.weights[d.id]})),total:facultyTotal(f)}));
+  // A3
+  const jmap={top:'Top-tier / SSCI research journals',teach:'Scholarship-of-teaching journals',prac:'Practitioner / bridging journals',policy:'Policy-oriented outlets',cases:'Case journals'};
+  m.admin.journals=[...state.a3.journals].map(k=>jmap[k]);
+  m.admin.journalNotes=state.a3.notes;
+  // A4
+  const a4map={teach:'Provide teaching opportunities',bridge:'Mentor practitioner-oriented / bridging writing early',reputation:'Long-term strategic funding & support',dop:'Consider a Doctorate-of-Practice program'};
+  m.admin.doctoral=Object.keys(state.a4.checks).filter(k=>state.a4.checks[k]).map(k=>a4map[k]);
+  // A5
+  const a5map={coord:'Coordinate with development / career / alumni offices',partner:'Partnerships with private & public organizations',consult:'Faculty consulting tied to student projects',sabbatical:'Applied-research sabbaticals'};
+  m.admin.practical=Object.keys(state.a5.checks).filter(k=>state.a5.checks[k]).map(k=>a5map[k]);
+  m.admin.practicalNotes=state.a5.notes;
+
+  // B1
+  m.research.horizons=['near','mid','long'].map(h=>({
+    label:{near:'Near term (1–2 yrs)',mid:'Mid-range (3–6 yrs)',long:'Longer term (6+ yrs)'}[h],
+    dims:[...state.b1[h].dims].map(id=>DIM[id].label), how:state.b1[h].how
+  }));
+  m.research.foundation=[];
+  if(state.b1.foundation.training)m.research.foundation.push('Secure top-notch research training');
+  if(state.b1.foundation.qrp)m.research.foundation.push('Minimize questionable research practices (QRPs)');
+  // B2
+  m.research.scores=DIMS.map(d=>({label:d.label,score:state.b2.scores[d.id]}));
+  m.research.roles=Object.keys(state.b2.roles).filter(r=>state.b2.roles[r]);
+  // B3
+  const b3map={rigor:'Rigorous, high-quality research',bridge:'Bridging / practitioner-oriented articles',textbook:'Author a textbook',cases:'Write teaching cases',earlybroad:'Broaden impact before tenure'};
+  m.research.synergy=[...state.b3.picked].map(k=>b3map[k]);
+  m.research.synergyNotes=state.b3.notes;
+  // B4
+  m.research.channels=[...state.b4.channels];
+  m.research.audience=[...state.b4.audience];
+  m.research.routine=state.b4.routine;
+  return m;
+}
+
+function renderPlan(){
+  const m=planModel();
+  const c=$('#planContent'); c.innerHTML='';
+  let aDone=0;for(let i=1;i<=5;i++)if(moduleComplete('a',i))aDone++;
+  let bDone=0;for(let i=1;i<=4;i++)if(moduleComplete('b',i))bDone++;
+
+  const overview=el('div',{class:'summary-block'});
+  overview.append(el('h3',{},'Overview'));
+  overview.append(el('div',{class:'kv'},el('b',{},'Generated'),document.createTextNode(new Date().toLocaleString())));
+  overview.append(el('div',{class:'kv'},el('b',{},'Administrator path'),document.createTextNode(aDone+'/5 modules complete')));
+  overview.append(el('div',{class:'kv'},el('b',{},'Researcher path'),document.createTextNode(bDone+'/4 modules complete')));
+  c.append(overview);
+
+  const anyA = m.admin.priorities.length||m.admin.faculty.length||m.admin.journals.length||m.admin.doctoral.length||m.admin.practical.length;
+  if(anyA){
+    const s=el('div',{class:'summary-block'});
+    s.append(el('h3',{},'Path A · University administrator plan'));
+    s.append(sect('Strategic impact priorities', m.admin.priorities));
+    if(m.admin.alignNotes)s.append(para('Alignment / resources',m.admin.alignNotes));
+    if(m.admin.faculty.length){
+      s.append(el('h4',{},'Faculty performance portfolio'));
+      m.admin.faculty.forEach(f=>{
+        const line=el('div',{class:'kv'});
+        line.append(el('b',{},f.name));
+        line.append(document.createTextNode(f.weights.filter(w=>w.w>0).map(w=>`${w.label} ${w.w}%`).join(' · ')+`  (total ${f.total}%${f.total!==100?' ⚠':''})`));
+        s.append(line);
+      });
+    }
+    if(m.admin.journals.length)s.append(sect('Journal-list composition',m.admin.journals));
+    if(m.admin.journalNotes)s.append(para('Specific journals',m.admin.journalNotes));
+    if(m.admin.doctoral.length)s.append(sect('Doctoral-program commitments',m.admin.doctoral));
+    if(m.admin.practical.length)s.append(sect('Practical-knowledge actions',m.admin.practical));
+    if(m.admin.practicalNotes)s.append(para('Named partners / programs',m.admin.practicalNotes));
+    c.append(s);
+  }
+
+  const anyB = m.research.horizons.some(h=>h.dims.length||h.how)||m.research.roles.length||m.research.synergy.length||m.research.channels.length||m.research.routine||m.research.foundation.length;
+  if(anyB){
+    const s=el('div',{class:'summary-block'});
+    s.append(el('h3',{},'Path B · Researcher & educator plan'));
+    if(m.research.foundation.length)s.append(sect('Foundation',m.research.foundation));
+    const hasH=m.research.horizons.some(h=>h.dims.length||h.how);
+    if(hasH){
+      s.append(el('h4',{},'Personal impact plan by horizon'));
+      m.research.horizons.forEach(h=>{
+        if(!h.dims.length&&!h.how)return;
+        s.append(el('div',{class:'kv'},el('b',{},h.label),document.createTextNode(h.dims.join(', ')||'—')));
+        if(h.how)s.append(el('div',{style:'font-size:.88rem;color:var(--ink-soft);margin:0 0 6px 132px'},h.how));
+      });
+    }
+    s.append(el('h4',{},'Decathlete self-assessment'));
+    s.append(el('div',{class:'kv'},el('b',{},'Impact ratings'),document.createTextNode(m.research.scores.map(x=>`${x.label}: ${x.score}/5`).join(' · '))));
+    if(m.research.roles.length)s.append(sect('Roles in development',m.research.roles));
+    if(m.research.synergy.length)s.append(sect('Multi-dimension activities',m.research.synergy));
+    if(m.research.synergyNotes)s.append(para('Synergy ideas',m.research.synergyNotes));
+    if(m.research.channels.length)s.append(sect('Social-media channels',m.research.channels));
+    if(m.research.audience.length)s.append(sect('Priority external audiences',m.research.audience));
+    if(m.research.routine)s.append(para('Dissemination routine',m.research.routine));
+    c.append(s);
+  }
+
+  if(!anyA&&!anyB){
+    c.append(el('div',{class:'summary-block'},el('p',{class:'empty'},'Your plan is empty so far. Work through the administrator or researcher modules and your selections will appear here, ready to print or download.')));
+  }
+
+  const attrib=el('div',{class:'summary-block'});
+  attrib.append(el('h3',{},'Source'));
+  attrib.append(el('p',{style:'font-size:.9rem;color:var(--ink-soft)',html:'Recommendations derive from: Aguinis, H. 2025. <em>Research methodology: Best practices for rigorous, credible, and impactful research.</em> SAGE. Framework origin: Aguinis, Yu, &amp; Tosun (2021), <em>International Journal of Contemporary Hospitality Management, 33</em>(8), 2485–2499.'}));
+  c.append(attrib);
+}
+function sect(title,arr){
+  const wrap=el('div',{});
+  wrap.append(el('h4',{},title));
+  if(!arr||!arr.length){wrap.append(el('p',{class:'empty'},'None selected'));return wrap;}
+  const ul=el('ul',{});arr.forEach(x=>ul.append(el('li',{},x)));wrap.append(ul);return wrap;
+}
+function para(title,text){
+  const wrap=el('div',{});
+  wrap.append(el('h4',{},title));
+  wrap.append(el('p',{style:'font-size:.9rem;color:var(--ink-soft);white-space:pre-wrap'},text));
+  return wrap;
+}
+
+/* ---- Export ---- */
+function planToMarkdown(){
+  const m=planModel();const L=[];
+  L.push('# My Scholarly Impact Plan','',`_Generated ${new Date().toLocaleString()}_`,'');
+  const anyA = m.admin.priorities.length||m.admin.faculty.length||m.admin.journals.length||m.admin.doctoral.length||m.admin.practical.length;
+  if(anyA){
+    L.push('## Path A — University administrator plan','');
+    if(m.admin.priorities.length){L.push('### Strategic impact priorities');m.admin.priorities.forEach(x=>L.push('- '+x));L.push('');}
+    if(m.admin.alignNotes){L.push('**Alignment / resources:** '+m.admin.alignNotes,'');}
+    if(m.admin.faculty.length){L.push('### Faculty performance portfolio');m.admin.faculty.forEach(f=>{L.push(`- **${f.name}** — `+f.weights.filter(w=>w.w>0).map(w=>`${w.label} ${w.w}%`).join(', ')+` (total ${f.total}%${f.total!==100?' ⚠ does not sum to 100':''})`);});L.push('');}
+    if(m.admin.journals.length){L.push('### Journal-list composition');m.admin.journals.forEach(x=>L.push('- '+x));L.push('');}
+    if(m.admin.journalNotes){L.push('**Specific journals:** '+m.admin.journalNotes,'');}
+    if(m.admin.doctoral.length){L.push('### Doctoral-program commitments');m.admin.doctoral.forEach(x=>L.push('- '+x));L.push('');}
+    if(m.admin.practical.length){L.push('### Practical-knowledge actions');m.admin.practical.forEach(x=>L.push('- '+x));L.push('');}
+    if(m.admin.practicalNotes){L.push('**Named partners / programs:** '+m.admin.practicalNotes,'');}
+  }
+  const anyB = m.research.horizons.some(h=>h.dims.length||h.how)||m.research.roles.length||m.research.synergy.length||m.research.channels.length||m.research.routine||m.research.foundation.length;
+  if(anyB){
+    L.push('## Path B — Researcher & educator plan','');
+    if(m.research.foundation.length){L.push('### Foundation');m.research.foundation.forEach(x=>L.push('- '+x));L.push('');}
+    const hasH=m.research.horizons.some(h=>h.dims.length||h.how);
+    if(hasH){L.push('### Personal impact plan by horizon');m.research.horizons.forEach(h=>{if(!h.dims.length&&!h.how)return;L.push(`- **${h.label}:** `+(h.dims.join(', ')||'—')+(h.how?` — ${h.how}`:''));});L.push('');}
+    L.push('### Decathlete self-assessment');
+    L.push('- Impact ratings: '+m.research.scores.map(x=>`${x.label} ${x.score}/5`).join(', '));
+    if(m.research.roles.length)L.push('- Roles in development: '+m.research.roles.join(', '));
+    L.push('');
+    if(m.research.synergy.length){L.push('### Multi-dimension activities');m.research.synergy.forEach(x=>L.push('- '+x));L.push('');}
+    if(m.research.synergyNotes){L.push('**Synergy ideas:** '+m.research.synergyNotes,'');}
+    if(m.research.channels.length){L.push('### Social-media channels');m.research.channels.forEach(x=>L.push('- '+x));L.push('');}
+    if(m.research.audience.length){L.push('**Priority external audiences:** '+m.research.audience.join(', '),'');}
+    if(m.research.routine){L.push('**Dissemination routine:** '+m.research.routine,'');}
+  }
+  if(!anyA&&!anyB)L.push('_No selections yet._','');
+  L.push('---','','Recommendations derive from: Aguinis, H. 2025. *Research methodology: Best practices for rigorous, credible, and impactful research.* SAGE. https://collegepublishing.sagepub.com/products/research-methodology-1-280088','','Framework origin: Aguinis, H., Yu, L., & Tosun, C. (2021). *International Journal of Contemporary Hospitality Management, 33*(8), 2485–2499.');
+  return L.join('\n');
+}
+function planToHTML(){
+  const md=planToMarkdown();
+  const body=md
+    .replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]))
+    .replace(/^# (.*)$/gm,'<h1>$1</h1>')
+    .replace(/^### (.*)$/gm,'<h3>$1</h3>')
+    .replace(/^## (.*)$/gm,'<h2>$1</h2>')
+    .replace(/^- (.*)$/gm,'<li>$1</li>')
+    .replace(/(<li>[\s\S]*?<\/li>)(?!\s*<li>)/g,'<ul>$1</ul>')
+    .replace(/\*\*(.*?)\*\*/g,'<strong>$1</strong>')
+    .replace(/\*(.*?)\*/g,'<em>$1</em>')
+    .replace(/^_(.*)_$/gm,'<p><em>$1</em></p>')
+    .replace(/^---$/gm,'<hr>')
+    .replace(/\n{2,}/g,'\n');
+  return `<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><title>My Scholarly Impact Plan</title>
+<style>body{font-family:Georgia,serif;max-width:760px;margin:40px auto;padding:0 20px;color:#20303f;line-height:1.55}
+h1,h2,h3{font-family:-apple-system,Segoe UI,Roboto,sans-serif;color:#0e3a48}h1{border-bottom:3px solid #b8863b;padding-bottom:6px}
+h2{margin-top:28px;border-bottom:1px solid #dfe2df;padding-bottom:4px}ul{margin:6px 0}hr{border:none;border-top:1px solid #dfe2df;margin:24px 0}
+a{color:#1f5d70;word-break:break-word}</style></head><body>${body}</body></html>`;
+}
+function downloadPlan(fmt){
+  let content,type,name;
+  if(fmt==='md'){content=planToMarkdown();type='text/markdown';name='My-Scholarly-Impact-Plan.md';}
+  else{content=planToHTML();type='text/html';name='My-Scholarly-Impact-Plan.html';}
+  const blob=new Blob([content],{type:type+';charset=utf-8'});
+  const url=URL.createObjectURL(blob);
+  const a=el('a',{href:url,download:name});document.body.append(a);a.click();a.remove();
+  setTimeout(()=>URL.revokeObjectURL(url),1500);
+  toast('Downloaded '+name);
+}
+
+/* ---- print: mirror plan into printView ---- */
+window.addEventListener('beforeprint',()=>{
+  renderPlan();
+  $('#printView').innerHTML='<h1 style="font-family:sans-serif;color:#0e3a48">My Scholarly Impact Plan</h1>'+$('#planContent').innerHTML;
+});
+
+/* ---- About modal ---- */
+function openAbout(){const m=$('#aboutModal');m.classList.add('open');m.querySelector('.x').focus();}
+function closeAbout(){$('#aboutModal').classList.remove('open');}
+$('#aboutModal').addEventListener('click',e=>{if(e.target.id==='aboutModal')closeAbout();});
+document.addEventListener('keydown',e=>{if(e.key==='Escape')closeAbout();});
+
+/* ---- init ---- */
+buildPathA();
+buildPathB();
+refreshStates();
+</script>
+<!-- Begin Countercentral code v 7.0 --> 
+<span id="wts2576"></span> 
+<script>var wts=document.createElement('script');wts.async=true; 
+wts.src='https://server2.countercentral.com/log7.js';document.head.appendChild(wts); 
+wts.onload = function(){ wtslog7(2576,1); }; 
+</script><noscript><a href="https://www.countercentral.com"> 
+<img src="https://server2.countercentral.com/7/1/2576.png"  
+alt="Countercentral web traffic analysis"></a></noscript> 
+<!-- End Countercentral code v 7.0 --> 
+</body>
+</html>

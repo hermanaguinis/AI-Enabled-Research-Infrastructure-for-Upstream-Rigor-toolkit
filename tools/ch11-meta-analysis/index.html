@@ -1,0 +1,967 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Meta-Analysis Anatomy Toolkit — Steel, Beugelsdijk &amp; Aguinis (2021)</title>
+<style>
+  :root{
+    --bg:#f4f6f9; --panel:#ffffff; --ink:#1d2733; --muted:#5d6b7a;
+    --line:#dde3ea; --brand:#0b5e8c; --brand-dk:#08405f; --brand-lt:#e7f1f8;
+    --accent:#c2410c; --good:#15803d; --good-bg:#e9f6ee; --warn:#b45309; --warn-bg:#fbf3e3;
+    --chip:#eef2f6; --shadow:0 1px 3px rgba(16,32,48,.08),0 4px 18px rgba(16,32,48,.06);
+    --radius:12px;
+  }
+  *{box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{margin:0;background:var(--bg);color:var(--ink);
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    line-height:1.55;font-size:16px;-webkit-font-smoothing:antialiased}
+  a{color:var(--brand)}
+  h1,h2,h3,h4{line-height:1.25;margin:0}
+  .wrap{max-width:1080px;margin:0 auto;padding:0 18px}
+
+  /* Header */
+  header.site{background:linear-gradient(135deg,var(--brand-dk),var(--brand));color:#fff;padding:26px 0 22px}
+  header.site h1{font-size:1.55rem;font-weight:700;letter-spacing:-.01em}
+  header.site p.sub{margin:.5rem 0 0;opacity:.92;font-size:.96rem;max-width:760px}
+  .header-row{display:flex;justify-content:space-between;align-items:flex-start;gap:18px;flex-wrap:wrap}
+
+  /* Role toggle */
+  .role-box{background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.25);
+    border-radius:14px;padding:12px 14px;min-width:280px}
+  .role-box .lbl{font-size:.72rem;text-transform:uppercase;letter-spacing:.08em;opacity:.85;margin-bottom:8px}
+  .role-toggle{display:flex;background:rgba(0,0,0,.18);border-radius:10px;padding:4px;gap:4px}
+  .role-toggle button{flex:1;border:0;background:transparent;color:#eaf2f8;font:inherit;font-size:.86rem;
+    font-weight:600;padding:8px 6px;border-radius:7px;cursor:pointer;transition:.15s}
+  .role-toggle button.active{background:#fff;color:var(--brand-dk);box-shadow:var(--shadow)}
+  .role-desc{font-size:.82rem;margin-top:8px;opacity:.92;min-height:2.4em}
+
+  /* Sticky nav */
+  nav.sticky{position:sticky;top:0;z-index:40;background:rgba(255,255,255,.96);
+    backdrop-filter:blur(8px);border-bottom:1px solid var(--line);box-shadow:0 1px 0 rgba(0,0,0,.02)}
+  .nav-inner{display:flex;gap:6px;overflow-x:auto;padding:9px 0;align-items:center;flex-wrap:wrap}
+  .nav-inner button{border:1px solid var(--line);background:var(--panel);color:var(--ink);
+    font:inherit;font-size:.84rem;font-weight:600;padding:7px 12px;border-radius:999px;cursor:pointer;white-space:nowrap;transition:.15s}
+  .nav-inner button:hover{border-color:var(--brand);color:var(--brand)}
+  .nav-inner button.active{background:var(--brand);border-color:var(--brand);color:#fff}
+  .nav-inner .spacer{flex:1}
+
+  /* Overall progress */
+  .overall{display:flex;align-items:center;gap:10px;font-size:.82rem;color:var(--muted);font-weight:600}
+  .mini-bar{width:120px;height:9px;background:var(--chip);border-radius:999px;overflow:hidden}
+  .mini-bar > i{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--brand),#3a9bd1);transition:width .4s}
+
+  main{padding:26px 0 80px}
+  section.stage{margin-bottom:34px;scroll-margin-top:70px}
+  .stage-head{display:flex;align-items:center;gap:14px;margin-bottom:6px}
+  .stage-num{flex:0 0 auto;width:42px;height:42px;border-radius:11px;background:var(--brand-lt);color:var(--brand-dk);
+    display:grid;place-items:center;font-weight:800;font-size:1.05rem}
+  .stage-head h2{font-size:1.28rem}
+  .stage-head .meta{font-size:.85rem;color:var(--muted)}
+  .stage-bar{height:10px;background:var(--chip);border-radius:999px;overflow:hidden;margin:10px 0 4px}
+  .stage-bar > i{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--good),#5cc98a);transition:width .4s}
+  .stage-pct{font-size:.8rem;color:var(--muted);font-weight:600;margin-bottom:14px}
+
+  .subsection{margin:18px 0 6px;font-size:.78rem;text-transform:uppercase;letter-spacing:.07em;color:var(--brand);font-weight:700}
+
+  /* Checklist items */
+  .item{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);
+    padding:14px 16px;margin-bottom:11px;box-shadow:var(--shadow);transition:.15s}
+  .item.checked{border-color:#bfe3cd;background:linear-gradient(0deg,var(--good-bg),#fff)}
+  .item-top{display:flex;gap:13px;align-items:flex-start}
+  .cbx{flex:0 0 auto;margin-top:2px}
+  .cbx input{width:21px;height:21px;accent-color:var(--good);cursor:pointer}
+  .item-body{flex:1;min-width:0}
+  .item-title{font-weight:600;font-size:1rem}
+  .item.checked .item-title{color:#16653b}
+  .tags{margin-top:8px;display:flex;flex-wrap:wrap;gap:6px}
+  .tag{font-size:.71rem;font-weight:700;background:var(--chip);color:#37475a;border-radius:6px;padding:3px 8px;letter-spacing:.01em}
+  .tag.method{background:#eef4fb;color:var(--brand-dk);cursor:pointer}
+  .tag.method:hover{background:#dceaf7}
+  .tag.warn{background:var(--warn-bg);color:var(--warn)}
+  .why-btn{margin-top:9px;border:0;background:transparent;color:var(--brand);font:inherit;font-size:.84rem;
+    font-weight:600;cursor:pointer;padding:0;display:inline-flex;align-items:center;gap:5px}
+  .why-btn .chev{transition:transform .2s}
+  .why-btn.open .chev{transform:rotate(90deg)}
+  .why{display:none;margin-top:9px;padding:11px 13px;background:#f7fafc;border-left:3px solid var(--brand);
+    border-radius:0 8px 8px 0;font-size:.9rem;color:#33414f}
+  .why.open{display:block}
+  .why b{color:var(--ink)}
+
+  /* Cards / tools */
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);padding:20px;box-shadow:var(--shadow)}
+  .tool-grid{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+  @media(max-width:820px){.tool-grid{grid-template-columns:1fr}}
+  .card h3{font-size:1.1rem;margin-bottom:4px;display:flex;align-items:center;gap:9px}
+  .card .lead{color:var(--muted);font-size:.88rem;margin:0 0 14px}
+
+  /* Benchmark helper */
+  .bm-row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+  .bm-row input{font:inherit;font-size:1.05rem;padding:9px 11px;border:1px solid var(--line);border-radius:9px;width:130px}
+  .bm-row button{font:inherit;font-weight:600;padding:9px 16px;border:0;border-radius:9px;background:var(--brand);color:#fff;cursor:pointer}
+  .bm-out{margin-top:14px;font-size:.92rem;min-height:1.5em}
+  .bm-scale{margin-top:14px;height:30px;border-radius:8px;position:relative;
+    background:linear-gradient(90deg,#cfe8d6 0%,#cfe8d6 25%,#fde8cf 25%,#fde8cf 60%,#f6cccc 60%,#f6cccc 100%);
+    border:1px solid var(--line)}
+  .bm-scale .marker{position:absolute;top:-6px;bottom:-6px;width:3px;background:#0b2235;border-radius:2px;transition:left .35s;display:none}
+  .bm-scale .marker::after{content:attr(data-v);position:absolute;top:-20px;left:50%;transform:translateX(-50%);
+    font-size:.7rem;font-weight:700;background:#0b2235;color:#fff;padding:1px 5px;border-radius:4px;white-space:nowrap}
+  .bm-ticks{display:flex;justify-content:space-between;font-size:.7rem;color:var(--muted);margin-top:5px}
+  .badge{display:inline-block;font-weight:800;padding:3px 10px;border-radius:7px;font-size:.9rem}
+
+  /* Method reference */
+  .filter-in{width:100%;font:inherit;font-size:.95rem;padding:10px 12px;border:1px solid var(--line);border-radius:9px;margin-bottom:12px}
+  .method-list{max-height:430px;overflow:auto;border:1px solid var(--line);border-radius:9px}
+  .method{padding:11px 13px;border-bottom:1px solid var(--line)}
+  .method:last-child{border-bottom:0}
+  .method.hide{display:none}
+  .method .mn{font-weight:700;color:var(--brand-dk)}
+  .method .mc{font-size:.74rem;font-weight:700;color:#fff;background:var(--brand);border-radius:5px;padding:1px 7px;margin-left:7px;vertical-align:middle}
+  .method .md{font-size:.85rem;color:#3a4856;margin-top:3px}
+  .method a{font-size:.82rem;word-break:break-all}
+  .no-res{padding:18px;text-align:center;color:var(--muted);font-size:.9rem}
+
+  /* Wizard */
+  .wiz-step{display:none}
+  .wiz-step.active{display:block}
+  .wiz-progress{display:flex;gap:8px;margin-bottom:18px}
+  .wiz-progress .dot{flex:1;height:6px;border-radius:999px;background:var(--chip)}
+  .wiz-progress .dot.done{background:var(--brand)}
+  .wiz-q{font-size:1.08rem;font-weight:600;margin-bottom:6px}
+  .wiz-help{font-size:.88rem;color:var(--muted);margin-bottom:16px}
+  .wiz-opts{display:flex;gap:10px;flex-wrap:wrap}
+  .wiz-opts button{font:inherit;font-weight:600;font-size:.95rem;padding:11px 22px;border:1px solid var(--line);
+    background:var(--panel);border-radius:10px;cursor:pointer;transition:.15s}
+  .wiz-opts button:hover{border-color:var(--brand);color:var(--brand)}
+  .wiz-opts button.sel{background:var(--brand);border-color:var(--brand);color:#fff}
+  .wiz-nav{margin-top:20px;display:flex;justify-content:space-between;gap:10px}
+  .wiz-nav button{font:inherit;font-weight:600;padding:9px 16px;border-radius:9px;border:1px solid var(--line);background:#fff;cursor:pointer}
+  .wiz-nav button.primary{background:var(--brand);color:#fff;border-color:var(--brand)}
+  .wiz-nav button:disabled{opacity:.4;cursor:not-allowed}
+  .verdict{margin-top:4px;padding:18px;border-radius:11px;font-size:.96rem}
+  .verdict.yes{background:var(--good-bg);border:1px solid #bfe3cd}
+  .verdict.no{background:var(--warn-bg);border:1px solid #f0d9ab}
+  .verdict h4{font-size:1.15rem;margin-bottom:8px}
+  .verdict ul{margin:8px 0 0;padding-left:20px}
+  .verdict li{margin:3px 0}
+
+  /* Export modal */
+  .modal-bg{display:none;position:fixed;inset:0;background:rgba(10,20,30,.55);z-index:100;padding:24px;overflow:auto}
+  .modal-bg.show{display:block}
+  .modal{max-width:840px;margin:24px auto;background:#fff;border-radius:14px;padding:0;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,.3)}
+  .modal-head{padding:18px 24px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:center}
+  .modal-head h3{font-size:1.2rem}
+  .modal-body{padding:22px 24px}
+  .modal-foot{padding:16px 24px;border-top:1px solid var(--line);display:flex;justify-content:flex-end;gap:10px}
+  .modal button.x{border:0;background:#eef2f6;width:34px;height:34px;border-radius:8px;font-size:1.1rem;cursor:pointer}
+  .modal button.btn{font:inherit;font-weight:600;padding:9px 18px;border-radius:9px;border:1px solid var(--line);background:#fff;cursor:pointer}
+  .modal button.btn.primary{background:var(--brand);color:#fff;border-color:var(--brand)}
+  .sumary-stage{margin-bottom:16px}
+  .sumary-stage h4{font-size:1rem;border-bottom:2px solid var(--brand-lt);padding-bottom:5px;margin-bottom:8px}
+  .sum-item{font-size:.9rem;padding:3px 0;display:flex;gap:9px;align-items:flex-start}
+  .sum-item .mk{font-weight:800}
+  .sum-item.done .mk{color:var(--good)}
+  .sum-item.todo .mk{color:#b91c1c}
+  .sum-item.todo{color:#475260}
+
+  .toolbar{display:flex;gap:9px;flex-wrap:wrap;margin:18px 0 4px}
+  .toolbar button{font:inherit;font-weight:600;font-size:.86rem;padding:8px 14px;border-radius:9px;border:1px solid var(--line);background:#fff;cursor:pointer;display:inline-flex;align-items:center;gap:6px}
+  .toolbar button:hover{border-color:var(--brand);color:var(--brand)}
+  .toolbar button.solid{background:var(--brand);color:#fff;border-color:var(--brand)}
+  .toolbar button.solid:hover{color:#fff;background:var(--brand-dk)}
+
+  /* About / footer */
+  footer.about{background:#0b2235;color:#cdd9e3;padding:30px 0;margin-top:40px;font-size:.9rem}
+  footer.about .wrap{display:grid;gap:18px}
+  footer.about h4{color:#fff;font-size:1rem;margin-bottom:6px}
+  .cite{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);border-radius:10px;padding:14px 16px}
+  .cite a{color:#7fc4ec}
+  .cite.primary{border-color:#2f93d1}
+  .pill{display:inline-block;font-size:.72rem;font-weight:700;background:#2f93d1;color:#fff;border-radius:5px;padding:2px 8px;margin-bottom:7px}
+
+  @media print{
+    nav.sticky,header.site .role-box,.toolbar,.why-btn,.tags,.nav-inner{display:none!important}
+    body{background:#fff}
+    .item{box-shadow:none;break-inside:avoid}
+  }
+  .visually-hidden{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
+</style>
+</head>
+<body>
+
+<header class="site">
+  <div class="wrap header-row">
+    <div style="flex:1;min-width:280px">
+      <h1>The Anatomy of an Award-Winning Meta-Analysis</h1>
+      <p class="sub">An interactive workbench that turns the recommendations of Steel, Beugelsdijk &amp; Aguinis (2021, <em>JIBS</em>) into concrete decisions. Work through the four stages, capture your choices, and produce a methods-audit record.</p>
+    </div>
+    <div class="role-box" role="group" aria-label="Choose your role">
+      <div class="lbl">I am reading this as a&hellip;</div>
+      <div class="role-toggle">
+        <button data-role="author" class="active" onclick="setRole('author')">Author</button>
+        <button data-role="reviewer" onclick="setRole('reviewer')">Reviewer</button>
+        <button data-role="reader" onclick="setRole('reader')">Reader</button>
+      </div>
+      <div class="role-desc" id="roleDesc"></div>
+    </div>
+  </div>
+</header>
+
+<nav class="sticky">
+  <div class="wrap nav-inner" id="navInner">
+    <button class="active" onclick="goto('stage1',this)">1 · Data Collection</button>
+    <button onclick="goto('stage2',this)">2 · Data Preparation</button>
+    <button onclick="goto('stage3',this)">3 · Data Analysis</button>
+    <button onclick="goto('stage4',this)">4 · Reporting</button>
+    <button onclick="goto('wizard',this)">↻ Update Wizard</button>
+    <button onclick="goto('tools',this)">Tools &amp; Reference</button>
+    <span class="spacer"></span>
+    <span class="overall">Overall
+      <span class="mini-bar"><i id="overallBar"></i></span>
+      <span id="overallPct">0%</span>
+    </span>
+  </div>
+</nav>
+
+<main class="wrap">
+
+  <div class="toolbar">
+    <button class="solid" onclick="openSummary()">🖶 Export / print methods-audit record</button>
+    <button onclick="expandAllWhy(true)">▸ Expand all explanations</button>
+    <button onclick="expandAllWhy(false)">▾ Collapse all</button>
+    <button onclick="resetAll()">↺ Reset checklist</button>
+  </div>
+
+  <div id="checklistRoot"></div>
+
+  <!-- ===== UPDATE WIZARD ===== -->
+  <section class="stage" id="wizard">
+    <div class="stage-head">
+      <div class="stage-num">↻</div>
+      <div>
+        <h2>Should this meta-analysis be updated?</h2>
+        <div class="meta">The article's Figure 1 three-step decision framework (currency → new methods/studies → probable impact).</div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="wiz-progress">
+        <span class="dot done" id="wd0"></span><span class="dot" id="wd1"></span><span class="dot" id="wd2"></span>
+      </div>
+
+      <div class="wiz-step active" data-step="0">
+        <div class="wiz-q">Step 1 — Currency: Does the existing review still address a relevant question?</div>
+        <div class="wiz-help">Is the topic still important and actively cited, or has the field, its constructs, or its practical stakes moved on? A still-relevant question is a precondition for updating being worthwhile.</div>
+        <div class="wiz-opts">
+          <button onclick="wizAns(0,'yes',this)">Yes — still relevant</button>
+          <button onclick="wizAns(0,'no',this)">No — largely settled / obsolete</button>
+        </div>
+      </div>
+
+      <div class="wiz-step" data-step="1">
+        <div class="wiz-q">Step 2 — New methods and/or new studies: Is anything materially new available?</div>
+        <div class="wiz-help">Have relevant new meta-analytic methods emerged since (e.g., RVE, PET-PEESE, MASEM, modern outlier diagnostics, Morris weights)? Or has the primary research base grown appreciably, or has new data/IPD been shared?</div>
+        <div class="wiz-opts">
+          <button onclick="wizAns(1,'yes',this)">Yes — new methods and/or new studies exist</button>
+          <button onclick="wizAns(1,'no',this)">No — nothing materially new</button>
+        </div>
+      </div>
+
+      <div class="wiz-step" data-step="2">
+        <div class="wiz-q">Step 3 — Probable impact: Could the new methods/studies plausibly change the findings or reduce uncertainty?</div>
+        <div class="wiz-help">There only needs to be a <em>likelihood</em> of impact, not a certainty. Narrowing wide confidence intervals, changing statistical significance, or simply releasing a complete database in an Open Science archive (enabling cumulative growth) all count as impact.</div>
+        <div class="wiz-opts">
+          <button onclick="wizAns(2,'yes',this)">Yes — plausible impact</button>
+          <button onclick="wizAns(2,'no',this)">No — findings would not change and uncertainty stays the same</button>
+        </div>
+      </div>
+
+      <div class="wiz-nav">
+        <button id="wizBack" onclick="wizBack()" disabled>← Back</button>
+        <button id="wizReset" onclick="wizReset()">Start over</button>
+      </div>
+
+      <div id="wizVerdict" style="margin-top:18px"></div>
+    </div>
+  </section>
+
+  <!-- ===== TOOLS ===== -->
+  <section class="stage" id="tools">
+    <div class="stage-head">
+      <div class="stage-num">⚙</div>
+      <div><h2>Tools &amp; Method Quick-Reference</h2>
+      <div class="meta">An effect-size benchmark helper and a searchable index of every method, software package, and benchmark the article recommends.</div></div>
+    </div>
+    <div class="tool-grid">
+
+      <div class="card">
+        <h3>📐 Effect-size benchmark helper</h3>
+        <p class="lead">Enter a correlation (<em>r</em>). The tool classifies it with the article's contemporary benchmarks, which replace Cohen's older, larger values.</p>
+        <div class="bm-row">
+          <input id="bmInput" type="number" step="0.01" min="-1" max="1" placeholder="e.g. 0.24" aria-label="correlation value" oninput="benchmark()">
+          <button onclick="benchmark()">Classify</button>
+        </div>
+        <div class="bm-out" id="bmOut">Contemporary benchmarks: small = 0.10 (25th pctile), medium = 0.18 (50th), large = 0.32 (75th).</div>
+        <div class="bm-scale" aria-hidden="true"><span class="marker" id="bmMarker" data-v=""></span></div>
+        <div class="bm-ticks"><span>0</span><span>0.10</span><span>0.18</span><span>0.32</span><span>0.50+</span></div>
+        <p style="font-size:.8rem;color:var(--muted);margin:14px 0 0">Benchmarks are interpretive aids, not hard rules. A "small" correlation can be highly consequential depending on outcome, cost, and cumulative impact — always interpret magnitude <b>in context</b>.</p>
+      </div>
+
+      <div class="card">
+        <h3>🔎 Method / software index</h3>
+        <p class="lead">Filter by name, task, or stage. Click any <span class="tag method" style="cursor:default">method tag</span> on a checklist item to jump here.</p>
+        <input class="filter-in" id="methodFilter" placeholder="Search e.g. 'publication bias', 'metafor', 'PRISMA'…" oninput="renderMethods()">
+        <div class="method-list" id="methodList"></div>
+      </div>
+
+    </div>
+  </section>
+
+</main>
+
+<!-- ===== EXPORT MODAL ===== -->
+<div class="modal-bg" id="summaryModal">
+  <div class="modal">
+    <div class="modal-head">
+      <h3>Methods-audit record</h3>
+      <button class="x" onclick="closeSummary()" aria-label="Close">×</button>
+    </div>
+    <div class="modal-body" id="summaryBody"></div>
+    <div class="modal-foot">
+      <button class="btn" onclick="closeSummary()">Close</button>
+      <button class="btn primary" onclick="window.print()">🖶 Print / Save as PDF</button>
+    </div>
+  </div>
+</div>
+
+<footer class="about">
+  <div class="wrap">
+    <div>
+      <h4>About this tool</h4>
+      <p style="margin:.3rem 0 0">An interactive implementation aid. Every checklist item, benchmark, method, and the update wizard are drawn directly from the source article below. The tool captures your choices in-session to help you run a more valid, transparent, and reproducible meta-analysis — and to produce an audit record for authors, reviewers, and readers.</p>
+    </div>
+    <div class="cite primary">
+      <span class="pill">Primary source</span>
+      <div>Steel, P., Beugelsdijk, S., &amp; Aguinis, H. (2021). The anatomy of an award-winning meta-analysis: Recommendations for authors, reviewers, and readers of meta-analytic reviews. <em>Journal of International Business Studies, 52</em>, 23–44. <a href="https://doi.org/10.1057/s41267-020-00385-z" target="_blank" rel="noopener">https://doi.org/10.1057/s41267-020-00385-z</a></div>
+    </div>
+    <div class="cite">
+      <span class="pill" style="background:#c2410c">Recommended companion</span>
+      <div>Aguinis, H. (2025). <em>Research methodology: Best practices for rigorous, credible, and impactful research.</em> SAGE. <a href="https://collegepublishing.sagepub.com/products/research-methodology-1-280088" target="_blank" rel="noopener">https://collegepublishing.sagepub.com/products/research-methodology-1-280088</a></div>
+    </div>
+    <div style="font-size:.8rem;opacity:.7">This educational tool is not affiliated with or endorsed by the publishers. State is held in memory for the current session only and is not saved or transmitted.</div>
+  </div>
+</footer>
+
+<script>
+/* ============================================================
+   ROLE FRAMINGS
+   ============================================================ */
+const ROLE_DESC = {
+  author:  "What I should provide and do when conducting the meta-analysis.",
+  reviewer:"What I should expect and ask the authors for when evaluating the work.",
+  reader:  "What I (researcher, practitioner, or policymaker) should look for to trust and use the findings."
+};
+
+/* ============================================================
+   DATA — every recommendation, organized by stage & subsection
+   role: {author, reviewer, reader} framings
+   why: plain-language "why it matters / how to do it"
+   methods: tags (must match METHODS index ids)
+   warn: optional caution tag text
+   ============================================================ */
+const STAGES = [
+ {
+  id:"stage1", n:1, title:"Data Collection",
+  meta:"Building the database: literature search, screening, and coding of primary studies.",
+  groups:[
+   {name:"Literature search &amp; screening", items:[
+     {id:"s1a", title:"Treat the meta-analysis as a “Big Science” project with enough collaborators",
+       role:{author:"Assemble a large enough collaborator group; consider Massive Peer Production / community-augmented approaches so the topic can be broad and meaningful.",
+             reviewer:"Ask whether the team and resources match the scope; very broad questions tackled by one or two authors are a red flag.",
+             reader:"Check that the scale of the project fits the breadth of the claim — ambitious syntheses need teams, not lone authors."},
+       why:"Research bases grow exponentially while researcher time does not. Influential, broad reviews increasingly require <b>academic crowdsourcing</b> (Massive Peer Production) and community-augmented meta-analysis rather than a single small team.",
+       methods:["mpp"]},
+     {id:"s1b", title:"Conduct a pre-meta-analysis scoping study",
+       role:{author:"Run a scoping study to confirm the question is small enough to be manageable, large enough to be meaningful, has a sufficient research base, and is not already covered by a recent review.",
+             reviewer:"Expect evidence of a scoping exercise; ask why this question, why now, and whether a recent review already exists.",
+             reader:"Look for a clear rationale that the question is both tractable and consequential, and that it fills a real gap."},
+       why:"Scoping prevents two failure modes: a question so narrow that “nobody will give a damn,” or so broad it can never be finished. It also avoids duplicating an existing recent synthesis."},
+     {id:"s1c", title:"Ensure authors have prolonged interest and deep topic knowledge",
+       role:{author:"Lead or include people with sustained, deep familiarity with the literature being synthesized.",
+             reviewer:"Gauge whether the team demonstrably knows the substantive literature, not just the method.",
+             reader:"Trust syntheses where the authors show genuine command of the field's constructs and debates."},
+       why:"Deep domain knowledge is what lets a team make the countless judgment calls (commensurability, coding, moderators) correctly. Meta-analysis is not a purely mechanical exercise."},
+     {id:"s1d", title:"Avoid the construct identity fallacy (jingle &amp; jangle)",
+       role:{author:"Guard against jingle (different measures treated as the same construct) and jangle (the same label used for genuinely different constructs).",
+             reviewer:"Probe whether measures pooled under one label truly tap one construct, and whether one label hides several constructs.",
+             reader:"Check that what is combined really is “the same thing” — mismatched constructs invalidate the average effect."},
+       why:"<b>Jingle</b> = different measures, same construct; <b>jangle</b> = same label, different constructs. Pooling non-commensurable measures produces a meaningless average. Establish construct identity before combining.",
+       methods:["psychmeta"]},
+     {id:"s1e", title:"Guard against the five search biases",
+       role:{author:"Counter availability bias (search grey literature), cost bias (access pay-walled journals), familiarity bias (search other disciplines' databases), language bias (search non-English journals), and the Matthew Effect (don't exclude low-citation work).",
+             reviewer:"Ask explicitly how each of the five biases was addressed; an English-only, single-database search is insufficient.",
+             reader:"Look for grey literature, cross-discipline and non-English sources — their absence biases the result."},
+       why:"Each bias skews the sample of effects: missing grey/unpublished work inflates effects; ignoring other fields or languages narrows generalizability; excluding low-citation work (the <b>Matthew Effect</b>) drops valid evidence.",
+       warn:"Five biases to document"},
+     {id:"s1f", title:"Use multiple search strategies, including snowballing",
+       role:{author:"Combine database searches with snowballing (ancestry searching / “pearl growing”) and other strategies.",
+             reviewer:"Expect more than a single keyword search; ask for ancestry/forward-citation searching.",
+             reader:"Confirm the search used several complementary strategies, not one database query."},
+       why:"No single strategy finds everything. <b>Snowballing</b> (following reference lists backward and citations forward, a.k.a. ancestry searching or pearl growing) catches studies that keyword searches miss."},
+     {id:"s1g", title:"Follow PRISMA and pre-register; document with software",
+       role:{author:"Follow PRISMA (2020 27-item checklist) and pre-register the protocol (PRISMA-P); document the search with tools such as covidence, hubmeta, or revtools (curated list at systematicreviewtools.com).",
+             reviewer:"Expect a PRISMA flow diagram, a pre-registered protocol, and a transparent, software-documented search.",
+             reader:"Look for a PRISMA diagram and pre-registration as baseline signals of a disciplined search."},
+       why:"PRISMA standardizes and makes the search reproducible; PRISMA-P pre-registration curbs flexible, post-hoc inclusion decisions. Dedicated software makes screening auditable.",
+       methods:["prisma","covidence","hubmeta","revtools"]},
+     {id:"s1h", title:"Engage an information specialist / librarian",
+       role:{author:"Bring a research librarian or information specialist into the search design.",
+             reviewer:"Ask whether an information specialist contributed to the search strategy.",
+             reader:"Searches designed with a librarian are typically more complete and less biased."},
+       why:"Information specialists know database syntax, coverage, and grey-literature sources, and materially improve search sensitivity and recall."}
+   ]},
+   {name:"Coding of primary studies", items:[
+     {id:"s1i", title:"Apply psychometric corrections; convert to a common effect size",
+       role:{author:"Apply psychometric corrections and convert all statistics to a common effect size (r or d) using standardized tools such as psychmeta.",
+             reviewer:"Expect corrections for artifacts (e.g., unreliability) and a documented conversion to a single effect-size metric.",
+             reader:"Check that effects were placed on a common, corrected metric rather than naively pooled."},
+       why:"Primary studies report many statistics; they must be converted to a common metric and corrected for measurement artifacts so they are comparable. <b>psychmeta</b> (the psychometric meta-analysis toolkit in R) provides these conversions.",
+       methods:["psychmeta"]},
+     {id:"s1j", title:"Weigh measurement variance against database size when splitting or merging constructs",
+       role:{author:"When deciding whether to tease broad constructs into dimensions or merge measures, weigh the trade-off between added measurement variance and a larger, more powerful database.",
+             reviewer:"Ask whether splitting/merging decisions were reasoned in terms of this trade-off, not made arbitrarily.",
+             reader:"Look for a justified rationale behind how constructs were grouped or separated."},
+       why:"Splitting constructs reduces measurement variance but shrinks the database (and power); merging does the reverse. The choice should be deliberate and defensible, not incidental."},
+     {id:"s1k", title:"Archive data perpetually in an Open Science repository",
+       role:{author:"Deposit the coded database in a permanent Open Science repository — never “available from the authors upon request.”",
+             reviewer:"Require a working repository link to the full database, not a promise of availability.",
+             reader:"Check for a live archive link; “available on request” effectively means unavailable."},
+       why:"Perpetual archiving enables verification, reuse, and cumulative (“living”) growth. “Available from the authors” data is, in practice, frequently lost or unobtainable.",
+       methods:["openscience"]},
+     {id:"s1l", title:"Establish commensurability with multiple lines of evidence",
+       role:{author:"Justify that pooled measures are commensurable using convergent and content validity evidence, prior taxonomies, and expert opinion.",
+             reviewer:"Ask for explicit commensurability evidence before measures are combined.",
+             reader:"Confirm the authors show — not just assert — that combined measures belong together."},
+       why:"Commensurability is the backbone of valid pooling. Triangulate it with convergent/content validity, established taxonomies, and expert judgment."},
+     {id:"s1m", title:"Reserve kappa for qualitative-judgment agreement only",
+       role:{author:"Use Cohen's kappa only for inter-rater agreement on genuine qualitative judgments — not for indisputable facts like sample size.",
+             reviewer:"Check that reliability statistics aren't inflated by including prosaic, indisputable codes.",
+             reader:"Be skeptical of very high kappa that lumps in trivial, factual codings."},
+       why:"Kappa quantifies agreement on judgment calls. Padding it with indisputable items (e.g., N) artificially inflates apparent reliability and is misleading."},
+     {id:"s1n", title:"Use a battery of measurement-equivalence indices",
+       role:{author:"Demonstrate that different measures tap the same construct using a battery of measurement-equivalence indices, not a single index.",
+             reviewer:"Expect multiple equivalence indices supporting the decision to combine measures.",
+             reader:"Look for several converging equivalence indices behind any merged measure."},
+       why:"A single index can mislead. A battery of measurement-equivalence indices gives stronger, more robust evidence that measures are interchangeable."},
+     {id:"s1o", title:"Provide a transparent search description and a construct taxonomy",
+       role:{author:"Give a transparent, reproducible description of the search process and a clear taxonomy of the key constructs.",
+             reviewer:"Expect enough search detail to reproduce it, plus an explicit construct taxonomy.",
+             reader:"Look for a documented search and a construct map that clarifies what was and wasn't included."},
+       why:"Transparency about the search and an explicit taxonomy let readers and replicators understand the conceptual boundaries and reproduce the database."}
+   ]}
+  ]
+ },
+ {
+  id:"stage2", n:2, title:"Data Preparation",
+  meta:"Treatment of multiple effect sizes, outlier management, and publication bias.",
+  groups:[
+   {name:"Treatment of multiple effect sizes", items:[
+     {id:"s2a", title:"Keep multiple correlations from the same sample statistically separate",
+       role:{author:"Do not treat dependent effect sizes from one sample as independent; prefer composite scores when intercorrelations are available.",
+             reviewer:"Check that within-sample dependencies were handled (composites or a dependency-aware model), not double-counted.",
+             reader:"Confirm effects from the same sample weren't naively pooled as if independent."},
+       why:"Treating dependent effects as independent understates standard errors and overweights some samples. <b>Composite scores</b> (using intercorrelations) are the preferred fix when data allow."},
+     {id:"s2b", title:"Consider Robust Variance Estimation or a three-level model",
+       role:{author:"For dependent effects, consider Robust Variance Estimation (RVE) or a three-level (multilevel) meta-analytic model — noting these need roughly 40–80 studies.",
+             reviewer:"Ask whether dependency was modeled (RVE / three-level) and whether the study count supports it.",
+             reader:"Look for RVE or multilevel modeling when many effects come from shared samples."},
+       why:"<b>RVE</b> and <b>three-level models</b> properly account for dependent effect sizes. They are data-hungry, however, typically needing about 40–80 studies to behave well.",
+       methods:["rve"], warn:"Needs ~40–80 studies"}
+   ]},
+   {name:"Outlier identification &amp; management", items:[
+     {id:"s2c", title:"Do not use arbitrary cutoffs (e.g., ±2 SD)",
+       role:{author:"Avoid mechanical outlier rules like ±2 SD; they have no principled basis.",
+             reviewer:"Flag any arbitrary cutoff used to drop data.",
+             reader:"Be wary of results that delete “outliers” by a fixed-SD rule."},
+       why:"Arbitrary cutoffs discard legitimate data and can be gamed. Outlier handling should be diagnostic and theory-aware, not a blanket SD threshold."},
+     {id:"s2d", title:"Run influence diagnostics and classify outliers",
+       role:{author:"Use influence diagnostics (e.g., metafor: standardized residuals, leave-one-out) and classify outliers as error, influential, or interesting per the Aguinis, Gottfredson &amp; Joo (2013) decision tree.",
+             reviewer:"Expect formal influence diagnostics and a principled classification of each flagged case.",
+             reader:"Look for leave-one-out / residual diagnostics rather than ad-hoc deletion."},
+       why:"<b>metafor</b> provides standardized residuals and leave-one-out diagnostics. The <b>Aguinis, Gottfredson &amp; Joo (2013)</b> decision tree separates error outliers, influential cases, and substantively interesting ones — each handled differently.",
+       methods:["metafor","agj"]},
+     {id:"s2e", title:"Allow that some outliers are legitimate observations",
+       role:{author:"Recognize that some extreme effects are real and substantively informative — not errors to delete.",
+             reviewer:"Push back on automatic deletion; ask whether extreme effects were investigated.",
+             reader:"Interesting outliers can signal real moderators; their removal can hide findings."},
+       why:"Not every outlier is a mistake. “Interesting” outliers often point to genuine moderators or boundary conditions worth studying, not noise to be scrubbed."},
+     {id:"s2f", title:"Report results with and without outliers",
+       role:{author:"Present analyses both including and excluding flagged outliers so readers see their influence.",
+             reviewer:"Expect side-by-side with/without-outlier results as a transparency check.",
+             reader:"Look for both versions; large differences signal fragile conclusions."},
+       why:"Reporting both versions makes outlier influence transparent and lets readers judge robustness rather than trusting a single, possibly scrubbed, estimate."}
+   ]},
+   {name:"Publication bias", items:[
+     {id:"s2g", title:"Replace or supplement the fail-safe N with modern bias methods",
+       role:{author:"Move beyond the fail-safe N: use selection-based and symmetry-based methods — published vs. unpublished comparison, Egger's regression, Trim-and-Fill, and PET-PEESE.",
+             reviewer:"Expect several complementary publication-bias methods, not a lone fail-safe N.",
+             reader:"Trust bias assessments that triangulate multiple modern methods."},
+       why:"The fail-safe N is widely criticized and uninformative. Triangulate with <b>Egger's regression</b>, <b>Trim-and-Fill</b>, published-vs-unpublished comparison, and <b>PET-PEESE</b> — which can detect and correct bias.",
+       methods:["petpeese","eggers","trimfill"],
+       warn:"PET-PEESE unreliable with few studies, high heterogeneity, or small samples"}
+   ]}
+  ]
+ },
+ {
+  id:"stage3", n:3, title:"Data Analysis",
+  meta:"Average effect sizes, heterogeneity, and the moderator search.",
+  groups:[
+   {name:"Average effect sizes", items:[
+     {id:"s3a", title:"Report the average association as the first stage of theory testing",
+       role:{author:"Present the average effect as the initial — not final — step of theory testing.",
+             reviewer:"Expect the average to be a starting point, followed by heterogeneity and moderators.",
+             reader:"A mean effect alone is incomplete; look for what follows it."},
+       why:"The pooled average answers “is there an effect on average?” but theory testing requires going further into dispersion and moderators."},
+     {id:"s3b", title:"Interpret magnitude with contemporary benchmarks, in context",
+       role:{author:"Interpret effect magnitude in context using contemporary benchmarks: small = 0.10, medium = 0.18, large = 0.32 for correlations (not Cohen's older values).",
+             reviewer:"Check that effects are judged against modern benchmarks and substantive context, not Cohen's dated cutoffs.",
+             reader:"Use the 0.10 / 0.18 / 0.32 benchmarks — and remember a ‘small’ effect can still matter."},
+       why:"Empirical distributions of real effects are smaller than Cohen assumed. Contemporary benchmarks: <b>0.10</b> (25th pctile), <b>0.18</b> (50th), <b>0.32</b> (75th). Always temper with substantive context. <span style='color:var(--brand);font-weight:600'>Try the benchmark helper in Tools.</span>",
+       methods:["benchmarks"]},
+     {id:"s3c", title:"Use a random-effects model; with corrections, use Morris weights",
+       role:{author:"Adopt a random-effects model; when applying psychometric corrections, use Morris weights rather than fixed-effects weighting.",
+             reviewer:"Expect random-effects (not fixed-effects); with corrections, Morris weights specifically.",
+             reader:"Fixed-effects on heterogeneous literatures understates uncertainty — look for random-effects + Morris weights."},
+       why:"Real literatures are heterogeneous, so <b>random-effects</b> is the default. With psychometric corrections, <b>Morris weights</b> (Brannick et al., 2019) give appropriate weighting; fixed-effects badly understates uncertainty.",
+       methods:["morris","metafor"]},
+     {id:"s3d", title:"Go beyond averages with MASEM; extend matrices with IPD",
+       role:{author:"Where appropriate, use meta-analytic structural equation modeling (MASEM), and extend the correlation matrix with Individual Participant Data (IPD).",
+             reviewer:"Ask whether relationships among several constructs warrant MASEM rather than separate bivariate meta-analyses.",
+             reader:"MASEM lets a synthesis test models, not just single correlations — a sign of analytical ambition."},
+       why:"<b>MASEM</b> pools correlation matrices to test full models (paths, mediation). <b>IPD</b> (individual participant data) can fill or extend cells the published literature leaves empty.",
+       methods:["masem","ipd"]},
+     {id:"s3e", title:"Fix non-positive-definite “Frankenstein” matrices",
+       role:{author:"When pooled matrices are non-sensical / non-positive-definite, fix them by excluding problematic cells or collapsing highly correlated variables into factors.",
+             reviewer:"Check how matrix problems were resolved; undocumented patching is a concern.",
+             reader:"A pooled matrix stitched from incompatible sources can be invalid — look for how this was handled."},
+       why:"Cells pooled from different study sets can produce an impossible (non-positive-definite) “Frankenstein” matrix. Remedies: drop problematic cells, or collapse highly correlated variables into factors.",
+       methods:["masem"]}
+   ]},
+   {name:"Heterogeneity of effect sizes", items:[
+     {id:"s3f", title:"Assess dispersion, don't just report a summary effect",
+       role:{author:"Characterize how effects disperse around the average — heterogeneity is a finding, not a nuisance.",
+             reviewer:"Expect a genuine heterogeneity analysis, not a single pooled number.",
+             reader:"A lone summary effect hides whether the effect is consistent or wildly variable."},
+       why:"The spread of effects is often more informative than the mean. Ignoring dispersion conceals moderators and overstates how settled a relationship is."},
+     {id:"s3g", title:"Report credibility intervals, T², and I² — and complement Q",
+       role:{author:"Report at minimum credibility intervals, T² (REVC / SD of true effects), and I²; complement (don't rely on) the Q statistic.",
+             reviewer:"Expect credibility intervals plus T² and I²; Q alone is insufficient.",
+             reader:"Look for credibility intervals and I² to gauge how much effects truly vary."},
+       why:"<b>Credibility intervals</b> show the range of true effects; <b>T²</b> is the random-effects variance; <b>I²</b> the proportion of observed variance that is real. The <b>Q</b> statistic is prone to Type II errors, so it should complement, not replace, these.",
+       warn:"Q is prone to Type II errors"},
+     {id:"s3h", title:"Correct artificial homogeneity; use asymmetric distributions when skewed",
+       role:{author:"Apply a Bayesian correction for artificial homogeneity created by small samples, and use asymmetric distributions for skewed credibility intervals.",
+             reviewer:"Ask whether small-sample artificial homogeneity was corrected and whether skew was modeled.",
+             reader:"Small-k literatures can look falsely homogeneous — look for a correction."},
+       why:"Small samples can make effects look more homogeneous than they are. A <b>Bayesian correction</b> (Steel, Kammeyer-Mueller &amp; Paterson, 2015) addresses this; <b>asymmetric distributions</b> handle skewed credibility intervals.",
+       methods:["bayes"]}
+   ]},
+   {name:"Moderator search", items:[
+     {id:"s3i", title:"Organize the moderator search with Cattell's Data Cube",
+       role:{author:"Structure the search for moderators with Cattell's Data Cube: (a) sample, (b) variables, (c) occasions.",
+             reviewer:"Expect a systematic moderator framework, not a scattershot list.",
+             reader:"A structured moderator search is more credible and less prone to cherry-picking."},
+       why:"<b>Cattell's Data Cube</b> (a.k.a. the Data Box) organizes candidate moderators along sample, variable, and occasion dimensions — making the search systematic and comprehensive.",
+       methods:["datacube"]},
+     {id:"s3j", title:"Use meta-regression for continuous moderators, not subgrouping",
+       role:{author:"Use meta-regression (MARA) instead of subgrouping for continuous moderators; report R²_Meta and consider Hartung–Knapp weighting.",
+             reviewer:"Flag median-split subgrouping of continuous moderators; expect meta-regression with R²_Meta.",
+             reader:"Subgrouping continuous moderators inflates Type I error — look for meta-regression instead."},
+       why:"Subgrouping forces arbitrary median splits and inflates Type I error. <b>Meta-regression (MARA)</b> keeps moderators continuous; report <b>R²_Meta</b> (metafor provides it by default) and consider <b>Hartung–Knapp</b> adjustment for better inference.",
+       methods:["mara","hk","metafor"]},
+     {id:"s3k", title:"Flag untheorized moderators as robustness / sensitivity tests",
+       role:{author:"Explicitly label untheorized moderators (e.g., control variables) as robustness/sensitivity tests, not confirmatory hypotheses.",
+             reviewer:"Check that exploratory moderators aren't dressed up as confirmatory theory tests.",
+             reader:"Distinguish theorized moderators from post-hoc ones when judging the evidence."},
+       why:"Mixing exploratory and confirmatory moderators inflates false positives and overstates theory support. Labeling untheorized moderators as sensitivity analyses keeps the inference honest."}
+   ]}
+  ]
+ },
+ {
+  id:"stage4", n:4, title:"Reporting",
+  meta:"Transparency, reproducibility, and a forward-looking research agenda.",
+  groups:[
+   {name:"Transparency &amp; reproducibility", items:[
+     {id:"s4a", title:"Describe procedures so an independent team could reproduce them",
+       role:{author:"Document data collection and analysis in enough detail that an independent team could reproduce both.",
+             reviewer:"Test mentally: could you re-run this from the description? If not, ask for more.",
+             reader:"Reproducible detail is the baseline for trusting the result."},
+       why:"Reproducibility is the core scientific standard. Every decision — search, coding, corrections, models — should be described concretely enough to be repeated."},
+     {id:"s4b", title:"Share the database and analysis script; follow MARS",
+       role:{author:"Make the full database and analysis scripts available in an Open Science archive and follow MARS reporting standards.",
+             reviewer:"Require an archived database plus scripts and MARS-conformant reporting.",
+             reader:"Look for an open database, runnable scripts, and MARS-style completeness."},
+       why:"Sharing data <em>and</em> code in an Open Science archive enables verification and reuse. <b>MARS</b> (Meta-Analysis Reporting Standards) specifies what a complete report must contain.",
+       methods:["mars","openscience"]},
+     {id:"s4c", title:"If practical, build a living systematic review",
+       role:{author:"Where feasible, set the review up to update in real time as a living systematic review.",
+             reviewer:"Consider whether a living-review design would suit a fast-moving literature.",
+             reader:"Living reviews stay current — valuable in rapidly growing fields."},
+       why:"A <b>living systematic review</b> continuously incorporates new studies, keeping the synthesis current and reducing the cycle of one-off, quickly-dated reviews.",
+       methods:["living"]}
+   ]},
+   {name:"Future research directions", items:[
+     {id:"s4d", title:"Write the future-research section “as if you were in charge of the field”",
+       role:{author:"Write the agenda as if you directed the field: name understudied relationships, alternative construct definitions/measures, needed moderators, and where to call a moratorium on over-studied effects.",
+             reviewer:"Expect a directive, prioritized agenda — not vague “more research is needed.”",
+             reader:"A strong future-research section tells you where the field should and shouldn't invest next."},
+       why:"Meta-analysts have a uniquely complete view of a literature. Use it to set priorities: highlight gaps and needed moderators, and explicitly recommend <b>moratoriums</b> on relationships that are already well-established."}
+   ]}
+  ]
+ }
+];
+
+/* ============================================================
+   METHODS / SOFTWARE INDEX
+   ============================================================ */
+const METHODS = [
+ {id:"prisma", name:"PRISMA / PRISMA-P", cat:"Standard", stage:1, desc:"Reporting & pre-registration standard for systematic searches; the 2020 27-item checklist and a flow diagram. PRISMA-P pre-registers the protocol.", url:"https://www.prisma-statement.org/"},
+ {id:"covidence", name:"Covidence", cat:"Software", stage:1, desc:"Screening and review-management software to document the search/screening process.", url:"https://www.covidence.org"},
+ {id:"hubmeta", name:"HubMeta", cat:"Software", stage:1, desc:"Web platform for managing and documenting meta-analytic screening and coding.", url:"https://www.hubmeta.com"},
+ {id:"revtools", name:"revtools", cat:"Software", stage:1, desc:"R package/tools for screening and de-duplicating bibliographic data during the search.", url:"https://revtools.net/"},
+ {id:"swtools", name:"systematicreviewtools.com", cat:"Resource", stage:1, desc:"Curated directory of systematic-review and meta-analysis software tools.", url:"http://systematicreviewtools.com/"},
+ {id:"mpp", name:"Massive Peer Production / Community-augmented MA", cat:"Approach", stage:1, desc:"Academic crowdsourcing model (e.g., Many Labs) for tackling broad “Big Science” meta-analyses with large collaborator teams.", url:""},
+ {id:"psychmeta", name:"psychmeta", cat:"Software", stage:1, desc:"R “psychometric meta-analysis toolkit”: converts statistics to common effect sizes (r, d) and applies psychometric corrections.", url:"https://cran.r-project.org/package=psychmeta"},
+ {id:"openscience", name:"Open Science repository", cat:"Practice", stage:1, desc:"Perpetual public archive for the coded database and scripts (e.g., OSF) — never “available from the authors.”", url:"https://osf.io"},
+ {id:"rve", name:"Robust Variance Estimation (RVE)", cat:"Model", stage:2, desc:"Handles dependent effect sizes without full knowledge of their covariance; needs roughly 40–80 studies.", url:""},
+ {id:"metafor", name:"metafor", cat:"Software", stage:2, desc:"R package for meta-analysis: influence diagnostics (standardized residuals, leave-one-out), random-effects models, meta-regression, R²_Meta.", url:"https://www.metafor-project.org/"},
+ {id:"agj", name:"Aguinis, Gottfredson & Joo (2013) outlier decision tree", cat:"Procedure", stage:2, desc:"Framework classifying outliers as error, influential, or interesting — each handled differently.", url:"https://doi.org/10.1177/1094428112470848"},
+ {id:"petpeese", name:"PET-PEESE", cat:"Procedure", stage:2, desc:"Precision-effect test / precision-effect estimate with standard errors; detects and corrects publication bias. Unreliable with few studies, high heterogeneity, or small samples.", url:""},
+ {id:"eggers", name:"Egger's regression", cat:"Procedure", stage:2, desc:"Symmetry-based test for funnel-plot asymmetry / small-study effects.", url:""},
+ {id:"trimfill", name:"Trim-and-Fill", cat:"Procedure", stage:2, desc:"Imputes “missing” studies to adjust the pooled estimate for funnel asymmetry.", url:""},
+ {id:"benchmarks", name:"Contemporary effect-size benchmarks", cat:"Benchmark", stage:3, desc:"Correlations: small = 0.10 (25th pctile), medium = 0.18 (50th), large = 0.32 (75th) — replacing Cohen's older, larger values.", url:""},
+ {id:"morris", name:"Morris weights / estimators", cat:"Procedure", stage:3, desc:"Weighting for random-effects models when psychometric corrections are applied (Brannick et al., 2019).", url:""},
+ {id:"masem", name:"MASEM", cat:"Model", stage:3, desc:"Meta-analytic structural equation modeling: pools correlation matrices to test full path/mediation models.", url:""},
+ {id:"ipd", name:"Individual Participant Data (IPD)", cat:"Data", stage:3, desc:"Raw participant-level data used to fill or extend MASEM matrices beyond what published correlations provide.", url:""},
+ {id:"bayes", name:"Bayesian homogeneity correction", cat:"Procedure", stage:3, desc:"Corrects artificial homogeneity from small samples (Steel, Kammeyer-Mueller & Paterson, 2015); pair with asymmetric distributions for skewed credibility intervals.", url:""},
+ {id:"datacube", name:"Cattell's Data Cube (Data Box)", cat:"Framework", stage:3, desc:"Organizes the moderator search along three dimensions: (a) sample, (b) variables, (c) occasions.", url:""},
+ {id:"mara", name:"Meta-regression (MARA)", cat:"Model", stage:3, desc:"Models continuous moderators without subgrouping; avoids median-split Type I error inflation. Report R²_Meta.", url:""},
+ {id:"hk", name:"Hartung–Knapp adjustment", cat:"Procedure", stage:3, desc:"Weighting/adjustment that improves inference (confidence intervals) in random-effects meta-regression.", url:""},
+ {id:"mars", name:"MARS reporting standards", cat:"Standard", stage:4, desc:"Meta-Analysis Reporting Standards: what a complete, transparent meta-analytic report must include.", url:""},
+ {id:"living", name:"Living systematic review", cat:"Approach", stage:4, desc:"A review continuously updated in real time as new studies appear.", url:""}
+];
+
+/* ============================================================
+   STATE (in-memory only — no localStorage/sessionStorage)
+   ============================================================ */
+let currentRole = "author";
+const checkState = {};      // itemId -> bool
+const ITEM_INDEX = {};      // itemId -> {item, stageId}
+STAGES.forEach(s=>s.groups.forEach(g=>g.items.forEach(it=>{checkState[it.id]=false; ITEM_INDEX[it.id]={item:it,stage:s};})));
+
+/* ============================================================
+   RENDER CHECKLIST
+   ============================================================ */
+function renderChecklist(){
+  const root = document.getElementById("checklistRoot");
+  let html = "";
+  STAGES.forEach(s=>{
+    html += `<section class="stage" id="${s.id}">
+      <div class="stage-head">
+        <div class="stage-num">${s.n}</div>
+        <div><h2>Stage ${s.n} — ${s.title}</h2><div class="meta">${s.meta}</div></div>
+      </div>
+      <div class="stage-bar"><i id="bar_${s.id}"></i></div>
+      <div class="stage-pct" id="pct_${s.id}"></div>`;
+    s.groups.forEach(g=>{
+      html += `<div class="subsection">${g.name}</div>`;
+      g.items.forEach(it=>{
+        const tags = (it.methods||[]).map(m=>{
+          const mm = METHODS.find(x=>x.id===m);
+          return mm?`<span class="tag method" onclick="jumpMethod('${m}')">${mm.name}</span>`:"";
+        }).join("");
+        const warn = it.warn?`<span class="tag warn">⚠ ${it.warn}</span>`:"";
+        html += `<div class="item" id="item_${it.id}">
+          <div class="item-top">
+            <label class="cbx"><input type="checkbox" id="cb_${it.id}" onchange="toggle('${it.id}')" aria-label="mark complete">
+            <span class="visually-hidden">Mark complete</span></label>
+            <div class="item-body">
+              <div class="item-title">${it.title}</div>
+              <div class="tags" data-tagrow>${tags}${warn}</div>
+              <button class="why-btn" onclick="toggleWhy('${it.id}',this)"><span class="chev">▸</span> Why it matters / how to do it</button>
+              <div class="why" id="why_${it.id}">
+                <div data-role-text></div>
+                <div style="margin-top:9px"><b>Why:</b> ${it.why}</div>
+              </div>
+            </div>
+          </div>
+        </div>`;
+      });
+    });
+    html += `</section>`;
+  });
+  root.innerHTML = html;
+  applyRoleText();
+  updateAllProgress();
+}
+
+/* role-specific framing text shown in the expander */
+function applyRoleText(){
+  STAGES.forEach(s=>s.groups.forEach(g=>g.items.forEach(it=>{
+    const why = document.getElementById("why_"+it.id);
+    if(!why) return;
+    const slot = why.querySelector("[data-role-text]");
+    const labelMap={author:"As an author",reviewer:"As a reviewer",reader:"As a reader"};
+    slot.innerHTML = `<b>${labelMap[currentRole]}:</b> ${it.role[currentRole]}`;
+  })));
+}
+
+/* ============================================================
+   INTERACTIONS
+   ============================================================ */
+function setRole(r){
+  currentRole = r;
+  document.querySelectorAll(".role-toggle button").forEach(b=>b.classList.toggle("active",b.dataset.role===r));
+  document.getElementById("roleDesc").textContent = ROLE_DESC[r];
+  applyRoleText();
+}
+
+function toggle(id){
+  checkState[id] = document.getElementById("cb_"+id).checked;
+  document.getElementById("item_"+id).classList.toggle("checked",checkState[id]);
+  updateAllProgress();
+}
+
+function toggleWhy(id,btn){
+  const w=document.getElementById("why_"+id);
+  const open=w.classList.toggle("open");
+  btn.classList.toggle("open",open);
+}
+
+function expandAllWhy(open){
+  document.querySelectorAll(".why").forEach(w=>w.classList.toggle("open",open));
+  document.querySelectorAll(".why-btn").forEach(b=>b.classList.toggle("open",open));
+}
+
+function resetAll(){
+  Object.keys(checkState).forEach(k=>{checkState[k]=false;const cb=document.getElementById("cb_"+k);if(cb)cb.checked=false;
+    document.getElementById("item_"+k).classList.remove("checked");});
+  updateAllProgress();
+}
+
+function updateAllProgress(){
+  let total=0,done=0;
+  STAGES.forEach(s=>{
+    let st=0,sd=0;
+    s.groups.forEach(g=>g.items.forEach(it=>{st++;total++;if(checkState[it.id]){sd++;done++;}}));
+    const pct = st? Math.round(sd/st*100):0;
+    const bar=document.getElementById("bar_"+s.id), lab=document.getElementById("pct_"+s.id);
+    if(bar) bar.style.width=pct+"%";
+    if(lab) lab.textContent=`${sd} of ${st} complete · ${pct}%`;
+  });
+  const opct = total?Math.round(done/total*100):0;
+  document.getElementById("overallBar").style.width=opct+"%";
+  document.getElementById("overallPct").textContent=opct+"%";
+}
+
+/* sticky-nav navigation + active highlight */
+function goto(id,btn){
+  document.getElementById(id).scrollIntoView({behavior:"smooth"});
+  document.querySelectorAll("#navInner button").forEach(b=>b.classList.remove("active"));
+  if(btn) btn.classList.add("active");
+}
+
+/* ============================================================
+   BENCHMARK HELPER
+   ============================================================ */
+function benchmark(){
+  const raw = document.getElementById("bmInput").value;
+  const out = document.getElementById("bmOut");
+  const marker = document.getElementById("bmMarker");
+  if(raw===""||isNaN(parseFloat(raw))){
+    out.innerHTML="Contemporary benchmarks: small = 0.10 (25th pctile), medium = 0.18 (50th), large = 0.32 (75th).";
+    marker.style.display="none"; return;
+  }
+  let r = parseFloat(raw);
+  if(r<-1||r>1){ out.innerHTML="<span style='color:#b91c1c'>A correlation must be between −1 and 1.</span>"; marker.style.display="none"; return; }
+  const a = Math.abs(r);
+  let label,color,bg,note;
+  if(a<0.10){ label="Negligible / below small"; color="#475569"; bg="#e2e8f0"; note="below the 0.10 small-effect benchmark"; }
+  else if(a<0.18){ label="Small"; color="#15803d"; bg="#d6efdf"; note="around the 25th percentile of observed effects"; }
+  else if(a<0.32){ label="Medium"; color="#b45309"; bg="#fbeacf"; note="around the 50th percentile of observed effects"; }
+  else { label="Large"; color="#b91c1c"; bg="#f7d4d4"; note="at or above the 75th percentile of observed effects"; }
+  const signTxt = r<0?" (negative direction)":"";
+  out.innerHTML = `r = <b>${r.toFixed(2)}</b>${signTxt} → <span class="badge" style="color:${color};background:${bg}">${label}</span>
+     <div style="margin-top:7px;font-size:.85rem;color:var(--muted)">${note}. Remember: context determines whether this magnitude is practically meaningful.</div>`;
+  // position marker: map 0..0.50 across the bar (clamp)
+  const pos = Math.min(a,0.50)/0.50*100;
+  marker.style.display="block";
+  marker.style.left=pos+"%";
+  marker.setAttribute("data-v", a.toFixed(2));
+}
+
+/* ============================================================
+   METHOD REFERENCE
+   ============================================================ */
+function renderMethods(){
+  const q = (document.getElementById("methodFilter").value||"").toLowerCase().trim();
+  const list = document.getElementById("methodList");
+  let html="", shown=0;
+  METHODS.forEach(m=>{
+    const hay = (m.name+" "+m.cat+" "+m.desc+" stage "+m.stage).toLowerCase();
+    const hit = !q || hay.includes(q);
+    if(hit) shown++;
+    html += `<div class="method ${hit?"":"hide"}" id="m_${m.id}">
+      <div><span class="mn">${m.name}</span><span class="mc">${m.cat} · Stage ${m.stage}</span></div>
+      <div class="md">${m.desc}</div>
+      ${m.url?`<a href="${m.url}" target="_blank" rel="noopener">${m.url}</a>`:""}
+    </div>`;
+  });
+  if(shown===0) html=`<div class="no-res">No methods match “${q}”.</div>`;
+  list.innerHTML=html;
+}
+
+function jumpMethod(id){
+  goto("tools");
+  const f=document.getElementById("methodFilter"); f.value=""; renderMethods();
+  const el=document.getElementById("m_"+id);
+  if(el){ el.scrollIntoView({block:"center"});
+    el.style.transition="background .2s"; el.style.background="#fff6e5";
+    setTimeout(()=>{el.style.background="";},1600);
+  }
+}
+
+/* ============================================================
+   UPDATE WIZARD (Figure 1)
+   ============================================================ */
+let wizStep=0;
+const wizAnswers=[null,null,null];
+
+function showWizStep(n){
+  wizStep=n;
+  document.querySelectorAll(".wiz-step").forEach(s=>s.classList.toggle("active",+s.dataset.step===n));
+  for(let i=0;i<3;i++) document.getElementById("wd"+i).classList.toggle("done",i<=n);
+  document.getElementById("wizBack").disabled = n===0;
+}
+
+function wizAns(step,val,btn){
+  wizAnswers[step]=val;
+  btn.parentElement.querySelectorAll("button").forEach(b=>b.classList.remove("sel"));
+  btn.classList.add("sel");
+  // auto-advance / evaluate
+  setTimeout(()=>evaluateWiz(),180);
+}
+
+function evaluateWiz(){
+  const v=document.getElementById("wizVerdict");
+  const [a1,a2,a3]=wizAnswers;
+  // Step 1
+  if(a1===null){ return; }
+  if(a1==="no"){
+    renderVerdict("no","Updating is likely <u>not</u> a priority — the question is no longer current.",
+      ["Step 1 (Currency) is the gate: if the review no longer addresses a relevant question, updating it adds little value.",
+       "Re-direct effort toward a question the field still cares about, or toward redefining the construct so it regains relevance."]);
+    showWizStep(0); return;
+  }
+  // move to step 2
+  if(a2===null){ showWizStep(1); v.innerHTML=""; return; }
+  if(a2==="no"){
+    renderVerdict("no","Updating is <u>not</u> yet warranted — nothing materially new is available.",
+      ["The topic is still relevant (Step 1 ✓), but Step 2 fails: no new methods and no appreciable new studies or shared data.",
+       "Monitor the field. Revisit when new meta-analytic methods emerge or the primary research base grows enough to matter."]);
+    showWizStep(1); return;
+  }
+  // step 3
+  if(a3===null){ showWizStep(2); v.innerHTML=""; return; }
+  showWizStep(2);
+  if(a3==="yes"){
+    renderVerdict("yes","Update recommended — all three steps are satisfied.",
+      ["Step 1 (Currency) ✓ — the question is still relevant.",
+       "Step 2 (New methods/studies) ✓ — new methods and/or new studies or shared data exist.",
+       "Step 3 (Probable impact) ✓ — there is a plausible likelihood the update changes findings or reduces uncertainty.",
+       "Remember: impact need not be certain. Narrowing wide intervals, shifting significance, or releasing a complete Open Science database all qualify as worthwhile impact."]);
+  } else {
+    renderVerdict("no","Updating is optional / low priority — impact is unlikely.",
+      ["Steps 1 and 2 are met, but Step 3 fails: the new methods/studies would not plausibly change findings or reduce uncertainty.",
+       "If you can still contribute a shared, complete Open Science database (enabling future cumulative growth), a 'data-release' update may remain worthwhile even here."]);
+  }
+}
+
+function renderVerdict(kind,title,points){
+  const v=document.getElementById("wizVerdict");
+  v.innerHTML=`<div class="verdict ${kind}">
+    <h4>${kind==="yes"?"✅":"🛈"} ${title}</h4>
+    <ul>${points.map(p=>`<li>${p}</li>`).join("")}</ul>
+  </div>`;
+}
+
+function wizBack(){ if(wizStep>0){ showWizStep(wizStep-1); document.getElementById("wizVerdict").innerHTML=""; } }
+function wizReset(){
+  wizAnswers[0]=wizAnswers[1]=wizAnswers[2]=null;
+  document.querySelectorAll(".wiz-opts button").forEach(b=>b.classList.remove("sel"));
+  document.getElementById("wizVerdict").innerHTML="";
+  showWizStep(0);
+}
+
+/* ============================================================
+   EXPORT / PRINT SUMMARY
+   ============================================================ */
+function openSummary(){
+  const body=document.getElementById("summaryBody");
+  let total=0,done=0, html="";
+  html += `<p style="font-size:.9rem;color:var(--muted)">Role view: <b style="color:var(--ink);text-transform:capitalize">${currentRole}</b> · Generated ${new Date().toLocaleString()}</p>`;
+  STAGES.forEach(s=>{
+    let st=0,sd=0,rows="";
+    s.groups.forEach(g=>g.items.forEach(it=>{
+      st++;total++; const d=checkState[it.id]; if(d){sd++;done++;}
+      rows+=`<div class="sum-item ${d?"done":"todo"}"><span class="mk">${d?"✔":"☐"}</span><span>${it.title}</span></div>`;
+    }));
+    html+=`<div class="sumary-stage"><h4>Stage ${s.n} — ${s.title} <span style="font-weight:600;color:var(--muted);font-size:.85rem">(${sd}/${st})</span></h4>${rows}</div>`;
+  });
+  const opct = total?Math.round(done/total*100):0;
+  const header=`<div style="background:var(--brand-lt);border-radius:10px;padding:14px 16px;margin-bottom:18px">
+     <b style="font-size:1.05rem">Overall completion: ${done} / ${total} items (${opct}%)</b>
+     <div class="mini-bar" style="width:100%;height:11px;margin-top:8px"><i style="width:${opct}%;display:block;height:100%;background:var(--brand);border-radius:999px"></i></div>
+     <div style="font-size:.82rem;color:var(--muted);margin-top:8px">Based on Steel, Beugelsdijk &amp; Aguinis (2021), <em>JIBS</em>, 52, 23–44. Use this as a methods-audit record.</div>
+   </div>`;
+  body.innerHTML=header+html;
+  document.getElementById("summaryModal").classList.add("show");
+}
+function closeSummary(){ document.getElementById("summaryModal").classList.remove("show"); }
+
+/* scroll-spy to highlight nav */
+function initScrollSpy(){
+  const ids=["stage1","stage2","stage3","stage4","wizard","tools"];
+  const btns=document.querySelectorAll("#navInner button");
+  window.addEventListener("scroll",()=>{
+    let cur=ids[0];
+    ids.forEach(id=>{const el=document.getElementById(id);if(el&&el.getBoundingClientRect().top<140)cur=id;});
+    btns.forEach(b=>{
+      const t=b.getAttribute("onclick")||"";
+      b.classList.toggle("active",t.includes("'"+cur+"'"));
+    });
+  },{passive:true});
+}
+
+/* ============================================================
+   INIT
+   ============================================================ */
+document.getElementById("roleDesc").textContent = ROLE_DESC.author;
+renderChecklist();
+renderMethods();
+showWizStep(0);
+initScrollSpy();
+document.getElementById("summaryModal").addEventListener("click",e=>{ if(e.target.id==="summaryModal") closeSummary(); });
+document.addEventListener("keydown",e=>{ if(e.key==="Escape") closeSummary(); });
+</script>
+<!-- Begin Countercentral code v 7.0 --> 
+<span id="wts2576"></span> 
+<script>var wts=document.createElement('script');wts.async=true; 
+wts.src='https://server2.countercentral.com/log7.js';document.head.appendChild(wts); 
+wts.onload = function(){ wtslog7(2576,1); }; 
+</script><noscript><a href="https://www.countercentral.com"> 
+<img src="https://server2.countercentral.com/7/1/2576.png"  
+alt="Countercentral web traffic analysis"></a></noscript> 
+<!-- End Countercentral code v 7.0 --> 
+</body>
+</html>

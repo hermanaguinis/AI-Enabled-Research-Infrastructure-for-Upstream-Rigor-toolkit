@@ -1,0 +1,893 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Market Basket Analysis (MBA) Implementation Tool</title>
+<style>
+  :root{
+    --bg:#f4f6f9; --panel:#ffffff; --ink:#1c2733; --muted:#5b6b7b;
+    --line:#dfe5ec; --brand:#1f5c8b; --brand-d:#16456b; --accent:#0f8a6a;
+    --warn:#b3541e; --warn-bg:#fdf1e7; --bad:#b3261e; --bad-bg:#fdecea;
+    --good:#0f7a4f; --good-bg:#e9f6ef; --chip:#eef3f8;
+    --shadow:0 1px 3px rgba(20,40,60,.08),0 6px 18px rgba(20,40,60,.06);
+  }
+  *{box-sizing:border-box}
+  body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    background:var(--bg);color:var(--ink);line-height:1.55;font-size:16px}
+  header.top{background:linear-gradient(135deg,var(--brand-d),var(--brand));color:#fff;padding:22px 24px}
+  header.top h1{margin:0;font-size:22px;letter-spacing:.2px}
+  header.top p{margin:6px 0 0;opacity:.92;font-size:14px;max-width:880px}
+  .wrap{max-width:1040px;margin:0 auto;padding:20px 18px 60px}
+  /* Stepper */
+  .stepper{display:flex;flex-wrap:wrap;gap:8px;margin:18px 0 8px}
+  .stepper button{flex:1 1 120px;min-width:120px;background:var(--panel);border:1px solid var(--line);
+    border-radius:10px;padding:10px 8px;cursor:pointer;text-align:left;transition:.15s;box-shadow:var(--shadow)}
+  .stepper button:hover{border-color:var(--brand)}
+  .stepper button.active{background:var(--brand);color:#fff;border-color:var(--brand)}
+  .stepper .n{display:block;font-size:11px;opacity:.8;text-transform:uppercase;letter-spacing:.5px}
+  .stepper .t{display:block;font-weight:600;font-size:13px;margin-top:2px}
+  .stepper button.done .n::after{content:" ✓"}
+  .progress{height:6px;background:var(--line);border-radius:6px;overflow:hidden;margin:6px 0 18px}
+  .progress > span{display:block;height:100%;background:var(--accent);transition:.3s}
+  /* Panels */
+  .panel{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:22px 22px;
+    box-shadow:var(--shadow);margin-bottom:18px}
+  .panel h2{margin:0 0 4px;font-size:20px}
+  .panel h3{margin:20px 0 8px;font-size:15px;color:var(--brand-d)}
+  .sub{color:var(--muted);font-size:14px;margin:0 0 8px}
+  .step-hidden{display:none}
+  label.q{display:block;font-weight:600;margin:14px 0 4px;font-size:14px}
+  input[type=text],input[type=number],textarea,select{width:100%;padding:9px 10px;border:1px solid var(--line);
+    border-radius:8px;font-size:14px;font-family:inherit;background:#fff;color:var(--ink)}
+  textarea{min-height:90px;resize:vertical;font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:13px}
+  .row{display:flex;gap:14px;flex-wrap:wrap}
+  .row > div{flex:1 1 200px}
+  .checks label{display:flex;gap:10px;align-items:flex-start;padding:9px 11px;border:1px solid var(--line);
+    border-radius:8px;margin:7px 0;cursor:pointer;font-size:14px;background:#fff}
+  .checks label:hover{border-color:var(--brand)}
+  .checks input{margin-top:3px}
+  .nav{display:flex;justify-content:space-between;margin-top:22px;gap:10px}
+  button.btn{background:var(--brand);color:#fff;border:0;border-radius:9px;padding:11px 18px;font-size:14px;
+    font-weight:600;cursor:pointer}
+  button.btn:hover{background:var(--brand-d)}
+  button.btn.ghost{background:#fff;color:var(--brand);border:1px solid var(--brand)}
+  button.btn.ghost:hover{background:var(--chip)}
+  button.btn.sm{padding:7px 12px;font-size:13px}
+  button.btn:disabled{opacity:.4;cursor:not-allowed}
+  .verdict{border-radius:10px;padding:14px 16px;margin-top:14px;font-size:14px;border:1px solid}
+  .verdict.good{background:var(--good-bg);border-color:#bfe3cf;color:#0c5f3e}
+  .verdict.warn{background:var(--warn-bg);border-color:#f0d3ba;color:#8a3f15}
+  .verdict.bad{background:var(--bad-bg);border-color:#f3c4bf;color:#8a1c16}
+  .callout{border-left:4px solid var(--brand);background:var(--chip);padding:11px 14px;border-radius:8px;
+    margin:12px 0;font-size:14px}
+  .callout.warn{border-color:var(--warn);background:var(--warn-bg)}
+  .callout.bad{border-color:var(--bad);background:var(--bad-bg)}
+  .formula{font-family:ui-monospace,Menlo,Consolas,monospace;background:#0f2233;color:#cfe6f5;padding:12px 14px;
+    border-radius:8px;font-size:13px;overflow-x:auto;margin:8px 0}
+  .formula b{color:#ffd479}
+  .calc-out{display:flex;gap:14px;flex-wrap:wrap;margin-top:10px}
+  .stat{flex:1 1 150px;background:var(--chip);border:1px solid var(--line);border-radius:10px;padding:12px}
+  .stat .lab{font-size:11px;text-transform:uppercase;letter-spacing:.5px;color:var(--muted)}
+  .stat .val{font-size:24px;font-weight:700;margin-top:2px}
+  .stat .desc{font-size:12px;color:var(--muted);margin-top:3px}
+  .tag{display:inline-block;font-size:11px;font-weight:700;padding:2px 8px;border-radius:20px;margin-left:6px}
+  .tag.pos{background:var(--good-bg);color:var(--good)}
+  .tag.neg{background:var(--bad-bg);color:var(--bad)}
+  .tag.chance{background:#eee;color:#666}
+  table{width:100%;border-collapse:collapse;font-size:13px;margin-top:10px}
+  th,td{border:1px solid var(--line);padding:7px 9px;text-align:right}
+  th{background:var(--chip);text-align:right;cursor:pointer;user-select:none}
+  th:first-child,td:first-child{text-align:left}
+  tr.screened{opacity:.5}
+  tr.kept td:first-child{border-left:3px solid var(--accent)}
+  .help{display:inline-block;width:16px;height:16px;line-height:16px;text-align:center;border-radius:50%;
+    background:var(--brand);color:#fff;font-size:11px;cursor:help;margin-left:5px;vertical-align:middle}
+  .glossary dt{font-weight:700;margin-top:12px;color:var(--brand-d)}
+  .glossary dd{margin:2px 0 0;font-size:14px;color:var(--ink)}
+  details{border:1px solid var(--line);border-radius:9px;padding:8px 12px;margin:8px 0;background:#fff}
+  summary{cursor:pointer;font-weight:600;font-size:14px}
+  canvas{max-width:100%;border:1px solid var(--line);border-radius:8px;margin-top:10px;background:#fff}
+  .pill-list{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px}
+  .pill{background:var(--chip);border:1px solid var(--line);border-radius:20px;padding:4px 12px;font-size:13px}
+  footer.site{text-align:center;color:var(--muted);font-size:12.5px;padding:26px 18px;border-top:1px solid var(--line)}
+  footer.site a{color:var(--brand)}
+  .src-box{background:var(--chip);border:1px solid var(--line);border-radius:10px;padding:12px 14px;font-size:13px;margin-top:10px}
+  .two{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+  @media(max-width:680px){.two{grid-template-columns:1fr}}
+  .mono{font-family:ui-monospace,Menlo,Consolas,monospace}
+  .small{font-size:12.5px;color:var(--muted)}
+  .adv-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:8px}
+  @media(max-width:680px){.adv-grid{grid-template-columns:1fr}}
+  .adv{border:1px solid var(--line);border-radius:10px;padding:12px;background:#fff}
+  .adv b{color:var(--brand-d)}
+</style>
+</head>
+<body>
+<header class="top">
+  <h1>Market Basket Analysis (MBA) Implementation Tool</h1>
+  <p>A guided, end-to-end workspace for conducting rigorous, valid association-rule mining in management research — from deciding whether MBA fits, through deriving and interpreting lift, support, and confidence, to avoiding the classic pitfalls.</p>
+</header>
+
+<div class="wrap">
+
+  <div class="stepper" id="stepper"></div>
+  <div class="progress"><span id="progressBar"></span></div>
+
+  <!-- ===================== STEP 0: OVERVIEW ===================== -->
+  <section class="panel step" data-step="0">
+    <h2>Start here — what this tool does</h2>
+    <p class="sub">Market Basket Analysis (MBA), also called <em>association rule mining</em> or <em>affinity analysis</em>, identifies items, products, or categories that co-occur and measures how strongly they do. This tool walks you through the six steps of a valid MBA study and keeps the math and the methodological guardrails in front of you at all times.</p>
+
+    <div class="callout">Work through the six steps in order using the navigator above, or jump to the analytical calculators in <b>Step 5</b> at any time. Reference sections (Advantages, Glossary, Software, Pitfalls) are always available from the navigator.</div>
+
+    <h3>The seven advantages MBA offers</h3>
+    <div class="adv-grid">
+      <div class="adv"><b>1. Inductive theorizing.</b> Build theory and generate hypotheses from large existing data stores.</div>
+      <div class="adv"><b>2. Contingency relationships.</b> Reveal moderated/interaction effects by comparing rules across groups.</div>
+      <div class="adv"><b>3. No GLM assumptions.</b> Free of linearity, normality, and residual-equal-variance requirements.</div>
+      <div class="adv"><b>4. "Unusable" / "messy" data.</b> Tolerates missing values and outliers that would break GLM analyses.</div>
+      <div class="adv"><b>5. Dynamic theories.</b> Multiple MBA across time waves, or sequential MBA (SMBA) for ordered events.</div>
+      <div class="adv"><b>6. Multilevel relationships.</b> Links individual-, team-, unit-, firm-, industry-, country-level items.</div>
+      <div class="adv"><b>7. Practitioner friendly.</b> Probability-scaled, intuitive, actionable results that bridge science and practice.</div>
+    </div>
+
+    <div class="callout warn"><b>Key boundary condition:</b> MBA is an <b>exploratory, inductive</b> method for <em>generating</em> hypotheses and theory. It is <b>not</b> appropriate for confirmatory theory <em>testing</em> — use deductive follow-up designs (e.g., experiments, GLM) for that.</div>
+
+    <div class="nav">
+      <span></span>
+      <button class="btn" onclick="go(1)">Begin: Step 1 →</button>
+    </div>
+  </section>
+
+  <!-- ===================== STEP 1: SUITABILITY ===================== -->
+  <section class="panel step step-hidden" data-step="1">
+    <h2>Step 1 — Determine the suitability of MBA</h2>
+    <p class="sub">Answer the questions below. The tool returns a plain-language verdict on whether MBA fits your problem.</p>
+
+    <h3>A. Data structure (a hard requirement)</h3>
+    <div class="checks">
+      <label><input type="checkbox" id="s1_cat"> My data contain at least one meaningful <b>categorical or binary</b> variable (chosen/not chosen, present/absent) among which deriving co-occurrence rules is interesting.</label>
+      <label><input type="checkbox" id="s1_contOnly"> My data are <b>only</b> continuous or Likert-type scales, with no meaningful categorical/binary variables.</label>
+    </div>
+    <div class="callout">MBA can incorporate continuous variables as <b>quantitative association rules</b> (relating a category to a summary statistic such as a mean), but it <b>cannot run on continuous- or Likert-only data</b>. At least one categorical/binary variable is required.</div>
+
+    <h3>B. Purpose and fit (check all that apply)</h3>
+    <div class="checks">
+      <label><input type="checkbox" class="s1adv" id="s1_induct"> My goal is <b>inductive theory building / hypothesis generation</b> (not confirmatory testing).</label>
+      <label><input type="checkbox" class="s1adv" id="s1_glm"> Applying GLM would likely <b>violate assumptions</b> (linearity, normality, residual equal variance).</label>
+      <label><input type="checkbox" class="s1adv" id="s1_messy"> My data are <b>"messy" or "unusable"</b> for traditional methods (missing values, outliers, not collected for research).</label>
+      <label><input type="checkbox" class="s1adv" id="s1_multi"> I want to examine <b>multilevel</b> relationships (e.g., individual ↔ unit ↔ firm).</label>
+      <label><input type="checkbox" class="s1adv" id="s1_cont"> I want to examine <b>contingency / moderated</b> relationships.</label>
+      <label><input type="checkbox" class="s1adv" id="s1_dyn"> I want to examine <b>dynamic / longitudinal</b> relationships (change over time).</label>
+      <label><input type="checkbox" class="s1adv" id="s1_prac"> I want <b>practitioner-friendly, actionable</b> results.</label>
+    </div>
+
+    <h3>C. Disqualifier</h3>
+    <div class="checks">
+      <label><input type="checkbox" id="s1_testing"> My aim is to <b>confirmatorily test</b> a pre-specified theory or hypothesis.</label>
+    </div>
+
+    <button class="btn" onclick="evalSuitability()">Evaluate fit</button>
+    <div id="s1verdict"></div>
+
+    <div class="nav">
+      <button class="btn ghost" onclick="go(0)">← Back</button>
+      <button class="btn" onclick="go(2)">Step 2 →</button>
+    </div>
+  </section>
+
+  <!-- ===================== STEP 2: TRANSACTIONS ===================== -->
+  <section class="panel step step-hidden" data-step="2">
+    <h2>Step 2 — Define the "transactions"</h2>
+    <p class="sub">A <b>transaction</b> is the basket: the set of choices, resources, or characteristics belonging to one unit of analysis. In a supermarket it is the set of groceries one customer buys; in HR it is the set of benefits one employee selects.</p>
+
+    <div class="row">
+      <div>
+        <label class="q">Unit of analysis</label>
+        <select id="t_unit">
+          <option value="">— choose —</option>
+          <option>Individual (e.g., employee, entrepreneur, customer)</option>
+          <option>Team / group</option>
+          <option>Unit / department</option>
+          <option>Firm / organization</option>
+          <option>Industry</option>
+          <option>Country</option>
+          <option>Other</option>
+        </select>
+      </div>
+      <div>
+        <label class="q">Time frame</label>
+        <select id="t_time">
+          <option value="">— choose —</option>
+          <option value="cs">Cross-sectional (one point in time)</option>
+          <option value="long">Longitudinal (over time)</option>
+        </select>
+      </div>
+    </div>
+
+    <label class="q">What is ONE transaction (basket) in your study?</label>
+    <input type="text" id="t_def" placeholder="e.g., the set of benefits a single employee selects">
+
+    <label class="q">List your items / categories (comma-separated)</label>
+    <input type="text" id="t_items" placeholder="e.g., Holiday Pay, Retirement Plans, Health Care Reimbursement, Wellness Programs">
+    <div class="pill-list" id="t_itempills"></div>
+
+    <label class="q">Level(s) of analysis represented in the items</label>
+    <input type="text" id="t_levels" placeholder="e.g., individual benefit choices + demographic subgroups">
+
+    <button class="btn sm" onclick="buildTransactionSummary()">Preview definition</button>
+    <div id="t_summary"></div>
+
+    <details>
+      <summary>Worked analogy</summary>
+      <p class="small">Supermarket basket → employee benefit bundle. Just as a customer fills a basket with groceries (one transaction), an employee selects a set of benefits when joining a firm (one transaction). Items can also be organizational characteristics, events, identities, or behaviors — anything recorded as present/absent for the unit of analysis.</p>
+    </details>
+
+    <div class="nav">
+      <button class="btn ghost" onclick="go(1)">← Back</button>
+      <button class="btn" onclick="go(3)">Step 3 →</button>
+    </div>
+  </section>
+
+  <!-- ===================== STEP 3: COLLECT DATA ===================== -->
+  <section class="panel step step-hidden" data-step="3">
+    <h2>Step 3 — Collect data</h2>
+    <p class="sub">MBA was designed for large data sets that are usually collected by others. Most MBA studies reuse existing data rather than collecting new data.</p>
+
+    <h3>Sourcing strategies</h3>
+    <div class="adv-grid">
+      <div class="adv"><b>Organizational partnership.</b> Provide analyses and results to a firm in exchange for access to data they already hold.</div>
+      <div class="adv"><b>Third-party / public data.</b> Government, professional-association, or publicly available web data (e.g., census, compacts, registries).</div>
+      <div class="adv"><b>Primary collection.</b> Surveys with open-choice checklists or questionnaires — feasible but more costly.</div>
+      <div class="adv"><b>Business analytics records.</b> HR, customer, and operational data routinely stored by organizations.</div>
+    </div>
+
+    <h3>Required data format</h3>
+    <p class="small">MBA needs a <b>binary transaction matrix</b>: one row per transaction, one column per item, where <b>1 = present/chosen</b> and <b>0 = absent/not chosen</b>.</p>
+    <div class="formula">
+transaction, Soda, OrangeJuice, FatFreeCream, Donuts<br>
+1, 1, 1, 1, 1<br>
+2, 1, 1, 1, 0<br>
+3, 1, 0, 1, 0<br>
+4, 0, 1, 1, 0<br>
+...
+    </div>
+    <div class="callout warn"><b>Pitfall preview:</b> retain data for <b>all</b> possible outcomes, not only the cases that responded or that have the "positive" outcome. Discarding non-responders makes valid rules impossible to detect. (Full pitfalls list is in the navigator.)</div>
+
+    <div class="nav">
+      <button class="btn ghost" onclick="go(2)">← Back</button>
+      <button class="btn" onclick="go(4)">Step 4 →</button>
+    </div>
+  </section>
+
+  <!-- ===================== STEP 4: REQUIREMENTS ===================== -->
+  <section class="panel step step-hidden" data-step="4">
+    <h2>Step 4 — Check MBA requirements</h2>
+    <p class="sub">Two requirements must hold before deriving rules. This verifier flags problems.</p>
+
+    <h3>Requirement 1 — Sufficiently large number of transactions</h3>
+    <label class="q">How many transactions (rows) does your data set contain?</label>
+    <input type="number" id="r_n" placeholder="e.g., 1000" oninput="evalReq()">
+    <div class="checks">
+      <label><input type="checkbox" id="r_single" onchange="evalReq()"> All data come from a <b>single context</b> (e.g., one organization with a unique culture).</label>
+    </div>
+    <div class="small">Published MBA samples range from a few hundred to millions of transactions. Too few transactions yields almost no rules with lift meaningfully different from 1.0. A large N drawn from one context does <b>not</b> fix external-validity / generalizability concerns — describe your data sources in detail.</div>
+    <div id="r1verdict"></div>
+
+    <h3>Requirement 2 — Non-responses must be substantively meaningful</h3>
+    <p class="small">A non-response must represent a genuine <b>non-choice</b> (e.g., an employee chose not to sign up for a benefit), not an <b>artifact</b> (a busy respondent skipped it, an item was mistakenly omitted, or wording was confusing).</p>
+    <div class="checks">
+      <label><input type="checkbox" class="r2" onchange="evalReq()"> I examined the <b>survey/data format</b> to confirm no item was mistakenly excluded.</label>
+      <label><input type="checkbox" class="r2" onchange="evalReq()"> I reviewed <b>item wording</b> to rule out confusion-driven non-responses.</label>
+      <label><input type="checkbox" class="r2" onchange="evalReq()"> I consulted <b>knowledgeable insiders</b> (e.g., HR managers) about unpopular vs. missing items.</label>
+      <label><input type="checkbox" class="r2" onchange="evalReq()"> I used <b>frequency tables</b> to find items with no/few responses for follow-up.</label>
+      <label><input type="checkbox" class="r2" onchange="evalReq()"> I confirmed that all (or identifiable) non-responses are substantively meaningful non-choices.</label>
+    </div>
+    <div id="r2verdict"></div>
+    <div class="callout">If some non-responses are artifacts you can pinpoint, <b>interpret with caution or discard</b> any rule built on those items. If meaningfulness is unclear, you cannot tell whether lift/support/confidence are inflated, deflated, or accurate — resolve it before interpreting.</div>
+
+    <div class="nav">
+      <button class="btn ghost" onclick="go(3)">← Back</button>
+      <button class="btn" onclick="go(5)">Step 5 →</button>
+    </div>
+  </section>
+
+  <!-- ===================== STEP 5: DERIVE ===================== -->
+  <section class="panel step step-hidden" data-step="5">
+    <h2>Step 5 — Derive association rules and their strength</h2>
+    <p class="sub">Compute the three indexes in the prescribed order: <b>lift → support → confidence</b>. They provide complementary, non-redundant information.</p>
+
+    <h3>A. Single-rule calculator (counts)</h3>
+    <p class="small">Enter counts for two itemsets A and B. The tool computes lift, support, and both confidence directions, with the formulas and plugged-in numbers shown.</p>
+    <div class="row">
+      <div><label class="q">Total transactions (N)</label><input type="number" id="c_n" value="10000" oninput="calcSingle()"></div>
+      <div><label class="q">Count with A</label><input type="number" id="c_a" value="33" oninput="calcSingle()"></div>
+      <div><label class="q">Count with B</label><input type="number" id="c_b" value="497" oninput="calcSingle()"></div>
+      <div><label class="q">Count with A <b>and</b> B</label><input type="number" id="c_ab" value="30" oninput="calcSingle()"></div>
+    </div>
+    <div class="row" style="margin-top:8px">
+      <div><label class="q">Label for A</label><input type="text" id="c_la" value="Soda"></div>
+      <div><label class="q">Label for B</label><input type="text" id="c_lb" value="Orange Juice"></div>
+    </div>
+    <button class="btn sm" onclick="calcSingle()" style="margin-top:10px">Recompute</button>
+    <button class="btn sm ghost" onclick="loadDemo('soda')" style="margin-top:10px">Load soda↔OJ demo</button>
+    <button class="btn sm ghost" onclick="loadDemo('cream')" style="margin-top:10px">Load cream↔donuts demo</button>
+
+    <div id="c_formulas"></div>
+    <div class="calc-out" id="c_out"></div>
+
+    <h3>B. Lift cutoff helper (histogram)</h3>
+    <p class="small">Lift is a screen: values at/near 1.0 are explainable by chance and should be removed. Rather than picking an arbitrary cutoff, plot a histogram of all lift values (like a scree plot) and keep rules in the extreme top/bottom. Paste lift values below (comma, space, or newline separated).</p>
+    <textarea id="h_vals" placeholder="e.g.&#10;18.29, 1.94, 1.85, 1.02, 0.98, 0.40, 0.51, 1.10, 2.42, 0.33"></textarea>
+    <div class="row" style="margin-top:8px">
+      <div><label class="q">Upper cutoff (keep lift ≥)</label><input type="number" id="h_up" value="1.5" step="0.1"></div>
+      <div><label class="q">Lower cutoff (keep lift ≤)</label><input type="number" id="h_lo" value="0.5" step="0.1"></div>
+    </div>
+    <button class="btn sm" onclick="drawHistogram()" style="margin-top:10px">Plot histogram</button>
+    <canvas id="histo" width="900" height="320"></canvas>
+    <div id="h_summary" class="small"></div>
+    <div class="callout">Thresholds are <b>context-specific</b>: the same confidence value can be practically meaningful for one outcome (e.g., cancer-treatment survival) and trivial for another (e.g., job satisfaction). Justify cutoffs by your substantive context, not convention.</div>
+
+    <h3>C. Batch mode — paste a binary transaction matrix</h3>
+    <p class="small">Paste CSV with a header row of item names and one row per transaction (1/0). The tool computes lift, support, and both confidence values for <b>every item pair</b>, sortable by any column, with kept vs. screened rules flagged by your lift cutoffs above.</p>
+    <textarea id="b_csv" placeholder="Soda,OrangeJuice,FatFreeCream,Donuts&#10;1,1,1,1&#10;1,1,1,0&#10;1,0,1,0&#10;0,1,1,0"></textarea>
+    <div class="row" style="margin-top:8px">
+      <button class="btn sm" onclick="runBatch()">Compute all pairs</button>
+      <button class="btn sm ghost" onclick="loadBatchDemo()">Load worked-example matrix</button>
+    </div>
+    <div id="b_out"></div>
+
+    <div class="nav">
+      <button class="btn ghost" onclick="go(4)">← Back</button>
+      <button class="btn" onclick="go(6)">Step 6 →</button>
+    </div>
+  </section>
+
+  <!-- ===================== STEP 6: INTERPRET ===================== -->
+  <section class="panel step step-hidden" data-step="6">
+    <h2>Step 6 — Interpret association rules</h2>
+    <p class="sub">Translate the indexes into theory and practice. Use the prompts below to structure interpretation of a rule.</p>
+
+    <div class="row">
+      <div><label class="q">Antecedent (A)</label><input type="text" id="i_a" placeholder="e.g., Holiday Pay"></div>
+      <div><label class="q">Consequent (B)</label><input type="text" id="i_b" placeholder="e.g., Health Care Reimbursement"></div>
+    </div>
+    <div class="row" style="margin-top:8px">
+      <div><label class="q">Lift</label><input type="number" id="i_lift" step="0.01" placeholder="1.85" oninput="interpret()"></div>
+      <div><label class="q">Support (%)</label><input type="number" id="i_sup" step="0.1" placeholder="8.5" oninput="interpret()"></div>
+      <div><label class="q">Confidence B|A (%)</label><input type="number" id="i_cba" step="0.1" placeholder="32.3" oninput="interpret()"></div>
+      <div><label class="q">Confidence A|B (%)</label><input type="number" id="i_cab" step="0.1" placeholder="48.6" oninput="interpret()"></div>
+    </div>
+    <button class="btn sm" onclick="interpret()" style="margin-top:10px">Generate interpretation guidance</button>
+    <div id="i_out"></div>
+
+    <h3>Record your implications</h3>
+    <label class="q">Theoretical implications (inductive hypotheses, contingency/competing theories, deductive follow-up tests)</label>
+    <textarea id="i_theory" placeholder="What hypothesis or theory does this rule generate? What moderator or subgroup might explain it? What deductive study would test it?"></textarea>
+    <label class="q">Practical / actionable implications</label>
+    <textarea id="i_practice" placeholder="What action could a practitioner take based on this rule?"></textarea>
+
+    <div class="callout"><b>Causality cue.</b> Markedly divergent confidence directions suggest a direction: if P(B|A) ≫ P(A|B), hypothesize A → B. Equal confidences may indicate reciprocal repulsion/attraction or an unobserved subgroup moderator. <b>Low support is not "unimportant"</b> — it may flag untapped, actionable knowledge.</div>
+
+    <div class="nav">
+      <button class="btn ghost" onclick="go(5)">← Back</button>
+      <button class="btn" onclick="go(7)">Pre-flight & export →</button>
+    </div>
+  </section>
+
+  <!-- ===================== STEP 7: PITFALLS + EXPORT ===================== -->
+  <section class="panel step step-hidden" data-step="7">
+    <h2>Pre-flight check — avoid the classic pitfalls</h2>
+    <p class="sub">Confirm each before finalizing. These map directly to the article's three documented pitfalls.</p>
+    <div class="checks">
+      <label><input type="checkbox" class="pf"> <b>1. All outcomes retained.</b> Data were collected/kept for every possible outcome — not only responders or "positive" cases. Selection on the outcome destroys valid rules.</label>
+      <label><input type="checkbox" class="pf"> <b>2. Data integrity & construct validity verified.</b> Especially for third-party/archival data: field labels and recordings are correct, and a variable labeled (e.g.) "employee motivation" actually measures it.</label>
+      <label><input type="checkbox" class="pf"> <b>3. Hands-on practice done.</b> I ran the built-in worked example and tried the method on real data before drawing conclusions.</label>
+    </div>
+    <div id="pf_status"></div>
+
+    <h3>Dynamic-theory module</h3>
+    <label class="q">If your data are longitudinal, which structure do you have?</label>
+    <select id="d_kind" onchange="dynAdvice()">
+      <option value="">— not longitudinal / not sure —</option>
+      <option value="multi">Repeated cross-sections (transactions at Time 1, Time 2, … Time k)</option>
+      <option value="smba">Time-ordered individual events (sequence of events per unit)</option>
+    </select>
+    <div id="d_out"></div>
+
+    <h3>Export your study summary</h3>
+    <p class="small">Generates a printable report of your Step 1–6 choices, computed rules, and interpretation notes.</p>
+    <button class="btn" onclick="exportReport()">Open printable summary</button>
+
+    <div class="nav">
+      <button class="btn ghost" onclick="go(6)">← Back</button>
+      <button class="btn" onclick="go(8)">Reference →</button>
+    </div>
+  </section>
+
+  <!-- ===================== STEP 8: REFERENCE ===================== -->
+  <section class="panel step step-hidden" data-step="8">
+    <h2>Reference</h2>
+
+    <h3>The seven advantages of MBA</h3>
+    <div class="adv-grid">
+      <div class="adv"><b>Inductive theorizing.</b> Uses vast existing data to build theory and generate hypotheses (underused in management). Hypotheses can then be tested deductively in follow-up studies.</div>
+      <div class="adv"><b>Contingency relationships.</b> Adding a moderator (group) shows how a rule's strength varies, and which rules exist for one group but not another.</div>
+      <div class="adv"><b>No GLM assumptions.</b> Assesses relationships between items/categories, not linear relationships between variables — free of linearity, normality, residual equal variance.</div>
+      <div class="adv"><b>"Unusable" / "messy" data.</b> Missing values can be modeled as a distinct item or via lift &lt; 1.0; outliers become rare rules with near-1 lift and tiny support/confidence, so they don't distort overall results.</div>
+      <div class="adv"><b>Dynamic theories.</b> <u>Multiple MBA</u> compares lift/support/confidence across time waves; <u>Sequential MBA (SMBA)</u> finds ordered rules like [(A),(B),(C)] (A precedes B precedes C).</div>
+      <div class="adv"><b>Multilevel relationships.</b> Applies across within-individual, group, unit, firm, industry, and country levels — including lower-level predictors of higher-level outcomes.</div>
+      <div class="adv"><b>Practitioner friendly.</b> Probability-scaled (0–100%) support and confidence are intuitive and actionable, helping bridge the science–practice divide.</div>
+    </div>
+
+    <h3>Software for running MBA at scale</h3>
+    <div class="two">
+      <div class="src-box"><b>Commercial</b><br>IBM SPSS Modeler (formerly Clementine)<br>SAS Enterprise Miner<br>Microsoft Excel pivot-table approach (modified MBA)</div>
+      <div class="src-box"><b>Free / open source</b><br>R <span class="mono">arules</span> package<br>Magnum Opus (demo available)<br>Weka (incl. DecisionStump for missing-as-item)</div>
+    </div>
+    <p class="small">Capabilities are broadly similar across packages; labels for procedures/results differ. Choose the one you already know — the learning curve is gentler.</p>
+
+    <h3>Glossary</h3>
+    <dl class="glossary">
+      <dt>Transaction</dt><dd>The "basket" — the set of items/choices/characteristics belonging to one unit of analysis; one row of data.</dd>
+      <dt>Item</dt><dd>A single product, choice, category, behavior, event, or characteristic recorded as present (1) or absent (0).</dd>
+      <dt>Itemset</dt><dd>One or more items considered together.</dd>
+      <dt>Association rule</dt><dd>A co-occurrence relationship between itemsets, written [(A), (B)].</dd>
+      <dt>Antecedent / Consequent</dt><dd>The left-hand side (A) and right-hand side (B) of a rule.</dd>
+      <dt>Lift</dt><dd>P(A∩B) / [P(A)·P(B)]. Computed first; a chance screen. &gt;1 positive, &lt;1 negative, ≈1 chance.</dd>
+      <dt>Support</dt><dd>P(A∩B), 0–100%. Co-occurrence probability; an effect size. Compresses in very large/rich data.</dd>
+      <dt>Confidence</dt><dd>P(A∩B)/P(A), 0–100%. Probability of one itemset given another; robust to data size. Computed both directions.</dd>
+      <dt>Categorical association rule</dt><dd>Relates one categorical value to another categorical value.</dd>
+      <dt>Quantitative association rule</dt><dd>Relates a categorical value to a summary statistic (mean, median) of a continuous variable.</dd>
+      <dt>Multiple MBA</dt><dd>Treats each time wave as a cross-section and compares index values across waves (dynamic theory).</dd>
+      <dt>Sequential MBA (SMBA)</dt><dd>Derives time-ordered rules from sequences of individual events per unit.</dd>
+    </dl>
+
+    <div class="nav">
+      <button class="btn ghost" onclick="go(0)">↑ Back to overview</button>
+      <span></span>
+    </div>
+  </section>
+
+  <footer class="site">
+    <div><b>Based on:</b> Aguinis, H. (2025). <i>Research methodology: Best practices for rigorous, credible, and impactful research.</i> SAGE.
+      <a href="https://collegepublishing.sagepub.com/products/research-methodology-1-280088" target="_blank" rel="noopener">collegepublishing.sagepub.com/products/research-methodology-1-280088</a></div>
+    <div style="margin-top:6px">MBA procedure from: Aguinis, H., Forcum, L. E., &amp; Joo, H. (2013). Using market basket analysis in management research. <i>Journal of Management, 39</i>(7), 1799–1824.</div>
+    <div style="margin-top:10px"><button class="btn sm ghost" onclick="go(99)">About this tool</button></div>
+  </footer>
+
+  <!-- ABOUT -->
+  <section class="panel step step-hidden" data-step="99">
+    <h2>About this tool</h2>
+    <p>This interactive tool guides researchers through a complete, valid Market Basket Analysis: assessing suitability, defining transactions, sourcing data, checking requirements, deriving and screening association rules (lift, support, confidence), interpreting results for theory and practice, and avoiding documented pitfalls. All calculations and methodological guidance are drawn from the source below; nothing in the tool is intended to contradict it.</p>
+    <div class="src-box">
+      <b>Primary source / attribution.</b><br>
+      Aguinis, H. (2025). <i>Research methodology: Best practices for rigorous, credible, and impactful research.</i> SAGE.<br>
+      <a href="https://collegepublishing.sagepub.com/products/research-methodology-1-280088" target="_blank" rel="noopener">https://collegepublishing.sagepub.com/products/research-methodology-1-280088</a>
+      <br><br>
+      <b>MBA methodology source.</b><br>
+      Aguinis, H., Forcum, L. E., &amp; Joo, H. (2013). Using market basket analysis in management research. <i>Journal of Management, 39</i>(7), 1799–1824.
+    </div>
+    <div class="nav"><button class="btn ghost" onclick="go(0)">↑ Back to overview</button><span></span></div>
+  </section>
+
+</div>
+
+<script>
+/* ---------------- Navigation ---------------- */
+const STEPS = [
+  {n:"Start", t:"Overview"},
+  {n:"Step 1", t:"Suitability"},
+  {n:"Step 2", t:"Transactions"},
+  {n:"Step 3", t:"Collect data"},
+  {n:"Step 4", t:"Requirements"},
+  {n:"Step 5", t:"Derive rules"},
+  {n:"Step 6", t:"Interpret"},
+  {n:"Final", t:"Pitfalls & export"},
+  {n:"Ref", t:"Reference"}
+];
+let current = 0;
+const visited = new Set([0]);
+
+function renderStepper(){
+  const el = document.getElementById('stepper');
+  el.innerHTML = '';
+  STEPS.forEach((s,i)=>{
+    const b = document.createElement('button');
+    b.className = 'stepper-btn' + (i===current?' active':'') + (visited.has(i)&&i!==current?' done':'');
+    b.innerHTML = `<span class="n">${s.n}</span><span class="t">${s.t}</span>`;
+    b.onclick = ()=>go(i);
+    el.appendChild(b);
+  });
+  document.getElementById('progressBar').style.width = ((Math.min(current,8))/8*100)+'%';
+}
+function go(i){
+  current = i; visited.add(i);
+  document.querySelectorAll('.step').forEach(s=>{
+    s.classList.toggle('step-hidden', Number(s.dataset.step)!==i);
+  });
+  renderStepper();
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
+/* ---------------- Step 1: suitability ---------------- */
+function evalSuitability(){
+  const cat = document.getElementById('s1_cat').checked;
+  const contOnly = document.getElementById('s1_contOnly').checked;
+  const testing = document.getElementById('s1_testing').checked;
+  const advs = [...document.querySelectorAll('.s1adv')].filter(c=>c.checked).length;
+  const box = document.getElementById('s1verdict');
+  let cls='good', msg='';
+
+  if(contOnly || !cat){
+    cls='bad';
+    msg='<b>MBA is not a good fit.</b> MBA requires at least one meaningful categorical/binary variable. With continuous- or Likert-only data, you cannot derive categorical (or quantitative) association rules. Consider adding a categorical variable, or use a GLM-based method.';
+  } else if(testing){
+    cls='warn';
+    msg='<b>MBA is likely a poor fit for your stated aim.</b> MBA is exploratory and inductive — it generates hypotheses, it does not confirmatorily test them. Use MBA to derive hypotheses, then test them deductively (e.g., an experiment or GLM).';
+  } else if(advs===0){
+    cls='warn';
+    msg='<b>MBA could work, but the payoff is unclear.</b> You meet the data requirement, but you did not check any of the situations where MBA excels (inductive theorizing, assumption violations, messy data, multilevel/contingency/dynamic questions, practitioner relevance). MBA is most valuable when at least one of those applies.';
+  } else {
+    cls='good';
+    msg=`<b>MBA is a good fit.</b> You have suitable categorical/binary data and your goal aligns with ${advs} of MBA's advantage${advs>1?'s':''}. Proceed to define your transactions in Step 2.`;
+  }
+  box.className='verdict '+cls;
+  box.innerHTML = msg;
+}
+
+/* ---------------- Step 2: transactions ---------------- */
+function buildTransactionSummary(){
+  const unit = document.getElementById('t_unit').value || '(unit not set)';
+  const time = document.getElementById('t_time').value;
+  const timeTxt = time==='cs'?'cross-sectional':time==='long'?'longitudinal':'(time frame not set)';
+  const def = document.getElementById('t_def').value || '(transaction not defined)';
+  const items = document.getElementById('t_items').value.split(',').map(s=>s.trim()).filter(Boolean);
+  const levels = document.getElementById('t_levels').value || '(levels not set)';
+  const pills = document.getElementById('t_itempills');
+  pills.innerHTML = items.map(i=>`<span class="pill">${escapeHtml(i)}</span>`).join('');
+  const box = document.getElementById('t_summary');
+  box.className='verdict good';
+  box.innerHTML = `<b>Your transaction:</b> ${escapeHtml(def)}.<br>
+    <b>Unit of analysis:</b> ${escapeHtml(unit)} &nbsp;•&nbsp; <b>Design:</b> ${timeTxt} &nbsp;•&nbsp; <b>Items:</b> ${items.length} &nbsp;•&nbsp; <b>Levels:</b> ${escapeHtml(levels)}`;
+}
+document.addEventListener('input',e=>{
+  if(e.target&&e.target.id==='t_items'){
+    const items = e.target.value.split(',').map(s=>s.trim()).filter(Boolean);
+    document.getElementById('t_itempills').innerHTML = items.map(i=>`<span class="pill">${escapeHtml(i)}</span>`).join('');
+  }
+});
+
+/* ---------------- Step 4: requirements ---------------- */
+function evalReq(){
+  const n = Number(document.getElementById('r_n').value)||0;
+  const single = document.getElementById('r_single').checked;
+  const v1 = document.getElementById('r1verdict');
+  if(!n){ v1.innerHTML=''; }
+  else {
+    let cls,msg;
+    if(n<200){cls='bad';msg=`<b>${n} transactions is likely too few.</b> Published MBA studies rarely go below a few hundred transactions; with too few you will find almost no rules with lift meaningfully different from 1.0.`;}
+    else if(n<1000){cls='warn';msg=`<b>${n} transactions is on the small side but usable</b> (some published studies use a few hundred). Larger samples yield more stable rules.`;}
+    else {cls='good';msg=`<b>${n} transactions meets the sample-size requirement.</b>`;}
+    if(single) msg += ` <br><b>Single-context caution:</b> even a large N from one context does not establish generalizability. Describe your data sources in detail so readers can judge external validity.`;
+    v1.className='verdict '+cls; v1.innerHTML=msg;
+  }
+  const r2 = [...document.querySelectorAll('.r2')];
+  const done = r2.filter(c=>c.checked).length;
+  const v2 = document.getElementById('r2verdict');
+  if(done===0){v2.innerHTML='';}
+  else{
+    const cls = done>=4?'good':'warn';
+    v2.className='verdict '+cls;
+    v2.innerHTML = `<b>${done} of 5 meaningfulness checks complete.</b> ${done>=4?'You have strong evidence that non-responses are substantively meaningful.':'Complete the remaining checks before interpreting rules involving items with many non-responses.'}`;
+  }
+}
+
+/* ---------------- Step 5A: single calculator ---------------- */
+function pct(x){return (x*100).toFixed(2)+'%';}
+function calcSingle(){
+  const N=Number(document.getElementById('c_n').value);
+  const a=Number(document.getElementById('c_a').value);
+  const b=Number(document.getElementById('c_b').value);
+  const ab=Number(document.getElementById('c_ab').value);
+  const la=document.getElementById('c_la').value||'A';
+  const lb=document.getElementById('c_lb').value||'B';
+  const fbox=document.getElementById('c_formulas');
+  const out=document.getElementById('c_out');
+  if(!N||a<0||b<0||ab<0||ab>a||ab>b||a>N||b>N){
+    out.innerHTML=''; fbox.innerHTML='<div class="callout bad">Check inputs: counts must be ≥0, A∩B cannot exceed A or B, and counts cannot exceed N.</div>';
+    return;
+  }
+  const pA=a/N, pB=b/N, pAB=ab/N;
+  const lift = pAB/(pA*pB);
+  const support = pAB;
+  const confBA = ab/a;   // P(B|A)
+  const confAB = ab/b;   // P(A|B)
+
+  fbox.innerHTML = `
+    <div class="formula"><b>Lift</b> = P(A∩B) / [P(A)·P(B)] = (${ab}/${N}) / [(${a}/${N})·(${b}/${N})] = <b>${lift.toFixed(2)}</b></div>
+    <div class="formula"><b>Support</b> = P(A∩B) = ${ab}/${N} = <b>${pct(support)}</b></div>
+    <div class="formula"><b>Confidence(${escapeHtml(lb)} | ${escapeHtml(la)})</b> = P(A∩B)/P(A) = ${ab}/${a} = <b>${pct(confBA)}</b></div>
+    <div class="formula"><b>Confidence(${escapeHtml(la)} | ${escapeHtml(lb)})</b> = P(A∩B)/P(B) = ${ab}/${b} = <b>${pct(confAB)}</b></div>`;
+
+  let liftTag = lift>1.05?'<span class="tag pos">positive</span>':lift<0.95?'<span class="tag neg">negative</span>':'<span class="tag chance">≈ chance</span>';
+  let liftDesc = lift>1.05?'Presence of A is associated with presence of B.':lift<0.95?'Presence of A is associated with ABSENCE of B.':'Explainable by chance — screen this rule out.';
+  let dir = '';
+  const ratio = confBA/ (confAB||1e-9);
+  if(confBA>0&&confAB>0){
+    if(ratio>=2) dir = `Confidence is much higher for B|A than A|B → hypothesize <b>${escapeHtml(la)} → ${escapeHtml(lb)}</b>.`;
+    else if(ratio<=0.5) dir = `Confidence is much higher for A|B than B|A → hypothesize <b>${escapeHtml(lb)} → ${escapeHtml(la)}</b>.`;
+    else dir = `Confidence directions are similar → reciprocal relationship or an unobserved subgroup moderator.`;
+  }
+
+  out.innerHTML = `
+    <div class="stat"><div class="lab">Lift</div><div class="val">${lift.toFixed(2)} ${liftTag}</div><div class="desc">${liftDesc}</div></div>
+    <div class="stat"><div class="lab">Support</div><div class="val">${pct(support)}</div><div class="desc">Co-occurrence probability (effect size).</div></div>
+    <div class="stat"><div class="lab">Conf. ${escapeHtml(lb)}|${escapeHtml(la)}</div><div class="val">${pct(confBA)}</div><div class="desc">P(${escapeHtml(lb)} given ${escapeHtml(la)}).</div></div>
+    <div class="stat"><div class="lab">Conf. ${escapeHtml(la)}|${escapeHtml(lb)}</div><div class="val">${pct(confAB)}</div><div class="desc">P(${escapeHtml(la)} given ${escapeHtml(lb)}).</div></div>
+    <div class="stat" style="flex:1 1 100%"><div class="lab">Directional reading</div><div class="desc" style="font-size:13px">${dir}</div></div>`;
+  // store for export
+  window._lastRule = {la,lb,lift,support,confBA,confAB};
+}
+function loadDemo(which){
+  if(which==='soda'){
+    setVals({c_n:10000,c_a:33,c_b:497,c_ab:30,c_la:'Soda',c_lb:'Orange Juice'});
+  } else {
+    setVals({c_n:10000,c_a:500,c_b:500,c_ab:10,c_la:'Fat-Free Cream',c_lb:'Donuts'});
+  }
+  calcSingle();
+}
+function setVals(o){for(const k in o){document.getElementById(k).value=o[k];}}
+
+/* ---------------- Step 5B: histogram ---------------- */
+function parseNums(s){return s.split(/[\s,]+/).map(x=>parseFloat(x)).filter(x=>!isNaN(x));}
+function drawHistogram(){
+  const vals = parseNums(document.getElementById('h_vals').value);
+  const up = Number(document.getElementById('h_up').value);
+  const lo = Number(document.getElementById('h_lo').value);
+  const cv = document.getElementById('histo');
+  const ctx = cv.getContext('2d');
+  ctx.clearRect(0,0,cv.width,cv.height);
+  const sum = document.getElementById('h_summary');
+  if(vals.length<2){sum.innerHTML='Enter at least two lift values.';return;}
+  const min=Math.min(...vals), max=Math.max(...vals);
+  const bins=Math.min(20,Math.max(6,Math.round(Math.sqrt(vals.length))));
+  const width=(max-min)||1, bw=width/bins;
+  const counts=new Array(bins).fill(0);
+  vals.forEach(v=>{let idx=Math.floor((v-min)/bw); if(idx>=bins)idx=bins-1; if(idx<0)idx=0; counts[idx]++;});
+  const maxC=Math.max(...counts);
+  const padL=46,padB=42,padT=16,padR=14;
+  const W=cv.width-padL-padR, H=cv.height-padB-padT;
+  // axes
+  ctx.strokeStyle='#9bb0c2'; ctx.lineWidth=1;
+  ctx.beginPath(); ctx.moveTo(padL,padT); ctx.lineTo(padL,padT+H); ctx.lineTo(padL+W,padT+H); ctx.stroke();
+  ctx.fillStyle='#5b6b7b'; ctx.font='11px sans-serif';
+  for(let i=0;i<=maxC;i+=Math.ceil(maxC/5)||1){
+    const y=padT+H-(i/maxC)*H; ctx.fillText(i,6,y+3);
+    ctx.strokeStyle='#eef3f8'; ctx.beginPath(); ctx.moveTo(padL,y); ctx.lineTo(padL+W,y); ctx.stroke();
+  }
+  // bars
+  for(let i=0;i<bins;i++){
+    const x=padL+(i/bins)*W, w=(W/bins)-2;
+    const h=(counts[i]/maxC)*H;
+    const binMid=min+(i+0.5)*bw;
+    const kept = binMid>=up || binMid<=lo;
+    ctx.fillStyle = kept ? '#0f8a6a' : '#c4d2de';
+    ctx.fillRect(x+1,padT+H-h,w,h);
+  }
+  // cutoff lines
+  function vline(val,color,label){
+    if(val<min||val>max)return;
+    const x=padL+((val-min)/width)*W;
+    ctx.strokeStyle=color; ctx.setLineDash([5,4]); ctx.beginPath();
+    ctx.moveTo(x,padT); ctx.lineTo(x,padT+H); ctx.stroke(); ctx.setLineDash([]);
+    ctx.fillStyle=color; ctx.fillText(label,x-10,padT+10);
+  }
+  vline(up,'#b3541e','keep ≥'); vline(lo,'#b3261e','keep ≤'); vline(1,'#1f5c8b','1.0');
+  // x labels
+  ctx.fillStyle='#5b6b7b';
+  ctx.fillText(min.toFixed(2),padL-6,padT+H+16);
+  ctx.fillText(max.toFixed(2),padL+W-20,padT+H+16);
+  ctx.fillText('Lift value',padL+W/2-22,padT+H+34);
+  const kept=vals.filter(v=>v>=up||v<=lo).length;
+  sum.innerHTML=`<b>${vals.length}</b> lift values • range ${min.toFixed(2)}–${max.toFixed(2)} • <b style="color:#0f8a6a">${kept} retained</b> (lift ≥ ${up} or ≤ ${lo}), ${vals.length-kept} screened out as near-chance. Green bars are retained; the blue dashed line marks lift = 1.0 (pure chance).`;
+}
+
+/* ---------------- Step 5C: batch ---------------- */
+function runBatch(){
+  const raw=document.getElementById('b_csv').value.trim();
+  const out=document.getElementById('b_out');
+  if(!raw){out.innerHTML='<div class="callout bad">Paste a CSV matrix first.</div>';return;}
+  const lines=raw.split(/\r?\n/).filter(l=>l.trim());
+  const header=lines[0].split(',').map(s=>s.trim());
+  const rows=lines.slice(1).map(l=>l.split(',').map(s=>Number(s.trim())));
+  const N=rows.length;
+  if(N<2||header.length<2){out.innerHTML='<div class="callout bad">Need a header row of item names and at least two transaction rows.</div>';return;}
+  const m=header.length;
+  const count=new Array(m).fill(0);
+  rows.forEach(r=>{for(let j=0;j<m;j++) if(r[j]===1) count[j]++;});
+  const up=Number(document.getElementById('h_up').value)||1.5;
+  const lo=Number(document.getElementById('h_lo').value)||0.5;
+  const results=[];
+  for(let i=0;i<m;i++){
+    for(let j=i+1;j<m;j++){
+      let ab=0; rows.forEach(r=>{if(r[i]===1&&r[j]===1)ab++;});
+      const pA=count[i]/N,pB=count[j]/N,pAB=ab/N;
+      const lift=(pA&&pB)?pAB/(pA*pB):0;
+      const confBA=count[i]?ab/count[i]:0;
+      const confAB=count[j]?ab/count[j]:0;
+      results.push({A:header[i],B:header[j],lift,support:pAB,confBA,confAB,
+        kept:(lift>=up||lift<=lo)&&pAB>0});
+    }
+  }
+  window._batch=results;
+  renderBatch('lift',false);
+}
+let _batchSort={key:'lift',asc:false};
+function renderBatch(key,toggle){
+  const results=window._batch||[];
+  if(toggle){ if(_batchSort.key===key)_batchSort.asc=!_batchSort.asc; else {_batchSort.key=key;_batchSort.asc=false;} }
+  else {_batchSort={key,asc:false};}
+  const k=_batchSort.key, asc=_batchSort.asc;
+  results.sort((a,b)=> asc ? a[k]-b[k] : b[k]-a[k]);
+  let rows=results.map(r=>`<tr class="${r.kept?'kept':'screened'}">
+    <td>[(${escapeHtml(r.A)}), (${escapeHtml(r.B)})]</td>
+    <td>${r.lift.toFixed(2)}</td>
+    <td>${(r.support*100).toFixed(2)}%</td>
+    <td>${(r.confBA*100).toFixed(1)}%</td>
+    <td>${(r.confAB*100).toFixed(1)}%</td>
+    <td>${r.kept?'<b style="color:#0f7a4f">keep</b>':'screen'}</td></tr>`).join('');
+  document.getElementById('b_out').innerHTML=`
+    <p class="small">${results.length} item pairs from ${ (document.getElementById('b_csv').value.trim().split(/\r?\n/).length-1) } transactions. Click a header to sort. Rows flagged <b>keep</b> pass your lift cutoffs (≥${document.getElementById('h_up').value} or ≤${document.getElementById('h_lo').value}).</p>
+    <table>
+      <thead><tr>
+        <th onclick="renderBatch('A',true)">Rule</th>
+        <th onclick="renderBatch('lift',true)">Lift</th>
+        <th onclick="renderBatch('support',true)">Support</th>
+        <th onclick="renderBatch('confBA',true)">Conf B|A</th>
+        <th onclick="renderBatch('confAB',true)">Conf A|B</th>
+        <th>Status</th>
+      </tr></thead><tbody>${rows}</tbody></table>`;
+}
+function loadBatchDemo(){
+  // Build a matrix reproducing the article's counts for the four items over 10,000 rows.
+  // Soda(A)=33, OJ(B)=497, A&B=30; Cream(C)=500, Donuts(D)=500, C&D=10.
+  // Construct disjoint groups consistent with Table 1 structure.
+  const N=10000; const rows=[];
+  function row(a,b,c,d){return `${a},${b},${c},${d}`;}
+  let A=0,B=0,C=0,D=0;
+  // 30 rows: A,B,C present (first 10 also D, but D handled separately below to hit totals)
+  // We just need correct marginals & intersections for the 4 items; exact joint not required for demo.
+  const lines=[];
+  // 30 rows A&B&C
+  for(let i=0;i<30;i++){lines.push(row(1,1,1,0));A++;B++;C++;}
+  // 3 rows A&C only (A total ->33)
+  for(let i=0;i<3;i++){lines.push(row(1,0,1,0));A++;C++;}
+  // OJ remaining: B total 497 -> need 467 more B (with C to keep things simple, C cap 500)
+  for(let i=0;i<467;i++){lines.push(row(0,1,1,0));B++;C++;}
+  // Cream remaining to reach 500: C now 30+3+467=500 -> done. Good.
+  // Donuts: D total 500, with C&D=10 -> 10 rows C&D, but C already 500. Put 10 of existing?
+  // Simpler: add 10 rows C&D and 490 rows D-only, then adjust C target. To keep C=500 exactly,
+  // convert: we already have C=500. Re-do donuts as independent block:
+  // Add 10 rows with C&D both -> would push C to 510. Instead reuse: not possible row-wise here.
+  // For a faithful DEMO of the engine, build donuts separately accepting C=510 is wrong.
+  // Cleaner approach: rebuild from scratch with explicit disjoint blocks.
+  lines.length=0; A=0;B=0;C=0;D=0;
+  // Block 1: 30 rows  A,B,C
+  for(let i=0;i<30;i++){lines.push(row(1,1,1,0));}
+  // Block 2: 3 rows   A,C
+  for(let i=0;i<3;i++){lines.push(row(1,0,1,0));}
+  // Block 3: 457 rows B,C   (B:30+457=487...) need B=497 -> use 467
+  for(let i=0;i<467;i++){lines.push(row(0,1,1,0));}
+  // now C=30+3+467=500 ✓, A=33 ✓, B=497 ✓
+  // Block 4: 10 rows  C? no—C is full. Donuts must reach 500 with C&D=10.
+  // Move 10 of the B,C rows to also include D so C&D=10 without changing C/B totals:
+  for(let i=0;i<10;i++){lines[33+i]=row(0,1,1,1);} // these were B,C rows -> now B,C,D
+  D+=10;
+  // Block 5: 490 rows D only -> D total 500
+  for(let i=0;i<490;i++){lines.push(row(0,0,0,1));}
+  // Fill remainder with empty transactions up to N
+  while(lines.length<N){lines.push(row(0,0,0,0));}
+  document.getElementById('b_csv').value='Soda,OrangeJuice,FatFreeCream,Donuts\n'+lines.join('\n');
+  runBatch();
+}
+
+/* ---------------- Step 6: interpret ---------------- */
+function interpret(){
+  const a=document.getElementById('i_a').value||'A';
+  const b=document.getElementById('i_b').value||'B';
+  const lift=parseFloat(document.getElementById('i_lift').value);
+  const sup=parseFloat(document.getElementById('i_sup').value);
+  const cba=parseFloat(document.getElementById('i_cba').value);
+  const cab=parseFloat(document.getElementById('i_cab').value);
+  const box=document.getElementById('i_out');
+  if(isNaN(lift)){box.innerHTML='';return;}
+  let parts=[];
+  if(lift>1.05) parts.push(`<b>Sign:</b> lift ${lift} &gt; 1 → <span class="tag pos">positive</span> association — presence of ${escapeHtml(a)} is associated with presence of ${escapeHtml(b)}.`);
+  else if(lift<0.95) parts.push(`<b>Sign:</b> lift ${lift} &lt; 1 → <span class="tag neg">negative</span> association — presence of ${escapeHtml(a)} is associated with the ABSENCE of ${escapeHtml(b)}.`);
+  else parts.push(`<b>Sign:</b> lift ${lift} ≈ 1 → <span class="tag chance">chance</span>. This rule should likely be screened out.`);
+
+  if(!isNaN(sup)){
+    parts.push(`<b>Support:</b> the items co-occur in ${sup}% of transactions. ${sup<5?'Low support is not necessarily unimportant — it may signal <b>untapped, actionable knowledge</b> rather than a trivial rule.':'Moderate-to-high co-occurrence in this data set.'}`);
+  }
+  if(!isNaN(cba)&&!isNaN(cab)){
+    const r=cba/(cab||1e-9);
+    if(r>=2) parts.push(`<b>Direction:</b> confidence ${escapeHtml(b)}|${escapeHtml(a)} (${cba}%) ≫ ${escapeHtml(a)}|${escapeHtml(b)} (${cab}%) → hypothesize <b>${escapeHtml(a)} → ${escapeHtml(b)}</b> for deductive follow-up.`);
+    else if(r<=0.5) parts.push(`<b>Direction:</b> confidence ${escapeHtml(a)}|${escapeHtml(b)} (${cab}%) ≫ ${escapeHtml(b)}|${escapeHtml(a)} (${cba}%) → hypothesize <b>${escapeHtml(b)} → ${escapeHtml(a)}</b>.`);
+    else parts.push(`<b>Direction:</b> confidences are similar (${cba}% vs ${cab}%) → consider reciprocal causality or an unobserved <b>subgroup/moderator</b> driving the relationship.`);
+  }
+  parts.push(`<b>Next:</b> record a theoretical hypothesis and a practitioner action below. Consider whether a moderator (e.g., demographic subgroup, context) changes this rule — that is a contingency theory you can test deductively.`);
+  box.className='verdict good';
+  box.innerHTML=parts.map(p=>'<div style="margin:6px 0">'+p+'</div>').join('');
+}
+
+/* ---------------- Step 7: pitfalls + dynamic + export ---------------- */
+document.addEventListener('change',e=>{
+  if(e.target&&e.target.classList&&e.target.classList.contains('pf')){
+    const done=[...document.querySelectorAll('.pf')].filter(c=>c.checked).length;
+    const s=document.getElementById('pf_status');
+    s.className='verdict '+(done===3?'good':'warn');
+    s.innerHTML= done===3?'<b>All three pitfalls cleared.</b> You are ready to finalize.':`<b>${done} of 3 cleared.</b> Resolve the remaining item(s) before finalizing.`;
+  }
+});
+function dynAdvice(){
+  const k=document.getElementById('d_kind').value;
+  const o=document.getElementById('d_out');
+  if(k==='multi'){o.className='verdict good';o.innerHTML='<b>Use Multiple MBA.</b> Treat each time wave as a separate cross-sectional MBA, then compare how lift, support, and confidence of rules change across waves (largely descriptive, via graphs). This builds dynamic theory from repeated snapshots.';}
+  else if(k==='smba'){o.className='verdict good';o.innerHTML='<b>Use Sequential MBA (SMBA).</b> Derive time-ordered rules such as [(A),(B),(C)] meaning A precedes B precedes C — e.g., [(Abusive Language),(Physical Threat)]. This supports dynamic theories of how phenomena unfold or escalate over time.';}
+  else {o.innerHTML='';}
+}
+function exportReport(){
+  const g=id=>{const el=document.getElementById(id);return el?el.value:'';};
+  const items=g('t_items');
+  const rule=window._lastRule;
+  const win=window.open('','_blank');
+  const html=`<!DOCTYPE html><html><head><meta charset="utf-8"><title>MBA Study Summary</title>
+  <style>body{font-family:Georgia,serif;max-width:760px;margin:30px auto;padding:0 20px;color:#1c2733;line-height:1.5}
+  h1{font-size:22px;border-bottom:2px solid #1f5c8b;padding-bottom:6px}h2{font-size:16px;color:#16456b;margin-top:24px}
+  .k{color:#5b6b7b}.box{border:1px solid #dfe5ec;border-radius:8px;padding:10px 14px;margin:8px 0}
+  table{border-collapse:collapse;width:100%}td,th{border:1px solid #dfe5ec;padding:6px 8px;text-align:left;font-size:14px}
+  footer{margin-top:30px;font-size:12px;color:#5b6b7b;border-top:1px solid #dfe5ec;padding-top:10px}
+  @media print{button{display:none}}</style></head><body>
+  <button onclick="print()" style="padding:8px 16px;background:#1f5c8b;color:#fff;border:0;border-radius:6px;cursor:pointer;float:right">Print / Save PDF</button>
+  <h1>Market Basket Analysis — Study Summary</h1>
+  <h2>Step 1 · Suitability</h2><div class="box">${document.getElementById('s1verdict').innerText||'Not yet evaluated.'}</div>
+  <h2>Step 2 · Transactions</h2>
+  <div class="box"><span class="k">Unit of analysis:</span> ${g('t_unit')||'—'}<br>
+  <span class="k">Transaction:</span> ${g('t_def')||'—'}<br>
+  <span class="k">Items:</span> ${items||'—'}<br>
+  <span class="k">Levels:</span> ${g('t_levels')||'—'}</div>
+  <h2>Step 4 · Requirements</h2><div class="box"><span class="k">N transactions:</span> ${g('r_n')||'—'}</div>
+  <h2>Step 5 · Last computed rule</h2>
+  ${rule?`<table><tr><th>Rule</th><th>Lift</th><th>Support</th><th>Conf ${rule.lb}|${rule.la}</th><th>Conf ${rule.la}|${rule.lb}</th></tr>
+  <tr><td>[(${rule.la}), (${rule.lb})]</td><td>${rule.lift.toFixed(2)}</td><td>${(rule.support*100).toFixed(2)}%</td><td>${(rule.confBA*100).toFixed(1)}%</td><td>${(rule.confAB*100).toFixed(1)}%</td></tr></table>`:'<div class="box">No rule computed yet.</div>'}
+  <h2>Step 6 · Interpretation</h2>
+  <div class="box"><b>Theoretical implications:</b><br>${(g('i_theory')||'—').replace(/\n/g,'<br>')}</div>
+  <div class="box"><b>Practical implications:</b><br>${(g('i_practice')||'—').replace(/\n/g,'<br>')}</div>
+  <footer><b>Based on:</b> Aguinis, H. (2025). Research methodology: Best practices for rigorous, credible, and impactful research. SAGE.
+  https://collegepublishing.sagepub.com/products/research-methodology-1-280088<br>
+  MBA procedure: Aguinis, H., Forcum, L. E., &amp; Joo, H. (2013). Using market basket analysis in management research. Journal of Management, 39(7), 1799–1824.</footer>
+  </body></html>`;
+  win.document.write(html); win.document.close();
+}
+
+/* ---------------- utils ---------------- */
+function escapeHtml(s){return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
+
+/* init */
+renderStepper();
+calcSingle();
+document.getElementById('h_vals').value='18.29, 2.42, 1.94, 1.85, 1.10, 1.02, 0.98, 0.51, 0.40, 0.33';
+</script>
+<!-- Begin Countercentral code v 7.0 --> 
+<span id="wts2576"></span> 
+<script>var wts=document.createElement('script');wts.async=true; 
+wts.src='https://server2.countercentral.com/log7.js';document.head.appendChild(wts); 
+wts.onload = function(){ wtslog7(2576,1); }; 
+</script><noscript><a href="https://www.countercentral.com"> 
+<img src="https://server2.countercentral.com/7/1/2576.png"  
+alt="Countercentral web traffic analysis"></a></noscript> 
+<!-- End Countercentral code v 7.0 --> 
+</body>
+</html>

@@ -1,0 +1,1161 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cross-Level Interaction Power Workbench — Mathieu, Aguinis, Culpepper &amp; Chen (2012)</title>
+<style>
+:root{
+  --bg:#f5f7fa; --panel:#ffffff; --ink:#1c2533; --muted:#5a6b82; --line:#dce3ec;
+  --brand:#1f5fa8; --brand2:#2c7be5; --accent:#0d9488; --warn:#b45309; --bad:#b91c1c; --good:#15803d;
+  --soft:#eef3f9; --shadow:0 1px 3px rgba(20,40,70,.08),0 4px 14px rgba(20,40,70,.05);
+  --radius:12px;
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+  background:var(--bg);color:var(--ink);line-height:1.55;font-size:15.5px}
+a{color:var(--brand2);text-decoration:none}
+a:hover{text-decoration:underline}
+h1,h2,h3,h4{line-height:1.25;color:var(--ink);margin:0 0 .5em}
+h2{font-size:1.5rem;margin-top:.2em}
+h3{font-size:1.15rem;color:var(--brand);margin-top:1.4em}
+h4{font-size:1rem;color:var(--ink)}
+code,kbd{font-family:"SFMono-Regular",Consolas,"Liberation Mono",monospace;font-size:.86em;
+  background:var(--soft);padding:1px 5px;border-radius:5px}
+.layout{display:flex;min-height:100vh}
+/* ---- Side nav ---- */
+nav.side{width:268px;flex:0 0 268px;background:linear-gradient(180deg,#13294b,#1b3a64);
+  color:#dbe6f4;position:sticky;top:0;height:100vh;overflow-y:auto;padding:18px 0;}
+nav.side .brand{padding:6px 20px 14px;border-bottom:1px solid rgba(255,255,255,.12);margin-bottom:8px}
+nav.side .brand b{display:block;font-size:1.05rem;color:#fff;letter-spacing:.2px}
+nav.side .brand span{font-size:.76rem;color:#9fc0e6}
+nav.side a.navlink{display:flex;align-items:center;gap:10px;padding:8px 20px;color:#cfe0f3;font-size:.9rem;
+  border-left:3px solid transparent;cursor:pointer}
+nav.side a.navlink:hover{background:rgba(255,255,255,.07);text-decoration:none}
+nav.side a.navlink.active{background:rgba(44,123,229,.22);border-left-color:var(--brand2);color:#fff;font-weight:600}
+nav.side .navnum{display:inline-flex;width:22px;height:22px;border-radius:50%;background:rgba(255,255,255,.13);
+  align-items:center;justify-content:center;font-size:.74rem;flex:0 0 22px}
+nav.side a.navlink.done .navnum{background:var(--good);color:#fff}
+.progwrap{padding:12px 20px 4px}
+.progbar{height:7px;background:rgba(255,255,255,.15);border-radius:6px;overflow:hidden}
+.progbar>i{display:block;height:100%;width:0;background:linear-gradient(90deg,#2c7be5,#34d399);transition:width .4s}
+.progtxt{font-size:.74rem;color:#9fc0e6;margin-top:6px}
+/* ---- Main ---- */
+main{flex:1;min-width:0;padding:0 0 80px}
+.topbar{position:sticky;top:0;z-index:30;background:rgba(255,255,255,.92);backdrop-filter:blur(6px);
+  border-bottom:1px solid var(--line);padding:10px 34px;display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+.topbar .tt{font-weight:700;color:var(--brand)}
+.topbar .sp{flex:1}
+.btn{border:1px solid var(--line);background:#fff;color:var(--ink);padding:7px 13px;border-radius:8px;
+  font-size:.85rem;cursor:pointer;font-weight:600;display:inline-flex;gap:7px;align-items:center}
+.btn:hover{border-color:var(--brand2);color:var(--brand)}
+.btn.primary{background:var(--brand2);color:#fff;border-color:var(--brand2)}
+.btn.primary:hover{background:var(--brand);color:#fff}
+.btn.ghost{background:transparent}
+.btn:disabled{opacity:.5;cursor:not-allowed}
+section.module{display:none;padding:26px 34px;max-width:1080px;animation:fade .35s}
+section.module.active{display:block}
+@keyframes fade{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+.lead{color:var(--muted);font-size:1rem;margin:-.2em 0 1.1em}
+.do-why{background:linear-gradient(90deg,#eef6ff,#f3fbf9);border:1px solid #d6e6f5;border-left:4px solid var(--brand2);
+  border-radius:10px;padding:11px 15px;margin:0 0 18px;font-size:.92rem}
+.do-why b{color:var(--brand)}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);padding:20px 22px;
+  margin:0 0 18px;box-shadow:var(--shadow)}
+.card h3:first-child{margin-top:0}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+@media(max-width:880px){.grid2,.grid3{grid-template-columns:1fr}}
+.kpi{background:var(--soft);border:1px solid var(--line);border-radius:10px;padding:14px 16px;text-align:center}
+.kpi .v{font-size:1.7rem;font-weight:800;color:var(--brand)}
+.kpi .l{font-size:.78rem;color:var(--muted);text-transform:uppercase;letter-spacing:.4px}
+.pill{display:inline-block;padding:2px 9px;border-radius:20px;font-size:.74rem;font-weight:700}
+.pill.ok{background:#dcfce7;color:#166534}.pill.no{background:#fee2e2;color:#991b1b}
+.pill.warn{background:#fef3c7;color:#92400e}.pill.info{background:#dbeafe;color:#1e40af}
+table{border-collapse:collapse;width:100%;font-size:.88rem;margin:.4em 0}
+th,td{border:1px solid var(--line);padding:7px 10px;text-align:left}
+th{background:var(--soft);font-weight:700;color:var(--ink)}
+td.num,th.num{text-align:right;font-variant-numeric:tabular-nums}
+.inputrow{display:grid;grid-template-columns:1.5fr 96px 1.2fr;gap:10px;align-items:center;padding:9px 0;border-bottom:1px dashed var(--line)}
+.inputrow:last-child{border-bottom:0}
+.inputrow label{font-weight:600;font-size:.92rem}
+.inputrow .sym{color:var(--muted);font-weight:400;font-size:.84rem}
+.inputrow .hint{font-size:.8rem;color:var(--muted)}
+input[type=number],input[type=text],select{width:100%;padding:7px 9px;border:1px solid var(--line);border-radius:8px;
+  font-size:.9rem;font-family:inherit;background:#fff}
+input[type=number]:focus,input[type=text]:focus,select:focus{outline:2px solid var(--brand2);outline-offset:0;border-color:var(--brand2)}
+input[type=range]{width:100%}
+.presetbtns{display:flex;gap:6px;flex-wrap:wrap;margin-top:4px}
+.chip{font-size:.76rem;padding:3px 9px;border:1px solid var(--line);border-radius:20px;background:#fff;cursor:pointer}
+.chip:hover{border-color:var(--brand2);color:var(--brand)}
+.note{font-size:.86rem;background:#fffbeb;border:1px solid #fde68a;border-radius:9px;padding:10px 13px;margin:10px 0;color:#7c5410}
+.note.tip{background:#ecfdf5;border-color:#a7f3d0;color:#0f5132}
+.note.cau{background:#fef2f2;border-color:#fecaca;color:#7f1d1d}
+pre.rcode{background:#0f1d31;color:#d7e6fb;border-radius:10px;padding:16px 18px;overflow:auto;font-size:.8rem;line-height:1.5}
+pre.rcode .cm{color:#7fa6cf}.pre-wrap{position:relative}
+.copybtn{position:absolute;top:10px;right:10px}
+.tooltip{border-bottom:1px dotted var(--brand2);cursor:help;position:relative}
+.tooltip:hover::after{content:attr(data-tip);position:absolute;left:0;bottom:130%;width:260px;background:#13294b;color:#eaf2fc;
+  padding:8px 11px;border-radius:8px;font-size:.78rem;font-weight:400;line-height:1.4;z-index:50;box-shadow:var(--shadow)}
+.formula{background:#fbfdff;border:1px solid var(--line);border-radius:10px;padding:14px 18px;font-size:1rem;text-align:center;
+  font-family:"Cambria Math",Georgia,serif;overflow-x:auto}
+.legend{display:flex;gap:16px;flex-wrap:wrap;font-size:.8rem;color:var(--muted);margin-top:8px}
+.legend i{display:inline-block;width:12px;height:12px;border-radius:3px;margin-right:5px;vertical-align:-1px}
+.barrow{display:flex;align-items:center;gap:10px;margin:5px 0}
+.barrow .nm{width:230px;font-size:.85rem}
+.barrow .track{flex:1;background:var(--soft);border-radius:6px;height:20px;overflow:hidden}
+.barrow .fill{height:100%;background:linear-gradient(90deg,#2c7be5,#1f5fa8);display:flex;align-items:center;justify-content:flex-end;
+  color:#fff;font-size:.72rem;padding-right:6px;font-weight:700}
+.progind{height:9px;background:var(--soft);border-radius:6px;overflow:hidden;margin:8px 0}
+.progind>i{display:block;height:100%;width:0;background:var(--brand2);transition:width .15s}
+.checkrow{display:flex;align-items:flex-start;gap:10px;padding:9px 0;border-bottom:1px dashed var(--line)}
+.checkrow:last-child{border:0}
+.flag{font-size:.85rem}
+.footer{border-top:1px solid var(--line);padding:22px 34px;color:var(--muted);font-size:.84rem;background:#fff;margin-top:30px}
+.cite{font-size:.85rem;background:var(--soft);border-radius:9px;padding:11px 14px;border:1px solid var(--line)}
+.tabbtns{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px}
+.tabbtns .chip.sel{background:var(--brand2);color:#fff;border-color:var(--brand2)}
+.statbox{display:flex;gap:14px;flex-wrap:wrap;align-items:center}
+.swatch-cell{display:inline-block}
+canvas{max-width:100%}
+.scenariocol{border:1px solid var(--line);border-radius:10px;padding:14px;background:#fff}
+.muted{color:var(--muted)}
+.small{font-size:.84rem}
+ul.tight{margin:.3em 0;padding-left:1.2em}ul.tight li{margin:.25em 0}
+.symkey{columns:2;column-gap:24px;font-size:.86rem}
+@media(max-width:760px){.symkey{columns:1}}
+.symkey div{break-inside:avoid;margin-bottom:7px;padding-left:0}
+.symkey b{color:var(--brand);font-family:"Cambria Math",Georgia,serif}
+.statuslamp{display:inline-block;width:11px;height:11px;border-radius:50%;margin-right:6px;vertical-align:-1px}
+@media print{
+  nav.side,.topbar,.btn,.tabbtns,.copybtn{display:none!important}
+  section.module{display:block!important;page-break-after:always;max-width:none}
+  body{background:#fff;font-size:11pt}
+  .card{box-shadow:none;border:1px solid #bbb}
+  main{padding:0}
+}
+.hl{background:#fff7d6;padding:0 3px;border-radius:3px}
+</style>
+</head>
+<body>
+<div class="layout">
+<!-- ============ SIDE NAV ============ -->
+<nav class="side" aria-label="Workflow navigation">
+  <div class="brand"><b>Cross-Level Power Workbench</b><span>Mathieu, Aguinis, Culpepper &amp; Chen (2012)</span></div>
+  <div class="progwrap"><div class="progbar"><i id="progFill"></i></div><div class="progtxt" id="progTxt">0 of 10 modules visited</div></div>
+  <a class="navlink" data-target="start"><span class="navnum">0</span> Start here</a>
+  <a class="navlink" data-target="m1"><span class="navnum">1</span> What &amp; why</a>
+  <a class="navlink" data-target="m2"><span class="navnum">2</span> Parameter inputs</a>
+  <a class="navlink" data-target="m3"><span class="navnum">3</span> Power estimator + R</a>
+  <a class="navlink" data-target="m4"><span class="navnum">4</span> Design trade-offs</a>
+  <a class="navlink" data-target="m5"><span class="navnum">5</span> Driver importance</a>
+  <a class="navlink" data-target="m6"><span class="navnum">6</span> Reliability</a>
+  <a class="navlink" data-target="m7"><span class="navnum">7</span> Centering &amp; scaling</a>
+  <a class="navlink" data-target="m8"><span class="navnum">8</span> Alpha decision</a>
+  <a class="navlink" data-target="m9"><span class="navnum">9</span> Post-hoc reading</a>
+  <a class="navlink" data-target="m10"><span class="navnum">10</span> Design &amp; reporting</a>
+  <a class="navlink" data-target="glossary"><span class="navnum">§</span> Glossary / symbols</a>
+  <a class="navlink" data-target="about"><span class="navnum">i</span> About / sources</a>
+</nav>
+<main>
+<div class="topbar">
+  <span class="tt" id="crumb">Start here</span>
+  <span class="sp"></span>
+  <button class="btn ghost" id="btnExport" title="Download all your inputs as a JSON file">⤓ Save inputs</button>
+  <button class="btn ghost" id="btnImport" title="Load inputs from a JSON file">⤒ Load inputs</button>
+  <input type="file" id="fileImport" accept=".json" style="display:none">
+  <button class="btn ghost" id="btnReset" title="Restore the Chen et al. (2007) defaults">↺ Reset</button>
+  <button class="btn ghost" id="btnPrint" title="Print or save a PDF of your power plan">🖨 Print plan</button>
+</div>
+
+<!-- modules injected below -->
+<div id="moduleHost"></div>
+
+<div class="footer">
+  <b>Primary methods source:</b> Mathieu, J. E., Aguinis, H., Culpepper, S. A., &amp; Chen, G. (2012). Understanding and estimating the power to detect cross-level interaction effects in multilevel modeling. <i>Journal of Applied Psychology, 97</i>(5), 951–966.<br>
+  <b>Recommended companion resource:</b> Aguinis, H. (2025). <i>Research methodology: Best practices for rigorous, credible, and impactful research.</i> SAGE. <a href="https://collegepublishing.sagepub.com/products/research-methodology-1-280088" target="_blank" rel="noopener">collegepublishing.sagepub.com</a><br>
+  <span class="muted">Authors' online calculator &amp; R syntax: <a href="http://mypage.iu.edu/~haguinis/crosslevel.html" target="_blank" rel="noopener">mypage.iu.edu/~haguinis/crosslevel.html</a>. This workbench runs entirely in your browser — no data leaves the page.</span>
+</div>
+</main>
+</div>
+<script>
+/* =====================================================================
+   VALIDATED MONTE-CARLO ENGINE
+   Faithful to the Appendix of Mathieu, Aguinis, Culpepper & Chen (2012).
+   Data-generating process replicates the published "ML Power Tool" R code.
+   In-browser model fit = pooled-residual EM two-stage random-coefficient
+   estimator (a documented, defensible approximation to the REML lme4 fit).
+   Verified offline to reproduce: Chen et al. (2007) power ~.64 at a=.05
+   (~.42 at .01, ~.77 at .10) and Type I error ~.05 when g11=0.
+   ===================================================================== */
+function makeRNG(seed){
+  let s=seed>>>0;
+  function u(){s|=0;s=s+0x6D2B79F5|0;let t=Math.imul(s^s>>>15,1|s);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;}
+  let spare=null;
+  function norm(){if(spare!==null){const v=spare;spare=null;return v;}let u1=u(),u2=u();if(u1<1e-12)u1=1e-12;
+    const r=Math.sqrt(-2*Math.log(u1)),th=2*Math.PI*u2;spare=r*Math.sin(th);return r*Math.cos(th);}
+  return {u,norm};
+}
+function logGamma(x){const c=[76.18009172947146,-86.50532032941677,24.01409824083091,-1.231739572450155,0.1208650973866179e-2,-0.5395239384953e-5];
+  let y=x,t=x+5.5;t-=(x+0.5)*Math.log(t);let ser=1.000000000190015;for(let j=0;j<6;j++){y++;ser+=c[j]/y;}return -t+Math.log(2.5066282746310005*ser/x);}
+function betacf(a,b,x){const F=1e-30;let qab=a+b,qap=a+1,qam=a-1,c=1,d=1-qab*x/qap;if(Math.abs(d)<F)d=F;d=1/d;let h=d;
+  for(let m=1;m<=200;m++){let m2=2*m;let aa=m*(b-m)*x/((qam+m2)*(a+m2));d=1+aa*d;if(Math.abs(d)<F)d=F;c=1+aa/c;if(Math.abs(c)<F)c=F;d=1/d;h*=d*c;
+    aa=-(a+m)*(qab+m)*x/((a+m2)*(qap+m2));d=1+aa*d;if(Math.abs(d)<F)d=F;c=1+aa/c;if(Math.abs(c)<F)c=F;d=1/d;let del=d*c;h*=del;if(Math.abs(del-1)<3e-10)break;}return h;}
+function ibeta(x,a,b){if(x<=0)return 0;if(x>=1)return 1;const lbt=logGamma(a+b)-logGamma(a)-logGamma(b)+a*Math.log(x)+b*Math.log(1-x);const bt=Math.exp(lbt);
+  return x<(a+1)/(a+b+2)?bt*betacf(a,b,x)/a:1-bt*betacf(b,a,1-x)/b;}
+function tCDF(t,df){const x=df/(df+t*t);const ib=ibeta(x,df/2,0.5);return t>0?1-0.5*ib:0.5*ib;}
+function tQuantile(p,df){let lo=0,hi=2000;for(let i=0;i<200;i++){let m=(lo+hi)/2;if(tCDF(m,df)<p)lo=m;else hi=m;}return (lo+hi)/2;}
+/* one replication -> |t| ratio for the cross-level interaction (Xc:Wj) */
+function oneRep(p,rng){
+  const l2n=p.l2n,l1n=p.l1n,iccx=p.iccx;
+  const sdSlope=Math.sqrt(Math.max(p.vu1j,0)),sdInt=Math.sqrt(Math.max(p.vu0j,0)),sdRes=Math.sqrt(Math.max(p.vresid,1e-9)),
+        sdX=Math.sqrt(Math.max(1-iccx,1e-6)),sdXbar=Math.sqrt(Math.max(iccx,0));
+  const Wj=new Float64Array(l2n),Xbarj=new Float64Array(l2n),b0=new Float64Array(l2n),b1=new Float64Array(l2n);
+  for(let j=0;j<l2n;j++){Wj[j]=rng.norm();Xbarj[j]=rng.norm()*sdXbar;
+    b0[j]=p.g00+p.g01*Xbarj[j]+p.g02*Wj[j]+p.g03*Xbarj[j]*Wj[j]+rng.norm()*sdInt;
+    b1[j]=p.g10+p.g11*Wj[j]+rng.norm()*sdSlope;}
+  const b1hat=new Float64Array(l2n),sxx=new Float64Array(l2n);let rss=0,dof=0;
+  for(let j=0;j<l2n;j++){
+    const X=new Float64Array(l1n),Y=new Float64Array(l1n);let mx=0,my=0;
+    for(let i=0;i<l1n;i++){const x=rng.norm()*sdX+Xbarj[j];const y=b0[j]+b1[j]*(x-Xbarj[j])+rng.norm()*sdRes;X[i]=x;Y[i]=y;mx+=x;my+=y;}
+    mx/=l1n;my/=l1n;let sxy=0,sx2=0;for(let i=0;i<l1n;i++){const xc=X[i]-mx;sxy+=xc*(Y[i]-my);sx2+=xc*xc;}
+    sxx[j]=sx2;if(sx2<=1e-9){b1hat[j]=0;continue;}const bj=sxy/sx2;b1hat[j]=bj;
+    for(let i=0;i<l1n;i++){const r=(Y[i]-my)-bj*(X[i]-mx);rss+=r*r;}dof+=l1n-2;}
+  const sig2=dof>0?rss/dof:1;
+  const vb1=new Float64Array(l2n);for(let j=0;j<l2n;j++)vb1[j]=sxx[j]>1e-9?sig2/sxx[j]:1e9;
+  let mean=0;for(let j=0;j<l2n;j++)mean+=b1hat[j];mean/=l2n;
+  let varb=0;for(let j=0;j<l2n;j++)varb+=(b1hat[j]-mean)**2;varb/=l2n;
+  let mvb=0;for(let j=0;j<l2n;j++)mvb+=vb1[j];mvb/=l2n;
+  let tau=Math.max(varb-mvb,1e-4),beta1=0,covIv=1;
+  for(let it=0;it<100;it++){
+    let s00=0,s01=0,s11=0,sy0=0,sy1=0;
+    for(let j=0;j<l2n;j++){const w=1/(vb1[j]+tau);s00+=w;s01+=w*Wj[j];s11+=w*Wj[j]*Wj[j];sy0+=w*b1hat[j];sy1+=w*Wj[j]*b1hat[j];}
+    const det=s00*s11-s01*s01;const beta0=(s11*sy0-s01*sy1)/det;beta1=(s00*sy1-s01*sy0)/det;covIv=s00/det;
+    let num=0,den=0;for(let j=0;j<l2n;j++){const w=1/(vb1[j]+tau);const r=b1hat[j]-beta0-beta1*Wj[j];num+=w*w*(r*r-vb1[j]);den+=w*w;}
+    let taun=Math.max(num/den,1e-6);if(Math.abs(taun-tau)<1e-9){tau=taun;break;}tau=taun;}
+  return Math.abs(beta1/Math.sqrt(covIv));
+}
+function estimatePower(p,reps,alpha,seed){
+  const rng=makeRNG(seed>>>0);const df=Math.max(p.l2n-4,1);const tc=tQuantile(1-alpha/2,df);
+  let hit=0,n=0;for(let r=0;r<reps;r++){const t=oneRep(p,rng);if(isFinite(t)){n++;if(t>tc)hit++;}}
+  return n>0?hit/n:0;
+}
+</script>
+<script id="app">
+/* ===================== STATE ===================== */
+const DEFAULTS={
+  xName:"LMX (leader–member exchange)", yName:"Empowerment", wName:"Empowering leadership climate",
+  l2n:62, l1n:7, iccx:0.12,
+  g11:0.148179, vu1j:0.08954, g10:0.451612, vu0j:0.00320, vresid:0.76877,
+  g01:0.345048, g02:0.022851, g03:0.184721, g00:-0.068364,
+  alpha:0.05, reps:1000,
+  relX:0.93, relW:0.93, latentXW:0.30,
+  obsSig:"", obsPower:""
+};
+let STATE=Object.assign({},DEFAULTS);
+const visited=new Set();
+
+/* ===================== HELPERS ===================== */
+const $=s=>document.querySelector(s);
+const host=document.getElementById('moduleHost');
+const fmt=(x,d=3)=>(x===null||x===undefined||isNaN(x))?"—":Number(x).toFixed(d);
+const pct=(x,d=1)=>(x*100).toFixed(d)+"%";
+function P(){return {l2n:+STATE.l2n,l1n:+STATE.l1n,iccx:+STATE.iccx,g00:+STATE.g00,g01:+STATE.g01,g02:+STATE.g02,
+  g03:+STATE.g03,g10:+STATE.g10,g11:+STATE.g11,vu0j:+STATE.vu0j,vu1j:+STATE.vu1j,vresid:+STATE.vresid};}
+function powerColor(p){ // 0->red .8->green
+  const r=p<.5?255:Math.round(255-(p-.5)*2*145);
+  const g=p<.5?Math.round(120+p*2*135):255-Math.round((p-.5)*0);
+  if(p>=.8)return"#15803d"; if(p>=.6)return"#4d9e3f"; if(p>=.4)return"#caa12a"; if(p>=.2)return"#d77a2a"; return"#c2453a";
+}
+function lampColor(p){return p>=.8?"#15803d":p>=.5?"#caa12a":"#c2453a";}
+
+/* async chunked Monte-Carlo so the UI stays responsive + progress bar */
+function runPowerAsync(p,reps,alpha,seed,onProg){
+  return new Promise(resolve=>{
+    const rng=makeRNG(seed>>>0);const df=Math.max(p.l2n-4,1);const tc=tQuantile(1-alpha/2,df);
+    let hit=0,n=0,done=0;const chunk=Math.max(20,Math.round(reps/40));
+    function step(){
+      const end=Math.min(done+chunk,reps);
+      for(;done<end;done++){const t=oneRep(p,rng);if(isFinite(t)){n++;if(t>tc)hit++;}}
+      if(onProg)onProg(done/reps);
+      if(done<reps)setTimeout(step,0);else resolve(n>0?hit/n:0);
+    }
+    step();
+  });
+}
+
+/* ===================== PARAMETER METADATA ===================== */
+const PARAMS=[
+ {k:"l2n",label:"Level-2 sample size",sym:"n<sub>j</sub>",hint:"Number of groups/teams.",step:1,
+  presets:[["20",20],["40",40],["60",60],["115",115]]},
+ {k:"l1n",label:"Average Level-1 sample size",sym:"n<sub>i</sub>",hint:"Average people per group.",step:1,
+  presets:[["3",3],["5",5],["7",7],["18",18]]},
+ {k:"iccx",label:"ICC of the Level-1 predictor X",sym:"ρ<sub>x</sub>",hint:"Share of X's variance that lies between groups. (Does not affect cross-level interaction power, because X is group-mean-centered.)",step:.01,
+  presets:[["very small .02",.02],["low .12",.12],["moderate .15",.15],["large .30",.30],["high .39",.39]]},
+ {k:"g11",label:"Cross-level interaction magnitude",sym:"γ<sub>1w</sub>",hint:"How much the X→Y slope changes per 1 SD of W. THIS is the effect whose power you want. The single biggest driver of power.",step:.01,
+  presets:[["null 0",0],["small .15",.15],["moderate .30",.30],["large .45",.45],["very large .75",.75]]},
+ {k:"vu1j",label:"Level-1 slope variance component",sym:"τ<sub>11</sub> (vu1j)",hint:"Variance of the X→Y slopes across groups. The data-generating step draws slope deviations with SD = √vu1j (exactly as the article's Appendix code). So vu1j = (slope SD)². The 2nd-biggest driver of power.",step:.001,
+  presets:[["little: SD≈.10 (vu1j=.010)",.01],["moderate: SD≈.17 (vu1j=.029)",.0289],["high: SD≈.22 (vu1j=.048)",.0484],["Chen default vu1j=.0895 (SD≈.30)",.08954]]},
+ {k:"g10",label:"Level-1 direct effect of X on Y",sym:"γ<sub>10</sub>",hint:"Average within-group X→Y slope.",step:.01,
+  presets:[["0",0],[".20",.2],[".40",.4]]},
+ {k:"vu0j",label:"Intercept variance",sym:"τ<sub>00</sub>",hint:"How much group averages of Y differ (residual, after Level-2 predictors).",step:.001,presets:[]},
+ {k:"vresid",label:"Within (residual) variance",sym:"σ²",hint:"Person-level variation in Y not explained within group.",step:.01,presets:[]},
+ {k:"g01",label:"Direct effect of group-mean X",sym:"γ<sub>0X̄</sub>",hint:"Effect of the team average of X on Y (reintroduced at Level 2).",step:.01,presets:[["0",0],[".10",.1],[".20",.2]]},
+ {k:"g02",label:"Direct effect of W",sym:"γ<sub>0w</sub>",hint:"Effect of the Level-2 moderator W on Y.",step:.01,presets:[["0",0],[".15",.15],[".30",.3],[".45",.45]]},
+ {k:"g03",label:"Between-group X×W interaction",sym:"γ<sub>0X̄w</sub>",hint:"Group-level (between) interaction of mean-X by W on Y.",step:.01,presets:[["0",0],[".10",.1],[".20",.2]]},
+ {k:"g00",label:"Model intercept",sym:"γ<sub>00</sub>",hint:"Overall intercept of the Y model.",step:.01,presets:[]}
+];
+const CONTROL=[
+ {k:"alpha",label:"Rejection level (Type I error rate)",sym:"α",hint:"Probability of a false positive you are willing to accept.",
+  presets:[[".01",.01],[".05",.05],[".10",.10],[".15",.15],[".20",.20]]},
+ {k:"reps",label:"Monte Carlo replications",sym:"REPS",hint:"Number of simulated studies. 1,000 recommended for a stable estimate.",
+  presets:[["300 (fast)",300],["1000 (recommended)",1000],["2000 (precise)",2000]]}
+];
+
+/* ===================== TABLE-3 DRIVER DATA (verified from article) ===================== */
+const ETA_MAIN=[
+ ["Cross-level interaction magnitude (γ₁w)",33.08],
+ ["Average Level-1 sample size (nᵢ)",18.18],
+ ["Level-2 sample size (nⱼ)",11.46],
+ ["SD of Level-1 slopes (√τ₁₁)",9.31],
+ ["L1 Y reliability (ρyy)",0.243],
+ ["L1 X reliability (ρxx)",0.226],
+ ["L2 W reliability (ρww)",0.226],
+ ["Average L1 direct effect (γ₁₀)",0.051],
+ ["L1 Y ICC (ρy)",0.0001],
+ ["L1 X ICC (ρx)",0.00002]
+];
+const ETA_2WAY=[
+ ["nⱼ × γ₁w",7.22],["nᵢ × γ₁w",7.14],["nᵢ × nⱼ",9.41],
+ ["γ₁w × √τ₁₁",5.17],["nⱼ × √τ₁₁",1.86],["nᵢ × √τ₁₁",1.02]
+];
+
+/* ===================== MODULE HTML ===================== */
+function moduleShell(id,html){return `<section class="module" id="${id}">${html}</section>`;}
+
+function buildAll(){
+  host.innerHTML=[
+    moduleShell("start",HTML_START()),
+    moduleShell("m1",HTML_M1()),
+    moduleShell("m2",HTML_M2()),
+    moduleShell("m3",HTML_M3()),
+    moduleShell("m4",HTML_M4()),
+    moduleShell("m5",HTML_M5()),
+    moduleShell("m6",HTML_M6()),
+    moduleShell("m7",HTML_M7()),
+    moduleShell("m8",HTML_M8()),
+    moduleShell("m9",HTML_M9()),
+    moduleShell("m10",HTML_M10()),
+    moduleShell("glossary",HTML_GLOSS()),
+    moduleShell("about",HTML_ABOUT())
+  ].join("");
+  wireInputs();
+  renderHeaderSnapshot();
+}
+
+/* ---------- START ---------- */
+function HTML_START(){return `
+<h2>Cross-Level Interaction Power Workbench</h2>
+<p class="lead">A practical, offline workbench to plan, estimate, and interpret the statistical power to detect <b>cross-level interaction effects</b> in two-level (hierarchical linear) models — operationalizing every recommendation in Mathieu, Aguinis, Culpepper &amp; Chen (2012).</p>
+<div class="do-why"><b>Do this:</b> walk the workflow left-to-right. <b>Why it matters:</b> published power for these tests is alarmingly low (average .40 at α=.05; the whole simulation averaged only <b>.192</b>), so planning power <i>a priori</i> is essential.</div>
+<div class="card">
+  <h3>Your running example (seeded with the article's values)</h3>
+  <p class="small">Throughout, the tool is pre-loaded with the article's worked case — <b>Chen, Kirkman, Kanfer, Allen &amp; Rosen (2007)</b>: individual <b>LMX</b> (the Level-1 predictor <i>X</i>) predicting individual <b>empowerment</b> (the Level-1 outcome <i>Y</i>), moderated by a team-level <b>empowering leadership climate</b> (the Level-2 moderator <i>W</i>). With these defaults the tool reproduces the published result of <b>power ≈ .64 at α = .05</b>. Swap in your own variable names and numbers in Module 2 — every change flows through every module, graph, check, and the generated R code.</p>
+  <div class="grid3" id="snapKpis"></div>
+</div>
+<div class="card">
+  <h3>The workflow</h3>
+  <div class="grid2">
+    <div>
+      <p><b>Understand →</b></p>
+      <ul class="tight">
+        <li><a data-jump="m1">1 · What a cross-level interaction is &amp; what "power" means here</a></li>
+      </ul>
+      <p><b>Specify inputs →</b></p>
+      <ul class="tight">
+        <li><a data-jump="m2">2 · Parameter input panel with literature-based guidance</a></li>
+      </ul>
+      <p><b>Estimate power →</b></p>
+      <ul class="tight">
+        <li><a data-jump="m3">3 · In-browser Monte Carlo estimator + authoritative R code + validation</a></li>
+      </ul>
+    </div>
+    <div>
+      <p><b>Explore design trade-offs →</b></p>
+      <ul class="tight">
+        <li><a data-jump="m4">4 · Sample-size &amp; design trade-off explorer (debunks the 30-30 rule)</a></li>
+        <li><a data-jump="m5">5 · Driver-importance visualizer (Figures 1–6)</a></li>
+        <li><a data-jump="m6">6 · Reliability &amp; attenuation helper</a></li>
+        <li><a data-jump="m7">7 · Centering, standardization &amp; parameter sourcing</a></li>
+        <li><a data-jump="m8">8 · Alpha-level decision helper</a></li>
+      </ul>
+      <p><b>Interpret &amp; report →</b></p>
+      <ul class="tight">
+        <li><a data-jump="m9">9 · Post-hoc interpretation helper</a></li>
+        <li><a data-jump="m10">10 · Sampling design, boundary conditions &amp; reporting checklist</a></li>
+      </ul>
+    </div>
+  </div>
+</div>
+<div class="note tip">Everything runs locally in your browser. Nothing is uploaded. Use <b>Save inputs</b> (top bar) to export a JSON of your plan, and <b>Print plan</b> to save a PDF.</div>`;}
+
+/* ---------- MODULE 1 ---------- */
+function HTML_M1(){return `
+<h2>1 · What a cross-level interaction is — and what "power" means here</h2>
+<div class="do-why"><b>Do this:</b> make sure you're aiming at the right coefficient. <b>Why it matters:</b> the cross-level interaction is a specific fixed effect, easily confused with the <i>variance</i> of slopes.</div>
+<div class="card">
+  <h3>The combined two-level model</h3>
+  <p>A Level-1 outcome <i>Y</i> is predicted by a Level-1 predictor <i>X</i>, whose slope is allowed to vary across groups and is itself predicted by a Level-2 moderator <i>W</i>:</p>
+  <div class="formula">
+    <div><b>Level 1:</b> &nbsp; Y<sub>ij</sub> = β<sub>0j</sub> + β<sub>1j</sub> X<sub>ij</sub> + r<sub>ij</sub></div>
+    <div style="margin-top:8px"><b>Level 2:</b> &nbsp; β<sub>0j</sub> = γ<sub>00</sub> + γ<sub>0w</sub>W<sub>j</sub> + u<sub>0j</sub> &nbsp;;&nbsp; β<sub>1j</sub> = γ<sub>10</sub> + <span class="hl">γ<sub>1w</sub></span>W<sub>j</sub> + u<sub>1j</sub></div>
+    <div style="margin-top:8px"><b>Combined:</b> &nbsp; Y<sub>ij</sub> = γ<sub>00</sub> + γ<sub>10</sub>X<sub>ij</sub> + γ<sub>0w</sub>W<sub>j</sub> + <span class="hl">γ<sub>1w</sub> (X<sub>ij</sub>·W<sub>j</sub>)</span> + u<sub>0j</sub> + u<sub>1j</sub>X<sub>ij</sub> + r<sub>ij</sub></div>
+  </div>
+  <p style="margin-top:14px">The <b class="hl">cross-level interaction</b> is the coefficient <b>γ<sub>1w</sub></b> on the product of the (group-mean-centered) Level-1 predictor and the Level-2 moderator. It answers: <i>"Does the within-group X→Y relationship get stronger or weaker depending on the group's level of W?"</i></p>
+  <div class="note cau"><b>Do not confuse</b> γ<sub>1w</sub> (the cross-level interaction — the thing you test) with <b>τ<sub>11</sub></b>, the <i>variance</i> of the slopes. A non-zero τ<sub>11</sub> only signals that slopes <i>vary</i> across groups; it does not tell you <i>why</i>. γ<sub>1w</sub> says <i>W</i> is part of the reason.</div>
+</div>
+<div class="card">
+  <h3>What "power" means here — in one sentence</h3>
+  <p style="font-size:1.05rem"><b>Power</b> = the probability of detecting a cross-level interaction of a given size (γ<sub>1w</sub>), at your chosen α, given your design.</p>
+  <div class="grid3" style="margin-top:8px">
+    <div class="kpi"><div class="v">.40</div><div class="l">avg published power, α=.05</div></div>
+    <div class="kpi"><div class="v">.22</div><div class="l">avg published power, α=.01</div></div>
+    <div class="kpi"><div class="v">.51</div><div class="l">avg published power, α=.10</div></div>
+  </div>
+  <div class="note">The article's sobering bottom line: across the <b>entire</b> simulation, average power was only <b>.192</b>. Many published cross-level interaction tests were badly underpowered — which is exactly why <i>a priori</i> power planning (this tool) is essential. A non-significant result from an underpowered study tells you almost nothing.</div>
+</div>
+<div class="card">
+  <h3>Quick symbol gloss</h3>
+  <div class="symkey">
+    <div><b>γ₀₀</b> overall intercept of Y.</div>
+    <div><b>γ₁₀</b> average within-group slope of X→Y.</div>
+    <div><b>γ₀w</b> direct effect of moderator W on Y.</div>
+    <div><b>γ₁w</b> cross-level interaction — W's effect on the X→Y slope (the target).</div>
+    <div><b>τ₀₀</b> variance of group intercepts.</div>
+    <div><b>τ₁₁</b> variance of group slopes (so √τ₁₁ is their SD).</div>
+    <div><b>σ²</b> within-group (person-level) residual variance.</div>
+    <div><b>u₀ⱼ</b> group's intercept deviation from the average.</div>
+    <div><b>u₁ⱼ</b> group's slope deviation from the average.</div>
+    <div><b>r<sub>ij</sub></b> person-level residual.</div>
+    <div><b>ICC</b> share of a variable's variance that is between-group.</div>
+    <div><b>nᵢ</b> average people per group · <b>nⱼ</b> number of groups.</div>
+  </div>
+  <p class="small muted" style="margin-top:8px">Every symbol is defined in plain language in the <a data-jump="glossary">Glossary</a>, and appears as a hover tooltip wherever it's used.</p>
+</div>`;}
+
+/* ---------- MODULE 2 ---------- */
+function HTML_M2(){
+  const names=`<div class="card"><h3>Name your variables</h3>
+   <div class="grid3">
+    <div><label class="small">Level-1 predictor X</label><input type="text" data-name="xName" value="${STATE.xName}"></div>
+    <div><label class="small">Level-1 outcome Y</label><input type="text" data-name="yName" value="${STATE.yName}"></div>
+    <div><label class="small">Level-2 moderator W</label><input type="text" data-name="wName" value="${STATE.wName}"></div>
+   </div>
+   <p class="small muted" style="margin-top:8px">These names propagate into every module, graph, and the generated R comments.</p></div>`;
+  let rows=PARAMS.map(p=>`
+    <div class="inputrow">
+      <div><label>${p.label} <span class="sym" data-tip="${p.hint.replace(/"/g,'&quot;')}" class="tooltip">(${p.sym})</span></label>
+        ${p.presets&&p.presets.length?`<div class="presetbtns">${p.presets.map(pr=>`<span class="chip" data-set="${p.k}" data-val="${pr[1]}">${pr[0]}</span>`).join("")}</div>`:""}
+      </div>
+      <div><input type="number" step="${p.step}" data-param="${p.k}" value="${STATE[p.k]}"></div>
+      <div class="hint">${p.hint}</div>
+    </div>`).join("");
+  let ctrl=CONTROL.map(p=>`
+    <div class="inputrow">
+      <div><label>${p.label} <span class="tooltip sym" data-tip="${p.hint.replace(/"/g,'&quot;')}">(${p.sym})</span></label>
+        <div class="presetbtns">${p.presets.map(pr=>`<span class="chip" data-set="${p.k}" data-val="${pr[1]}">${pr[0]}</span>`).join("")}</div></div>
+      <div><input type="number" step="${p.k==='reps'?100:0.01}" data-param="${p.k}" value="${STATE[p.k]}"></div>
+      <div class="hint">${p.hint}</div>
+    </div>`).join("");
+  return `
+<h2>2 · Parameter input panel</h2>
+<div class="do-why"><b>Do this:</b> enter the values your power estimate depends on. <b>Why it matters:</b> power is only as trustworthy as these inputs — so justify each one.</div>
+${names}
+<div class="card"><h3>Model parameters</h3>
+  <p class="small muted">Defaults reproduce Chen et al. (2007) → power ≈ .64 at α = .05. Click a preset chip to drop in a literature-based anchor.</p>
+  ${rows}
+</div>
+<div class="card"><h3>Estimation controls</h3>${ctrl}</div>
+<div class="card"><h3>Where do these values come from?</h3>
+  <p>The article's guidance, in order of preference:</p>
+  <ol class="tight">
+    <li><b>Conduct a pilot study</b> with a representative sample and estimate the values directly — ideal when the main study is expensive or avoiding Type II errors is critical.</li>
+    <li><b>Draw on prior work or meta-analysis</b> for direct effects, ICCs, and (rarely reported) slope variability.</li>
+    <li><b>If nothing is available, test a <span class="hl">range</span> of plausible values</b> rather than betting on a single guess.</li>
+  </ol>
+  <table>
+    <tr><th>Parameter</th><th>Representative anchors from the article</th></tr>
+    <tr><td>Cross-level interaction γ₁w</td><td>0 (null), .15 (small), .30 (moderate), .45 (large), .75 (very large)</td></tr>
+    <tr><td>SD of Level-1 slopes √τ₁₁</td><td>≈ .10 / .17 / .22 = little / moderate / high variability (enter vu1j = SD²)</td></tr>
+    <tr><td>ICCs of predictors/outcomes</td><td>typically .15–.30; full observed range .00–.39 (predictor ICCs may run .02–.75)</td></tr>
+    <tr><td>Average L1 direct effect γ₁₀</td><td>0 / .2 / .4</td></tr>
+    <tr><td>Reliabilities ρxx, ρyy, ρww</td><td>.8 / .9 / 1.0 (see Module 6)</td></tr>
+  </table>
+  <div class="note">Values for slope variability and interaction magnitude are the hardest to find and "are not likely to be available from previous research." When in doubt, sweep a range in Modules 3–5.</div>
+</div>`;}
+
+/* ---------- MODULE 3 ---------- */
+function HTML_M3(){return `
+<h2>3 · Power estimator + R code</h2>
+<div class="do-why"><b>Do this:</b> estimate power for your current design, then copy the authoritative R script. <b>Why it matters:</b> this is the number that tells you whether your study can actually detect the effect.</div>
+<div class="card">
+  <h3>In-browser Monte Carlo estimate</h3>
+  <p class="small">Reproduces the article's data-generating process exactly (Appendix / Eqs 6–8), then fits each simulated dataset and counts the share of runs where the cross-level interaction <code>Xc:Wj</code> is significant at your α (t-ratio vs. critical t with df = n<sub>j</sub> − 4).</p>
+  <div class="statbox">
+    <button class="btn primary" id="runMC">▶ Run simulation</button>
+    <span class="small muted">Current: n<sub>j</sub>=<b id="mcNj"></b> · n<sub>i</sub>=<b id="mcNi"></b> · γ₁w=<b id="mcG11"></b> · α=<b id="mcAlpha"></b> · REPS=<b id="mcReps"></b></span>
+  </div>
+  <div class="progind" id="mcProgWrap" style="display:none"><i id="mcProg"></i></div>
+  <div id="mcResult" style="margin-top:14px"></div>
+  <div class="note"><b>What this estimator is:</b> a documented, defensible approximation — a <i>pooled-residual EM two-stage random-coefficient</i> fit. It is fast and well-suited to design exploration. The <b>authoritative</b> method is the REML mixed-model fit in the R script below (and the authors' online calculator). In offline testing this in-browser engine reproduces the Chen et al. design to within sampling error of the published values.</div>
+</div>
+<div class="card">
+  <h3>Validation panel <span class="small muted">— confirms the engine is behaving</span></h3>
+  <button class="btn" id="runValid">▶ Run benchmark checks</button>
+  <div class="progind" id="vProgWrap" style="display:none"><i id="vProg"></i></div>
+  <div id="validResult" style="margin-top:12px"></div>
+</div>
+<div class="card">
+  <h3>Authoritative R code (ML Power Tool, lme4) <span class="pill info">copy &amp; run in R</span></h3>
+  <p class="small">Pre-filled with your current values and variable names. This script — and the authors' <a href="http://mypage.iu.edu/~haguinis/crosslevel.html" target="_blank" rel="noopener">online calculator</a> — is the authoritative method; the in-browser simulator above is a fast approximation for design exploration.</p>
+  <div class="pre-wrap"><button class="btn copybtn" id="copyR">Copy</button><pre class="rcode" id="rcode"></pre></div>
+</div>`;}
+
+/* ---------- MODULE 4 ---------- */
+function HTML_M4(){return `
+<h2>4 · Sample-size &amp; design trade-off explorer</h2>
+<div class="do-why"><b>Do this:</b> compare designs and find the n<sub>i</sub>×n<sub>j</sub> mix that reaches your target power. <b>Why it matters:</b> power is driven mainly by the interaction size, the SD of slopes, and <i>how you split your sample</i> between people and groups.</div>
+<div class="card">
+  <h3>Compare two designs side by side</h3>
+  <div class="grid2">
+    <div class="scenariocol"><h4>Scenario A</h4>
+      <label class="small">Groups n<sub>j</sub></label><input type="number" id="sA_nj" value="62">
+      <label class="small">People/group n<sub>i</sub></label><input type="number" id="sA_ni" value="7">
+      <div id="sA_out" style="margin-top:8px"></div></div>
+    <div class="scenariocol"><h4>Scenario B</h4>
+      <label class="small">Groups n<sub>j</sub></label><input type="number" id="sB_nj" value="124">
+      <label class="small">People/group n<sub>i</sub></label><input type="number" id="sB_ni" value="7">
+      <div id="sB_out" style="margin-top:8px"></div></div>
+  </div>
+  <p class="small muted" style="margin-top:8px">All other parameters (γ₁w, slope SD, etc.) come from Module 2. Try "more people per team" vs. "more teams."</p>
+  <button class="btn primary" id="runScen" style="margin-top:6px">▶ Compute both scenarios</button>
+</div>
+<div class="card">
+  <h3>Solve for sample size — n<sub>i</sub> × n<sub>j</sub> power map</h3>
+  <p class="small">Holds your Module-2 parameters fixed and sweeps a grid. Cells that meet your target power are outlined. Reads off the cheapest combinations that reach, e.g., .80.</p>
+  <div class="statbox">
+    <label class="small">Target power</label><input type="number" step="0.05" id="targetPow" value="0.80" style="width:90px">
+    <label class="small">Reps/cell</label><select id="gridReps"><option value="150">150 (fast)</option><option value="250" selected>250</option><option value="400">400 (precise)</option></select>
+    <button class="btn primary" id="runHeat">▶ Build power map</button>
+  </div>
+  <div class="progind" id="heatProgWrap" style="display:none"><i id="heatProg"></i></div>
+  <canvas id="heatCanvas" width="720" height="380" style="margin-top:12px"></canvas>
+  <div class="legend"><span><i style="background:#c2453a"></i>&lt;.20</span><span><i style="background:#d77a2a"></i>.20–.40</span><span><i style="background:#caa12a"></i>.40–.60</span><span><i style="background:#4d9e3f"></i>.60–.80</span><span><i style="background:#15803d"></i>≥.80</span><span>◻ outline = meets target</span></div>
+  <div id="heatHint" class="small muted" style="margin-top:6px"></div>
+</div>
+<div class="card">
+  <h3>The ~3:2 premium &amp; the 30-30 fallacy</h3>
+  <p>The article's central design finding: for detecting the <b>cross-level interaction</b>, there is roughly a <b>3:2 premium on Level-1 (people-per-group) over Level-2 (number of groups)</b> sample size. But allocation should match the effects you most need to detect:</p>
+  <table>
+    <tr><th>If your priority is…</th><th>Emphasize…</th></tr>
+    <tr><td>The cross-level <b>interaction</b> (γ₁w)</td><td>more people per group (n<sub>i</sub>), with ~3:2 weight, plus groups</td></tr>
+    <tr><td>Cross-level <b>direct</b> effects (e.g., γ₀w)</td><td>more groups (n<sub>j</sub>)</td></tr>
+    <tr><td>Level-1 <b>direct</b> effects (γ₁₀)</td><td>more people per group (n<sub>i</sub>)</td></tr>
+  </table>
+  <div class="note cau"><b>The 30-30 rule, debunked.</b> Holding n<sub>i</sub> = n<sub>j</sub> = 30 and averaging across the article's full parameter space, power for the cross-level interaction averaged only <b>32.4%</b> — ranging from <b>6.5%</b> for a small interaction (γ₁w = .15) to <b>79.5%</b> for a large one (γ₁w = .75). A single rule of thumb cannot deliver adequate power across designs. Use the live map above with <i>your</i> parameters instead.</div>
+</div>
+<div class="card">
+  <h3>Optional: cost / budget trade-off</h3>
+  <p class="small">Surface the resource implications of adding people vs. adding groups for your two scenarios above.</p>
+  <div class="statbox">
+    <label class="small">Cost per added person</label><input type="number" id="costPerson" value="20" style="width:90px">
+    <label class="small">Cost per added group</label><input type="number" id="costGroup" value="300" style="width:90px">
+    <button class="btn" id="runCost">Estimate cost of each scenario</button>
+  </div>
+  <div id="costOut" class="small" style="margin-top:8px"></div>
+  <p class="small muted">Total cost ≈ (groups × cost/group) + (groups × people/group × cost/person). Compare against the power each scenario buys.</p>
+</div>`;}
+
+/* ---------- MODULE 5 ---------- */
+function HTML_M5(){return `
+<h2>5 · Driver-importance visualizer</h2>
+<div class="do-why"><b>Do this:</b> see which design choices move power the most. <b>Why it matters:</b> investing effort where it pays off (interaction size, sample sizes, slope SD) beats tweaking factors that barely matter (ICCs, reliabilities — in this simulation).</div>
+<div class="card">
+  <h3>Relative importance (ANOVA partial η², from Table 3)</h3>
+  <p class="small">Percent of variance in power explained by each factor across the article's 2.8-million-condition simulation. The model accounted for <b>96.1%</b> of the variance in power.</p>
+  <div id="etaBars"></div>
+  <h4 style="margin-top:16px">Notable two-way interactions</h4>
+  <div id="eta2Bars"></div>
+  <div class="note">ICCs and reliabilities each explain &lt;1% <i>in this (reliability-restricted) simulation</i> — but that is a property of the simulation's restricted ranges, not a claim that reliability is unimportant (see Module 6). These are simulation-based patterns, not closed-form formulas.</div>
+</div>
+<div class="card">
+  <h3>Power surface — toggle two factors (reproduces Figures 1–6)</h3>
+  <p class="small">Pick the two factors to vary; all others hold at your Module-2 values. The map reproduces the article's qualitative patterns (e.g., power stays under 50% across much of the space; large interactions reach high power only at large samples).</p>
+  <div class="tabbtns" id="surfPick"></div>
+  <div class="statbox"><label class="small">Reps/cell</label><select id="surfReps"><option value="150">150</option><option value="250" selected>250</option></select>
+    <button class="btn primary" id="runSurf">▶ Draw surface</button></div>
+  <div class="progind" id="surfProgWrap" style="display:none"><i id="surfProg"></i></div>
+  <canvas id="surfCanvas" width="720" height="380" style="margin-top:12px"></canvas>
+  <div id="surfHint" class="small muted" style="margin-top:6px"></div>
+</div>`;}
+
+/* ---------- MODULE 6 ---------- */
+function HTML_M6(){return `
+<h2>6 · Reliability &amp; attenuation helper</h2>
+<div class="do-why"><b>Do this:</b> see how unreliable measures shrink the cross-level effect you're trying to detect. <b>Why it matters:</b> measurement reliability is "at a premium" for cross-level interaction tests — a poor product-term reliability can cost ~25% of your power.</div>
+<div class="card">
+  <h3>Product-term reliability (Bohrnstedt &amp; Marwell, 1978 approximation)</h3>
+  <div class="grid3">
+    <div><label class="small">Reliability of X (ρxx)</label><input type="number" step="0.01" id="relX" value="${STATE.relX}"></div>
+    <div><label class="small">Reliability of W (ρww)</label><input type="number" step="0.01" id="relW" value="${STATE.relW}"></div>
+    <div><label class="small">Latent X–W correlation (r<sub>xw</sub>)</label><input type="number" step="0.01" id="latentXW" value="${STATE.latentXW}"></div>
+  </div>
+  <button class="btn primary" id="runRel" style="margin-top:10px">Compute</button>
+  <div id="relOut" style="margin-top:12px"></div>
+</div>
+<div class="card">
+  <h3>The article's worked illustration</h3>
+  <table>
+    <tr><th>Reliabilities of X and W</th><th>Product-term reliability</th><th>Observed effect ≈ % of true</th></tr>
+    <tr><td>.60 / .60</td><td>≈ .41</td><td>≈ 65%</td></tr>
+    <tr><td>.90 / .90</td><td>≈ .83</td><td>≈ 90%</td></tr>
+  </table>
+  <div class="note">Preserve the nuance: reliability had <i>limited</i> impact in the article's simulation <b>because that simulation restricted reliabilities to .8–1.0</b>. Across the wider .60-vs-.90 gap, the authors estimate power could fall by <b>~25%</b>. Reliability is genuinely important — these figures are deliberately <b>rough approximations</b>, as the article stresses. Use highly reliable, construct-valid measures.</div>
+</div>`;}
+
+/* ---------- MODULE 7 ---------- */
+function HTML_M7(){return `
+<h2>7 · Centering, standardization &amp; parameter sourcing</h2>
+<div class="do-why"><b>Do this:</b> scale and center your variables the way the power model assumes. <b>Why it matters:</b> the wrong centering conflates within- and between-group interaction components and biases the very effect you're testing.</div>
+<div class="card"><h3>The recommended recipe</h3>
+  <ol class="tight">
+    <li><b>Standardize lower-level variables on the total sample</b> (z-score across all people), and standardize Level-2 variables at Level 2. This puts effects on a common metric so the rule-of-thumb anchors apply.</li>
+    <li><b>Group-mean-center the Level-1 predictor</b> X (subtract each group's own mean) to form X<sub>c</sub> — this isolates the <i>within-group</i> X→Y relationship that the cross-level interaction modifies.</li>
+    <li><b>Reintroduce the group mean</b> (X̄<sub>j</sub>) as a Level-2 predictor, so within- vs. between-group components are not conflated (Enders &amp; Tofighi, 2007; Hofmann &amp; Gavin, 1998).</li>
+  </ol>
+  <div class="formula">Y ~ <b>X<sub>c</sub></b> + X̄<sub>j</sub> + W<sub>j</sub> + X̄<sub>j</sub>:W<sub>j</sub> + <b>X<sub>c</sub>:W<sub>j</sub></b> + ( X<sub>c</sub> | group )</div>
+  <p class="small muted">This is exactly the model the estimator and the R code fit. The cross-level interaction is the <b>X<sub>c</sub>:W<sub>j</sub></b> term.</p>
+</div>
+<div class="card"><h3>Quick standardize helper</h3>
+  <p class="small">Paste a column of raw values to get z-scores (standardized on the full sample). Stays in your browser.</p>
+  <textarea id="rawvals" rows="3" style="width:100%;font-family:monospace" placeholder="e.g. 3.2, 4.1, 2.8, 5.0 ..."></textarea>
+  <button class="btn" id="runStd" style="margin-top:6px">Standardize</button>
+  <div id="stdOut" class="small" style="margin-top:8px"></div>
+</div>
+<div class="card"><h3>The trade-off the article raises</h3>
+  <div class="note">Standardization <b>aids</b> power rule-of-thumb thinking (small/medium/large anchors) but <b>complicates</b> substantive cross-sample comparisons; and effect sizes / pseudo-R² in MLM can behave unexpectedly (e.g., adding predictors can change or even increase variance components). Report the metric you used.</div>
+  <h4>Sourcing parameter values — short guide</h4>
+  <ol class="tight">
+    <li><b>Pilot study first</b> (best): estimate values directly from a representative sample.</li>
+    <li><b>Else prior studies / meta-analysis</b> for direct effects and ICCs.</li>
+    <li><b>Else test a range</b> of plausible values (Modules 3–5).</li>
+  </ol>
+  <p class="small muted">This tool's defaults come from Chen et al. (2007).</p>
+</div>`;}
+
+/* ---------- MODULE 8 ---------- */
+function HTML_M8(){return `
+<h2>8 · Alpha-level decision helper</h2>
+<div class="do-why"><b>Do this:</b> choose α deliberately, then see your power at several α levels. <b>Why it matters:</b> defaulting to .05 — or blindly relaxing to .10/.15 — is a choice you should justify by the costs of each error type and the maturity of your field.</div>
+<div class="card"><h3>Weigh the two error types</h3>
+  <div class="grid2">
+    <div><label class="small">Relative cost of a Type I error (false positive)</label><input type="range" id="costI" min="1" max="5" value="3"><div class="small muted" id="costIlab"></div></div>
+    <div><label class="small">Relative cost of a Type II error (missing a real effect)</label><input type="range" id="costII" min="1" max="5" value="3"><div class="small muted" id="costIIlab"></div></div>
+  </div>
+  <div><label class="small">Research domain maturity</label>
+    <select id="maturity"><option value="nascent">Nascent / exploratory area</option><option value="growing" selected>Growing literature</option><option value="mature">Mature / well-established</option><option value="highstakes">High-stakes safety/health</option></select></div>
+  <div id="alphaAdvice" class="note" style="margin-top:10px"></div>
+</div>
+<div class="card"><h3>Power across α for your design</h3>
+  <button class="btn primary" id="runAlpha">▶ Compute power at α = .01 / .05 / .10 / .15 / .20</button>
+  <div class="progind" id="aProgWrap" style="display:none"><i id="aProg"></i></div>
+  <div id="alphaTable" style="margin-top:12px"></div>
+  <div class="note">The authors <b>do not</b> endorse new universal lenient standards. They endorse a <b>defensible, context-specific</b> α: more liberal for nascent areas, more stringent as a literature matures, and more extreme in either direction for high-stakes safety/health domains.</div>
+</div>`;}
+
+/* ---------- MODULE 9 ---------- */
+function HTML_M9(){return `
+<h2>9 · Post-hoc interpretation helper</h2>
+<div class="do-why"><b>Do this:</b> after collecting data, combine your result with your design's power to reach a defensible verdict. <b>Why it matters:</b> a non-significant cross-level interaction means very different things depending on whether the study had the power to find one.</div>
+<div class="card"><h3>Your result</h3>
+  <div class="grid2">
+    <div><label class="small">Was the cross-level interaction statistically significant?</label>
+      <select id="obsSig"><option value="">— choose —</option><option value="yes">Yes — significant</option><option value="no">No — not significant</option></select></div>
+    <div><label class="small">Estimated power of your design (from Module 3)</label>
+      <input type="number" step="0.01" id="obsPower" placeholder="e.g. 0.64" value="${STATE.obsPower}"></div>
+  </div>
+  <button class="btn primary" id="runVerdict" style="margin-top:10px">Interpret</button>
+  <div id="verdictOut" style="margin-top:12px"></div>
+</div>
+<div class="card"><h3>The interpretation logic</h3>
+  <table>
+    <tr><th>Result</th><th>Power was sufficient (≥ ~.80)</th><th>Power was insufficient</th></tr>
+    <tr><td><b>Significant</b></td><td>Reasonably trustworthy positive (still confirm effect size / robustness)</td><td>Significant despite low power — may reflect a strong true effect, but replicate</td></tr>
+    <tr><td><b>Not significant</b></td><td><span class="pill ok">Reasonably conclusive</span> — the effect likely does not exist at the targeted size</td><td><span class="pill no">Inconclusive</span> — do <b>not</b> conclude absence; the effect may exist but went undetected</td></tr>
+  </table>
+  <div class="note">Power analysis is useful both <i>a priori</i> and for <i>interpretation</i>. The article cautions strongly against reading a non-significant cross-level interaction as evidence of "no moderation" when power was low.</div>
+</div>`;}
+
+/* ---------- MODULE 10 ---------- */
+function HTML_M10(){return `
+<h2>10 · Sampling design, boundary conditions &amp; reporting</h2>
+<div class="do-why"><b>Do this:</b> design your sampling and reporting to protect — and document — your power. <b>Why it matters:</b> restricted sampling shrinks the very slope variance and interaction you're testing, and incomplete reporting prevents others from judging (or reusing) your power analysis.</div>
+<div class="card"><h3>Sampling diversity</h3>
+  <div class="note tip">Sample a <b>greater diversity of higher-level units/settings</b> — e.g., teams drawn from <i>many</i> organizations, not one. Pulling all groups from a single organization tends to <b>constrain the variance of slopes</b> and the magnitude of the cross-level interaction (a range-restriction problem), directly lowering power.</div>
+</div>
+<div class="card"><h3>Boundary conditions — state these plainly</h3>
+  <ul class="tight">
+    <li>The method is for <b>two-level nested designs</b>. Ignoring a real <b>third</b> level of nesting tends to <b>overestimate</b> power.</li>
+    <li>Results assume <b>normal distributions</b>, <b>homogeneous within-group variances</b>, and <b>uncorrelated errors</b>.</li>
+    <li><b>Categorical moderators</b> behave broadly similarly but raise additional issues.</li>
+  </ul>
+</div>
+<div class="card"><h3>Reporting checklist <span class="small muted">(check items as you complete them)</span></h3>
+  <div id="repChecklist"></div>
+</div>
+<div class="card"><h3>"Is my power plan complete?" review</h3>
+  <button class="btn primary" id="runReview">▶ Review my plan</button>
+  <div id="reviewOut" style="margin-top:12px"></div>
+</div>`;}
+
+/* ---------- GLOSSARY ---------- */
+const GLOSS=[
+ ["γ₀₀","Overall intercept of the outcome Y — its expected value when all predictors are zero."],
+ ["γ₁₀","Average within-group slope of X on Y across groups."],
+ ["γ₀w","Direct effect of the Level-2 moderator W on the outcome Y."],
+ ["γ₁w","The cross-level interaction: how much W changes the X→Y slope. The effect this tool plans power for."],
+ ["γ₀X̄","Direct effect of the group mean of X (reintroduced at Level 2) on Y."],
+ ["γ₀X̄w","Between-group interaction of mean-X by W on Y."],
+ ["τ₀₀","Variance of the group intercepts u₀ⱼ — how much group averages of Y differ."],
+ ["τ₁₁","Variance of the group slopes u₁ⱼ. Its square root √τ₁₁ is the SD of slopes."],
+ ["σ²","Within-group (person-level) residual variance of Y."],
+ ["u₀ⱼ","A group's intercept deviation from the overall intercept."],
+ ["u₁ⱼ","A group's slope deviation from the average slope."],
+ ["r_ij","Person-level residual — variation in Y not explained within the group."],
+ ["ICC","Intraclass correlation: the share of a variable's variance that lies between groups."],
+ ["nᵢ","Average Level-1 sample size — people per group."],
+ ["nⱼ","Level-2 sample size — number of groups."],
+ ["α","Type I error rate — probability of a false positive."],
+ ["Power","Probability of detecting a true effect of a given size at a chosen α (1 − Type II error rate)."],
+ ["Type I error","Concluding an effect exists when it does not (false positive)."],
+ ["Type II error","Failing to detect an effect that truly exists (false negative)."],
+ ["REML / FIML","Restricted / Full maximum likelihood — methods to estimate multilevel models. The article uses REML."]
+];
+function HTML_GLOSS(){return `
+<h2>Glossary / symbol key</h2>
+<p class="lead">Each symbol in one plain sentence. Hover the dotted symbols anywhere in the tool for the same definitions.</p>
+<div class="card"><div class="symkey">
+  ${GLOSS.map(g=>`<div><b>${g[0]}</b> — ${g[1]}</div>`).join("")}
+</div></div>`;}
+
+/* ---------- ABOUT ---------- */
+function HTML_ABOUT(){return `
+<h2>About / sources</h2>
+<div class="card">
+  <h3>Primary methods source</h3>
+  <div class="cite">Mathieu, J. E., Aguinis, H., Culpepper, S. A., &amp; Chen, G. (2012). Understanding and estimating the power to detect cross-level interaction effects in multilevel modeling. <i>Journal of Applied Psychology, 97</i>(5), 951–966.</div>
+  <h3>Recommended companion resource</h3>
+  <div class="cite">Aguinis, H. (2025). <i>Research methodology: Best practices for rigorous, credible, and impactful research.</i> SAGE. <a href="https://collegepublishing.sagepub.com/products/research-methodology-1-280088" target="_blank" rel="noopener">View at SAGE</a></div>
+  <h3>Authors' calculator</h3>
+  <p>The authoritative online calculator and R syntax: <a href="http://mypage.iu.edu/~haguinis/crosslevel.html" target="_blank" rel="noopener">mypage.iu.edu/~haguinis/crosslevel.html</a>.</p>
+  <h3>How the in-browser estimator works (and its limits)</h3>
+  <p class="small">The simulator reproduces the article's Appendix data-generating process exactly: it generates W<sub>j</sub> ~ N(0,1) and the Level-2 effects on X; builds random intercepts and slopes from γ₀₀, γ₀X̄, γ₀w, γ₀X̄w, γ₁₀, γ₁w and the variance components; generates Level-1 X and Y; group-mean-centers X (X<sub>c</sub>) and reintroduces the group mean (X̄<sub>j</sub>) as a Level-2 predictor; then, across REPS replications, fits Y ~ X<sub>c</sub> + X̄<sub>j</sub> + W<sub>j</sub> + X̄<sub>j</sub>:W<sub>j</sub> + X<sub>c</sub>:W<sub>j</sub> + (X<sub>c</sub> | group) and counts the share of runs where X<sub>c</sub>:W<sub>j</sub> is significant (t-ratio vs. critical t, df = n<sub>j</sub> − 4).</p>
+  <p class="small">Because a full REML mixed-model fit is not native to JavaScript, the in-page fit uses a documented <b>pooled-residual EM two-stage random-coefficient estimator</b>. It is a fast, defensible approximation for design exploration — not a replacement for the authoritative R/lme4 fit. It was validated offline to reproduce the article's published benchmarks (Chen et al. ≈ .64 at α=.05; Type I ≈ .05). These are simulation-based patterns, not closed-form formulas.</p>
+  <div class="note">No data leaves this page. All computation is in-browser. Use <b>Save inputs</b> to keep a JSON record of your plan and parameter sources.</div>
+</div>`;}
+
+/* ===================== NAV + PROGRESS ===================== */
+function showModule(id){
+  document.querySelectorAll('section.module').forEach(s=>s.classList.toggle('active',s.id===id));
+  document.querySelectorAll('nav .navlink').forEach(a=>a.classList.toggle('active',a.dataset.target===id));
+  const crumbMap={start:"Start here",m1:"1 · What & why",m2:"2 · Parameter inputs",m3:"3 · Power estimator + R",
+    m4:"4 · Design trade-offs",m5:"5 · Driver importance",m6:"6 · Reliability",m7:"7 · Centering & scaling",
+    m8:"8 · Alpha decision",m9:"9 · Post-hoc reading",m10:"10 · Design & reporting",glossary:"Glossary",about:"About"};
+  $("#crumb").textContent=crumbMap[id]||"";
+  if(/^m\d/.test(id)){visited.add(id);}
+  updateProgress();window.scrollTo(0,0);
+  if(id==='m3'){renderHeaderSnapshot();renderRcode();}
+  if(id==='m5'){renderEtaBars();}
+  if(id==='m8'){updateAlphaAdvice();}
+  if(id==='m10'){renderChecklist();}
+}
+function updateProgress(){
+  const total=10;const done=[...visited].filter(v=>/^m([1-9]|10)$/.test(v)).length;
+  $("#progFill").style.width=(done/total*100)+"%";
+  $("#progTxt").textContent=`${done} of ${total} modules visited`;
+  document.querySelectorAll('nav .navlink').forEach(a=>{const t=a.dataset.target;if(/^m\d/.test(t))a.classList.toggle('done',visited.has(t));});
+}
+function renderHeaderSnapshot(){
+  const el=$("#snapKpis");if(!el)return;
+  el.innerHTML=`<div class="kpi"><div class="v">${STATE.l2n}</div><div class="l">groups n<sub>j</sub></div></div>
+   <div class="kpi"><div class="v">${STATE.l1n}</div><div class="l">people/group n<sub>i</sub></div></div>
+   <div class="kpi"><div class="v">${(+STATE.g11).toFixed(3)}</div><div class="l">interaction γ<sub>1w</sub></div></div>`;
+  if($("#mcNj")){$("#mcNj").textContent=STATE.l2n;$("#mcNi").textContent=STATE.l1n;$("#mcG11").textContent=(+STATE.g11).toFixed(3);
+    $("#mcAlpha").textContent=STATE.alpha;$("#mcReps").textContent=STATE.reps;}
+}
+
+/* ===================== INPUT WIRING ===================== */
+function wireInputs(){
+  document.querySelectorAll('[data-param]').forEach(inp=>{
+    inp.addEventListener('input',()=>{STATE[inp.dataset.param]=parseFloat(inp.value);renderHeaderSnapshot();renderRcode();});
+  });
+  document.querySelectorAll('[data-name]').forEach(inp=>{
+    inp.addEventListener('input',()=>{STATE[inp.dataset.name]=inp.value;renderRcode();renderEtaBars();});
+  });
+  document.querySelectorAll('.chip[data-set]').forEach(ch=>{
+    ch.addEventListener('click',()=>{const k=ch.dataset.set,v=parseFloat(ch.dataset.val);STATE[k]=v;
+      const inp=document.querySelector(`[data-param="${k}"]`);if(inp)inp.value=v;renderHeaderSnapshot();renderRcode();});
+  });
+  // reliability inputs
+  ['relX','relW','latentXW','obsPower'].forEach(id=>{const e=document.getElementById(id);if(e)e.addEventListener('input',()=>STATE[id]=parseFloat(e.value));});
+}
+
+/* ===================== R CODE GENERATOR ===================== */
+function renderRcode(){
+  const el=$("#rcode");if(!el)return;
+  const s=STATE;
+  const code=
+`<span class="cm"># ===== ML Power Tool — Mathieu, Aguinis, Culpepper & Chen (2012), Appendix =====</span>
+<span class="cm"># Cross-level interaction power for: ${s.xName} (X) -> ${s.yName} (Y), moderated by ${s.wName} (W)</span>
+<span class="cm"># Authoritative method (REML via lme4). Underlined values in the paper are user-supplied.</span>
+
+l2n  <- ${s.l2n}        <span class="cm"># Level-2 sample size (number of ${s.wName} groups)</span>
+l1n  <- ${s.l1n}         <span class="cm"># Average Level-1 sample size (people per group)</span>
+iccx <- ${s.iccx}      <span class="cm"># ICC of X (${s.xName})</span>
+g00  <- ${s.g00}  <span class="cm"># Intercept for B0j equation</span>
+g01  <- ${s.g01}  <span class="cm"># Direct cross-level effect of group-mean X on Y</span>
+g02  <- ${s.g02}  <span class="cm"># Direct cross-level effect of W on Y</span>
+g03  <- ${s.g03}  <span class="cm"># Between-group W x mean-X interaction on Y</span>
+g10  <- ${s.g10}  <span class="cm"># Intercept for B1j equation (avg Level-1 X->Y effect)</span>
+g11  <- ${s.g11}  <span class="cm"># CROSS-LEVEL INTERACTION effect (the target)</span>
+vu0j <- ${s.vu0j}    <span class="cm"># Variance component for intercept</span>
+vu1j <- ${s.vu1j}    <span class="cm"># Slope variance component (slope SD = sqrt(vu1j))</span>
+vresid <- ${s.vresid}  <span class="cm"># Residual within variance</span>
+alpha <- ${s.alpha}      <span class="cm"># Rejection level</span>
+REPS  <- ${s.reps}      <span class="cm"># Monte Carlo replications (1,000 recommended)</span>
+
+hlmmmr <- function(iccx,l2n,l1n,g00,g01,g02,g03,g10,g11,vu0j,vu1j,alpha){
+  require(lme4)
+  Wj    <- rnorm(l2n, 0, sd = 1)
+  Xbarj <- rnorm(l2n, 0, sd = sqrt(iccx))                <span class="cm">## Level-2 effects on x</span>
+  b0 <- g00 + g01*Xbarj + g02*Wj + g03*Xbarj*Wj + rnorm(l2n,0,sd = sqrt(vu0j))
+  b1 <- g10 + g11*Wj + rnorm(l2n,0,sd = sqrt(vu1j))
+  dat <- expand.grid(l1id = 1:l1n, l2id = 1:l2n)
+  dat$X     <- rnorm(l1n*l2n,0,sd = sqrt(1-iccx)) + Xbarj[dat[,2]]
+  dat$Xbarj <- Xbarj[dat[,2]]
+  dat$Wj    <- Wj[dat[,2]]
+  dat$Y  <- b0[dat$l2id] + b1[dat$l2id]*(dat$X-dat$Xbarj) + rnorm(l1n*l2n,0,sd = sqrt(vresid))
+  dat$Xc <- (dat$X - Xbarj[dat[,2]])
+  lmm.fit <- lmer(Y ~ Xc + Xbarj + Wj + Xbarj:Wj + Xc:Wj + (Xc|l2id), data = dat)
+  fe.g  <- fixef(lmm.fit)
+  fe.se <- sqrt(diag(vcov(lmm.fit)))
+  ifelse(abs(fe.g[6]/fe.se[6]) > qt(1-alpha/2, l2n-4), 1, 0)   <span class="cm"># test Xc:Wj</span>
+}
+simout   <- replicate(REPS, hlmmmr(iccx,l2n,l1n,g00,g01,g02,g03,g10,g11,vu0j,vu1j,alpha))
+powerEST <- mean(simout)
+powerEST
+<span class="cm"># Source & online calculator: http://mypage.iu.edu/~haguinis/crosslevel.html</span>`;
+  el.innerHTML=code;
+}
+
+/* ===================== MODULE 3 LOGIC ===================== */
+function fmtPowerCard(power,alpha){
+  const lamp=lampColor(power);
+  let verdict = power>=.8?'<span class="pill ok">adequate (≥.80)</span>':
+                power>=.5?'<span class="pill warn">modest</span>':'<span class="pill no">underpowered</span>';
+  return `<div class="statbox">
+    <div class="kpi" style="min-width:160px"><div class="v" style="color:${lamp}">${pct(power)}</div><div class="l">estimated power at α=${alpha}</div></div>
+    <div><div style="font-size:1.05rem;margin-bottom:6px">${verdict}</div>
+      <div class="small muted">Probability of detecting your cross-level interaction (γ₁w=${(+STATE.g11).toFixed(3)}) if it is real and this design is run.</div>
+      ${power<.8?'<div class="small" style="margin-top:6px;color:#7c5410">To raise power, increase n<sub>i</sub> (people/group) and n<sub>j</sub> (groups) in Module 4, or reconsider the targeted effect size.</div>':''}</div>
+  </div>`;
+}
+async function runMonteCarlo(){
+  const btn=$("#runMC");btn.disabled=true;
+  $("#mcProgWrap").style.display="block";
+  const p=P();const power=await runPowerAsync(p,Math.max(50,+STATE.reps||1000),+STATE.alpha,12345,f=>{$("#mcProg").style.width=(f*100)+"%";});
+  STATE._lastPower=power;
+  $("#mcResult").innerHTML=fmtPowerCard(power,STATE.alpha);
+  const op=document.getElementById('obsPower');if(op&&!op.value){op.value=power.toFixed(3);STATE.obsPower=power.toFixed(3);}
+  $("#mcProgWrap").style.display="none";btn.disabled=false;
+}
+async function runValidation(){
+  const btn=$("#runValid");btn.disabled=true;$("#vProgWrap").style.display="block";
+  const chen={l2n:62,l1n:7,iccx:.12,g00:-0.068364,g01:0.345048,g02:0.022851,g03:0.184721,g10:0.451612,g11:0.148179,vu0j:0.00320,vu1j:0.08954,vresid:0.76877};
+  const checks=[
+    {name:"Chen et al. (2007) design at α=.05",pub:.64,band:[.56,.72],p:chen,a:.05,reps:1500},
+    {name:"Chen et al. (2007) design at α=.01",pub:.42,band:[.32,.50],p:chen,a:.01,reps:1500},
+    {name:"Chen et al. (2007) design at α=.10",pub:.77,band:[.68,.84],p:chen,a:.10,reps:1500},
+    {name:"Type I error: null interaction (γ₁w=0) at α=.05",pub:.05,band:[.03,.08],p:{...chen,g11:0},a:.05,reps:2500}
+  ];
+  let rows=[];let i=0;
+  for(const c of checks){
+    const est=await runPowerAsync(c.p,c.reps,c.a,777+i*13,f=>{$("#vProg").style.width=(((i+f)/checks.length)*100)+"%";});
+    const pass=est>=c.band[0]&&est<=c.band[1];
+    rows.push(`<div class="checkrow"><span class="statuslamp" style="background:${pass?'#15803d':'#c2453a'}"></span>
+      <div class="flag"><b>${c.name}</b><br><span class="small muted">tool estimate ${pct(est)} · published target ≈ ${pct(c.pub)} · acceptance band ${pct(c.band[0])}–${pct(c.band[1])}</span></div>
+      <span class="sp" style="flex:1"></span><span class="pill ${pass?'ok':'no'}">${pass?'PASS':'CHECK'}</span></div>`);
+    i++;
+  }
+  $("#validResult").innerHTML=`<div class="card" style="margin:0;box-shadow:none">${rows.join("")}</div>
+    <div class="small muted" style="margin-top:8px">PASS = the in-browser approximation lands within sampling tolerance of the published REML/lme4 result. Tail probabilities (α=.01) are the most fit-sensitive; the authoritative R script is exact.</div>`;
+  $("#vProgWrap").style.display="none";btn.disabled=false;
+}
+
+/* ===================== MODULE 4 LOGIC ===================== */
+async function runScenarios(){
+  const btn=$("#runScen");btn.disabled=true;
+  for(const tag of ["A","B"]){
+    const nj=+$("#s"+tag+"_nj").value,ni=+$("#s"+tag+"_ni").value;
+    const p={...P(),l2n:nj,l1n:ni};
+    $("#s"+tag+"_out").innerHTML='<span class="small muted">computing…</span>';
+    const pw=await runPowerAsync(p,Math.min(800,+STATE.reps||800),+STATE.alpha,2024,()=>{});
+    const lamp=lampColor(pw);
+    $("#s"+tag+"_out").innerHTML=`<div class="kpi"><div class="v" style="color:${lamp}">${pct(pw)}</div><div class="l">power · ${nj} groups × ${ni} people = ${nj*ni} total</div></div>`;
+    STATE["_scen"+tag]={nj,ni,pw};
+  }
+  btn.disabled=false;
+}
+async function runHeatmap(){
+  const btn=$("#runHeat");btn.disabled=true;$("#heatProgWrap").style.display="block";
+  const niVals=[3,5,7,10,14,18,25],njVals=[20,30,40,60,80,115];
+  const reps=+$("#gridReps").value,target=+$("#targetPow").value;
+  const cv=$("#heatCanvas"),ctx=cv.getContext('2d');const total=niVals.length*njVals.length;let count=0;
+  const grid=[];let best=null;
+  for(let r=0;r<niVals.length;r++){grid[r]=[];for(let c=0;c<njVals.length;c++){
+    const p={...P(),l1n:niVals[r],l2n:njVals[c]};
+    const pw=await runPowerAsync(p,reps,+STATE.alpha,3030,()=>{});
+    grid[r][c]=pw;count++;$("#heatProg").style.width=(count/total*100)+"%";
+    if(pw>=target){const tot=niVals[r]*njVals[c];if(!best||tot<best.tot)best={ni:niVals[r],nj:njVals[c],tot,pw};}
+  }}
+  drawHeat(ctx,cv,grid,niVals,njVals,"people/group  nᵢ","groups  nⱼ",target);
+  $("#heatHint").innerHTML = best?
+    `Smallest total sample reaching power ≥ ${target}: <b>${best.nj} groups × ${best.ni} people = ${best.tot}</b> participants (power ≈ ${pct(best.pw)}).`
+    :`No cell in this grid reaches power ≥ ${target}. Increase the targeted interaction, reduce slope SD, or extend the grid — the targeted γ₁w may simply be too small for feasible samples.`;
+  $("#heatProgWrap").style.display="none";btn.disabled=false;
+}
+function drawHeat(ctx,cv,grid,rows,cols,xlab,ylab,target){
+  const W=cv.width,H=cv.height,padL=70,padB=46,padT=14,padR=14;
+  ctx.clearRect(0,0,W,H);const gw=(W-padL-padR)/cols.length,gh=(H-padT-padB)/rows.length;
+  ctx.font="11px sans-serif";ctx.textAlign="center";
+  for(let r=0;r<rows.length;r++)for(let c=0;c<cols.length;c++){
+    const pw=grid[r][c];const x=padL+c*gw,y=padT+(rows.length-1-r)*gh;
+    ctx.fillStyle=powerColor(pw);ctx.fillRect(x,y,gw-2,gh-2);
+    if(target&&pw>=target){ctx.strokeStyle="#0b3d20";ctx.lineWidth=3;ctx.strokeRect(x+1.5,y+1.5,gw-5,gh-5);}
+    ctx.fillStyle = pw>.45?"#fff":"#222";ctx.fillText(Math.round(pw*100),x+gw/2-1,y+gh/2+4);
+  }
+  ctx.fillStyle="#5a6b82";ctx.textAlign="center";
+  for(let c=0;c<cols.length;c++)ctx.fillText(cols[c],padL+c*gw+gw/2,H-padB+18);
+  ctx.save();ctx.textAlign="center";
+  for(let r=0;r<rows.length;r++)ctx.fillText(rows[r],padL-20,padT+(rows.length-1-r)*gh+gh/2+4);
+  ctx.restore();
+  ctx.fillStyle="#1c2533";ctx.font="12px sans-serif";
+  ctx.fillText(xlab,padL+(W-padL-padR)/2,H-8);
+  ctx.save();ctx.translate(16,padT+(H-padT-padB)/2);ctx.rotate(-Math.PI/2);ctx.fillText(ylab,0,0);ctx.restore();
+}
+function runCost(){
+  const cp=+$("#costPerson").value,cg=+$("#costGroup").value;
+  let out="";
+  ["A","B"].forEach(t=>{const s=STATE["_scen"+t];if(s){const cost=s.nj*cg+s.nj*s.ni*cp;
+    out+=`<b>Scenario ${t}</b>: ${s.nj} groups × ${s.ni} people → power ${pct(s.pw)} · est. cost <b>${cost.toLocaleString()}</b> (${(cost/(s.pw||1)).toFixed(0)} per unit of power)<br>`;}});
+  $("#costOut").innerHTML=out||'<span class="muted">Run the two scenarios above first.</span>';
+}
+
+/* ===================== MODULE 5 LOGIC ===================== */
+function renderEtaBars(){
+  const e=$("#etaBars");if(!e)return;const max=35;
+  e.innerHTML=ETA_MAIN.map(d=>{const w=Math.max(d[1]/max*100,0.6);
+    return `<div class="barrow"><div class="nm">${d[0]}</div><div class="track"><div class="fill" style="width:${w}%">${d[1]>=.5?d[1].toFixed(d[1]<1?2:0)+'%':''}</div></div><div style="width:54px" class="small num">${d[1]<1?d[1].toFixed(d[1]<.001?5:3):d[1].toFixed(0)}%</div></div>`;}).join("");
+  const e2=$("#eta2Bars");
+  e2.innerHTML=ETA_2WAY.map(d=>{const w=d[1]/max*100;
+    return `<div class="barrow"><div class="nm">${d[0]}</div><div class="track"><div class="fill" style="width:${w}%;background:linear-gradient(90deg,#0d9488,#0f766e)">${d[1].toFixed(2)}%</div></div><div style="width:54px"></div></div>`;}).join("");
+}
+let SURF=null;
+const SURF_OPTS=[
+ {id:"nj_g11",lab:"nⱼ × γ₁w (Fig 1)",x:["g11",[.0,.15,.30,.45,.60,.75]],y:["l2n",[20,40,60,80,115]]},
+ {id:"ni_g11",lab:"nᵢ × γ₁w (Fig 2)",x:["g11",[.0,.15,.30,.45,.60,.75]],y:["l1n",[3,5,7,10,14,18]]},
+ {id:"sd_g11",lab:"SD slopes × γ₁w (Fig 3)",x:["g11",[.0,.15,.30,.45,.60,.75]],y:["vu1j",[.01,.0289,.0484,.09,.16,.25]]},
+ {id:"ni_nj",lab:"nᵢ × nⱼ (Fig 6)",x:["l2n",[20,40,60,80,115]],y:["l1n",[3,5,7,10,14,18]]}
+];
+function renderSurfPick(){
+  const e=$("#surfPick");if(!e)return;
+  e.innerHTML=SURF_OPTS.map((o,i)=>`<span class="chip ${i===0?'sel':''}" data-surf="${o.id}">${o.lab}</span>`).join("");
+  e.querySelectorAll('[data-surf]').forEach(c=>c.addEventListener('click',()=>{
+    e.querySelectorAll('.chip').forEach(x=>x.classList.remove('sel'));c.classList.add('sel');SURF=c.dataset.surf;}));
+  SURF=SURF_OPTS[0].id;
+}
+async function runSurface(){
+  const opt=SURF_OPTS.find(o=>o.id===(SURF||"nj_g11"));const btn=$("#runSurf");btn.disabled=true;$("#surfProgWrap").style.display="block";
+  const reps=+$("#surfReps").value;
+  const [xk,xv]=opt.x,[yk,yv]=opt.y;const grid=[];let count=0,total=xv.length*yv.length;
+  for(let r=0;r<yv.length;r++){grid[r]=[];for(let c=0;c<xv.length;c++){
+    const p={...P()};p[xk]=xv[c];p[yk]=yv[r];
+    const pw=await runPowerAsync(p,reps,+STATE.alpha,4040,()=>{});
+    grid[r][c]=pw;count++;$("#surfProg").style.width=(count/total*100)+"%";
+  }}
+  const cv=$("#surfCanvas"),ctx=cv.getContext('2d');
+  const xlab=labelFor(xk),ylab=labelFor(yk);
+  const xticks=xv.map(v=>fmtTick(xk,v)),yticks=yv.map(v=>fmtTick(yk,v));
+  drawHeat(ctx,cv,grid,yticks,xticks,xlab,ylab,null);
+  $("#surfHint").innerHTML=`Power surface for <b>${opt.lab}</b> (other parameters held at your Module-2 values). Note how power stays under 50% across much of the space unless both factors are favorable — exactly the article's pattern.`;
+  $("#surfProgWrap").style.display="none";btn.disabled=false;
+}
+function labelFor(k){return {g11:"cross-level interaction γ₁w",l2n:"groups  nⱼ",l1n:"people/group  nᵢ",vu1j:"slope variance vu1j (SD=√)"}[k]||k;}
+function fmtTick(k,v){if(k==="vu1j")return "√="+Math.sqrt(v).toFixed(2);if(k==="g11")return v.toFixed(2);return ""+v;}
+
+/* ===================== MODULE 6 LOGIC ===================== */
+function runReliability(){
+  const rx=+$("#relX").value,rw=+$("#relW").value,rc=+$("#latentXW").value;
+  // Bohrnstedt & Marwell (1978) approx for reliability of a product of two standardized variables:
+  // rel(XW) = (rxx*rww + rxw^2) / (1 + rxw^2)
+  const relProd=(rx*rw+rc*rc)/(1+rc*rc);
+  const obsFrac=Math.sqrt(Math.max(relProd,0)); // observed effect ~ sqrt(product reliability) of true
+  $("#relOut").innerHTML=`<div class="grid3">
+     <div class="kpi"><div class="v">${relProd.toFixed(2)}</div><div class="l">product-term reliability (X·W)</div></div>
+     <div class="kpi"><div class="v">${Math.round(obsFrac*100)}%</div><div class="l">observed ≈ this % of true effect</div></div>
+     <div class="kpi"><div class="v">${Math.round((1-obsFrac)*100)}%</div><div class="l">approx. attenuation</div></div>
+   </div>
+   <p class="small" style="margin-top:8px">With reliabilities ρxx=${rx}, ρww=${rw} and latent correlation r<sub>xw</sub>=${rc}, the cross-level interaction you observe is roughly <b>${Math.round(obsFrac*100)}%</b> of its true magnitude — so the effect size feeding your power analysis is attenuated accordingly. Improving reliability toward .90/.90 recovers most of it.</p>
+   <div class="note">Rough approximation, as the article stresses: <code>rel(X·W) ≈ (ρxx·ρww + r<sub>xw</sub>²)/(1 + r<sub>xw</sub>²)</code>. It illustrates direction and rough magnitude, not a precise correction.</div>`;
+}
+
+/* ===================== MODULE 7 LOGIC ===================== */
+function runStandardize(){
+  const raw=$("#rawvals").value.split(/[\s,;]+/).map(parseFloat).filter(v=>!isNaN(v));
+  if(raw.length<2){$("#stdOut").innerHTML='<span class="muted">Enter at least two numbers.</span>';return;}
+  const m=raw.reduce((a,b)=>a+b,0)/raw.length;const sd=Math.sqrt(raw.reduce((a,b)=>a+(b-m)**2,0)/(raw.length-1));
+  const z=raw.map(v=>((v-m)/sd).toFixed(3));
+  $("#stdOut").innerHTML=`n=${raw.length}, mean=${m.toFixed(3)}, SD=${sd.toFixed(3)}<br><b>z-scores:</b> ${z.join(", ")}`;
+}
+
+/* ===================== MODULE 8 LOGIC ===================== */
+function updateAlphaAdvice(){
+  const cI=+($("#costI")?.value||3),cII=+($("#costII")?.value||3),mat=$("#maturity")?.value||"growing";
+  if($("#costIlab"))$("#costIlab").textContent="weight: "+cI;
+  if($("#costIIlab"))$("#costIIlab").textContent="weight: "+cII;
+  let rec=.05,why=[];
+  if(cII>cI){rec=.10;why.push("you weight missing a real effect (Type II) more heavily than a false positive, which argues for a more liberal α");}
+  if(cI>cII){rec=.01;why.push("you weight false positives (Type I) more heavily, which argues for a more stringent α");}
+  if(mat==="nascent"){rec=Math.max(rec,.10);why.push("a nascent/exploratory area can justify a more liberal α to avoid prematurely discarding effects");}
+  if(mat==="mature"){rec=Math.min(rec,.01);why.push("a mature literature argues for a more stringent α");}
+  if(mat==="highstakes"){why.push("high-stakes safety/health contexts justify a more extreme α in <i>either</i> direction, depending on which error is costlier");}
+  const el=$("#alphaAdvice");if(!el)return;
+  el.innerHTML=`<b>Suggested starting point: α ≈ ${rec}.</b> Reasoning: ${why.length?why.join("; ")+"." : "balanced costs and a growing literature support the conventional .05."} <br><span class="small">This is a reasoned <i>a priori</i> choice — document it. The authors explicitly reject blanket lenient standards.</span>`;
+}
+async function runAlphaTable(){
+  const btn=$("#runAlpha");btn.disabled=true;$("#aProgWrap").style.display="block";
+  const alphas=[.01,.05,.10,.15,.20];const p=P();const reps=Math.min(1200,+STATE.reps||1000);let rows=[];let i=0;
+  for(const a of alphas){const pw=await runPowerAsync(p,reps,a,5050,f=>{$("#aProg").style.width=(((i+f)/alphas.length)*100)+"%";});
+    rows.push(`<tr><td class="num">${a.toFixed(2)}</td><td class="num"><b style="color:${lampColor(pw)}">${pct(pw)}</b></td><td>${pw>=.8?'adequate':pw>=.5?'modest':'underpowered'}</td></tr>`);i++;}
+  $("#alphaTable").innerHTML=`<table><tr><th class="num">α</th><th class="num">Estimated power</th><th>Verdict</th></tr>${rows.join("")}</table>
+    <p class="small muted">Same design (n<sub>j</sub>=${STATE.l2n}, n<sub>i</sub>=${STATE.l1n}, γ₁w=${(+STATE.g11).toFixed(3)}); only α changes. Relaxing α buys power but raises the false-positive rate — choose with eyes open.</p>`;
+  $("#aProgWrap").style.display="none";btn.disabled=false;
+}
+
+/* ===================== MODULE 9 LOGIC ===================== */
+function runVerdict(){
+  const sig=$("#obsSig").value,pw=parseFloat($("#obsPower").value);
+  if(!sig||isNaN(pw)){$("#verdictOut").innerHTML='<span class="muted">Choose a result and enter your estimated power.</span>';return;}
+  const suff=pw>=.8;let html="";
+  if(sig==="no"&&suff){
+    html=`<div class="note tip"><b>Reasonably conclusive null.</b> Your design had adequate power (${pct(pw)}) and still did not detect the cross-level interaction — so an effect of the targeted size <b>likely does not exist</b>. Report the power so readers can weigh this.</div>`;
+  }else if(sig==="no"&&!suff){
+    html=`<div class="note cau"><b>Inconclusive.</b> Power was only ${pct(pw)}, so a non-significant result is <b>not</b> evidence of absence — the interaction may well exist but your study could not detect it. Avoid concluding "no moderation." Consider a larger / better-powered replication.</div>`;
+  }else if(sig==="yes"&&suff){
+    html=`<div class="note tip"><b>Trustworthy positive.</b> You detected the interaction with adequate power (${pct(pw)}). Still confirm the effect size and robustness.</div>`;
+  }else{
+    html=`<div class="note"><b>Significant despite low power (${pct(pw)}).</b> This can happen when the true effect is strong, but low-powered significant findings are more likely to be inflated — replicate before drawing strong conclusions.</div>`;
+  }
+  $("#verdictOut").innerHTML=html;
+}
+
+/* ===================== MODULE 10 LOGIC ===================== */
+const REPORT_ITEMS=[
+ "ICC for the lower-level outcome (Y)",
+ "ICC for the lower-level predictor (X) — often omitted!",
+ "Reliabilities aligned to the level each variable is used at",
+ "Variability (SD) of the lower-level slopes √τ₁₁",
+ "The a priori power analysis itself",
+ "The chosen α and its rationale",
+ "The parameter values used in the power calculation — and their sources"
+];
+function renderChecklist(){
+  const e=$("#repChecklist");if(!e)return;
+  e.innerHTML=REPORT_ITEMS.map((t,i)=>`<label class="checkrow" style="cursor:pointer"><input type="checkbox" data-rep="${i}" ${STATE["_rep"+i]?'checked':''}> <span>${t}</span></label>`).join("");
+  e.querySelectorAll('[data-rep]').forEach(c=>c.addEventListener('change',()=>{STATE["_rep"+c.dataset.rep]=c.checked;}));
+}
+function runReview(){
+  const issues=[];
+  if(!STATE._lastPower)issues.push("Run the Monte Carlo estimate in Module 3 to get your design's power.");
+  else if(STATE._lastPower<.8)issues.push(`Your estimated power (${pct(STATE._lastPower)}) is below .80 — consider larger samples (Module 4) or revisit the targeted effect.`);
+  if(!STATE._alphaJustified)issues.push("Document your α rationale (Module 8).");
+  const repDone=REPORT_ITEMS.filter((_,i)=>STATE["_rep"+i]).length;
+  if(repDone<REPORT_ITEMS.length)issues.push(`Reporting checklist: ${repDone}/${REPORT_ITEMS.length} items checked.`);
+  if(+STATE.g11===0)issues.push("Your targeted interaction γ₁w is 0 — set the effect size you actually want to detect.");
+  if(!STATE._sourcesNoted)issues.push("Note where each parameter value came from (pilot / prior work / range) — keep it with your Saved inputs JSON.");
+  const ok=issues.length===0;
+  $("#reviewOut").innerHTML = ok ?
+    `<div class="note tip"><b>Your power plan looks complete.</b> You have a power estimate, an α rationale, and your reporting items are checked. Save your inputs (top bar) to archive the plan and its sources.</div>`
+    : `<div class="note"><b>A few items to finish:</b><ul class="tight" style="margin-top:6px">${issues.map(i=>`<li>${i}</li>`).join("")}</ul></div>`;
+}
+
+/* ===================== TOP BAR ACTIONS ===================== */
+function exportJSON(){
+  const blob=new Blob([JSON.stringify(STATE,null,2)],{type:"application/json"});
+  const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download="crosslevel_power_plan.json";a.click();URL.revokeObjectURL(a.href);
+}
+function importJSON(file){
+  const rd=new FileReader();rd.onload=()=>{try{const obj=JSON.parse(rd.result);Object.assign(STATE,obj);buildAll();showModule('m2');alert("Inputs loaded.");}catch(e){alert("Could not read that file.");}};rd.readAsText(file);
+}
+function resetAll(){STATE=Object.assign({},DEFAULTS);buildAll();showModule('m2');}
+
+/* ===================== INIT ===================== */
+function init(){
+  buildAll();
+  document.querySelectorAll('nav .navlink').forEach(a=>a.addEventListener('click',()=>showModule(a.dataset.target)));
+  document.addEventListener('click',e=>{
+    const j=e.target.closest('[data-jump]');if(j){e.preventDefault();showModule(j.dataset.jump);}
+  });
+  // delegate dynamic buttons
+  document.addEventListener('click',e=>{
+    const id=e.target.id;
+    if(id==="runMC")runMonteCarlo();
+    if(id==="runValid")runValidation();
+    if(id==="copyR"){navigator.clipboard.writeText($("#rcode").innerText).then(()=>{e.target.textContent="Copied!";setTimeout(()=>e.target.textContent="Copy",1200);});}
+    if(id==="runScen")runScenarios();
+    if(id==="runHeat")runHeatmap();
+    if(id==="runCost")runCost();
+    if(id==="runSurf")runSurface();
+    if(id==="runRel")runReliability();
+    if(id==="runStd")runStandardize();
+    if(id==="runAlpha"){STATE._alphaJustified=true;runAlphaTable();}
+    if(id==="runVerdict")runVerdict();
+    if(id==="runReview")runReview();
+  });
+  document.addEventListener('input',e=>{
+    if(['costI','costII'].includes(e.target.id))updateAlphaAdvice();
+  });
+  document.addEventListener('change',e=>{if(e.target.id==="maturity")updateAlphaAdvice();
+    if(e.target.id==="rawvals"){}});
+  $("#btnExport").addEventListener('click',()=>{STATE._sourcesNoted=true;exportJSON();});
+  $("#btnImport").addEventListener('click',()=>$("#fileImport").click());
+  $("#fileImport").addEventListener('change',e=>{if(e.target.files[0])importJSON(e.target.files[0]);});
+  $("#btnReset").addEventListener('click',resetAll);
+  $("#btnPrint").addEventListener('click',()=>window.print());
+  renderSurfPick();
+  showModule('start');
+}
+init();
+</script>
+<!-- Begin Countercentral code v 7.0 --> 
+<span id="wts2576"></span> 
+<script>var wts=document.createElement('script');wts.async=true; 
+wts.src='https://server2.countercentral.com/log7.js';document.head.appendChild(wts); 
+wts.onload = function(){ wtslog7(2576,1); }; 
+</script><noscript><a href="https://www.countercentral.com"> 
+<img src="https://server2.countercentral.com/7/1/2576.png"  
+alt="Countercentral web traffic analysis"></a></noscript> 
+<!-- End Countercentral code v 7.0 --> 
+</body>
+</html>

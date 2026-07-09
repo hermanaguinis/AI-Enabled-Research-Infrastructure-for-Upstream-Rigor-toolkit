@@ -1,0 +1,886 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Control Variable Decision Tool</title>
+<style>
+  :root{
+    --navy:#1f3a5f; --navy-d:#16293f; --slate:#41607f; --bg:#f4f6f9; --card:#ffffff;
+    --ink:#1c2733; --muted:#5d6b7a; --line:#dfe5ec; --accent:#2f6fb0; --accent-d:#235689;
+    --green:#1f7a4d; --green-bg:#e7f4ed; --amber:#9a6a14; --amber-bg:#fbf2dd;
+    --red:#a32f2f; --red-bg:#fbe9e9; --focus:#1d6fe0;
+    --shadow:0 1px 3px rgba(20,40,70,.08),0 6px 20px rgba(20,40,70,.06);
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0}
+  body{font-family:'Segoe UI',Roboto,Helvetica,Arial,system-ui,sans-serif;background:var(--bg);color:var(--ink);line-height:1.55;font-size:16px}
+  a{color:var(--accent-d)}
+  header.app{background:linear-gradient(135deg,var(--navy),var(--navy-d));color:#fff;padding:22px 24px}
+  header.app .wrap{max-width:1060px;margin:0 auto}
+  header.app h1{margin:0;font-size:1.5rem;letter-spacing:.2px}
+  header.app p{margin:6px 0 0;color:#cdd9e8;font-size:.95rem}
+  nav.tabs{background:var(--navy-d);position:sticky;top:0;z-index:20}
+  nav.tabs .wrap{max-width:1060px;margin:0 auto;display:flex;flex-wrap:wrap}
+  nav.tabs button{background:transparent;border:0;color:#c4d2e3;padding:13px 16px;font-size:.92rem;cursor:pointer;border-bottom:3px solid transparent;font-weight:600}
+  nav.tabs button:hover{color:#fff}
+  nav.tabs button[aria-selected="true"]{color:#fff;border-bottom-color:var(--accent)}
+  nav.tabs button:focus-visible{outline:2px solid #fff;outline-offset:-3px}
+  main{max-width:1060px;margin:0 auto;padding:26px 24px 80px}
+  .panel{display:none}
+  .panel.active{display:block;animation:fade .25s ease}
+  @keyframes fade{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:12px;box-shadow:var(--shadow);padding:24px;margin-bottom:20px}
+  h2{font-size:1.25rem;margin:0 0 6px;color:var(--navy)}
+  h3{font-size:1.05rem;margin:18px 0 8px;color:var(--navy)}
+  .sub{color:var(--muted);font-size:.93rem;margin:0 0 16px}
+  label{font-weight:600;display:block;margin:14px 0 6px}
+  input[type=text],textarea,select{width:100%;padding:10px 12px;border:1px solid var(--line);border-radius:8px;font-size:1rem;font-family:inherit;background:#fff;color:var(--ink)}
+  textarea{min-height:74px;resize:vertical}
+  input:focus,textarea:focus,select:focus,button:focus-visible{outline:2px solid var(--focus);outline-offset:1px}
+  .btn{background:var(--accent);color:#fff;border:0;border-radius:8px;padding:11px 20px;font-size:.97rem;font-weight:600;cursor:pointer}
+  .btn:hover{background:var(--accent-d)}
+  .btn.secondary{background:#eef2f7;color:var(--navy);border:1px solid var(--line)}
+  .btn.secondary:hover{background:#e3e9f1}
+  .btn.ghost{background:transparent;color:var(--accent-d);border:1px solid var(--accent)}
+  .btn.danger{background:#fff;color:var(--red);border:1px solid #e6b8b8}
+  .btn.danger:hover{background:var(--red-bg)}
+  .btn:disabled{opacity:.5;cursor:not-allowed}
+  .btnrow{display:flex;gap:10px;flex-wrap:wrap;margin-top:22px}
+  .spacer{flex:1}
+  .choice{display:flex;align-items:flex-start;gap:12px;border:1px solid var(--line);border-radius:9px;padding:13px 15px;margin:9px 0;cursor:pointer;background:#fff;transition:.12s}
+  .choice:hover{border-color:var(--accent);background:#f7fafd}
+  .choice input{margin-top:3px;width:18px;height:18px;flex:none;cursor:pointer}
+  .choice .lab{font-weight:500}
+  .choice.flag{border-color:#e6c08a;background:var(--amber-bg)}
+  .inline-warn{margin:6px 0 0 30px;font-size:.86rem;color:var(--amber);background:var(--amber-bg);border-left:3px solid #d6a649;padding:8px 11px;border-radius:0 6px 6px 0}
+  .progress{height:6px;background:#e8edf3;border-radius:99px;overflow:hidden;margin-bottom:20px}
+  .progress > i{display:block;height:100%;background:var(--accent);transition:width .3s}
+  .qhint{background:#f1f6fb;border-left:3px solid var(--accent);padding:10px 13px;border-radius:0 7px 7px 0;color:#2c4a66;font-size:.9rem;margin:10px 0 16px}
+  .chain{margin-top:18px;border-top:1px dashed var(--line);padding-top:14px}
+  .chain h4{margin:0 0 8px;font-size:.85rem;text-transform:uppercase;letter-spacing:.06em;color:var(--muted)}
+  .chain ol{margin:0;padding-left:20px}
+  .chain li{margin:4px 0;font-size:.9rem;color:#3c4a59}
+  .verdict{border-radius:11px;padding:20px 22px;margin:4px 0 4px;border:1px solid}
+  .verdict.include{background:var(--green-bg);border-color:#b7ddc7}
+  .verdict.exclude{background:var(--amber-bg);border-color:#e6cd9a}
+  .verdict.stop{background:var(--red-bg);border-color:#eab9b9}
+  .verdict .tag{display:inline-block;font-weight:800;letter-spacing:.05em;font-size:.78rem;padding:4px 11px;border-radius:99px;color:#fff;margin-bottom:9px}
+  .verdict.include .tag{background:var(--green)}
+  .verdict.exclude .tag{background:var(--amber)}
+  .verdict.stop .tag{background:var(--red)}
+  .verdict h3{margin:2px 0 8px;color:var(--ink)}
+  .verdict p{margin:6px 0;font-size:.95rem}
+  table{width:100%;border-collapse:collapse;font-size:.9rem}
+  th,td{text-align:left;padding:10px 11px;border-bottom:1px solid var(--line);vertical-align:top}
+  th{background:#f0f4f8;color:var(--navy);font-size:.8rem;text-transform:uppercase;letter-spacing:.04em}
+  tr:hover td{background:#f9fbfd}
+  .pill{display:inline-block;font-size:.74rem;font-weight:700;padding:3px 9px;border-radius:99px}
+  .pill.include{background:var(--green-bg);color:var(--green)}
+  .pill.exclude{background:var(--amber-bg);color:var(--amber)}
+  .pill.stop{background:var(--red-bg);color:var(--red)}
+  .empty{text-align:center;color:var(--muted);padding:40px 10px}
+  .empty svg{opacity:.4;margin-bottom:10px}
+  details.acc{border:1px solid var(--line);border-radius:9px;margin:10px 0;background:#fff;overflow:hidden}
+  details.acc summary{cursor:pointer;padding:13px 16px;font-weight:600;color:var(--navy);background:#f5f8fb;list-style:none}
+  details.acc summary::-webkit-details-marker{display:none}
+  details.acc summary::before{content:"▸";margin-right:9px;color:var(--accent);display:inline-block;transition:.2s}
+  details.acc[open] summary::before{transform:rotate(90deg)}
+  details.acc .body{padding:6px 18px 16px}
+  .check{display:flex;gap:12px;align-items:flex-start;padding:12px 0;border-bottom:1px solid var(--line)}
+  .check:last-child{border-bottom:0}
+  .check input{margin-top:4px;width:19px;height:19px;flex:none}
+  .check .ct{font-weight:600}
+  .check .cd{color:var(--muted);font-size:.87rem;margin-top:2px}
+  .progress-ring{font-size:.9rem;color:var(--muted);margin-top:10px}
+  .codebox{background:#0f1c2b;color:#e6edf5;border-radius:9px;padding:16px 18px;font-family:'Consolas',monospace;font-size:.86rem;line-height:1.6;white-space:pre-wrap;max-height:420px;overflow:auto}
+  .note{font-size:.86rem;color:var(--muted)}
+  .kvs{display:grid;grid-template-columns:160px 1fr;gap:4px 14px;font-size:.9rem;margin-top:10px}
+  .kvs dt{color:var(--muted);font-weight:600}
+  .kvs dd{margin:0}
+  footer.app{border-top:1px solid var(--line);background:#fff;color:var(--muted);font-size:.84rem;padding:20px 24px}
+  footer.app .wrap{max-width:1060px;margin:0 auto}
+  .src{background:#f5f8fb;border:1px solid var(--line);border-radius:8px;padding:12px 14px;font-size:.86rem;margin-top:12px}
+  .radio-set{border:0;padding:0;margin:0}
+  .toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:var(--navy);color:#fff;padding:11px 20px;border-radius:8px;box-shadow:var(--shadow);opacity:0;pointer-events:none;transition:.25s;z-index:50;font-size:.9rem}
+  .toast.show{opacity:1;transform:translateX(-50%) translateY(-4px)}
+  @media (max-width:620px){.kvs{grid-template-columns:1fr}main{padding:18px 14px 70px}.card{padding:18px}}
+  @media print{
+    nav.tabs,header.app,footer.app,.btnrow,.tabs,.no-print{display:none!important}
+    .panel{display:block!important}
+    .card{box-shadow:none;border:1px solid #ccc;page-break-inside:avoid}
+    body{background:#fff}
+  }
+</style>
+</head>
+<body>
+<header class="app">
+  <div class="wrap">
+    <h1>Control Variable Decision Tool</h1>
+    <p>Decide, justify, and report statistical controls using the Bernerth &amp; Aguinis (2016) best-practice framework.</p>
+  </div>
+</header>
+
+<nav class="tabs" role="tablist" aria-label="Sections">
+  <div class="wrap">
+    <button role="tab" aria-selected="true" data-tab="wizard">Decision Tool</button>
+    <button role="tab" aria-selected="false" data-tab="summary">My Variables <span id="varCount"></span></button>
+    <button role="tab" aria-selected="false" data-tab="checklist">Reporting Checklist</button>
+    <button role="tab" aria-selected="false" data-tab="methods">Methods Paragraph</button>
+    <button role="tab" aria-selected="false" data-tab="learn">Why This Matters</button>
+    <button role="tab" aria-selected="false" data-tab="about">About</button>
+  </div>
+</nav>
+
+<main>
+  <!-- WIZARD -->
+  <section class="panel active" id="wizard" role="tabpanel">
+    <div class="card" id="wizardCard"></div>
+  </section>
+
+  <!-- SUMMARY -->
+  <section class="panel" id="summary" role="tabpanel">
+    <div class="card">
+      <h2>Candidate control variables</h2>
+      <p class="sub">Every variable you evaluate — included or not — is recorded here so it can be described transparently in your manuscript.</p>
+      <div id="summaryBody"></div>
+      <div class="btnrow no-print">
+        <button class="btn" onclick="startNew()">+ Evaluate a new control variable</button>
+        <div class="spacer"></div>
+        <button class="btn secondary" onclick="printReport()">🖨 Print / Save as PDF</button>
+        <button class="btn secondary" onclick="downloadReport()">⬇ Download report (.html)</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- CHECKLIST -->
+  <section class="panel" id="checklist" role="tabpanel">
+    <div class="card">
+      <h2>Reporting &amp; transparency checklist</h2>
+      <p class="sub">The overarching principle: <em>all</em> choices and procedures regarding statistical controls must be described in detail — regardless of whether a control is ultimately included — to ensure transparency and reproducibility.</p>
+      <div id="checklistBody"></div>
+      <div class="progress-ring" id="checkProgress"></div>
+    </div>
+  </section>
+
+  <!-- METHODS -->
+  <section class="panel" id="methods" role="tabpanel">
+    <div class="card">
+      <h2>Auto-generated methods text</h2>
+      <p class="sub">Generated from your evaluated variables, following the article's reporting template. Edit freely before pasting into your manuscript.</p>
+      <div class="btnrow no-print" style="margin-top:0">
+        <button class="btn" onclick="generateMethods()">↻ Generate from my variables</button>
+        <button class="btn secondary" onclick="copyMethods()">⧉ Copy text</button>
+      </div>
+      <textarea id="methodsText" style="min-height:300px;margin-top:14px" aria-label="Generated methods paragraph"></textarea>
+      <p class="note">Placeholders such as “…” mark where you should add specific citations, mechanisms, or correlation values.</p>
+    </div>
+  </section>
+
+  <!-- LEARN -->
+  <section class="panel" id="learn" role="tabpanel">
+    <div class="card">
+      <h2>Why this matters</h2>
+      <p class="sub">Adding controls is not automatically “safer.” Each pitfall below is what this tool helps you avoid.</p>
+
+      <details class="acc" open><summary>The “purification principle” is an assumption, not a fact</summary>
+      <div class="body"><p>The belief that controls remove contamination and reveal “true” relationships rests on unproven assumptions: that the control distorts the focal relationship, that it is measured reliably, and that it has a theoretically meaningful link to predictors and criteria. When these assumptions fail, the partialled-out variance may be error or meaningful variance — so the supposed confound is not actually removed.</p></div></details>
+
+      <details class="acc"><summary>Controls cost degrees of freedom and statistical power</summary>
+      <div class="body"><p>Every control consumes degrees of freedom and can reduce the explainable variance available in your outcome. A control related to the predictor or criterion can make a real relationship look null (or reversed), or make a non-existent relationship look real. Inclusion or exclusion can flip your substantive conclusions.</p></div></details>
+
+      <details class="acc"><summary>The residual-predictor problem: you may be studying something else</summary>
+      <div class="body"><p>Once you control for variables, you are no longer studying the predictor — you are studying a <em>residual</em> predictor. In Breaugh's (2008) example, controlling for gender and weight left only ~40% of the original height variance, so “height” became something closer to physical proportionality. Concluding that “taller people earn more” is very different from “well-proportioned people earn more.”</p></div></details>
+
+      <details class="acc"><summary>Unreliable controls don't clean anything</summary>
+      <div class="body"><p>If a control is measured unreliably, the variance you remove is contaminated with error, the confound remains, and regression weights become unstable. Controls used to rule out alternative explanations must be measured reliably — and their reliabilities should be reported.</p></div></details>
+
+      <details class="acc"><summary>The “conservative test” fallacy</summary>
+      <div class="body"><p>Adding controls is often defended as a more conservative, rigorous, or stringent test. This was debunked decades ago (Meehl, 1971; Spector &amp; Brannick, 2011). There is nothing inherently conservative or rigorous about including statistical controls.</p></div></details>
+
+      <details class="acc"><summary>“Reviewers will expect it” is not a justification</summary>
+      <div class="body"><p>Anticipating reviewer or editor expectations is not a valid scientific rationale. The accumulated evidence supports declining unjustified controls and responding to such requests directly.</p></div></details>
+    </div>
+  </section>
+
+  <!-- ABOUT -->
+  <section class="panel" id="about" role="tabpanel">
+    <div class="card">
+      <h2>About this tool</h2>
+      <p>This tool operationalizes the decision tree (Figure 2) and best-practice reporting recommendations from:</p>
+      <div class="src">Bernerth, J. B., &amp; Aguinis, H. (2016). A critical review and best-practice recommendations for control variable usage. <em>Personnel Psychology, 69</em>(1), 229–283.</div>
+      <p style="margin-top:16px">It implements recommendations further developed in:</p>
+      <div class="src">Aguinis, H. 2025. <em>Research methodology: Best practices for rigorous, credible, and impactful research.</em> SAGE. <a href="https://collegepublishing.sagepub.com/products/research-methodology-1-280088" target="_blank" rel="noopener">https://collegepublishing.sagepub.com/products/research-methodology-1-280088</a></div>
+      <h3>How to use it</h3>
+      <p>Work through one candidate control variable at a time in the <strong>Decision Tool</strong>. The wizard asks one question per screen and ends with a clear verdict (Include, Exclude, or Stop) plus the full reasoning chain. Evaluated variables collect in <strong>My Variables</strong>, feed the <strong>Methods Paragraph</strong> generator, and pair with the <strong>Reporting Checklist</strong> so nothing is left undocumented.</p>
+      <p class="note">All data stays in your browser. Nothing is uploaded or transmitted. Use the export buttons to save a report or share with coauthors.</p>
+    </div>
+  </section>
+</main>
+
+<footer class="app">
+  <div class="wrap">
+    Implements Bernerth &amp; Aguinis (2016), <em>Personnel Psychology</em>, 69(1), 229–283 · Recommendations from Aguinis, H. (2025). <em>Research Methodology: Best Practices for Rigorous, Credible, and Impactful Research.</em> SAGE — <a href="https://collegepublishing.sagepub.com/products/research-methodology-1-280088" target="_blank" rel="noopener">collegepublishing.sagepub.com</a>
+  </div>
+</footer>
+
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script>
+"use strict";
+
+/* ---------- Persistence (graceful, browser-only) ---------- */
+const STORE_KEY = "cv_tool_v1";
+function loadState(){
+  try{ const r = localStorage.getItem(STORE_KEY); if(r) return JSON.parse(r);}catch(e){}
+  return {variables:[], checklist:{}};
+}
+function saveState(){ try{ localStorage.setItem(STORE_KEY, JSON.stringify(state)); }catch(e){} }
+let state = loadState();
+
+/* ---------- Reason definitions (opening question) ---------- */
+const REASONS = [
+  {id:'relates',     label:'I suspect this variable relates to variables studied in my research.', type:'weak'},
+  {id:'prev_incl',   label:'Previous researchers have included such variables.', type:'weak'},
+  {id:'prev_emp',    label:'Previous research finds an empirical relationship between this variable and a variable in my study.', type:'ok'},
+  {id:'correlated',  label:'It is significantly correlated with other variables in my dataset.', type:'weak'},
+  {id:'alt_expl',    label:'It may represent an alternative explanation for my results.', type:'ok'},
+  {id:'contaminate', label:'It may contaminate my results.', type:'ok'},
+  {id:'increment',   label:'I want to establish incremental or discriminant validity.', type:'ok'},
+  {id:'theory',      label:'Theory suggests it relates to variables in my study.', type:'theory'},
+  {id:'reviewers',   label:'I think reviewers or editors expect me to include something as a control.', type:'stop'},
+  {id:'conservative',label:'To provide a conservative, rigorous, or stringent test of my hypotheses.', type:'stop'},
+];
+const REASON_MAP = Object.fromEntries(REASONS.map(r=>[r.id,r]));
+const STOP_WARN = {
+  reviewers:"Anticipating reviewers/editors is not a valid scientific rationale. The evidence supports declining unjustified controls and responding to such requests directly.",
+  conservative:"This is a long-debunked fallacy (Meehl, 1971; Spector & Brannick, 2011). There is nothing inherently conservative or rigorous about adding statistical controls."
+};
+
+/* ---------- Checklist items ---------- */
+const CHECK_ITEMS = [
+  {id:'c1', t:'Every candidate control considered is described', d:'Whether or not it was ultimately included in the analysis.'},
+  {id:'c2', t:'Theoretical justification addresses the what, how, and why', d:'For each retained control, explain what the relationship is, how it operates, and why it exists.'},
+  {id:'c3', t:'Descriptive statistics, correlations, and significance levels are reported for all controls', d:'Not just for focal variables.'},
+  {id:'c4', t:'Reliability of each control is reported', d:'Unreliable controls cannot credibly partial out confounding variance.'},
+  {id:'c5', t:'Results are reported both with and without controls', d:'So readers can see the effect of the controls on substantive conclusions.'},
+  {id:'c6', t:'Submission acknowledgment statement is included', d:'“All statistical controls considered for inclusion have been described in this manuscript, regardless of ultimate inclusion or exclusion.”'},
+];
+
+/* ---------- Wizard working state ---------- */
+let wk = null;        // working variable object
+let editingIndex = -1; // index in state.variables when editing
+let step = 'home';
+
+function blankVar(){
+  return {id:Date.now(), control:'', focal:'', reasons:[], otherReasons:'',
+    hasTheory:null, relationWay:null, empirical:null, integral:null,
+    what:'', how:'', why:'', reliable:null, finalChoice:null,
+    verdict:null, verdictReason:'', verdictDetail:''};
+}
+
+/* ---------- Tab navigation ---------- */
+document.querySelectorAll('nav.tabs button').forEach(b=>{
+  b.addEventListener('click',()=>switchTab(b.dataset.tab));
+});
+function switchTab(id){
+  document.querySelectorAll('nav.tabs button').forEach(b=>b.setAttribute('aria-selected', b.dataset.tab===id));
+  document.querySelectorAll('.panel').forEach(p=>p.classList.toggle('active', p.id===id));
+  if(id==='summary') renderSummary();
+  if(id==='checklist') renderChecklist();
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
+/* ---------- Toast ---------- */
+let toastT;
+function toast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');clearTimeout(toastT);toastT=setTimeout(()=>t.classList.remove('show'),2200);}
+
+/* ---------- Helpers ---------- */
+function esc(s){return (s||'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));}
+function el(html){const d=document.createElement('div');d.innerHTML=html.trim();return d.firstChild;}
+
+/* progress estimate by step */
+const STEP_PROGRESS={home:0,setup:8,q1:20,q2:32,q3:44,q4:56,q5:66,q5b:74,whyhow:84,q6:92,finalchoice:96,terminal:100};
+
+/* ---------- Render wizard ---------- */
+function renderWizard(){
+  const card=document.getElementById('wizardCard');
+  let h='';
+  const pct=STEP_PROGRESS[step]||0;
+  if(step!=='home') h+=`<div class="progress" aria-hidden="true"><i style="width:${pct}%"></i></div>`;
+
+  if(step==='home'){
+    h+=homeScreen();
+  } else if(step==='setup'){
+    h+=setupScreen();
+  } else if(step==='q1'){
+    h+=q1Screen();
+  } else if(step==='q2'){
+    h+=q2Screen();
+  } else if(step==='q3'){
+    h+=q3Screen();
+  } else if(step==='q4'){
+    h+=q4Screen();
+  } else if(step==='q5'){
+    h+=q5Screen();
+  } else if(step==='q5b'){
+    h+=q5bScreen();
+  } else if(step==='whyhow'){
+    h+=whyhowScreen();
+  } else if(step==='q6'){
+    h+=q6Screen();
+  } else if(step==='finalchoice'){
+    h+=finalChoiceScreen();
+  } else if(step==='terminal'){
+    h+=terminalScreen();
+  }
+  card.innerHTML=h;
+  bindWizard();
+  const f=card.querySelector('input,textarea,button.btn');
+  // do not auto-focus buttons aggressively; focus first text field if present
+  const tf=card.querySelector('input[type=text],textarea');
+  if(tf) tf.focus();
+}
+
+function homeScreen(){
+  const n=state.variables.length;
+  return `
+   <h2>Evaluate a control variable</h2>
+   <p class="sub">This guided decision tree (Figure 2 in Bernerth &amp; Aguinis, 2016) helps you decide whether a candidate control belongs in your analysis — and how to justify and report it. Work through one variable at a time.</p>
+   <div class="qhint">There are no wrong answers here. The goal is a transparent, defensible decision — including the decision <em>not</em> to control for something.</div>
+   <div class="btnrow">
+     <button class="btn" onclick="startNew()">Start a new control variable</button>
+     ${n? `<button class="btn secondary" onclick="switchTab('summary')">View my ${n} variable${n>1?'s':''}</button>`:''}
+   </div>`;
+}
+
+function setupScreen(){
+  return `
+   <h2>Step 1 · Name the variable</h2>
+   <p class="sub">Identify the candidate control and the focal relationship you are studying.</p>
+   <label for="ctl">Candidate control variable</label>
+   <input type="text" id="ctl" value="${esc(wk.control)}" placeholder="e.g., Organizational tenure">
+   <label for="foc">Focal variable(s) / relationship under study</label>
+   <input type="text" id="foc" value="${esc(wk.focal)}" placeholder="e.g., LMX → Task performance">
+   <div class="btnrow">
+     <button class="btn secondary" onclick="gotoStep('home')">Cancel</button>
+     <div class="spacer"></div>
+     <button class="btn" id="next">Continue →</button>
+   </div>`;
+}
+
+function q1Screen(){
+  let opts=REASONS.map(r=>{
+    const checked=wk.reasons.includes(r.id);
+    const flag=r.type==='stop';
+    return `<label class="choice ${flag?'flag':''}">
+       <input type="checkbox" value="${r.id}" ${checked?'checked':''}>
+       <span class="lab">${esc(r.label)}</span>
+     </label>
+     ${flag?`<div class="inline-warn" id="warn_${r.id}" style="display:${checked?'block':'none'}">⚠ ${esc(STOP_WARN[r.id])}</div>`:''}`;
+  }).join('');
+  return `
+   <h2>Step 2 · Why use this control?</h2>
+   <p class="sub" style="font-weight:600;color:var(--ink)">${esc(wk.control)} <span style="color:var(--muted);font-weight:400">— in: ${esc(wk.focal)}</span></p>
+   <div class="qhint">Select <strong>all</strong> reasons that apply. Be honest — flagged reasons are not valid justifications on their own.</div>
+   <fieldset class="radio-set">${opts}</fieldset>
+   <div class="btnrow">
+     <button class="btn secondary" onclick="gotoStep('setup')">← Back</button>
+     <div class="spacer"></div>
+     <button class="btn" id="next">Continue →</button>
+   </div>`;
+}
+
+function q2Screen(){
+  const list=wk.reasons.map(id=>`<li>${esc(REASON_MAP[id].label)}</li>`).join('');
+  return `
+   <h2>Step 3 · Any other reasons?</h2>
+   <div class="qhint">Important: <strong>no single reason above justifies a control on its own.</strong> The decisive question is whether <em>theory</em> supports including it. Capture any additional reasons before continuing.</div>
+   <p style="font-weight:600;margin-bottom:4px">Reasons you have given so far:</p>
+   <ol style="margin-top:4px">${list||'<li class="note">None selected</li>'}</ol>
+   <label for="other">Other reason(s) — optional</label>
+   <textarea id="other" placeholder="Anything else prompting you to consider this control?">${esc(wk.otherReasons)}</textarea>
+   <div class="btnrow">
+     <button class="btn secondary" onclick="gotoStep('q1')">← Back</button>
+     <div class="spacer"></div>
+     <button class="btn" id="next">Continue →</button>
+   </div>`;
+}
+
+function q3Screen(){
+  const presel = wk.reasons.includes('theory');
+  return `
+   <h2>Step 4 · Is there a theoretical rationale?</h2>
+   <div class="qhint">Decisions about controls do not require a grand theory, but they <strong>do</strong> require a clear, explicit rationale for <em>how and why</em> the control relates to your focal variables. Without that, there is no justifiable reason to include it.</div>
+   <p style="font-weight:600">Do any of your reasons include a theoretical rationale — i.e., theory (or a clear explicit logic) explains how/why this control relates to your focal variables?</p>
+   <fieldset class="radio-set">
+     <label class="choice"><input type="radio" name="theory" value="yes" ${wk.hasTheory==='yes'||(wk.hasTheory===null&&presel)?'checked':''}><span class="lab">Yes — theory/explicit logic suggests a relationship</span></label>
+     <label class="choice"><input type="radio" name="theory" value="no" ${wk.hasTheory==='no'?'checked':''}><span class="lab">No — I cannot point to theory or a clear rationale</span></label>
+   </fieldset>
+   <div class="btnrow">
+     <button class="btn secondary" onclick="gotoStep('q2')">← Back</button>
+     <div class="spacer"></div>
+     <button class="btn" id="next">Continue →</button>
+   </div>`;
+}
+
+function q4Screen(){
+  return `
+   <h2>Step 5 · In what way does it relate?</h2>
+   <div class="qhint">Both answers continue, but the distinction must be reported explicitly in your manuscript.</div>
+   <p style="font-weight:600">How does this control relate to your focal variables?</p>
+   <fieldset class="radio-set">
+     <label class="choice"><input type="radio" name="way" value="substantive" ${wk.relationWay==='substantive'?'checked':''}><span class="lab"><strong>Substantively</strong> — it is part of the real phenomenon (e.g., a meaningful antecedent or correlate)</span></label>
+     <label class="choice"><input type="radio" name="way" value="artificial" ${wk.relationWay==='artificial'?'checked':''}><span class="lab"><strong>Artificially / as bias</strong> — e.g., a third-party or method relationship that contaminates results</span></label>
+   </fieldset>
+   <div class="btnrow">
+     <button class="btn secondary" onclick="gotoStep('q3')">← Back</button>
+     <div class="spacer"></div>
+     <button class="btn" id="next">Continue →</button>
+   </div>`;
+}
+
+function q5Screen(){
+  return `
+   <h2>Step 6 · Is the relationship empirically established?</h2>
+   <div class="qhint">Has the relationship between this control and your focal variable(s) been demonstrated in existing research (e.g., prior studies or meta-analysis)?</div>
+   <fieldset class="radio-set">
+     <label class="choice"><input type="radio" name="emp" value="established" ${wk.empirical==='established'?'checked':''}><span class="lab"><strong>Established empirically</strong> — prior evidence documents this relationship</span></label>
+     <label class="choice"><input type="radio" name="emp" value="not" ${wk.empirical==='not'?'checked':''}><span class="lab"><strong>Not established</strong> — no clear prior empirical evidence yet</span></label>
+   </fieldset>
+   <div class="btnrow">
+     <button class="btn secondary" onclick="gotoStep('q4')">← Back</button>
+     <div class="spacer"></div>
+     <button class="btn" id="next">Continue →</button>
+   </div>`;
+}
+
+function q5bScreen(){
+  return `
+   <h2>Step 6a · Is the variable integral to your model?</h2>
+   <div class="qhint">Since the relationship is not empirically established, the question is whether this variable is central to your theoretical model.</div>
+   <fieldset class="radio-set">
+     <label class="choice"><input type="radio" name="integral" value="yes" ${wk.integral==='yes'?'checked':''}><span class="lab"><strong>Yes, integral</strong> — it should enter the study as an <em>additional focal variable or exploratory variable</em>, not a silent control</span></label>
+     <label class="choice"><input type="radio" name="integral" value="no" ${wk.integral==='no'?'checked':''}><span class="lab"><strong>No, not integral</strong></span></label>
+   </fieldset>
+   <div class="btnrow">
+     <button class="btn secondary" onclick="gotoStep('q5')">← Back</button>
+     <div class="spacer"></div>
+     <button class="btn" id="next">Continue →</button>
+   </div>`;
+}
+
+function whyhowScreen(){
+  return `
+   <h2>Step 7 · Articulate the what, how &amp; why</h2>
+   <div class="qhint">A sound justification addresses <strong>what</strong> the relationship is, <strong>how</strong> it operates, and <strong>why</strong> it exists (Bacharach, 1989; Sutton &amp; Staw, 1995). This text feeds your methods paragraph.</div>
+   <label for="what">WHAT is the relationship between “${esc(wk.control)}” and your focal variable(s)?</label>
+   <textarea id="what" placeholder="e.g., Job tenure is positively related to task performance.">${esc(wk.what)}</textarea>
+   <label for="how">HOW does it operate?</label>
+   <textarea id="how" placeholder="e.g., Longer tenure exposes employees to more job-relevant situations…">${esc(wk.how)}</textarea>
+   <label for="why">WHY does this relationship exist?</label>
+   <textarea id="why" placeholder="e.g., …which builds job-relevant knowledge and skills that raise performance.">${esc(wk.why)}</textarea>
+   <details class="acc"><summary>See exemplar justifications from the article</summary>
+     <div class="body">
+       <p><strong>Eliminate alternative explanation (Côté &amp; Miners, 2006 — controlling LMX):</strong> “We controlled for leader–member exchange to rule out an alternative explanation… emotional intelligence may be related to LMX… and LMX is related to job performance… individuals with high emotional intelligence could have received high ratings because they developed good relationships with their supervisors.”</p>
+       <p><strong>Previously found relationship (Tsai et al., 2007 — job tenure):</strong> “This positive correlation may be explained by the fact that employees gain more job-relevant knowledge and skills as a result of longer job tenure, which thus leads to higher task performance.”</p>
+       <p><strong>Transparent exclusion (Erdogan &amp; Bauer, 2010):</strong> “Because tenure… was not correlated with withdrawal behaviors, and because the addition of tenure did not change the significance level of any of the results, we report the results without controlling for tenure.”</p>
+       <p class="note">Weak (avoid): “We controlled for the usual demographic variables (gender, age, tenure)” with no stated relationship.</p>
+     </div>
+   </details>
+   <div class="btnrow">
+     <button class="btn secondary" onclick="gotoStep('${wk.empirical==='established'?'q5':'q5b'}')">← Back</button>
+     <div class="spacer"></div>
+     <button class="btn" id="next">Continue →</button>
+   </div>`;
+}
+
+function q6Screen(){
+  return `
+   <h2>Step 8 · Can it be measured reliably?</h2>
+   <div class="qhint">A control used to partial out variance must be measured reliably; otherwise the confounding variance is not actually removed and regression weights become unstable.</div>
+   <fieldset class="radio-set">
+     <label class="choice"><input type="radio" name="rel" value="yes" ${wk.reliable==='yes'?'checked':''}><span class="lab"><strong>Yes</strong> — it is (or can be) measured reliably</span></label>
+     <label class="choice"><input type="radio" name="rel" value="no" ${wk.reliable==='no'?'checked':''}><span class="lab"><strong>No</strong> — reliable measurement is not feasible</span></label>
+   </fieldset>
+   <div class="btnrow">
+     <button class="btn secondary" onclick="gotoStep('whyhow')">← Back</button>
+     <div class="spacer"></div>
+     <button class="btn" id="next">Continue →</button>
+   </div>`;
+}
+
+function finalChoiceScreen(){
+  const integralNote = (wk.empirical==='not' && wk.integral==='yes');
+  return `
+   <h2>Step 9 · Your reasoned decision</h2>
+   <div class="qhint">You have a defensible basis to include this control — but excluding it can also be legitimate. Make the call and it will be documented either way.${integralNote?' Because this variable is <strong>integral but not yet empirically established</strong>, if you include it, treat it as an additional focal or exploratory variable rather than a silent control.':''}</div>
+   <fieldset class="radio-set">
+     <label class="choice"><input type="radio" name="fc" value="include" ${wk.finalChoice==='include'?'checked':''}><span class="lab"><strong>Include</strong> — ${wk.empirical==='established'?'as an incremental step or to eliminate alternative explanations':(integralNote?'as an additional focal / exploratory variable':'in the analysis')}</span></label>
+     <label class="choice"><input type="radio" name="fc" value="exclude" ${wk.finalChoice==='exclude'?'checked':''}><span class="lab"><strong>Exclude</strong> — describe it transparently but keep it out of the analysis</span></label>
+   </fieldset>
+   <div class="btnrow">
+     <button class="btn secondary" onclick="gotoStep('q6')">← Back</button>
+     <div class="spacer"></div>
+     <button class="btn" id="next">See verdict →</button>
+   </div>`;
+}
+
+/* ---------- Terminal verdict ---------- */
+function computeVerdict(){
+  // Returns {verdict, reason, detail}
+  const onlyStop = wk.reasons.length>0 && wk.reasons.every(r=>REASON_MAP[r].type==='stop');
+  if(onlyStop){
+    return {verdict:'STOP', reason:'Do not include — no valid rationale.',
+      detail:'The only reason(s) given are not valid scientific justifications. Adding a control to satisfy reviewers, or to appear more “conservative,” is not defensible. Describe the variable if relevant, but keep it out of the analysis.'};
+  }
+  if(wk.hasTheory==='no'){
+    return {verdict:'STOP', reason:'Do not include — no theoretical rationale.',
+      detail:'In isolation, none of the reasons given justifies a statistical control. Without theory (or a clear explicit rationale) for how and why the control relates to focal variables, there is no justifiable reason to include it. You should still describe the variable in the manuscript — simply do not enter it into the analysis.'};
+  }
+  if(wk.empirical==='not' && wk.integral==='no'){
+    return {verdict:'EXCLUDE', reason:'Exclude — not empirically established and not integral.',
+      detail:'A variable with no established empirical relationship that is also not integral to your model should be excluded. Note it transparently in the manuscript.'};
+  }
+  if(wk.reliable==='no'){
+    return {verdict:'EXCLUDE', reason:'Exclude — cannot be measured reliably.',
+      detail:'An unreliable control leaves the confounding variance unaddressed and destabilizes regression weights. Exclude it, and report why.'};
+  }
+  if(wk.finalChoice==='include'){
+    let basis = wk.empirical==='established'
+      ? 'You have an empirically established relationship, so inclusion is justifiable as an incremental step or to eliminate alternative explanations.'
+      : 'This integral variable enters the study as an additional focal or exploratory variable (not a silent control).';
+    if(wk.relationWay==='artificial') basis += ' Because the relationship is artificial/bias, inclusion helps eliminate contamination — valid so long as the control is measured reliably.';
+    return {verdict:'INCLUDE', reason:'Include — with explicit justification.', detail:basis};
+  }
+  if(wk.finalChoice==='exclude'){
+    return {verdict:'EXCLUDE', reason:'Exclude — a legitimate, documented choice.',
+      detail:'You met the bar for inclusion but chose to exclude. This is legitimate; report the relationship and your rationale (and ideally results with and without the control).'};
+  }
+  return {verdict:'EXCLUDE', reason:'Exclude.', detail:''};
+}
+
+function chainSteps(){
+  const s=[];
+  s.push(`Control: “${wk.control}” in the relationship ${wk.focal}.`);
+  if(wk.reasons.length) s.push('Reasons given: '+wk.reasons.map(r=>REASON_MAP[r].label).join(' | '));
+  if(wk.otherReasons) s.push('Other reasons: '+wk.otherReasons);
+  if(wk.hasTheory) s.push('Theoretical rationale present? '+(wk.hasTheory==='yes'?'Yes':'No'));
+  if(wk.relationWay) s.push('Relates: '+(wk.relationWay==='substantive'?'Substantively':'Artificially / as bias'));
+  if(wk.empirical) s.push('Empirically established? '+(wk.empirical==='established'?'Yes':'No'));
+  if(wk.empirical==='not'&&wk.integral) s.push('Integral to model? '+(wk.integral==='yes'?'Yes (treat as focal/exploratory)':'No'));
+  if(wk.reliable) s.push('Reliably measured? '+(wk.reliable==='yes'?'Yes':'No'));
+  if(wk.finalChoice) s.push('Reasoned decision: '+(wk.finalChoice==='include'?'Include':'Exclude'));
+  return s;
+}
+
+function terminalScreen(){
+  const v=computeVerdict();
+  wk.verdict=v.verdict; wk.verdictReason=v.reason; wk.verdictDetail=v.detail;
+  const cls=v.verdict==='INCLUDE'?'include':(v.verdict==='STOP'?'stop':'exclude');
+  const chain=chainSteps().map(x=>`<li>${esc(x)}</li>`).join('');
+  return `
+   <h2>Decision for “${esc(wk.control)}”</h2>
+   <div class="verdict ${cls}">
+     <span class="tag">${v.verdict}</span>
+     <h3>${esc(v.reason)}</h3>
+     <p>${esc(v.detail)}</p>
+   </div>
+   <div class="chain"><h4>Reasoning chain</h4><ol>${chain}</ol></div>
+   <div class="btnrow">
+     <button class="btn secondary" onclick="gotoStep('${prevTerminalStep()}')">← Revise an answer</button>
+     <div class="spacer"></div>
+     <button class="btn" onclick="saveVariable()">✓ Save this variable</button>
+   </div>`;
+}
+function prevTerminalStep(){
+  const v=wk.verdict;
+  if(v==='STOP') return wk.hasTheory==='no'?'q3':'q1';
+  if(wk.empirical==='not'&&wk.integral==='no') return 'q5b';
+  if(wk.reliable==='no') return 'q6';
+  return 'finalchoice';
+}
+
+/* ---------- Navigation logic ---------- */
+function gotoStep(s){ step=s; renderWizard(); window.scrollTo({top:0,behavior:'smooth'}); }
+
+function startNew(){ wk=blankVar(); editingIndex=-1; step='setup'; switchTab('wizard'); renderWizard(); }
+
+function bindWizard(){
+  const card=document.getElementById('wizardCard');
+  // live warnings for stop reasons
+  card.querySelectorAll('input[type=checkbox]').forEach(cb=>{
+    cb.addEventListener('change',()=>{
+      const w=document.getElementById('warn_'+cb.value);
+      if(w) w.style.display=cb.checked?'block':'none';
+    });
+  });
+  const next=card.querySelector('#next');
+  if(next) next.addEventListener('click', advance);
+}
+
+function advance(){
+  const card=document.getElementById('wizardCard');
+  if(step==='setup'){
+    wk.control=card.querySelector('#ctl').value.trim();
+    wk.focal=card.querySelector('#foc').value.trim();
+    if(!wk.control){toast('Please name the control variable.');return;}
+    return gotoStep('q1');
+  }
+  if(step==='q1'){
+    wk.reasons=[...card.querySelectorAll('input[type=checkbox]:checked')].map(c=>c.value);
+    if(!wk.reasons.length){toast('Select at least one reason.');return;}
+    // immediate stop if ONLY fallacy reasons
+    const onlyStop=wk.reasons.every(r=>REASON_MAP[r].type==='stop');
+    if(onlyStop){ wk.hasTheory=null; return gotoStep('terminal'); }
+    return gotoStep('q2');
+  }
+  if(step==='q2'){
+    wk.otherReasons=card.querySelector('#other').value.trim();
+    return gotoStep('q3');
+  }
+  if(step==='q3'){
+    const r=card.querySelector('input[name=theory]:checked');
+    if(!r){toast('Please choose Yes or No.');return;}
+    wk.hasTheory=r.value;
+    if(wk.hasTheory==='no') return gotoStep('terminal');
+    return gotoStep('q4');
+  }
+  if(step==='q4'){
+    const r=card.querySelector('input[name=way]:checked');
+    if(!r){toast('Please choose an option.');return;}
+    wk.relationWay=r.value;
+    return gotoStep('q5');
+  }
+  if(step==='q5'){
+    const r=card.querySelector('input[name=emp]:checked');
+    if(!r){toast('Please choose an option.');return;}
+    wk.empirical=r.value;
+    if(wk.empirical==='not') return gotoStep('q5b');
+    return gotoStep('whyhow');
+  }
+  if(step==='q5b'){
+    const r=card.querySelector('input[name=integral]:checked');
+    if(!r){toast('Please choose an option.');return;}
+    wk.integral=r.value;
+    if(wk.integral==='no') return gotoStep('terminal');
+    return gotoStep('whyhow');
+  }
+  if(step==='whyhow'){
+    wk.what=card.querySelector('#what').value.trim();
+    wk.how=card.querySelector('#how').value.trim();
+    wk.why=card.querySelector('#why').value.trim();
+    return gotoStep('q6');
+  }
+  if(step==='q6'){
+    const r=card.querySelector('input[name=rel]:checked');
+    if(!r){toast('Please choose an option.');return;}
+    wk.reliable=r.value;
+    if(wk.reliable==='no') return gotoStep('terminal');
+    return gotoStep('finalchoice');
+  }
+  if(step==='finalchoice'){
+    const r=card.querySelector('input[name=fc]:checked');
+    if(!r){toast('Please choose Include or Exclude.');return;}
+    wk.finalChoice=r.value;
+    return gotoStep('terminal');
+  }
+}
+
+function saveVariable(){
+  if(editingIndex>=0) state.variables[editingIndex]=wk;
+  else state.variables.push(wk);
+  saveState();
+  toast('Variable saved.');
+  wk=null; editingIndex=-1; step='home';
+  updateCount();
+  switchTab('summary');
+}
+
+/* ---------- Summary ---------- */
+function updateCount(){
+  const n=state.variables.length;
+  document.getElementById('varCount').textContent=n?`(${n})`:'';
+}
+function renderSummary(){
+  updateCount();
+  const body=document.getElementById('summaryBody');
+  if(!state.variables.length){
+    body.innerHTML=`<div class="empty"><svg width="46" height="46" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M9 11l3 3 8-8"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg><p>No control variables evaluated yet.</p></div>`;
+    return;
+  }
+  let rows=state.variables.map((v,i)=>{
+    const cls=v.verdict==='INCLUDE'?'include':(v.verdict==='STOP'?'stop':'exclude');
+    const reasons=v.reasons.map(r=>REASON_MAP[r]?.label.replace(/\.$/,'')||r).join('; ');
+    const wh=[v.what,v.how,v.why].filter(Boolean).join(' / ');
+    return `<tr>
+      <td><strong>${esc(v.control)}</strong><div class="note">${esc(v.focal)}</div></td>
+      <td><span class="pill ${cls}">${v.verdict}</span><div class="note">${esc(v.verdictReason)}</div></td>
+      <td>${esc(reasons)||'<span class="note">—</span>'}</td>
+      <td>${esc(wh)||'<span class="note">—</span>'}</td>
+      <td>${v.empirical?(v.empirical==='established'?'Established':'Not established'):'—'}${v.empirical==='not'&&v.integral?` · ${v.integral==='yes'?'integral':'not integral'}`:''}</td>
+      <td>${v.reliable?(v.reliable==='yes'?'Reliable':'Not reliable'):'—'}</td>
+      <td class="no-print">
+        <button class="btn secondary" style="padding:6px 11px;font-size:.82rem" onclick="editVar(${i})">Edit</button>
+        <button class="btn danger" style="padding:6px 11px;font-size:.82rem" onclick="delVar(${i})">Delete</button>
+      </td>
+    </tr>`;
+  }).join('');
+  const inc=state.variables.filter(v=>v.verdict==='INCLUDE').length;
+  const exc=state.variables.filter(v=>v.verdict==='EXCLUDE').length;
+  const stp=state.variables.filter(v=>v.verdict==='STOP').length;
+  body.innerHTML=`
+    <div style="margin-bottom:14px">
+      <span class="pill include">${inc} include</span>
+      <span class="pill exclude">${exc} exclude</span>
+      <span class="pill stop">${stp} stop</span>
+    </div>
+    <div style="overflow-x:auto"><table>
+      <thead><tr><th>Control · focal</th><th>Verdict</th><th>Rationale type(s)</th><th>What / how / why</th><th>Empirical · integral</th><th>Reliability</th><th class="no-print">Actions</th></tr></thead>
+      <tbody>${rows}</tbody>
+    </table></div>`;
+}
+function editVar(i){
+  wk=JSON.parse(JSON.stringify(state.variables[i]));
+  editingIndex=i; step='setup'; switchTab('wizard'); renderWizard();
+}
+function delVar(i){
+  if(!confirm('Delete this control variable?'))return;
+  state.variables.splice(i,1); saveState(); renderSummary(); updateCount();
+}
+
+/* ---------- Checklist ---------- */
+function renderChecklist(){
+  const body=document.getElementById('checklistBody');
+  body.innerHTML=CHECK_ITEMS.map(c=>`
+    <label class="check">
+      <input type="checkbox" data-ck="${c.id}" ${state.checklist[c.id]?'checked':''}>
+      <span><span class="ct">${esc(c.t)}</span><span class="cd">${esc(c.d)}</span></span>
+    </label>`).join('');
+  body.querySelectorAll('input[data-ck]').forEach(cb=>{
+    cb.addEventListener('change',()=>{state.checklist[cb.dataset.ck]=cb.checked;saveState();updateCheckProgress();});
+  });
+  updateCheckProgress();
+}
+function updateCheckProgress(){
+  const done=CHECK_ITEMS.filter(c=>state.checklist[c.id]).length;
+  document.getElementById('checkProgress').textContent=`${done} of ${CHECK_ITEMS.length} reporting requirements addressed.`;
+}
+
+/* ---------- Methods paragraph ---------- */
+function generateMethods(){
+  const vars=state.variables;
+  if(!vars.length){document.getElementById('methodsText').value='Evaluate at least one control variable first.';switchTab('methods');return;}
+  const considered=vars.map(v=>v.control).filter(Boolean);
+  const included=vars.filter(v=>v.verdict==='INCLUDE');
+  const excluded=vars.filter(v=>v.verdict!=='INCLUDE');
+  let t='';
+  t+=`We considered several potentially relevant control variables, including ${listJoin(considered)}. `;
+  // rationale sentences from what/how/why
+  vars.forEach(v=>{
+    if(v.what||v.how||v.why){
+      let s=`For ${v.control}: `;
+      if(v.what) s+=v.what.replace(/\s*$/,'')+'. ';
+      if(v.how) s+=`This operates such that ${lc(v.how)}. `;
+      if(v.why) s+=`This relationship exists because ${lc(v.why)}. `;
+      t+=s;
+    }
+  });
+  t+='\n\n';
+  if(excluded.length){
+    const exNames=excluded.map(v=>v.control);
+    t+=`Examination of the bivariate correlations (see Table XX) and the rationale above indicates that ${listJoin(exNames)} ${excluded.length>1?'were':'was'} not retained as ${excluded.length>1?'controls':'a control'}. Comparison of our hypothesis tests with and without ${excluded.length>1?'these variables':'this variable'} yielded [identical / essentially the same] results. Thus, to maximize statistical power and offer the most interpretable results, we report the results without controlling for ${listJoin(exNames)}. `;
+  }
+  if(included.length){
+    const inNames=included.map(v=>v.control);
+    const empClause=included.some(v=>v.empirical==='established')?', which reflects an empirically supported relationship with our focal variable(s)':'';
+    t+=`We do, however, control for ${listJoin(inNames)}, given the correlations reported in Table XX and the theory presented above${empClause}. `;
+  }
+  t+='\n\nAll statistical controls considered for inclusion have been described here, regardless of ultimate inclusion or exclusion. Descriptive statistics, intercorrelations, significance levels, and reliabilities for all control variables are reported in Table XX.';
+  document.getElementById('methodsText').value=t;
+  switchTab('methods');
+  toast('Methods text generated.');
+}
+function lc(s){return s? s.charAt(0).toLowerCase()+s.slice(1).replace(/\.$/,''):s;}
+function listJoin(a){a=a.filter(Boolean);if(a.length<=1)return a[0]||'';if(a.length===2)return a[0]+' and '+a[1];return a.slice(0,-1).join(', ')+', and '+a[a.length-1];}
+function copyMethods(){
+  const ta=document.getElementById('methodsText');
+  if(!ta.value){toast('Nothing to copy — generate first.');return;}
+  ta.select();
+  try{ navigator.clipboard.writeText(ta.value); }catch(e){ document.execCommand('copy'); }
+  toast('Copied to clipboard.');
+}
+
+/* ---------- Export ---------- */
+function buildReportHTML(){
+  const vars=state.variables;
+  const dt=new Date().toLocaleString();
+  let rows=vars.map(v=>{
+    const chain=[
+      `Reasons: ${v.reasons.map(r=>REASON_MAP[r]?.label||r).join(' | ')}${v.otherReasons?' | Other: '+v.otherReasons:''}`,
+      v.hasTheory?`Theoretical rationale: ${v.hasTheory}`:'',
+      v.relationWay?`Relates: ${v.relationWay}`:'',
+      v.empirical?`Empirically established: ${v.empirical}`:'',
+      (v.empirical==='not'&&v.integral)?`Integral: ${v.integral}`:'',
+      v.reliable?`Reliable: ${v.reliable}`:'',
+      v.finalChoice?`Decision: ${v.finalChoice}`:''
+    ].filter(Boolean).map(x=>`<li>${escH(x)}</li>`).join('');
+    const wh=[v.what&&('What: '+v.what),v.how&&('How: '+v.how),v.why&&('Why: '+v.why)].filter(Boolean).map(x=>`<li>${escH(x)}</li>`).join('');
+    return `<div class="rv">
+      <h3>${escH(v.control)} <span style="font-weight:400;color:#666">— ${escH(v.focal)}</span></h3>
+      <p><strong>Verdict: ${v.verdict}</strong> — ${escH(v.verdictReason)}<br>${escH(v.verdictDetail)}</p>
+      ${wh?`<p><strong>Justification (what/how/why):</strong></p><ul>${wh}</ul>`:''}
+      <p><strong>Reasoning chain:</strong></p><ul>${chain}</ul>
+    </div>`;
+  }).join('');
+  const checks=CHECK_ITEMS.map(c=>`<li>[${state.checklist[c.id]?'x':' '}] ${escH(c.t)}</li>`).join('');
+  const methods=document.getElementById('methodsText').value;
+  return `<!DOCTYPE html><html><head><meta charset="utf-8"><title>Control Variable Report</title>
+  <style>body{font-family:Georgia,serif;max-width:800px;margin:30px auto;padding:0 20px;color:#1c2733;line-height:1.5}h1{color:#1f3a5f}h2{color:#1f3a5f;border-bottom:2px solid #dfe5ec;padding-bottom:6px;margin-top:34px}.rv{border:1px solid #dfe5ec;border-radius:8px;padding:14px 18px;margin:14px 0}ul{margin:6px 0}pre{white-space:pre-wrap;background:#f5f8fb;padding:14px;border-radius:8px;font-family:inherit}.src{background:#f5f8fb;border:1px solid #dfe5ec;padding:10px 12px;border-radius:6px;font-size:.9em}</style></head>
+  <body>
+  <h1>Control Variable Decision Report</h1>
+  <p style="color:#666">Generated ${escH(dt)} · ${vars.length} variable(s) evaluated.</p>
+  <h2>Evaluated control variables</h2>
+  ${rows||'<p>None.</p>'}
+  <h2>Reporting &amp; transparency checklist</h2>
+  <ul style="list-style:none;padding-left:0">${checks}</ul>
+  <h2>Draft methods text</h2>
+  <pre>${escH(methods||'(not generated)')}</pre>
+  <h2>Source</h2>
+  <div class="src">Bernerth, J. B., &amp; Aguinis, H. (2016). A critical review and best-practice recommendations for control variable usage. <em>Personnel Psychology, 69</em>(1), 229–283.<br><br>
+  Aguinis, H. 2025. <em>Research methodology: Best practices for rigorous, credible, and impactful research.</em> SAGE. https://collegepublishing.sagepub.com/products/research-methodology-1-280088</div>
+  </body></html>`;
+}
+function escH(s){return (s||'').replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));}
+function downloadReport(){
+  if(!state.variables.length){toast('Evaluate a variable first.');return;}
+  const blob=new Blob([buildReportHTML()],{type:'text/html'});
+  const a=document.createElement('a');a.href=URL.createObjectURL(blob);
+  a.download='control-variable-report.html';document.body.appendChild(a);a.click();a.remove();
+  setTimeout(()=>URL.revokeObjectURL(a.href),1000);
+  toast('Report downloaded.');
+}
+function printReport(){
+  if(!state.variables.length){toast('Evaluate a variable first.');return;}
+  const w=window.open('','_blank');
+  w.document.write(buildReportHTML());w.document.close();
+  w.onload=()=>{w.focus();w.print();};
+}
+
+/* ---------- Init ---------- */
+updateCount();
+step='home';
+renderWizard();
+renderChecklist();
+</script>
+<!-- Begin Countercentral code v 7.0 --> 
+<span id="wts2576"></span> 
+<script>var wts=document.createElement('script');wts.async=true; 
+wts.src='https://server2.countercentral.com/log7.js';document.head.appendChild(wts); 
+wts.onload = function(){ wtslog7(2576,1); }; 
+</script><noscript><a href="https://www.countercentral.com"> 
+<img src="https://server2.countercentral.com/7/1/2576.png"  
+alt="Countercentral web traffic analysis"></a></noscript> 
+<!-- End Countercentral code v 7.0 --> 
+</body>
+</html>

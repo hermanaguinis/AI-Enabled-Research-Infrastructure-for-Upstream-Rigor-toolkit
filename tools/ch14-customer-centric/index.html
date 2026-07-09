@@ -1,0 +1,776 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Customer-Centric Science: Reporting Significant Research Results</title>
+<style>
+  :root{
+    --bg:#f4f6f9; --panel:#ffffff; --ink:#1f2933; --muted:#5a6b7b;
+    --line:#e2e8f0; --brand:#1f5f8b; --brand-dark:#16465f; --brand-soft:#e8f1f8;
+    --accent:#b8860b; --good:#1b7f5a; --good-soft:#e6f4ee; --warn:#a14a1f;
+    --warn-soft:#fbece3; --shadow:0 1px 3px rgba(16,42,67,.08),0 6px 20px rgba(16,42,67,.06);
+    --radius:10px;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0}
+  body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    background:var(--bg);color:var(--ink);line-height:1.55;font-size:15px}
+  a{color:var(--brand)}
+  .app{display:flex;min-height:100vh;max-width:1400px;margin:0 auto}
+
+  /* ---- Sidebar nav ---- */
+  .nav{width:270px;flex:0 0 270px;background:var(--brand-dark);color:#dbe7f0;
+    padding:24px 18px;position:sticky;top:0;height:100vh;overflow-y:auto}
+  .nav h1{font-size:16px;line-height:1.35;margin:0 0 4px;color:#fff;font-weight:700}
+  .nav .sub{font-size:12px;color:#9fc0d6;margin-bottom:22px}
+  .progress-wrap{margin-bottom:20px}
+  .progress-bar{height:7px;background:#0e3346;border-radius:6px;overflow:hidden}
+  .progress-fill{height:100%;width:0;background:linear-gradient(90deg,#3f97c9,#7fc4e6);transition:width .35s}
+  .progress-label{font-size:11px;color:#9fc0d6;margin-top:6px}
+  .steplist{list-style:none;margin:0;padding:0}
+  .steplist li{margin:4px 0}
+  .steplist button{width:100%;text-align:left;background:transparent;border:none;color:#cddded;
+    padding:11px 12px;border-radius:8px;cursor:pointer;font-size:14px;display:flex;gap:10px;align-items:flex-start;line-height:1.3}
+  .steplist button:hover{background:#15485f}
+  .steplist button.active{background:var(--brand);color:#fff;font-weight:600}
+  .steplist .num{display:inline-flex;width:22px;height:22px;flex:0 0 22px;border-radius:50%;
+    background:#0e3346;color:#9fc0d6;font-size:12px;align-items:center;justify-content:center;font-weight:700;margin-top:1px}
+  .steplist button.active .num{background:#fff;color:var(--brand)}
+  .steplist .done .num{background:var(--good);color:#fff}
+  .nav .tip{font-size:11px;color:#86a8bf;margin-top:18px;border-top:1px solid #14475e;padding-top:14px}
+
+  /* ---- Main ---- */
+  .main{flex:1;padding:34px 44px 80px;min-width:0}
+  .panel{display:none;animation:fade .25s ease}
+  .panel.active{display:block}
+  @keyframes fade{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+  .eyebrow{font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--brand);font-weight:700;margin-bottom:6px}
+  h2.title{font-size:25px;margin:0 0 6px;line-height:1.2}
+  .lead{color:var(--muted);font-size:15px;margin:0 0 22px;max-width:760px}
+
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);
+    box-shadow:var(--shadow);padding:22px 24px;margin-bottom:20px}
+  .card h3{margin:0 0 4px;font-size:17px}
+  .card h4{margin:18px 0 8px;font-size:14px;letter-spacing:.02em;text-transform:uppercase;color:var(--muted)}
+  .card p{margin:8px 0}
+
+  .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:16px}
+  label.field{display:block;font-size:13px;font-weight:600;margin-bottom:5px;color:var(--ink)}
+  .hint{font-size:12px;color:var(--muted);margin:2px 0 0;font-weight:400}
+  input[type=number],input[type=text],textarea,select{width:100%;padding:9px 11px;border:1px solid #cdd7e1;
+    border-radius:8px;font-size:14px;font-family:inherit;background:#fff;color:var(--ink)}
+  input:focus,textarea:focus,select:focus{outline:none;border-color:var(--brand);box-shadow:0 0 0 3px var(--brand-soft)}
+  textarea{resize:vertical;min-height:62px}
+  .field-block{margin-bottom:14px}
+
+  button.btn{background:var(--brand);color:#fff;border:none;border-radius:8px;padding:10px 18px;
+    font-size:14px;font-weight:600;cursor:pointer;transition:background .15s}
+  button.btn:hover{background:var(--brand-dark)}
+  button.btn.ghost{background:#fff;color:var(--brand);border:1px solid var(--brand)}
+  button.btn.ghost:hover{background:var(--brand-soft)}
+  button.btn.sm{padding:7px 13px;font-size:13px}
+  .btn-row{display:flex;gap:10px;flex-wrap:wrap;margin-top:8px}
+
+  .result{background:var(--brand-soft);border:1px solid #cfe2f0;border-radius:9px;padding:16px 18px;margin-top:16px}
+  .result .big{font-size:30px;font-weight:700;color:var(--brand-dark);letter-spacing:-.5px}
+  .result .lbl{font-size:12px;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);font-weight:700}
+  .sentence{background:#fff;border-left:4px solid var(--brand);padding:12px 15px;margin-top:14px;border-radius:0 8px 8px 0;font-size:14.5px}
+  .sentence.good{border-color:var(--good);background:var(--good-soft)}
+
+  .callout{border-radius:9px;padding:14px 16px;margin:16px 0;font-size:14px}
+  .callout.info{background:var(--brand-soft);border:1px solid #cfe2f0}
+  .callout.warn{background:var(--warn-soft);border:1px solid #f0cdb8}
+  .callout.good{background:var(--good-soft);border:1px solid #bfe3d2}
+  .callout .ctitle{font-weight:700;margin-bottom:4px;display:block}
+
+  .example-box{border:1px dashed #c3d3e0;border-radius:9px;padding:14px 16px;background:#fafcfe;margin-top:12px}
+  .example-box .ex-tag{display:inline-block;font-size:11px;font-weight:700;text-transform:uppercase;
+    letter-spacing:.05em;color:#fff;background:var(--accent);padding:2px 8px;border-radius:20px;margin-bottom:6px}
+
+  /* tooltip */
+  .term{border-bottom:1px dotted var(--brand);cursor:help;position:relative;color:var(--brand-dark);font-weight:600}
+  .term .tip-pop{visibility:hidden;opacity:0;position:absolute;bottom:135%;left:50%;transform:translateX(-50%);
+    background:#13344a;color:#eaf3fa;padding:10px 12px;border-radius:8px;width:280px;font-size:12.5px;
+    font-weight:400;line-height:1.45;z-index:50;box-shadow:0 8px 24px rgba(0,0,0,.25);transition:opacity .15s;text-transform:none;letter-spacing:normal}
+  .term .tip-pop::after{content:"";position:absolute;top:100%;left:50%;transform:translateX(-50%);
+    border:7px solid transparent;border-top-color:#13344a}
+  .term:hover .tip-pop,.term:focus .tip-pop{visibility:visible;opacity:1}
+
+  table.calc{width:100%;border-collapse:collapse;margin-top:12px;font-size:13.5px}
+  table.calc th,table.calc td{border:1px solid var(--line);padding:8px 10px;text-align:left;vertical-align:top}
+  table.calc th{background:#f0f5f9;font-size:12px;text-transform:uppercase;letter-spacing:.03em;color:var(--muted)}
+  .formula{font-family:"Cambria Math",Georgia,serif;background:#f3f7fa;border:1px solid var(--line);
+    border-radius:8px;padding:12px 16px;margin:12px 0;font-size:15px;overflow-x:auto}
+  .frac{display:inline-block;text-align:center;vertical-align:middle;margin:0 3px}
+  .frac .nu{display:block;border-bottom:1.5px solid var(--ink);padding:0 6px}
+  .frac .de{display:block;padding:0 6px}
+
+  /* method picker */
+  .method{border:1px solid var(--line);border-radius:9px;padding:0;margin-bottom:10px;overflow:hidden;background:#fff}
+  .method summary{cursor:pointer;padding:13px 16px;font-weight:600;list-style:none;display:flex;align-items:center;gap:10px}
+  .method summary::-webkit-details-marker{display:none}
+  .method summary:hover{background:#f6f9fb}
+  .method[open] summary{border-bottom:1px solid var(--line);background:var(--brand-soft)}
+  .method .chk{width:18px;height:18px;border:2px solid #b6c6d4;border-radius:5px;flex:0 0 18px;display:inline-block;position:relative}
+  .method.sel .chk{background:var(--good);border-color:var(--good)}
+  .method.sel .chk::after{content:"\2713";color:#fff;position:absolute;left:2px;top:-3px;font-size:14px}
+  .method .body{padding:8px 16px 16px;font-size:13.5px}
+  .method .body .row{margin:7px 0}
+  .method .body b{color:var(--brand-dark)}
+
+  .checklist{list-style:none;padding:0;margin:10px 0 0}
+  .checklist li{display:flex;gap:11px;align-items:flex-start;padding:9px 0;border-bottom:1px solid var(--line);font-size:14px}
+  .checklist li:last-child{border-bottom:none}
+  .checklist .mark{width:22px;height:22px;flex:0 0 22px;border-radius:50%;border:2px solid #c3d0db;
+    display:inline-flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;color:#fff}
+  .checklist li.ok .mark{background:var(--good);border-color:var(--good)}
+  .checklist li.no .mark{background:#fff;border-color:#d3a08a}
+  .checklist li.no .mark::after{content:"!";color:var(--warn)}
+  .checklist li.ok .mark::after{content:"\2713"}
+
+  #summaryOut{white-space:pre-wrap;font-family:"SF Mono",Menlo,Consolas,monospace;font-size:12.7px;
+    background:#0f2c3e;color:#dcebb0;color:#e6eef4;border-radius:9px;padding:20px;line-height:1.6}
+  .toolbar{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:18px}
+
+  footer.credit{margin-top:30px;border-top:2px solid var(--line);padding-top:18px;font-size:12.5px;color:var(--muted)}
+  footer.credit b{color:var(--ink)}
+  .nav-foot{display:flex;justify-content:space-between;margin-top:26px}
+  .pill{display:inline-block;background:#eef3f7;border:1px solid var(--line);border-radius:20px;
+    padding:3px 11px;font-size:12px;color:var(--muted);margin:2px 4px 2px 0}
+  .saved-note{font-size:12px;color:var(--good);margin-left:10px;opacity:0;transition:opacity .2s}
+  .saved-note.show{opacity:1}
+
+  @media print{
+    .nav,.toolbar,.btn-row,.nav-foot,button{display:none!important}
+    .app{display:block}.main{padding:0}
+    .panel{display:block!important;page-break-after:always}
+    .card{box-shadow:none;border:1px solid #ccc}
+    body{background:#fff;font-size:12px}
+  }
+  @media(max-width:880px){
+    .app{flex-direction:column}.nav{width:auto;flex:none;height:auto;position:static}
+    .main{padding:22px}
+  }
+</style>
+</head>
+<body>
+<div class="app">
+  <!-- ===================== NAV ===================== -->
+  <nav class="nav">
+    <h1>Customer-Centric Science</h1>
+    <div class="sub">Reporting significant research results with rigor, relevance &amp; practical impact</div>
+    <div class="progress-wrap">
+      <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
+      <div class="progress-label" id="progressLabel">0% complete</div>
+    </div>
+    <ul class="steplist" id="stepList">
+      <li><button data-step="intro"><span class="num">i</span><span>Overview</span></button></li>
+      <li><button data-step="s1"><span class="num">1</span><span>Statistical significance<br>(justified &alpha;, precise p)</span></button></li>
+      <li><button data-step="s2"><span class="num">2</span><span>Effect magnitude<br>(size + confidence interval)</span></button></li>
+      <li><button data-step="s3"><span class="num">3</span><span>Practical significance<br>(does it matter, to whom?)</span></button></li>
+      <li><button data-step="sum"><span class="num">&#9776;</span><span>Summary &amp; export</span></button></li>
+    </ul>
+    <div class="tip">Your entries stay in this browser only and are used to build a copy-paste write-up in the Summary tab. Nothing is uploaded.</div>
+  </nav>
+
+  <!-- ===================== MAIN ===================== -->
+  <main class="main">
+    <div class="toolbar">
+      <button class="btn ghost sm" onclick="loadAllExamples()">Load full worked example</button>
+      <button class="btn ghost sm" onclick="resetAll()">Clear all</button>
+      <button class="btn sm" onclick="go('sum')">Go to Summary &amp; export &rarr;</button>
+      <span class="saved-note" id="savedNote">saved</span>
+    </div>
+
+    <!-- ===== INTRO ===== -->
+    <section class="panel" id="intro">
+      <div class="eyebrow">Overview</div>
+      <h2 class="title">Three steps from a significant result to publication-ready language</h2>
+      <p class="lead">This tool operationalizes the customer-centric reporting approach of Aguinis et&nbsp;al. (2010). The &ldquo;customers&rdquo; of your research are both academics and practitioners. Reporting a result well means answering three questions in sequence &mdash; each builds on the one before it.</p>
+
+      <div class="card">
+        <div class="grid">
+          <div>
+            <h3>Step 1 &middot; Is it likely real?</h3>
+            <p><b>Statistical significance.</b> Set a <span class="term">justified &alpha;<span class="tip-pop"><b>Alpha (&alpha;) &mdash; a priori Type&nbsp;I error rate.</b> The probability of rejecting a true null hypothesis (claiming an effect that isn&rsquo;t there) that you are willing to accept. The article argues this should be reasoned from context, not fixed at .05.</span></span> using the relative seriousness of Type&nbsp;I vs. Type&nbsp;II errors, and report the <b>precise p value</b>.</p>
+          </div>
+          <div>
+            <h3>Step 2 &middot; How big is it?</h3>
+            <p><b>Effect magnitude.</b> Report a standardized estimate of the size of the effect or relationship, <b>with a confidence interval</b> &mdash; and interpret it in context rather than against rigid small/medium/large cutoffs.</p>
+          </div>
+          <div>
+            <h3>Step 3 &middot; Does it matter?</h3>
+            <p><b>Practical significance.</b> Effect size is <i>not</i> practical significance. Plan a qualitative study so practitioners can say, in their own words, whether and why the result matters.</p>
+          </div>
+        </div>
+        <div class="callout info" style="margin-top:18px">
+          <span class="ctitle">Why the order matters</span>
+          Steps&nbsp;1 and 2 are quantitative and are logically necessary before Step&nbsp;3. You first need to know the result is unlikely to be chance alone (Step&nbsp;1) and how large it is (Step&nbsp;2) before you can ask what it means in practice (Step&nbsp;3).
+        </div>
+        <div class="btn-row"><button class="btn" onclick="go('s1')">Start with Step 1 &rarr;</button></div>
+      </div>
+    </section>
+
+    <!-- =========================================================
+         STEP 1
+    ========================================================== -->
+    <section class="panel" id="s1">
+      <div class="eyebrow">Step 1 &mdash; Statistical significance</div>
+      <h2 class="title">Set a justified &alpha; and report the precise p</h2>
+      <p class="lead">Instead of defaulting to &alpha;&nbsp;=&nbsp;.05, derive an a&nbsp;priori Type&nbsp;I error rate that reflects how serious a false positive is <i>relative to</i> a false negative in your specific research context.</p>
+
+      <div class="card">
+        <h3>Type&nbsp;I / Type&nbsp;II trade-off calculator</h3>
+        <p class="hint">Uses the Murphy &amp; Myors (1998) procedure for choosing &alpha; from the desired relative seriousness of the two error types.</p>
+
+        <div class="formula" style="text-align:center">
+          &alpha;<sub>desired</sub> &nbsp;=&nbsp;
+          <span class="frac"><span class="nu">p(H&#8321;) &middot; &beta;</span><span class="de">1 &minus; p(H&#8321;)</span></span>
+          &nbsp;&times;&nbsp;
+          <span class="frac"><span class="nu">1</span><span class="de">DRS</span></span>
+        </div>
+
+        <div class="grid" style="margin-top:16px">
+          <div class="field-block">
+            <label class="field" for="pH1"><span class="term">p(H&#8321;)<span class="tip-pop"><b>Estimated probability that the alternative hypothesis is true.</b> Based on strong theory and prior evidence, how likely is it that a real effect/relationship exists? Value between 0 and 1.</span></span> &mdash; probability H&#8321; is true</label>
+            <input type="number" id="pH1" min="0.01" max="0.99" step="0.01" placeholder="e.g. 0.60">
+            <p class="hint">From theory + prior evidence. Range 0&ndash;1.</p>
+          </div>
+          <div class="field-block">
+            <label class="field" for="beta"><span class="term">&beta;<span class="tip-pop"><b>Type&nbsp;II error rate.</b> The probability of retaining a false null &mdash; failing to detect an effect that truly exists. Power = 1 &minus; &beta;.</span></span> &mdash; acceptable Type&nbsp;II error rate</label>
+            <input type="number" id="beta" min="0.01" max="0.99" step="0.01" placeholder="e.g. 0.15">
+            <p class="hint">Power = 1 &minus; &beta;. E.g. .15 &rarr; 85% power.</p>
+          </div>
+          <div class="field-block">
+            <label class="field" for="drs"><span class="term">DRS<span class="tip-pop"><b>Desired Relative Seriousness.</b> How many times more serious a Type&nbsp;I error is than a Type&nbsp;II error. DRS&nbsp;=&nbsp;2 means a false positive is twice as costly as a false negative. DRS&nbsp;&lt;&nbsp;1 means a false negative is the bigger worry.</span></span> &mdash; seriousness of Type&nbsp;I vs. Type&nbsp;II</label>
+            <input type="number" id="drs" min="0.1" step="0.1" placeholder="e.g. 2">
+            <p class="hint">&gt;1: false positive worse. &lt;1: false negative worse.</p>
+          </div>
+        </div>
+
+        <div class="field-block">
+          <label class="field" for="drsRationale">Your one&ndash;to&ndash;two sentence rationale for this DRS <span class="hint" style="display:inline">(required by reviewers &mdash; DRS must be argued, not set by fiat)</span></label>
+          <textarea id="drsRationale" placeholder="e.g. A Type I error here would lead firms to needlessly redesign the program for each region, wasting limited resources; we therefore judge a false positive about twice as serious as a false negative (DRS = 2)."></textarea>
+        </div>
+
+        <div class="btn-row">
+          <button class="btn" onclick="calcAlpha()">Compute &alpha;<sub>desired</sub></button>
+          <button class="btn ghost" onclick="loadAlphaExample()">Load article&rsquo;s worked example</button>
+        </div>
+
+        <div class="result" id="alphaResult" style="display:none">
+          <span class="lbl">A priori &alpha; (Type&nbsp;I error rate)</span>
+          <div class="big" id="alphaBig">&mdash;</div>
+          <div id="alphaDetail" class="hint" style="font-size:13px"></div>
+        </div>
+      </div>
+
+      <div class="card">
+        <h3>How context drives DRS &mdash; two contrasting cases from the article</h3>
+        <div class="example-box">
+          <span class="ex-tag">Type&nbsp;II error more serious</span>
+          <p><b>CEO earnings-manipulation incentives</b> (Zhang et&nbsp;al., 2008). Concluding there is <i>no</i> link between certain incentives and earnings manipulation when there really is one could let firms adopt those incentives &mdash; risking stock-price collapse, reputational damage, turnover, even bankruptcy. The cost of a miss (Type&nbsp;II) is severe, so you would <b>tolerate a higher &alpha;</b> (DRS&nbsp;&lt;&nbsp;1).</p>
+        </div>
+        <div class="example-box">
+          <span class="ex-tag">Type&nbsp;I error more serious</span>
+          <p><b>Interdivisional knowledge transfer &amp; invention impact</b> (Miller, Fern &amp; Cardinal, 2007). Concluding there <i>is</i> a relationship when there isn&rsquo;t would push firms to pour money, time and resources into cross-division knowledge sharing for no gain. The false positive is costlier, so you would <b>keep &alpha; lower</b> (DRS&nbsp;&gt;&nbsp;1).</p>
+        </div>
+        <div class="callout info">The point: the &ldquo;right&rdquo; &alpha; depends on what each error would cost in <i>your</i> setting. Reason it through and write it down.</div>
+      </div>
+
+      <div class="card">
+        <h3>Report the precise p value</h3>
+        <p>Enter your observed p value to generate reporting language and compare it to the &alpha; you justified above.</p>
+        <div class="grid">
+          <div class="field-block">
+            <label class="field" for="pObs">Observed p value <span class="hint" style="display:inline">(2&ndash;3 decimals)</span></label>
+            <input type="number" id="pObs" min="0" max="1" step="0.001" placeholder="e.g. 0.04">
+          </div>
+        </div>
+        <div class="btn-row"><button class="btn" onclick="buildPSentence()">Generate reporting sentence</button></div>
+        <div id="pSentence"></div>
+        <div class="callout warn">
+          <span class="ctitle">Avoid &ldquo;crippled&rdquo; p values</span>
+          Reporting only <i>p&nbsp;&lt;&nbsp;.05</i> dichotomizes a continuous 0&ndash;1 scale and throws away information &mdash; <i>p&nbsp;=&nbsp;.000001</i> and <i>p&nbsp;=&nbsp;.049</i> would look identical. Report the actual value (e.g. <i>p&nbsp;=&nbsp;.04</i>) to 2&ndash;3 decimals and let readers judge against their own &alpha;. Do not lean on arbitrary conventional cutoffs.
+        </div>
+      </div>
+
+      <div class="nav-foot"><button class="btn ghost" onclick="go('intro')">&larr; Overview</button><button class="btn" onclick="go('s2')">Step 2: Effect magnitude &rarr;</button></div>
+    </section>
+
+    <!-- =========================================================
+         STEP 2
+    ========================================================== -->
+    <section class="panel" id="s2">
+      <div class="eyebrow">Step 2 &mdash; Effect magnitude</div>
+      <h2 class="title">Report the size of the effect, with a confidence interval</h2>
+      <p class="lead">Statistical significance says nothing about <i>how strong</i> the effect is. Compute a standardized effect-magnitude estimate (Table&nbsp;3 of the article) and report a <span class="term">confidence interval<span class="tip-pop"><b>Confidence interval.</b> A range that, across repeated samples, would contain the true effect a stated percentage of the time (here 95%). It conveys the precision of your estimate &mdash; a wide interval signals uncertainty that a single point estimate hides.</span></span> around it.</p>
+
+      <!-- Group differences -->
+      <div class="card">
+        <h3>Group differences &mdash; Cohen&rsquo;s d &amp; Hedges&rsquo;s g</h3>
+        <p class="hint">Use when the null hypothesis is about a difference in mean scores across two groups.</p>
+        <div class="grid">
+          <div class="field-block"><label class="field">Group A mean</label><input type="number" id="mA" step="any" placeholder="e.g. 52"></div>
+          <div class="field-block"><label class="field">Group A SD</label><input type="number" id="sA" step="any" min="0" placeholder="e.g. 10"></div>
+          <div class="field-block"><label class="field">Group A n</label><input type="number" id="nA" step="1" min="2" placeholder="e.g. 30"></div>
+          <div class="field-block"><label class="field">Group B mean</label><input type="number" id="mB" step="any" placeholder="e.g. 48"></div>
+          <div class="field-block"><label class="field">Group B SD</label><input type="number" id="sB" step="any" min="0" placeholder="e.g. 11"></div>
+          <div class="field-block"><label class="field">Group B n</label><input type="number" id="nB" step="1" min="2" placeholder="e.g. 30"></div>
+        </div>
+        <div class="btn-row">
+          <button class="btn" onclick="calcD()">Compute d, g &amp; 95% CI</button>
+          <button class="btn ghost" onclick="loadDExample()">Load example</button>
+        </div>
+        <div class="result" id="dResult" style="display:none">
+          <div class="grid" style="gap:18px">
+            <div><span class="lbl"><span class="term">Cohen&rsquo;s d<span class="tip-pop"><b>Cohen&rsquo;s d.</b> Difference between group means expressed in standard-deviation units, using the pooled SD. 0 means no difference.</span></span></span><div class="big" id="dBig">&mdash;</div></div>
+            <div><span class="lbl"><span class="term">Hedges&rsquo;s g<span class="tip-pop"><b>Hedges&rsquo;s g.</b> A bias-corrected version of d (pooled SD &times; small-sample correction factor J). Preferred when samples are small.</span></span></span><div class="big" id="gBig">&mdash;</div></div>
+          </div>
+          <div class="sentence" id="dSentence"></div>
+        </div>
+      </div>
+
+      <!-- Variance explained -->
+      <div class="card">
+        <h3>Variance explained &mdash; R&sup2; &amp; adjusted R&sup2;</h3>
+        <p class="hint">Use when the null hypothesis is about a relationship among variables; interpreted as the proportion of variance in the outcome explained by the predictors.</p>
+        <div class="grid">
+          <div class="field-block"><label class="field"><span class="term">R&sup2;<span class="tip-pop"><b>R-squared.</b> Proportion of variance in the criterion explained by the predictors, given a linear model. 0 = none explained.</span></span> (observed)</label><input type="number" id="r2" step="any" min="0" max="1" placeholder="e.g. 0.25"></div>
+          <div class="field-block"><label class="field">Sample size N</label><input type="number" id="r2N" step="1" min="3" placeholder="e.g. 100"></div>
+          <div class="field-block"><label class="field">Number of predictors k</label><input type="number" id="r2k" step="1" min="1" placeholder="e.g. 4"></div>
+        </div>
+        <div class="btn-row">
+          <button class="btn" onclick="calcR2()">Compute adjusted R&sup2; &amp; 95% CI</button>
+          <button class="btn ghost" onclick="loadR2Example()">Load example</button>
+        </div>
+        <div class="result" id="r2Result" style="display:none">
+          <div class="grid" style="gap:18px">
+            <div><span class="lbl">Adjusted R&sup2;</span><div class="big" id="adjBig">&mdash;</div></div>
+            <div><span class="lbl">Shrinkage (R&sup2; &minus; adj)</span><div class="big" id="shrinkBig">&mdash;</div></div>
+          </div>
+          <div class="sentence" id="r2Sentence"></div>
+        </div>
+        <p class="hint" style="margin-top:10px">Adjusted R&sup2; = 1 &minus; (1 &minus; R&sup2;)(N&minus;1)/(N&minus;k&minus;1). It corrects for capitalization on chance when N is small and k is large. The 95% CI uses the Olkin&ndash;Finn large-sample approximation.</p>
+      </div>
+
+      <div class="card">
+        <div class="callout warn">
+          <span class="ctitle">Do not use one-size-fits-all small / medium / large cutoffs</span>
+          Cohen&rsquo;s .10/.30/.50 benchmarks were set <i>subjectively</i> &mdash; partly from values observed in a single 1960 psychology journal volume, partly from Cohen&rsquo;s own opinion (he later lowered them and acknowledged they &ldquo;were made subjectively&rdquo;). Applying them rigidly, Thompson warned, is &ldquo;being stupid in a new metric.&rdquo; Interpret magnitude <b>in the context of your phenomenon, prior effects in the area, and what the outcome means</b> &mdash; not against a fixed table.
+        </div>
+        <h4>Factors that shrink or inflate an estimate &mdash; caveat accordingly</h4>
+        <table class="calc">
+          <tr><th>Factor</th><th>Effect on the estimate</th></tr>
+          <tr><td>Measurement reliability</td><td>Lower reliability &rarr; <b>smaller</b> estimates</td></tr>
+          <tr><td>Number of scale anchors</td><td>Fewer anchors (coarser scale) &rarr; <b>smaller</b> estimates</td></tr>
+          <tr><td>Sample heterogeneity / variance</td><td>Less heterogeneity &amp; variance &rarr; <b>smaller</b> estimates</td></tr>
+          <tr><td>Sample size &amp; number of predictors</td><td>Small N with many predictors &rarr; <b>inflated</b> (capitalization on chance) &rarr; correct it</td></tr>
+          <tr><td>Research design</td><td>Nonexperimental designs &rarr; usually <b>smaller</b> than experimental</td></tr>
+        </table>
+        <p class="hint" style="margin-top:10px">Always state which specific estimate you computed, whether it is adjusted, and its confidence interval.</p>
+      </div>
+
+      <div class="nav-foot"><button class="btn ghost" onclick="go('s1')">&larr; Step 1</button><button class="btn" onclick="go('s3')">Step 3: Practical significance &rarr;</button></div>
+    </section>
+
+    <!-- =========================================================
+         STEP 3
+    ========================================================== -->
+    <section class="panel" id="s3">
+      <div class="eyebrow">Step 3 &mdash; Practical significance</div>
+      <h2 class="title">Plan a qualitative study: does it matter, to whom, in what context?</h2>
+      <p class="lead">Effect size &ne; practical significance. To establish whether a result actually matters, gather evidence in practitioners&rsquo; own discourse through a qualitative study. This planner helps you design it.</p>
+
+      <div class="callout info">
+        <span class="ctitle">A common confusion to avoid</span>
+        An effect-magnitude estimate is <i>not</i> a study&rsquo;s practical significance. Knowing a test correlates with performance at r&nbsp;=&nbsp;.30 (9% of variance) does not tell a practitioner whether to adopt it, how much better hiring would be, or what the unexplained 91% costs. Practical significance is a value judgment made by the consumer of the research, in context.
+      </div>
+
+      <div class="card">
+        <h3>1 &middot; Choose qualitative method(s)</h3>
+        <p class="hint">Click to select the approach(es) you will use. The article details the first three; the rest are the additional methods it lists.</p>
+        <div id="methodList"></div>
+      </div>
+
+      <div class="card">
+        <h3>2 &middot; Guided questions for practitioners</h3>
+        <p class="hint">Drawn from the article&rsquo;s framing of a qualitative study as &ldquo;a conversation with a purpose.&rdquo; Edit to fit your study; these feed your write-up.</p>
+        <div class="field-block"><label class="field">Core questions to ask participants</label>
+          <textarea id="q_core" style="min-height:120px"></textarea>
+          <p class="hint">Defaults loaded from the article. <a href="#" onclick="loadCoreQuestions();return false;">Reset to article defaults</a></p>
+        </div>
+      </div>
+
+      <div class="card">
+        <h3>3 &middot; Stakeholders, context &amp; discourse</h3>
+        <div class="field-block"><label class="field">Which stakeholder group(s)?</label>
+          <input type="text" id="q_stake" placeholder="e.g. HR managers, first-line supervisors, consultants, employees">
+          <p class="hint">The article&rsquo;s definition of practitioners: those who make or advise on recommendations about managing/developing people &mdash; including employees and their managers.</p>
+        </div>
+        <div class="field-block"><label class="field">Which specific context(s) / industry?</label>
+          <input type="text" id="q_context" placeholder="e.g. pharmaceutical firms vs. telecommunications; unionized manufacturing plants">
+          <p class="hint">Results may have different value across settings &mdash; specify where.</p>
+        </div>
+        <div class="field-block"><label class="field">How will you describe results in practitioners&rsquo; own discourse?</label>
+          <textarea id="q_discourse" placeholder="e.g. Reframe 'd = 0.38 on bias-reduction scores' as what it means for the number of mis-rated job analyses a manager would avoid per quarter, in their own words."></textarea>
+        </div>
+      </div>
+
+      <div class="callout good">
+        <span class="ctitle">Keep expectations calibrated</span>
+        This step is most valuable for <b>new areas of research</b>, and it is not mandatory for every study. One qualitative study cannot prove the universal worth of a result &mdash; establishing the external validity of practical significance may require <b>more than one</b> qualitative study, with replicability and transparency throughout.
+      </div>
+
+      <div class="nav-foot"><button class="btn ghost" onclick="go('s2')">&larr; Step 2</button><button class="btn" onclick="go('sum')">Summary &amp; export &rarr;</button></div>
+    </section>
+
+    <!-- =========================================================
+         SUMMARY
+    ========================================================== -->
+    <section class="panel" id="sum">
+      <div class="eyebrow">Summary</div>
+      <h2 class="title">Interpretation &amp; reporting</h2>
+      <p class="lead">A coherent write-up assembled from all three steps &mdash; distinguishing statistical significance (precise p vs. justified &alpha;) from practical significance (what it means, to whom, in what context), with effect magnitude in between.</p>
+
+      <div class="card">
+        <h3>Reporting checklist</h3>
+        <ul class="checklist" id="checklist"></ul>
+        <p class="hint" id="checklistMsg" style="margin-top:12px"></p>
+      </div>
+
+      <div class="card">
+        <h3>Draft write-up</h3>
+        <div class="btn-row" style="margin-bottom:14px">
+          <button class="btn" onclick="buildSummary()">Build / refresh write-up</button>
+          <button class="btn ghost" onclick="copyText()">Copy to clipboard</button>
+          <button class="btn ghost" onclick="downloadText()">Download as .txt</button>
+          <button class="btn ghost" onclick="window.print()">Print</button>
+          <span class="saved-note" id="copyNote">copied</span>
+        </div>
+        <div id="summaryOut">Click &ldquo;Build / refresh write-up&rdquo; to assemble your reporting language from Steps 1&ndash;3.</div>
+      </div>
+
+      <div class="nav-foot"><button class="btn ghost" onclick="go('s3')">&larr; Step 3</button><button class="btn" onclick="go('intro')">Back to overview</button></div>
+    </section>
+
+    <footer class="credit">
+      <p><b>Based on:</b> Aguinis, H. 2025. <i>Research methodology: Best practices for rigorous, credible, and impactful research.</i> SAGE. <a href="https://collegepublishing.sagepub.com/products/research-methodology-1-280088" target="_blank" rel="noopener">https://collegepublishing.sagepub.com/products/research-methodology-1-280088</a></p>
+      <p style="margin-top:6px">Operationalizes: Aguinis, H., Werner, S., Abbott, J.&nbsp;L., Angert, C., Park, J.&nbsp;H., &amp; Kohlhausen, D. (2010). Customer-centric science: Reporting significant research results with rigor, relevance, and practical impact in mind. <i>Organizational Research Methods, 13</i>(3), 515&ndash;539. &alpha; formula: Murphy &amp; Myors (1998). This tool is an educational aid; verify computations for your own data.</p>
+    </footer>
+  </main>
+</div>
+
+<script>
+"use strict";
+/* ============ Qualitative methods data (from the article) ============ */
+const METHODS=[
+ {k:"ethnography",n:"Ethnography",d:"Assumes shared cultural meaning in a social group; uncovers meaning from the perspective of those involved by studying a phenomenon in its natural setting.",when:"To understand what particular results mean to a group (e.g., HR managers, employees, consultants) in their own cultural environment.",data:"Researcher immerses in the field alongside participants; semi-structured interviews and diaries. “A conversation with a purpose.”",detailed:true},
+ {k:"conversation",n:"Conversation analysis",d:"Focuses on everyday conversation or institutional talk — not only what people say but how they say it.",when:"When relevant talk already exists or can be recorded; lets you rely on pre-existing data from institutional contexts.",data:"Talk usually recorded by participants themselves (audio/video). Notice a phenomenon, assemble instances, analyze clearest and deviant cases.",detailed:true},
+ {k:"narrative",n:"Narrative inquiry",d:"Thinks about experience through the lens of stories; individuals have storied experiences. Tells the story of how and why a result matters.",when:"To convey practical significance as a story spanning past, present and future potential.",data:"Personal journals, stories, photographs, artifacts, annals, chronologies, interviews, conversations. Attend to time, personal/social conditions, and place.",detailed:true},
+ {k:"case",n:"Case study",d:"In-depth examination of a single instance (person, team, firm, event) in its real context.",when:"For a rich, bounded example where context is inseparable from the phenomenon.",data:"Multiple sources: interviews, documents, observation, archival records."},
+ {k:"crosscase",n:"Cross-case analysis",d:"Compares findings across multiple cases to surface patterns and boundary conditions.",when:"When you have several cases and want to see what generalizes and what is context-specific.",data:"Structured comparison across case write-ups."},
+ {k:"focus",n:"Focus groups",d:"Facilitated group discussion that surfaces shared and divergent reactions to the results.",when:"To efficiently gather practitioner reactions and let participants build on each other’s views.",data:"Moderated group sessions; recorded and transcribed."},
+ {k:"discourse",n:"Discourse analysis",d:"Examines how language constructs meaning and social reality around the phenomenon.",when:"When the framing and language practitioners use is itself the object of interest.",data:"Texts, transcripts, documents analyzed for discursive patterns."},
+ {k:"practitioner",n:"Practitioner inquiry",d:"Inquiry led from within practice settings to examine the results’ usefulness on the ground.",when:"When practitioners themselves investigate the applicability of findings in their work.",data:"Reflective field-based inquiry, practitioner-generated data."},
+ {k:"fieldnotes",n:"Field notes analysis",d:"Systematic analysis of observational notes recorded in the field.",when:"As a complement to immersion-based methods to document context over time.",data:"Researcher field notes coded and interpreted."},
+ {k:"historical",n:"Historical research",d:"Uses historical evidence to understand how the phenomenon and its meaning developed.",when:"When the temporal/institutional origins of the phenomenon inform its significance.",data:"Archival and documentary sources."},
+ {k:"socialrep",n:"Social representation analysis",d:"Studies shared beliefs and representations a group holds about the phenomenon.",when:"To understand collectively held meanings within a community of practice.",data:"Interviews, free associations, group-level discourse."},
+ {k:"visual",n:"Visual analysis",d:"Analyzes images and other visual artifacts for meaning.",when:"When visual material carries the practitioners’ interpretation of results.",data:"Photographs, drawings, video and other visual artifacts."}
+];
+
+const CORE_QUESTIONS=
+"What do these results mean to you?\n"+
+"How would you use them in your work?\n"+
+"How would they be beneficial?\n"+
+"Why do they matter?\n"+
+"What are your reactions to these results?";
+
+/* ============ State + persistence ============ */
+const FIELDS=["pH1","beta","drs","drsRationale","pObs",
+  "mA","sA","nA","mB","sB","nB","r2","r2N","r2k",
+  "q_core","q_stake","q_context","q_discourse"];
+const STORE="ccsci_v1";
+function saveState(){
+  const o={f:{},methods:selectedMethods()};
+  FIELDS.forEach(id=>{const e=document.getElementById(id); if(e) o.f[id]=e.value;});
+  try{localStorage.setItem(STORE,JSON.stringify(o));}catch(e){}
+  flash("savedNote");
+}
+function loadState(){
+  let o=null; try{o=JSON.parse(localStorage.getItem(STORE));}catch(e){}
+  if(!o)return;
+  FIELDS.forEach(id=>{const e=document.getElementById(id); if(e&&o.f&&o.f[id]!=null)e.value=o.f[id];});
+  if(o.methods)o.methods.forEach(k=>{const el=document.querySelector('.method[data-k="'+k+'"]'); if(el)el.classList.add('sel');});
+}
+function flash(id){const n=document.getElementById(id); if(!n)return; n.classList.add('show'); setTimeout(()=>n.classList.remove('show'),900);}
+
+/* ============ Navigation + progress ============ */
+const ORDER=["intro","s1","s2","s3","sum"];
+function go(id){
+  document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  document.querySelectorAll('#stepList button').forEach(b=>b.classList.toggle('active',b.dataset.step===id));
+  window.scrollTo({top:0,behavior:'smooth'});
+  updateProgress();
+}
+function num(id){const v=parseFloat(document.getElementById(id).value); return isNaN(v)?null:v;}
+function val(id){return (document.getElementById(id).value||"").trim();}
+function stepDone(s){
+  if(s==='s1') return num('pH1')!=null&&num('beta')!=null&&num('drs')!=null&&num('pObs')!=null;
+  if(s==='s2') return (num('mA')!=null&&num('mB')!=null)||num('r2')!=null;
+  if(s==='s3') return selectedMethods().length>0 || val('q_stake')!=="" || val('q_context')!=="";
+  return false;
+}
+function updateProgress(){
+  let done=0; ['s1','s2','s3'].forEach(s=>{
+    const li=document.querySelector('#stepList button[data-step="'+s+'"]').parentElement;
+    if(stepDone(s)){li.classList.add('done');done++;}else{li.classList.remove('done');}
+  });
+  const pct=Math.round(done/3*100);
+  document.getElementById('progressFill').style.width=pct+'%';
+  document.getElementById('progressLabel').textContent=pct+'% complete • '+done+' of 3 steps';
+}
+
+/* ============ STEP 1 ============ */
+function computeAlpha(pH1,beta,drs){ return (pH1*beta/(1-pH1))*(1/drs); }
+function calcAlpha(){
+  const pH1=num('pH1'),beta=num('beta'),drs=num('drs');
+  const box=document.getElementById('alphaResult'), big=document.getElementById('alphaBig'), det=document.getElementById('alphaDetail');
+  if(pH1==null||beta==null||drs==null){box.style.display='block';big.textContent='—';det.textContent='Enter p(H₁), β and DRS to compute.';return;}
+  if(pH1<=0||pH1>=1){box.style.display='block';big.textContent='—';det.textContent='p(H₁) must be strictly between 0 and 1.';return;}
+  if(drs<=0){box.style.display='block';big.textContent='—';det.textContent='DRS must be greater than 0.';return;}
+  const a=computeAlpha(pH1,beta,drs);
+  box.style.display='block';
+  big.textContent=a.toFixed(3);
+  let clip=a>=1?' Note: the formula yields a value ≥ 1 with these inputs — revisit p(H₁), β or DRS, since α cannot exceed 1.':'';
+  det.innerHTML='= [ '+pH1+' × '+beta+' / (1 − '+pH1+') ] × (1 / '+drs+') = <b>'+a.toFixed(4)+'</b> → report α ≈ '+a.toFixed(2)+'.'+clip;
+  saveState(); updateProgress();
+}
+function loadAlphaExample(){
+  document.getElementById('pH1').value='0.6';
+  document.getElementById('beta').value='0.15';
+  document.getElementById('drs').value='2';
+  document.getElementById('drsRationale').value='A Type I error means different versions of the training program would be needlessly developed for various regions — a waste of limited resources — so we judge a false positive twice as serious as a false negative (DRS = 2).';
+  calcAlpha();
+}
+function buildPSentence(){
+  const p=num('pObs'), a=num('pH1')!=null&&num('beta')!=null&&num('drs')!=null?computeAlpha(num('pH1'),num('beta'),num('drs')):null;
+  const out=document.getElementById('pSentence');
+  if(p==null){out.innerHTML='<div class="sentence">Enter an observed p value (2–3 decimals) to generate the sentence.</div>';return;}
+  const pf=p.toFixed(3).replace(/0+$/,'').replace(/\.$/,'.0');
+  let s,cls;
+  if(a!=null){
+    const af=a.toFixed(2), drs=num('drs');
+    if(p<a){s='With α set a priori at '+af+' (based on a DRS of '+drs+'), the observed p = '+pf+' is below α, leading to rejecting the null hypothesis.';cls='sentence good';}
+    else{s='With α set a priori at '+af+' (based on a DRS of '+drs+'), the observed p = '+pf+' is not below α, so the null hypothesis is retained. Report the precise p — readers applying a different justified α may reach a different decision.';cls='sentence';}
+  } else {
+    s='The observed p = '+pf+'. (Compute your a priori α above to generate a full decision sentence comparing p to a justified α.)';cls='sentence';
+  }
+  out.innerHTML='<div class="'+cls+'">'+s+'</div>';
+  saveState(); updateProgress();
+}
+
+/* ============ STEP 2 ============ */
+function pooledSD(sA,nA,sB,nB){return Math.sqrt(((nA-1)*sA*sA+(nB-1)*sB*sB)/(nA+nB-2));}
+function calcD(){
+  const mA=num('mA'),sA=num('sA'),nA=num('nA'),mB=num('mB'),sB=num('sB'),nB=num('nB');
+  const box=document.getElementById('dResult');
+  if([mA,sA,nA,mB,sB,nB].some(v=>v==null)||nA<2||nB<2||sA<0||sB<0){
+    box.style.display='block';document.getElementById('dBig').textContent='—';document.getElementById('gBig').textContent='—';
+    document.getElementById('dSentence').textContent='Enter both group means, SDs and ns (n ≥ 2).';return;}
+  const sp=pooledSD(sA,nA,sB,nB);
+  const d=(mA-mB)/sp;
+  const J=1-3/(4*(nA+nB)-9);
+  const g=d*J;
+  const SEd=Math.sqrt((nA+nB)/(nA*nB)+d*d/(2*(nA+nB)));
+  const lo=d-1.96*SEd, hi=d+1.96*SEd;
+  box.style.display='block';
+  document.getElementById('dBig').textContent=d.toFixed(2);
+  document.getElementById('gBig').textContent=g.toFixed(2);
+  const incZero=(lo<=0&&hi>=0);
+  document.getElementById('dSentence').innerHTML='Pooled SD = '+sp.toFixed(2)+'. Cohen’s d = <b>'+d.toFixed(2)+'</b> (Hedges’s g = '+g.toFixed(2)+', small-sample correction J = '+J.toFixed(3)+'), 95% CI ['+lo.toFixed(2)+', '+hi.toFixed(2)+'].'+(incZero?' The interval includes 0, so the magnitude is imprecise at this sample size.':'')+' Interpret this size in the context of your phenomenon — not against fixed small/medium/large cutoffs.';
+  saveState(); updateProgress();
+}
+function loadDExample(){
+  document.getElementById('mA').value='52';document.getElementById('sA').value='10';document.getElementById('nA').value='30';
+  document.getElementById('mB').value='48';document.getElementById('sB').value='11';document.getElementById('nB').value='30';
+  calcD();
+}
+function calcR2(){
+  const r2=num('r2'),N=num('r2N'),k=num('r2k');
+  const box=document.getElementById('r2Result');
+  if(r2==null||N==null||k==null||r2<0||r2>1||N<=k+1||k<1){
+    box.style.display='block';document.getElementById('adjBig').textContent='—';document.getElementById('shrinkBig').textContent='—';
+    document.getElementById('r2Sentence').textContent='Enter R² (0–1), N and k with N > k + 1.';return;}
+  const adj=1-(1-r2)*(N-1)/(N-k-1);
+  const shrink=r2-adj;
+  const SE=Math.sqrt((4*r2*Math.pow(1-r2,2)*Math.pow(N-k-1,2))/((N*N-1)*(N+3)));
+  const lo=Math.max(0,r2-1.96*SE), hi=Math.min(1,r2+1.96*SE);
+  box.style.display='block';
+  document.getElementById('adjBig').textContent=adj.toFixed(3);
+  document.getElementById('shrinkBig').textContent=shrink.toFixed(3);
+  document.getElementById('r2Sentence').innerHTML='Observed R² = '+r2.toFixed(3)+' → adjusted R² = <b>'+adj.toFixed(3)+'</b> (shrinkage '+shrink.toFixed(3)+'), approx. 95% CI ['+lo.toFixed(3)+', '+hi.toFixed(3)+']. The predictors explain about '+(adj*100).toFixed(1)+'% of variance after correcting for N and k.';
+  saveState(); updateProgress();
+}
+function loadR2Example(){
+  document.getElementById('r2').value='0.25';document.getElementById('r2N').value='100';document.getElementById('r2k').value='4';
+  calcR2();
+}
+
+/* ============ STEP 3 ============ */
+function renderMethods(){
+  const wrap=document.getElementById('methodList');
+  wrap.innerHTML=METHODS.map(m=>(
+    '<details class="method" data-k="'+m.k+'">'
+    +'<summary><span class="chk" onclick="toggleMethod(event,\''+m.k+'\')"></span>'+m.n+(m.detailed?' <span class="pill">detailed in article</span>':'')+'</summary>'
+    +'<div class="body">'
+    +'<div class="row"><b>What it is:</b> '+m.d+'</div>'
+    +'<div class="row"><b>When to use:</b> '+m.when+'</div>'
+    +'<div class="row"><b>Data collection:</b> '+m.data+'</div>'
+    +'<div class="row"><button class="btn sm ghost" onclick="selectMethod(event,\''+m.k+'\')">Select this method</button></div>'
+    +'</div></details>'
+  )).join('');
+}
+function toggleMethod(ev,k){ev.preventDefault();ev.stopPropagation();const el=document.querySelector('.method[data-k="'+k+'"]');el.classList.toggle('sel');saveState();updateProgress();}
+function selectMethod(ev,k){ev.preventDefault();const el=document.querySelector('.method[data-k="'+k+'"]');el.classList.add('sel');saveState();updateProgress();}
+function selectedMethods(){return [...document.querySelectorAll('.method.sel')].map(e=>e.dataset.k);}
+function methodNames(){const set=selectedMethods();return METHODS.filter(m=>set.includes(m.k)).map(m=>m.n);}
+function loadCoreQuestions(){document.getElementById('q_core').value=CORE_QUESTIONS;saveState();}
+
+/* ============ SUMMARY ============ */
+function checklistState(){
+  const a=num('pH1')!=null&&num('beta')!=null&&num('drs')!=null;
+  return {
+    alpha:{ok:a&&val('drsRationale')!=="",txt:"Set a justified α with a written DRS rationale (not a default cutoff)"},
+    p:{ok:num('pObs')!=null,txt:"Reported the precise observed p value (2–3 decimals)"},
+    es:{ok:(num('mA')!=null&&num('mB')!=null)||num('r2')!=null,txt:"Reported an effect-magnitude estimate with a confidence interval"},
+    cutoff:{ok:true,txt:"Avoided rigid small/medium/large cutoffs — interpreted magnitude in context"},
+    prac:{ok:methodNames().length>0&&(val('q_stake')!==""||val('q_context')!==""),txt:"Planned / reported practical significance (method + stakeholders/context)"}
+  };
+}
+function renderChecklist(){
+  const c=checklistState(), ul=document.getElementById('checklist');
+  ul.innerHTML=Object.values(c).map(it=>'<li class="'+(it.ok?'ok':'no')+'"><span class="mark"></span><span>'+it.txt+'</span></li>').join('');
+  const n=Object.values(c).filter(x=>x.ok).length;
+  document.getElementById('checklistMsg').textContent=n===5?'All five reporting elements are in place.':(n+' of 5 complete — items marked “!” still need attention.');
+}
+function fmtP(p){return p==null?null:p.toFixed(3).replace(/0+$/,'').replace(/\.$/,'.0');}
+function buildSummary(){
+  renderChecklist();
+  let L=[];
+  L.push("INTERPRETATION & REPORTING — Customer-Centric Science (Aguinis et al., 2010)");
+  L.push("=".repeat(72));
+  // Step 1
+  L.push("");L.push("STEP 1 — STATISTICAL SIGNIFICANCE");L.push("-".repeat(40));
+  const pH1=num('pH1'),beta=num('beta'),drs=num('drs');
+  if(pH1!=null&&beta!=null&&drs!=null){
+    const a=computeAlpha(pH1,beta,drs);
+    L.push("Justified alpha derived from the Type I / Type II trade-off (Murphy & Myors, 1998):");
+    L.push("  p(H1) = "+pH1+",  beta = "+beta+"  (power = "+(1-beta).toFixed(2)+"),  DRS = "+drs);
+    L.push("  alpha_desired = [p(H1)*beta/(1-p(H1))] * (1/DRS) = "+a.toFixed(4)+"  ->  report alpha ≈ "+a.toFixed(2));
+    if(val('drsRationale'))L.push("  DRS rationale: "+val('drsRationale'));
+    const p=num('pObs');
+    if(p!=null){
+      const dec=p<a?"rejecting the null hypothesis":"retaining the null hypothesis";
+      L.push("  Observed p = "+fmtP(p)+". With alpha set a priori at "+a.toFixed(2)+" (DRS = "+drs+"), p "+(p<a?"<":">=")+" alpha leads to "+dec+".");
+    }
+  } else { L.push("[Step 1 inputs incomplete — set p(H1), beta and DRS, and enter the observed p.]"); }
+  L.push("Note: the precise p value is reported (not a crippled p < .05); readers may apply their own justified alpha.");
+  // Step 2
+  L.push("");L.push("STEP 2 — EFFECT MAGNITUDE");L.push("-".repeat(40));
+  let any2=false;
+  const mA=num('mA'),sA=num('sA'),nA=num('nA'),mB=num('mB'),sB=num('sB'),nB=num('nB');
+  if([mA,sA,nA,mB,sB,nB].every(v=>v!=null)&&nA>=2&&nB>=2){
+    const sp=pooledSD(sA,nA,sB,nB),d=(mA-mB)/sp,J=1-3/(4*(nA+nB)-9),g=d*J;
+    const SEd=Math.sqrt((nA+nB)/(nA*nB)+d*d/(2*(nA+nB)));
+    L.push("Group difference: Cohen's d = "+d.toFixed(2)+" (Hedges's g = "+g.toFixed(2)+"), 95% CI ["+(d-1.96*SEd).toFixed(2)+", "+(d+1.96*SEd).toFixed(2)+"]. Pooled SD = "+sp.toFixed(2)+".");
+    any2=true;
+  }
+  const r2=num('r2'),N=num('r2N'),k=num('r2k');
+  if(r2!=null&&N!=null&&k!=null&&N>k+1){
+    const adj=1-(1-r2)*(N-1)/(N-k-1);
+    const SE=Math.sqrt((4*r2*Math.pow(1-r2,2)*Math.pow(N-k-1,2))/((N*N-1)*(N+3)));
+    L.push("Variance explained: R² = "+r2.toFixed(3)+", adjusted R² = "+adj.toFixed(3)+" (N = "+N+", k = "+k+"), approx. 95% CI ["+Math.max(0,r2-1.96*SE).toFixed(3)+", "+Math.min(1,r2+1.96*SE).toFixed(3)+"].");
+    any2=true;
+  }
+  if(!any2)L.push("[No effect-magnitude estimate entered — compute Cohen's d/g or R²/adjusted R² in Step 2.]");
+  L.push("Magnitude is interpreted in context (measurement reliability, scale anchors, sample heterogeneity, N and k, and design all affect the estimate); rigid small/medium/large cutoffs are avoided.");
+  // Step 3
+  L.push("");L.push("STEP 3 — PRACTICAL SIGNIFICANCE (qualitative study plan)");L.push("-".repeat(40));
+  const mn=methodNames();
+  L.push("Effect size is not practical significance. To establish whether the result matters, in practitioners' own discourse:");
+  L.push("  Method(s): "+(mn.length?mn.join(", "):"[none selected]"));
+  L.push("  Stakeholder group(s): "+(val('q_stake')||"[specify]"));
+  L.push("  Context(s)/industry: "+(val('q_context')||"[specify]"));
+  if(val('q_discourse'))L.push("  Practitioner-discourse plan: "+val('q_discourse'));
+  if(val('q_core')){L.push("  Guiding questions:");val('q_core').split(/\n+/).forEach(q=>{if(q.trim())L.push("    - "+q.trim());});}
+  L.push("  Most valuable for new research areas; establishing external validity may require more than one qualitative study.");
+  // checklist
+  L.push("");L.push("REPORTING CHECKLIST");L.push("-".repeat(40));
+  const c=checklistState();
+  Object.values(c).forEach(it=>L.push("  ["+(it.ok?"x":" ")+"] "+it.txt));
+  L.push("");L.push("=".repeat(72));
+  L.push("Based on: Aguinis, H. 2025. Research methodology: Best practices for rigorous,");
+  L.push("credible, and impactful research. SAGE.");
+  L.push("https://collegepublishing.sagepub.com/products/research-methodology-1-280088");
+  L.push("Operationalizes Aguinis, Werner, Abbott, Angert, Park & Kohlhausen (2010),");
+  L.push("Organizational Research Methods, 13(3), 515-539. Alpha formula: Murphy & Myors (1998).");
+  document.getElementById('summaryOut').textContent=L.join("\n");
+  saveState();
+}
+function copyText(){
+  const t=document.getElementById('summaryOut').textContent;
+  if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(t).then(()=>flash('copyNote'));}
+  else{const ta=document.createElement('textarea');ta.value=t;document.body.appendChild(ta);ta.select();try{document.execCommand('copy');flash('copyNote');}catch(e){}document.body.removeChild(ta);}
+}
+function downloadText(){
+  const t=document.getElementById('summaryOut').textContent;
+  const blob=new Blob([t],{type:'text/plain'});
+  const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='customer-centric-reporting.txt';
+  document.body.appendChild(a);a.click();document.body.removeChild(a);URL.revokeObjectURL(a.href);
+}
+
+/* ============ Examples / reset ============ */
+function loadAllExamples(){loadAlphaExample();document.getElementById('pObs').value='0.04';buildPSentence();loadDExample();loadR2Example();
+  ['ethnography'].forEach(k=>{const el=document.querySelector('.method[data-k="'+k+'"]');if(el)el.classList.add('sel');});
+  document.getElementById('q_stake').value='HR managers and first-line supervisors';
+  document.getElementById('q_context').value='Regional employment-training programs (unemployment > 6%)';
+  document.getElementById('q_discourse').value='Translate the regional moderation effect into what it means for how a manager would allocate training across regions, described in their own terms.';
+  if(!val('q_core'))loadCoreQuestions();
+  saveState();updateProgress();buildSummary();go('sum');
+}
+function resetAll(){
+  if(!confirm('Clear all entries and selections?'))return;
+  FIELDS.forEach(id=>{const e=document.getElementById(id);if(e)e.value='';});
+  document.querySelectorAll('.method.sel').forEach(e=>e.classList.remove('sel'));
+  ['alphaResult','dResult','r2Result'].forEach(id=>document.getElementById(id).style.display='none');
+  document.getElementById('pSentence').innerHTML='';
+  document.getElementById('summaryOut').textContent='Click “Build / refresh write-up” to assemble your reporting language from Steps 1–3.';
+  try{localStorage.removeItem(STORE);}catch(e){}
+  updateProgress();renderChecklist();
+}
+
+/* ============ Init ============ */
+document.querySelectorAll('#stepList button').forEach(b=>b.addEventListener('click',()=>go(b.dataset.step)));
+renderMethods();
+loadState();
+if(!val('q_core'))document.getElementById('q_core').value=CORE_QUESTIONS;
+FIELDS.forEach(id=>{const e=document.getElementById(id);if(e)e.addEventListener('input',()=>{updateProgress();});});
+document.querySelectorAll('input,textarea,select').forEach(e=>e.addEventListener('change',saveState));
+renderChecklist();
+updateProgress();
+go('intro');
+</script>
+<!-- Begin Countercentral code v 7.0 --> 
+<span id="wts2576"></span> 
+<script>var wts=document.createElement('script');wts.async=true; 
+wts.src='https://server2.countercentral.com/log7.js';document.head.appendChild(wts); 
+wts.onload = function(){ wtslog7(2576,1); }; 
+</script><noscript><a href="https://www.countercentral.com"> 
+<img src="https://server2.countercentral.com/7/1/2576.png"  
+alt="Countercentral web traffic analysis"></a></noscript> 
+<!-- End Countercentral code v 7.0 --> 
+</body>
+</html>

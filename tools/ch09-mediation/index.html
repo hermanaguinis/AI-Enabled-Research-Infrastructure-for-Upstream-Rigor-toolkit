@@ -1,0 +1,668 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Mediation Study Design and Reporting Tool</title>
+<style>
+  :root{
+    --bg:#f5f7fb; --panel:#ffffff; --ink:#172033; --muted:#5b6474; --line:#dfe5ef;
+    --accent:#233e8b; --accent2:#0f766e; --warn:#9a3412; --danger:#991b1b; --good:#166534;
+    --soft:#eef2ff; --soft2:#ecfdf5; --softwarn:#fff7ed; --softdanger:#fef2f2;
+    --shadow:0 8px 28px rgba(23,32,51,.09); --radius:18px;
+  }
+  *{box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{margin:0;background:linear-gradient(180deg,#f8fafc 0,#eef3fb 100%);color:var(--ink);font:16px/1.5 system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif}
+  header{position:sticky;top:0;z-index:10;background:rgba(255,255,255,.94);backdrop-filter:saturate(140%) blur(8px);border-bottom:1px solid var(--line)}
+  .top{max-width:1400px;margin:auto;padding:14px 22px;display:flex;gap:18px;align-items:center;justify-content:space-between}
+  .brand{display:flex;gap:12px;align-items:center;min-width:260px}
+  .mark{width:42px;height:42px;border-radius:13px;background:linear-gradient(135deg,var(--accent),#4361c9);display:grid;place-items:center;color:white;font-weight:800;box-shadow:var(--shadow)}
+  h1{font-size:1.18rem;margin:0;line-height:1.15}.subtitle{font-size:.86rem;color:var(--muted);margin-top:2px}
+  nav{display:flex;gap:6px;overflow-x:auto;padding-bottom:2px;flex:1}
+  nav button,.toolbar button,.smallbtn{border:1px solid var(--line);background:#fff;color:var(--ink);border-radius:999px;padding:8px 12px;cursor:pointer;white-space:nowrap;font-weight:650}
+  nav button.active{background:var(--accent);color:white;border-color:var(--accent)}
+  nav button:hover,.toolbar button:hover,.smallbtn:hover{box-shadow:0 3px 12px rgba(23,32,51,.12)}
+  .toolbar{display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end}
+  main{max-width:1400px;margin:auto;display:grid;grid-template-columns:300px 1fr;gap:22px;padding:22px}
+  aside{position:sticky;top:86px;align-self:start;background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow);padding:18px;max-height:calc(100vh - 105px);overflow:auto}
+  .progressShell{height:12px;background:#edf1f7;border-radius:999px;overflow:hidden;border:1px solid var(--line)}
+  .progressBar{height:100%;background:linear-gradient(90deg,var(--accent),var(--accent2));width:0%;transition:.25s}
+  .dashGrid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:14px 0}
+  .metric{border:1px solid var(--line);border-radius:14px;padding:10px;background:#fbfdff}.metric strong{display:block;font-size:1.28rem}.metric span{font-size:.79rem;color:var(--muted)}
+  .toc{margin:12px 0 0;padding:0;list-style:none}.toc li{display:flex;align-items:center;gap:8px;padding:7px 0;border-bottom:1px dashed #e5eaf3;font-size:.92rem;color:var(--muted)}
+  .dot{width:11px;height:11px;border-radius:999px;background:#cbd5e1;flex:0 0 auto}.done .dot{background:var(--good)}.warnDot{background:var(--warn)}
+  .section{display:none}.section.active{display:block}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow);padding:22px;margin-bottom:18px}
+  .card h2{margin:0 0 8px;font-size:1.55rem}.card h3{margin:18px 0 8px;font-size:1.15rem}.lead{color:var(--muted);max-width:980px;margin-top:0}
+  .grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}.grid3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}.grid4{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px}
+  label{font-weight:700;font-size:.92rem;display:block;margin-bottom:6px}.hint{font-size:.82rem;color:var(--muted);font-weight:500}.tooltip{border-bottom:1px dotted var(--muted);cursor:help;color:var(--accent)}
+  input,select,textarea{width:100%;border:1px solid #cfd8e6;border-radius:12px;padding:10px 11px;font:inherit;background:#fff;color:var(--ink)}
+  textarea{min-height:90px;resize:vertical}.tall{min-height:150px}.mono{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:.92rem}
+  input:focus,select:focus,textarea:focus{outline:3px solid rgba(35,62,139,.16);border-color:var(--accent)}
+  .full{grid-column:1/-1}.row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}.space{justify-content:space-between}.pill{display:inline-flex;align-items:center;gap:6px;border-radius:999px;border:1px solid var(--line);background:#f8fafc;padding:4px 9px;font-size:.83rem;font-weight:750}
+  .notice{padding:13px 14px;border-radius:15px;border:1px solid var(--line);background:#f8fafc;margin:12px 0}.info{background:var(--soft);border-color:#c7d2fe}.ok{background:var(--soft2);border-color:#bbf7d0}.caution{background:var(--softwarn);border-color:#fed7aa;color:#5f2a08}.danger{background:var(--softdanger);border-color:#fecaca;color:#641313}
+  details{border:1px solid var(--line);border-radius:14px;padding:12px 14px;background:#fbfdff;margin:10px 0}summary{cursor:pointer;font-weight:800;color:var(--accent)}
+  .diagramBox{background:#fbfdff;border:1px solid var(--line);border-radius:16px;padding:10px;overflow:auto}.diagramBox svg{max-width:100%;height:auto;display:block;margin:auto}
+  table{border-collapse:collapse;width:100%;font-size:.92rem;background:white;border-radius:12px;overflow:hidden}th,td{border:1px solid var(--line);padding:9px;vertical-align:top}th{background:#f1f5fb;text-align:left}
+  .checklist label{display:flex;align-items:flex-start;gap:9px;font-weight:600;margin:8px 0}.checklist input[type=checkbox]{width:auto;margin-top:4px}.mini{font-size:.84rem;color:var(--muted)}
+  .report{background:#fff;border:1px solid var(--line);border-radius:16px;padding:18px}.report h3{border-bottom:1px solid var(--line);padding-bottom:6px}.report p{margin:.5rem 0}.report ul{margin-top:.3rem}
+  .copyWrap{position:relative}.copyWrap textarea{padding-right:88px}.copyInside{position:absolute;top:8px;right:8px}
+  .twoColText{columns:2 360px;column-gap:28px}.badgeGood{color:var(--good)}.badgeWarn{color:var(--warn)}.badgeDanger{color:var(--danger)}
+  footer{max-width:1400px;margin:0 auto 30px;padding:20px 22px;color:var(--muted);font-size:.9rem}.footerBox{border:1px solid var(--line);border-radius:var(--radius);background:white;padding:16px;box-shadow:var(--shadow)}
+  @media (max-width:980px){main{grid-template-columns:1fr}aside{position:relative;top:0}.grid,.grid3,.grid4{grid-template-columns:1fr}.top{display:block}.toolbar{margin-top:10px;justify-content:flex-start}}
+  @media print{header,aside,.toolbar,nav,.smallbtn,.copyInside,.noPrint{display:none!important}body{background:white}main{display:block;padding:0}.card,.report{box-shadow:none;border:1px solid #bbb;break-inside:avoid}.section{display:block!important}.section:not(.active){display:block}.lead{color:#333}a{color:#000}.grid,.grid3,.grid4{display:block}.grid>div,.grid3>div,.grid4>div{margin-bottom:10px}}
+</style>
+</head>
+<body>
+<header>
+  <div class="top">
+    <div class="brand"><div class="mark">M</div><div><h1>Mediation Study Tool</h1><div class="subtitle">Design, analysis, interpretation, reporting, and reviewer audit</div></div></div>
+    <nav aria-label="Tool sections" id="nav"></nav>
+    <div class="toolbar" aria-label="Global actions">
+      <button type="button" id="exportBtn">Export JSON</button>
+      <button type="button" id="importBtn">Import JSON</button>
+      <button type="button" id="printBtn">Print / Save PDF</button>
+      <button type="button" id="resetBtn">Reset</button>
+      <input id="importFile" type="file" accept="application/json" hidden>
+    </div>
+  </div>
+</header>
+<main>
+<aside aria-label="Progress and dashboard">
+  <h2 style="font-size:1.05rem;margin:0 0 8px">Readiness Dashboard</h2>
+  <div class="progressShell" aria-label="Overall completion"><div class="progressBar" id="overallBar"></div></div>
+  <div class="mini" id="overallText">0% complete</div>
+  <div class="dashGrid">
+    <div class="metric"><strong id="designMetric">—</strong><span>Design quality</span></div>
+    <div class="metric"><strong id="theoryMetric">—</strong><span>Mechanism quality</span></div>
+    <div class="metric"><strong id="measureMetric">—</strong><span>Measurement risk</span></div>
+    <div class="metric"><strong id="claimMetric">—</strong><span>Claim strength</span></div>
+  </div>
+  <div class="notice info"><strong>Privacy:</strong> This file runs entirely offline. User inputs are stored only in this browser using localStorage. No data leave the user’s computer.</div>
+  <ul class="toc" id="toc"></ul>
+</aside>
+<div id="sections">
+
+<section class="section active" data-section="overview">
+  <div class="card">
+    <h2>1. Study Overview</h2>
+    <p class="lead">Define the mediation study in plain terms. The tool uses these entries to generate a mediation logic summary, reporting text, warnings, and the final readiness report.</p>
+    <div class="grid">
+      <div><label>Study title</label><input data-bind="title" placeholder="e.g., How strategic consensus affects firm performance through coordinated implementation"></div>
+      <div><label>Research domain</label><input data-bind="domain" placeholder="e.g., strategic management, entrepreneurship, OB, HRM"></div>
+      <div class="full"><label>Research question</label><textarea data-bind="rq" placeholder="What process explains the relation between X and Y?"></textarea></div>
+      <div class="full"><label>Theoretical framework</label><textarea data-bind="framework" placeholder="Name the theory and the causal process it implies."></textarea></div>
+      <div><label>Antecedent X <span class="tooltip" title="The predictor, treatment, antecedent, or independent variable.">?</span></label><input data-bind="x" placeholder="X"></div>
+      <div><label>Mediator M <span class="tooltip" title="The intervening mechanism through which X is proposed to affect Y.">?</span></label><input data-bind="m" placeholder="M"></div>
+      <div><label>Outcome Y</label><input data-bind="y" placeholder="Y"></div>
+      <div><label>Sample or population</label><input data-bind="sample" placeholder="e.g., firms, teams, employees, ventures"></div>
+      <div><label>Unit of analysis</label><input data-bind="unit" placeholder="e.g., firm, person, team, project"></div>
+      <div><label>Level of theory</label><input data-bind="levelTheory" placeholder="e.g., firm level"></div>
+      <div><label>Level of measurement</label><input data-bind="levelMeasurement" placeholder="e.g., firm-year, individual survey response"></div>
+      <div><label>Study design type</label><select data-bind="designType"><option value="">Select</option><option>Experimental</option><option>Longitudinal</option><option>Panel</option><option>Archival</option><option>Survey-based</option><option>Field-based</option><option>Cross-sectional</option></select></div>
+      <div><label>Planned sample size</label><input data-bind="n" type="number" min="0" placeholder="e.g., 300"></div>
+      <div><label>Number of waves / occasions</label><input data-bind="waves" type="number" min="0" placeholder="e.g., 3"></div>
+      <div class="full"><label>Controls and rationale</label><textarea data-bind="controlsRationale" placeholder="List each control and explain why it is conceptually necessary. Avoid mechanical control-variable inclusion."></textarea></div>
+    </div>
+    <h3>Plain-language mediation summary</h3>
+    <div class="notice ok" id="logicSummary">Enter X, M, and Y to generate the summary.</div>
+  </div>
+</section>
+
+<section class="section" data-section="theory">
+  <div class="card">
+    <h2>2. Theory and Mechanism Builder</h2>
+    <p class="lead">Mediation is a theory of process. Strong mediation claims require a clear account of why X affects M, why M affects Y, and why M transmits the effect of X on Y.</p>
+    <div class="grid">
+      <div class="full"><label>Why should X affect M?</label><textarea data-bind="theory_xm" class="tall"></textarea></div>
+      <div class="full"><label>Why should M affect Y?</label><textarea data-bind="theory_my" class="tall"></textarea></div>
+      <div class="full"><label>Why should M transmit the effect of X on Y?</label><textarea data-bind="theory_transmit" class="tall"></textarea></div>
+      <div><label>Alternative mechanisms</label><textarea data-bind="altMechanisms"></textarea></div>
+      <div><label>Rival causal sequences</label><textarea data-bind="rivalSequences"></textarea></div>
+      <div><label>Omitted-variable threats</label><textarea data-bind="omittedVars"></textarea></div>
+      <div><label>Inference assumptions</label><textarea data-bind="assumptions"></textarea></div>
+      <div class="full"><label>Temporal logic: when does X change M, and when does M change Y?</label><textarea data-bind="temporalLogic"></textarea></div>
+    </div>
+    <h3>Mechanism Quality Score</h3>
+    <div id="theoryScore" class="notice">Complete the prompts to score the mechanism.</div>
+    <details><summary>What publication-ready mediation theory should contain</summary>
+      <div class="twoColText">
+        <p><strong>Completeness:</strong> The mechanism is not merely a label for M. It explains the process that connects X to M and M to Y.</p>
+        <p><strong>Temporal ordering:</strong> The theoretical sequence specifies when X, M, and Y should occur or be measured.</p>
+        <p><strong>Rival explanations:</strong> The theory acknowledges omitted variables and alternative causal sequences that could produce the same observed association.</p>
+        <p><strong>Alignment:</strong> The hypothesized model, measurement timing, and planned analysis match the theory.</p>
+      </div>
+    </details>
+  </div>
+</section>
+
+<section class="section" data-section="model">
+  <div class="card">
+    <h2>3. Model Specification Wizard</h2>
+    <p class="lead">Select the model that matches the theory. Do not add a direct X → Y path by default. A direct path should be included only when the theory predicts pathways from X to Y not captured by M.</p>
+    <div class="grid">
+      <div><label>Model selected</label><select data-bind="modelType" id="modelType"><option value="">Select</option><option value="none">No mediation: X → Y only</option><option value="complete">Complete mediation: X → M → Y, no direct X → Y path</option><option value="partial">Partial mediation: X → M → Y plus direct X → Y path</option></select></div>
+      <div><label>Theory predicts</label><select data-bind="theoryPredicts"><option value="">Select</option><option value="complete">Complete mediation</option><option value="partial">Partial mediation</option><option value="unknown">Not yet specified</option></select></div>
+      <div class="full"><label>Conceptual justification for any direct X → Y path</label><textarea data-bind="directJustification" placeholder="Required for partial mediation. Explain paths from X to Y not captured by M."></textarea></div>
+    </div>
+    <div id="modelWarning"></div>
+    <div class="grid">
+      <div class="diagramBox" id="modelDiagram"></div>
+      <div id="modelExplanation" class="notice info"></div>
+    </div>
+    <h3>Path equations</h3>
+    <div class="notice mono" id="equations"></div>
+  </div>
+</section>
+
+<section class="section" data-section="design">
+  <div class="card">
+    <h2>4. Design Quality Assessment</h2>
+    <p class="lead">Mediated models imply causal sequence and the passage of time. This evaluator classifies how well the design supports mediation inference and causal language.</p>
+    <div class="grid3">
+      <div><label>X precedes M?</label><select data-bind="xPrecedesM"><option value="">Select</option><option value="yes">Yes</option><option value="no">No / same time</option></select></div>
+      <div><label>M precedes Y?</label><select data-bind="mPrecedesY"><option value="">Select</option><option value="yes">Yes</option><option value="no">No / same time</option></select></div>
+      <div><label>X, M, Y measured at multiple occasions?</label><select data-bind="multiOccasion"><option value="">Select</option><option value="yes">Yes</option><option value="some">Some variables only</option><option value="no">No</option></select></div>
+      <div><label>Panel data enable alternative causal-flow tests?</label><select data-bind="panelAlt"><option value="">Select</option><option value="yes">Yes</option><option value="no">No</option></select></div>
+      <div><label>Random assignment or manipulation?</label><select data-bind="randomAssignment"><option value="">Select</option><option value="yes">Yes</option><option value="no">No</option></select></div>
+      <div><label>Cross-sectional data?</label><select data-bind="crossSectional"><option value="">Select</option><option value="yes">Yes</option><option value="no">No</option></select></div>
+      <div><label>Endogeneity addressed?</label><select data-bind="endogeneity"><option value="">Select</option><option value="strong">Strongly addressed</option><option value="some">Partly addressed</option><option value="no">Not addressed</option></select></div>
+      <div><label>Omitted variables addressed?</label><select data-bind="omittedAddressed"><option value="">Select</option><option value="strong">Strongly addressed</option><option value="some">Partly addressed</option><option value="no">Not addressed</option></select></div>
+      <div><label>Causal language planned?</label><select data-bind="causalLanguage"><option value="">Select</option><option value="strong">Strong causal claims</option><option value="cautious">Cautious language</option><option value="descriptive">Descriptive/associational only</option></select></div>
+    </div>
+    <div id="crossWarning"></div>
+    <h3>Design rating</h3>
+    <div id="designScore" class="notice">Complete the design fields to rate the design.</div>
+  </div>
+</section>
+
+<section class="section" data-section="measurement">
+  <div class="card">
+    <h2>5. Measurement Quality Planner</h2>
+    <p class="lead">Measurement error can distort estimates of the paths that form the indirect effect. Use reliable and valid measures, and consider latent-variable SEM when constructs have multiple valid indicators.</p>
+    <div id="measureBlocks" class="grid3"></div>
+    <div class="notice caution"><strong>SEM caution:</strong> Structural equation modeling is not a cure for poor measurement. It can help address some measurement-error problems when constructs are measured with multiple valid indicators, but reliability and construct validity remain fundamental.</div>
+    <h3>Measurement risk summary</h3>
+    <div id="measurementSummary"></div>
+  </div>
+</section>
+
+<section class="section" data-section="analysis">
+  <div class="card">
+    <h2>6. Data and Analysis Planner</h2>
+    <p class="lead">The centerpiece of mediation analysis is the indirect effect, ab. Do not require the total effect c to be statistically significant before testing mediation, and do not treat the direct effect c′ as a condition for mediation.</p>
+    <div class="grid">
+      <div class="notice mono">
+        Basic single-mediator equations:<br>
+        Y = cX + e<sub>Y</sub><br>
+        M = aX + e<sub>M</sub><br>
+        Y = bM + c′X + e′<sub>Y</sub><br><br>
+        Indirect effect = ab<br>
+        Total effect decomposition when the direct path is included: c = c′ + ab
+      </div>
+      <div class="notice info">
+        <strong>Recommended testing logic</strong><br>
+        Estimate a and b, compute ab, and test ab with nonparametric bootstrap confidence intervals. Avoid using the Sobel test as the primary test because the product of coefficients is usually not normally distributed.
+      </div>
+    </div>
+    <h3>Decision tree</h3>
+    <div class="grid3">
+      <div><label>Indirect effect ab statistically supported?</label><select data-bind="abSupported"><option value="">Unknown</option><option value="yes">Yes</option><option value="no">No</option></select></div>
+      <div><label>Direction of ab consistent with theory?</label><select data-bind="abDirection"><option value="">Unknown</option><option value="yes">Yes</option><option value="no">No</option></select></div>
+      <div><label>Direct and indirect effects</label><select data-bind="signPatternChoice"><option value="">Unknown</option><option value="same">Same direction</option><option value="opposite">Opposite directions</option><option value="directAbsent">Direct path absent / not modeled</option></select></div>
+      <div><label>Bootstrap CI used?</label><select data-bind="bootstrapUsed"><option value="">Unknown</option><option value="yes">Yes</option><option value="no">No</option></select></div>
+      <div><label>Measurement concerns addressed?</label><select data-bind="measAddressed"><option value="">Unknown</option><option value="yes">Yes</option><option value="partly">Partly</option><option value="no">No</option></select></div>
+      <div><label>Endogeneity concerns addressed?</label><select data-bind="analysisEndog"><option value="">Unknown</option><option value="yes">Yes</option><option value="partly">Partly</option><option value="no">No</option></select></div>
+    </div>
+    <div id="analysisDecision" class="notice"></div>
+  </div>
+</section>
+
+<section class="section" data-section="calculator">
+  <div class="card">
+    <h2>7. Interactive Indirect Effect Calculator</h2>
+    <p class="lead">Use Mode A for coefficient-based interpretation or Mode B to run a basic offline single-mediator OLS analysis from a CSV. The CSV mode is intended for linear, single-mediator models and is not a substitute for a full statistical analysis of complex models.</p>
+    <details open><summary>Mode A: Manual coefficient entry</summary>
+      <div class="grid4" style="margin-top:12px">
+        <div><label>a coefficient</label><input data-bind="calc_a" type="number" step="any"></div>
+        <div><label>SE(a)</label><input data-bind="calc_sea" type="number" step="any"></div>
+        <div><label>b coefficient</label><input data-bind="calc_b" type="number" step="any"></div>
+        <div><label>SE(b)</label><input data-bind="calc_seb" type="number" step="any"></div>
+        <div><label>c coefficient, optional</label><input data-bind="calc_c" type="number" step="any"></div>
+        <div><label>c′ coefficient, optional</label><input data-bind="calc_cprime" type="number" step="any"></div>
+        <div><label>Bootstrap lower CI, optional</label><input data-bind="calc_low" type="number" step="any"></div>
+        <div><label>Bootstrap upper CI, optional</label><input data-bind="calc_high" type="number" step="any"></div>
+        <div><label>Confidence level</label><input data-bind="calc_conf" type="number" min="50" max="99.9" step=".1" placeholder="95"></div>
+      </div>
+      <div id="manualOutput" class="notice"></div>
+    </details>
+    <details><summary>Mode B: Offline CSV analysis</summary>
+      <div class="notice caution">This module estimates a basic single-mediator linear model with optional controls using ordinary least squares and percentile bootstrap confidence intervals for ab. Do not use it as the final analysis for nonlinear models, multilevel or clustered data, categorical outcomes, survival outcomes, complex sampling designs, or latent-variable models.</div>
+      <div class="grid">
+        <div class="full"><label>Paste CSV</label><textarea id="csvText" class="mono tall" placeholder="X,M,Y,control1&#10;1,2,3,0&#10;..."></textarea></div>
+        <div><label>Or upload CSV file</label><input id="csvFile" type="file" accept=".csv,text/csv"></div>
+        <div class="row"><button type="button" class="smallbtn" id="parseCsvBtn">Parse CSV</button><span class="mini" id="csvStatus">No data parsed.</span></div>
+      </div>
+      <div id="csvSelectors" style="display:none">
+        <div class="grid4">
+          <div><label>X column</label><select id="csvX"></select></div>
+          <div><label>M column</label><select id="csvM"></select></div>
+          <div><label>Y column</label><select id="csvY"></select></div>
+          <div><label>Bootstrap resamples</label><input id="bootN" type="number" value="5000" min="100" max="20000" step="100"></div>
+          <div><label>Confidence level</label><input id="csvConf" type="number" value="95" min="50" max="99.9" step=".1"></div>
+          <div class="full"><label>Control variables</label><div id="controlChecks" class="checklist"></div></div>
+        </div>
+        <button type="button" class="smallbtn" id="runCsvBtn">Run mediation analysis</button>
+      </div>
+      <div id="csvOutput" class="notice"></div>
+    </details>
+  </div>
+</section>
+
+<section class="section" data-section="claims">
+  <div class="card">
+    <h2>8. Causal-Claim Guardrails</h2>
+    <p class="lead">This generator recommends defensible wording based on the design, measurement, and analysis choices. It prevents claims that are stronger than the evidence warrants.</p>
+    <div id="claimOutput" class="notice"></div>
+    <h3>Overclaiming warnings</h3>
+    <div id="claimWarnings"></div>
+  </div>
+</section>
+
+<section class="section" data-section="mistakes">
+  <div class="card">
+    <h2>9. Common Mistakes Checklist</h2>
+    <p class="lead">Use this checklist before data collection, before analysis, and before journal submission.</p>
+    <div class="grid" id="mistakeGrid"></div>
+  </div>
+</section>
+
+<section class="section" data-section="reporting">
+  <div class="card">
+    <h2>10. Reporting Assistant</h2>
+    <p class="lead">The paragraphs below are copy-ready starting points. They are automatically tailored to your inputs and claim-strength profile. Edit them before use.</p>
+    <div id="reportingBlocks"></div>
+  </div>
+</section>
+
+<section class="section" data-section="reviewer">
+  <div class="card">
+    <h2>11. Reviewer and Editor Checklist</h2>
+    <p class="lead">Apply this checklist to evaluate whether a manuscript’s mediation claims are theoretically, methodologically, analytically, and rhetorically defensible.</p>
+    <div class="grid" id="reviewerChecks"></div>
+    <div id="reviewerScore" class="notice"></div>
+  </div>
+</section>
+
+<section class="section" data-section="final">
+  <div class="card">
+    <h2>12. Mediation Readiness Report</h2>
+    <p class="lead">This structured report synthesizes the study logic, design quality, measurement risks, analysis plan, key vulnerabilities, recommended fixes, and appropriate claim strength.</p>
+    <div class="row noPrint"><button type="button" class="smallbtn" data-copy-target="finalReportText">Copy full report</button><button type="button" class="smallbtn" onclick="window.print()">Print / Save PDF</button></div>
+    <div class="report" id="finalReport"></div>
+    <textarea id="finalReportText" style="position:absolute;left:-9999px"></textarea>
+  </div>
+</section>
+
+<section class="section" data-section="about">
+  <div class="card">
+    <h2>About this tool</h2>
+    <p>This offline tool helps researchers design, conduct, analyze, interpret, and report rigorous mediation studies. It focuses exclusively on mediation: the mechanism or process through which an antecedent X affects an outcome Y through an intervening variable M.</p>
+    <p>It is practical both before data collection and when auditing a completed manuscript before submission. It does not replace expert methodological judgment, a full statistical analysis plan, or field-specific design expertise.</p>
+    <div class="notice info"><strong>Data privacy:</strong> All calculations and generated text run inside this HTML file. Inputs are stored in localStorage in your browser. No data are transmitted externally.</div>
+    <div class="notice"><strong>Based on:</strong> Aguinis, H. (2025). <em>Research methodology: Best practices for rigorous, credible, and impactful research</em>. SAGE. https://collegepublishing.sagepub.com/products/research-methodology-1-280088</div>
+  </div>
+</section>
+
+</div>
+</main>
+<footer>
+  <div class="footerBox">Based on: Aguinis, H. (2025). <em>Research methodology: Best practices for rigorous, credible, and impactful research</em>. SAGE. https://collegepublishing.sagepub.com/products/research-methodology-1-280088</div>
+</footer>
+<script>
+(function(){
+'use strict';
+const STORE='mediationStudyTool.v1';
+const sections=[
+ ['overview','Study Overview'],['theory','Theory Builder'],['model','Model Specification'],['design','Design Quality'],['measurement','Measurement Quality'],['analysis','Analysis Planner'],['calculator','Calculator'],['claims','Claim Guardrails'],['mistakes','Mistakes Checklist'],['reporting','Reporting Assistant'],['reviewer','Reviewer Checklist'],['final','Readiness Report'],['about','About']
+];
+const defaults={calc_conf:'95'};
+let state=load();
+let parsedRows=[], parsedHeaders=[];
+function $(sel,root=document){return root.querySelector(sel)}
+function $all(sel,root=document){return Array.from(root.querySelectorAll(sel))}
+function esc(s){return String(s==null?'':s).replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]))}
+function val(k){return state[k]||''}
+function num(k){const x=parseFloat(val(k));return Number.isFinite(x)?x:null}
+function load(){try{return Object.assign({},defaults,JSON.parse(localStorage.getItem(STORE)||'{}'))}catch(e){return Object.assign({},defaults)}}
+function save(){localStorage.setItem(STORE,JSON.stringify(state))}
+function nonempty(k){return val(k).trim().length>0}
+function wordish(k,min=25){return val(k).trim().split(/\s+/).filter(Boolean).length>=min}
+function setupNav(){
+ const nav=$('#nav'), toc=$('#toc'); nav.innerHTML=''; toc.innerHTML='';
+ sections.forEach(([id,label],i)=>{
+  const b=document.createElement('button'); b.type='button'; b.textContent=(i+1)+'. '+label; b.dataset.target=id; if(i===0)b.classList.add('active'); nav.appendChild(b);
+  const li=document.createElement('li'); li.dataset.toc=id; li.innerHTML='<span class="dot"></span><span>'+esc(label)+'</span>'; toc.appendChild(li);
+ });
+ nav.addEventListener('click',e=>{if(e.target.matches('button[data-target]')) showSection(e.target.dataset.target)});
+}
+function showSection(id){
+ $all('.section').forEach(s=>s.classList.toggle('active',s.dataset.section===id));
+ $all('nav button').forEach(b=>b.classList.toggle('active',b.dataset.target===id));
+ if(id==='reporting') generateReporting(); if(id==='final') updateFinalReport();
+ window.scrollTo({top:0,behavior:'smooth'});
+}
+function bindInputs(){
+ $all('[data-bind]').forEach(el=>{
+  const k=el.dataset.bind; if(state[k]!=null) el.value=state[k];
+  el.addEventListener('input',()=>{state[k]=el.value; save(); updateAll()});
+  el.addEventListener('change',()=>{state[k]=el.value; save(); updateAll()});
+ });
+ document.addEventListener('click',e=>{
+  const btn=e.target.closest('[data-copy-target]'); if(btn){copyElement(btn.dataset.copyTarget,btn)}
+ });
+ $('#exportBtn').addEventListener('click',exportJSON);
+ $('#importBtn').addEventListener('click',()=>$('#importFile').click());
+ $('#importFile').addEventListener('change',importJSON);
+ $('#printBtn').addEventListener('click',()=>window.print());
+ $('#resetBtn').addEventListener('click',resetAll);
+ $('#parseCsvBtn').addEventListener('click',parseCSVFromTextarea);
+ $('#csvFile').addEventListener('change',readCSVFile);
+ $('#runCsvBtn').addEventListener('click',runCsvAnalysis);
+}
+function copyElement(id,btn){
+ const el=document.getElementById(id); let text='';
+ if(!el)return; if(el.value!=null) text=el.value; else text=el.innerText;
+ navigator.clipboard.writeText(text).then(()=>{const old=btn.textContent;btn.textContent='Copied';setTimeout(()=>btn.textContent=old,1100)}).catch(()=>{
+  const ta=document.createElement('textarea'); ta.value=text; document.body.appendChild(ta); ta.select(); document.execCommand('copy'); ta.remove();
+ });
+}
+function exportJSON(){
+ const blob=new Blob([JSON.stringify({created:new Date().toISOString(),state},null,2)],{type:'application/json'});
+ const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download='mediation-study-tool-export.json'; a.click(); URL.revokeObjectURL(a.href);
+}
+function importJSON(e){
+ const file=e.target.files[0]; if(!file)return; const r=new FileReader();
+ r.onload=()=>{try{const obj=JSON.parse(r.result); state=Object.assign({},defaults,obj.state||obj); save(); hydrate(); updateAll(); alert('Import complete.')}catch(err){alert('Could not import JSON: '+err.message)}};
+ r.readAsText(file); e.target.value='';
+}
+function resetAll(){ if(!confirm('Reset all inputs stored by this tool in this browser?'))return; localStorage.removeItem(STORE); state=Object.assign({},defaults); hydrate(); updateAll(); }
+function hydrate(){ $all('[data-bind]').forEach(el=>{el.value=state[el.dataset.bind]||''}); }
+function buildMeasureBlocks(){
+ const wrap=$('#measureBlocks'); wrap.innerHTML='';
+ [['x','X: Antecedent'],['m','M: Mediator'],['y','Y: Outcome']].forEach(([prefix,title])=>{
+  const div=document.createElement('div'); div.className='card'; div.style.boxShadow='none'; div.style.margin='0';
+  div.innerHTML=`<h3>${title}</h3>
+   <label>Construct definition</label><textarea data-bind="${prefix}_def"></textarea>
+   <label>Measurement source</label><input data-bind="${prefix}_source" placeholder="survey, archival, behavioral, rating, objective">
+   <label>Number of items / indicators</label><input data-bind="${prefix}_items" type="number" min="0">
+   <label>Reliability estimate</label><input data-bind="${prefix}_rel" type="number" step=".01" min="0" max="1" placeholder="e.g., .82">
+   <label>Construct-validity evidence</label><textarea data-bind="${prefix}_validity"></textarea>
+   <label>Measurement timing</label><input data-bind="${prefix}_timing" placeholder="e.g., T1, T2, T3">
+   <label>Same source provides other variables?</label><select data-bind="${prefix}_sameSource"><option value="">Select</option><option value="yes">Yes</option><option value="no">No</option></select>
+   <label>Data type</label><select data-bind="${prefix}_type"><option value="">Select</option><option>Objective</option><option>Archival</option><option>Behavioral</option><option>Survey</option><option>Rating</option></select>
+   <label>Measurement error likely?</label><select data-bind="${prefix}_error"><option value="">Select</option><option value="low">Low</option><option value="moderate">Moderate</option><option value="high">High</option><option value="unknown">Unknown</option></select>
+   <div class="notice" id="${prefix}_risk"></div>`;
+  wrap.appendChild(div);
+ });
+}
+function buildMistakes(){
+ const items=[
+  ['mistake1','Requiring a significant X–Y total effect before testing mediation','Correction: Test the indirect effect directly; mediation can exist even if the total effect is nonsignificant.'],
+  ['mistake2','Failing to compute and test the magnitude of the indirect effect','Correction: Compute ab and test it using bootstrap confidence intervals.'],
+  ['mistake3','Treating the direct effect c′ as a condition for mediation','Correction: Conclude mediation based on support for the indirect effect, regardless of whether c′ is significant.'],
+  ['mistake4','Including a direct X → Y path without theoretical justification','Correction: Align the model with theory. If complete mediation is hypothesized, use the complete mediation model as the baseline and evaluate the consequences of adding or omitting the direct path.'],
+  ['mistake5','Testing mediation with cross-sectional data while making strong causal claims','Correction: Use longitudinal, panel, experimental, or temporally ordered designs when possible; otherwise, use appropriately cautious language.'],
+  ['mistake6','Ignoring measurement error','Correction: Use reliable and valid measures; use multiple indicators and latent-variable SEM when appropriate.']
+ ];
+ const wrap=$('#mistakeGrid'); wrap.innerHTML='';
+ items.forEach(([k,title,cor])=>{
+  const div=document.createElement('div'); div.className='notice';
+  div.innerHTML=`<label>${title}</label><select data-bind="${k}"><option value="">Select status</option><option value="avoided">Avoided</option><option value="risk">At risk</option><option value="present">Present in manuscript</option></select><p class="mini">${cor}</p><div id="${k}_fb"></div>`;
+  wrap.appendChild(div);
+ });
+}
+function buildReviewer(){
+ const items=['Is the mediator theoretically justified?','Are X, M, and Y clearly defined?','Is the temporal ordering defensible?','Is the indirect effect computed?','Is the indirect effect tested with bootstrap confidence intervals?','Did the authors avoid requiring a significant total effect as a prerequisite?','Did the authors avoid using c′ as a required condition for mediation?','Is the direct path theoretically justified if included?','Is the design longitudinal, panel, experimental, or otherwise temporally ordered?','If cross-sectional, are causal claims appropriately limited?','Are measurement reliability and construct validity addressed?','Is measurement error considered?','Are omitted variables and endogeneity addressed?','Are alternative causal flows considered?','Is the interpretation aligned with the statistical evidence?'];
+ const wrap=$('#reviewerChecks'); wrap.innerHTML='';
+ items.forEach((item,i)=>{
+  const k='rev_'+i; const div=document.createElement('div'); div.className='notice';
+  div.innerHTML=`<label>${esc(item)}</label><select data-bind="${k}"><option value="">Select</option><option value="yes">Yes</option><option value="partial">Partly</option><option value="no">No</option><option value="na">Not applicable</option></select>`;
+  wrap.appendChild(div);
+ });
+}
+function updateOverview(){
+ const X=val('x')||'X', M=val('m')||'M', Y=val('y')||'Y';
+ $('#logicSummary').innerHTML=`This study proposes that <strong>${esc(X)}</strong> affects <strong>${esc(Y)}</strong> through <strong>${esc(M)}</strong>. In path notation, ${esc(X)} should predict ${esc(M)} through path <em>a</em>, ${esc(M)} should predict ${esc(Y)} controlling for ${esc(X)} through path <em>b</em>, and the indirect effect is <em>ab</em>. Evidence should center on whether <em>ab</em> is supported and whether the design warrants the intended claim strength.`;
+}
+function theoryRating(){
+ let score=0, max=8, notes=[];
+ [['theory_xm','X→M logic'],['theory_my','M→Y logic'],['theory_transmit','transmission logic'],['temporalLogic','temporal sequence']].forEach(([k,n])=>{if(wordish(k,18))score++; else notes.push('Strengthen '+n+'.')});
+ [['altMechanisms','alternative mechanisms'],['rivalSequences','rival causal sequences'],['omittedVars','omitted variables'],['assumptions','assumptions']].forEach(([k,n])=>{if(nonempty(k))score++; else notes.push('Address '+n+'.')});
+ let label='Weak', cls='danger'; if(score>=7){label='Publication-ready';cls='ok'} else if(score>=5){label='Strong';cls='ok'} else if(score>=3){label='Developing';cls='caution'};
+ return {score,max,label,cls,notes};
+}
+function updateTheory(){
+ const r=theoryRating(); $('#theoryMetric').textContent=r.label;
+ $('#theoryScore').className='notice '+r.cls; $('#theoryScore').innerHTML=`<strong>${r.label}</strong> (${r.score}/${r.max}). ${r.notes.length?'<br>Recommended fixes: '+r.notes.map(esc).join(' '):'The theory articulates process, temporal sequence, rival explanations, and assumptions.'}`;
+}
+function diagram(type){
+ const X=esc(val('x')||'X'), M=esc(val('m')||'M'), Y=esc(val('y')||'Y');
+ const defs=`<defs><marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto"><path d="M0,0 L0,6 L9,3 z" fill="#233e8b"></path></marker></defs>`;
+ if(type==='none')return `<svg viewBox="0 0 560 170" role="img" aria-label="No mediation model">${defs}<rect x="60" y="55" width="130" height="55" rx="16" fill="#eef2ff" stroke="#233e8b"/><text x="125" y="89" text-anchor="middle" font-weight="700">${X}</text><rect x="370" y="55" width="130" height="55" rx="16" fill="#ecfdf5" stroke="#0f766e"/><text x="435" y="89" text-anchor="middle" font-weight="700">${Y}</text><line x1="190" y1="82" x2="365" y2="82" stroke="#233e8b" stroke-width="3" marker-end="url(#arrow)"/><text x="278" y="68" text-anchor="middle" font-weight="700">c</text></svg>`;
+ if(type==='complete')return `<svg viewBox="0 0 660 210" role="img" aria-label="Complete mediation model">${defs}<rect x="50" y="80" width="130" height="55" rx="16" fill="#eef2ff" stroke="#233e8b"/><text x="115" y="114" text-anchor="middle" font-weight="700">${X}</text><rect x="265" y="80" width="130" height="55" rx="16" fill="#fff7ed" stroke="#9a3412"/><text x="330" y="114" text-anchor="middle" font-weight="700">${M}</text><rect x="480" y="80" width="130" height="55" rx="16" fill="#ecfdf5" stroke="#0f766e"/><text x="545" y="114" text-anchor="middle" font-weight="700">${Y}</text><line x1="180" y1="108" x2="260" y2="108" stroke="#233e8b" stroke-width="3" marker-end="url(#arrow)"/><text x="220" y="94" text-anchor="middle" font-weight="700">a</text><line x1="395" y1="108" x2="475" y2="108" stroke="#233e8b" stroke-width="3" marker-end="url(#arrow)"/><text x="435" y="94" text-anchor="middle" font-weight="700">b</text><text x="330" y="165" text-anchor="middle" fill="#5b6474">Indirect effect = ab; no direct path in baseline model</text></svg>`;
+ return `<svg viewBox="0 0 660 245" role="img" aria-label="Partial mediation model">${defs}<rect x="50" y="105" width="130" height="55" rx="16" fill="#eef2ff" stroke="#233e8b"/><text x="115" y="139" text-anchor="middle" font-weight="700">${X}</text><rect x="265" y="40" width="130" height="55" rx="16" fill="#fff7ed" stroke="#9a3412"/><text x="330" y="74" text-anchor="middle" font-weight="700">${M}</text><rect x="480" y="105" width="130" height="55" rx="16" fill="#ecfdf5" stroke="#0f766e"/><text x="545" y="139" text-anchor="middle" font-weight="700">${Y}</text><line x1="180" y1="118" x2="260" y2="82" stroke="#233e8b" stroke-width="3" marker-end="url(#arrow)"/><text x="217" y="87" text-anchor="middle" font-weight="700">a</text><line x1="395" y1="82" x2="475" y2="118" stroke="#233e8b" stroke-width="3" marker-end="url(#arrow)"/><text x="441" y="87" text-anchor="middle" font-weight="700">b</text><line x1="180" y1="134" x2="475" y2="134" stroke="#233e8b" stroke-width="3" marker-end="url(#arrow)"/><text x="330" y="126" text-anchor="middle" font-weight="700">c′</text><text x="330" y="198" text-anchor="middle" fill="#5b6474">Indirect effect = ab; direct effect = c′; total effect = c′ + ab</text></svg>`;
+}
+function updateModel(){
+ const t=val('modelType')||'complete'; $('#modelDiagram').innerHTML=diagram(t);
+ let html='', eq='', warn='';
+ if(t==='none'){html='<strong>No mediation model.</strong> Tests only whether X is related to Y. It does not test an intervening mechanism and cannot support mediation claims.'; eq='Y = cX + eY';}
+ else if(t==='complete'){html='<strong>Complete mediation baseline.</strong> Tests whether X affects Y through M without estimating a direct X → Y path. This model aligns with theory that the effect is fully transmitted through M.'; eq='M = aX + eM\nY = bM + eY\nIndirect effect = ab';}
+ else {html='<strong>Partial mediation model.</strong> Tests the indirect effect through M while also estimating the remaining direct effect c′. Use this model only when theory identifies pathways from X to Y not captured by M.'; eq='M = aX + eM\nY = bM + c′X + e′Y\nIndirect effect = ab\nTotal effect decomposition: c = c′ + ab';}
+ if(val('theoryPredicts')==='complete'&&t==='partial'&&!nonempty('directJustification')) warn='<div class="notice danger"><strong>Model-alignment warning:</strong> Theory predicts complete mediation, but the selected model includes a direct path without justification. Either provide a conceptual reason for the direct path or use the complete mediation model as the baseline.</div>';
+ if(t==='partial'&&!nonempty('directJustification')) warn+='<div class="notice caution"><strong>Direct-path justification required:</strong> Explain why X should affect Y through mechanisms other than M.</div>';
+ $('#modelWarning').innerHTML=warn; $('#modelExplanation').innerHTML=html; $('#equations').textContent=eq;
+}
+function designRating(){
+ let score=0, max=12, notes=[];
+ if(val('randomAssignment')==='yes') score+=3; else notes.push('Consider experimental manipulation or stronger identification where feasible.');
+ if(val('xPrecedesM')==='yes') score+=2; else notes.push('Ensure X is measured or manipulated before M.');
+ if(val('mPrecedesY')==='yes') score+=2; else notes.push('Ensure M is measured before Y.');
+ if(val('multiOccasion')==='yes') score+=2; else if(val('multiOccasion')==='some') score+=1; else notes.push('Measure X, M, and Y at theoretically appropriate occasions.');
+ if(val('panelAlt')==='yes') score+=1;
+ if(val('endogeneity')==='strong') score+=1; else if(val('endogeneity')==='some') score+=.5; else notes.push('Address endogeneity and omitted variables.');
+ if(val('omittedAddressed')==='strong') score+=1; else if(val('omittedAddressed')==='some') score+=.5;
+ if(val('crossSectional')==='yes' || val('designType')==='Cross-sectional') score-=3;
+ let label='Not adequate for strong mediation claims', cls='danger';
+ if(score>=9){label='Strong for mediation inference';cls='ok'} else if(score>=6){label='Moderate';cls='caution'} else if(score>=3){label='Weak';cls='caution'};
+ return {score:Math.max(0,score),max,label,cls,notes};
+}
+function updateDesign(){
+ const cross = val('crossSectional')==='yes'||val('designType')==='Cross-sectional';
+ $('#crossWarning').innerHTML=cross?'<div class="notice danger"><strong>Cross-sectional data warning:</strong> Cross-sectional data are not sufficient for strong causal mediation claims because mediated models imply causal paths that unfold over time. Use language such as “consistent with mediation” rather than strong causal claims unless the design supports causal inference.</div>':'';
+ const r=designRating(); $('#designMetric').textContent=r.label.replace(' for mediation inference','');
+ $('#designScore').className='notice '+r.cls; $('#designScore').innerHTML=`<strong>${r.label}</strong> (${r.score.toFixed(1)}/${r.max}). ${r.notes.length?'<br>Recommended fixes: '+r.notes.map(esc).join(' '):'The design supports the proposed temporal and causal sequence.'}`;
+}
+function measureRisk(prefix){
+ let risk=0, notes=[]; const rel=parseFloat(val(prefix+'_rel')); const items=parseInt(val(prefix+'_items'),10);
+ if(!nonempty(prefix+'_def')){risk+=2; notes.push('Define the construct clearly.')} if(!nonempty(prefix+'_validity')){risk+=2; notes.push('Add construct-validity evidence.')}
+ if(!Number.isFinite(rel)){risk+=2; notes.push('Report reliability if available.')} else if(rel<.70){risk+=3; notes.push('Reliability below .70 is high risk.')} else if(rel<.80){risk+=1; notes.push('Reliability is acceptable but could be stronger.')} 
+ if(Number.isFinite(items)&&items===1){risk+=1; notes.push('Consider multiple indicators when conceptually appropriate.')} else if(!Number.isFinite(items)){risk+=1; notes.push('Specify number of indicators/items.')}
+ if(val(prefix+'_sameSource')==='yes'){risk+=1; notes.push('Address same-source concerns.')} if(['high','unknown',''].includes(val(prefix+'_error'))){risk+=2; notes.push('Explain likely measurement error and mitigation.')} else if(val(prefix+'_error')==='moderate'){risk+=1;}
+ let label='Low', cls='ok'; if(risk>=7){label='High';cls='danger'} else if(risk>=4){label='Moderate';cls='caution'};
+ return {risk,label,cls,notes};
+}
+function updateMeasurement(){
+ const prefixes=['x','m','y']; let total=0, labels=[];
+ prefixes.forEach(p=>{const r=measureRisk(p); total+=r.risk; labels.push(r.label); const el=$('#'+p+'_risk'); if(el){el.className='notice '+r.cls; el.innerHTML=`<strong>${r.label} risk</strong>. ${r.notes.length?r.notes.map(esc).join(' '):'Measurement plan is well specified.'}`}});
+ let avg=total/3, label='Low', cls='ok'; if(avg>=7){label='High';cls='danger'} else if(avg>=4){label='Moderate';cls='caution'};
+ $('#measureMetric').textContent=label;
+ $('#measurementSummary').innerHTML=`<div class="notice ${cls}"><strong>Overall measurement risk: ${label}</strong>. X: ${labels[0]}, M: ${labels[1]}, Y: ${labels[2]}. Recommendations: use clear construct definitions, reliable and valid measures, multiple indicators when appropriate, and methods that account for measurement error when the data support them.</div>`;
+}
+function updateAnalysis(){
+ let msgs=[];
+ if(val('abSupported')==='yes') msgs.push('The indirect effect is reported as statistically supported. Interpretation should focus on ab and its confidence interval.');
+ if(val('abSupported')==='no') msgs.push('The indirect effect is not supported; do not claim mediation based on c or c′.');
+ if(val('bootstrapUsed')==='no') msgs.push('Use a nonparametric bootstrap confidence interval for ab rather than relying on a normal-theory product test.');
+ if(val('signPatternChoice')==='opposite') msgs.push('Opposite signs for direct and indirect effects can make the total effect nonsignificant even when the indirect effect exists. Do not require a significant total effect.');
+ if(val('measAddressed')==='no') msgs.push('Address reliability, construct validity, and measurement error before making substantive claims.');
+ if(val('analysisEndog')==='no') msgs.push('Discuss omitted variables and endogeneity as limitations or address them analytically.');
+ $('#analysisDecision').className='notice '+(msgs.length?'caution':'ok'); $('#analysisDecision').innerHTML=msgs.length?msgs.map(m=>'<p>'+esc(m)+'</p>').join(''):'Complete the decision-tree fields to generate feedback.';
+}
+function updateManualCalc(){
+ const a=num('calc_a'), b=num('calc_b'), c=num('calc_c'), cp=num('calc_cprime'), lo=num('calc_low'), hi=num('calc_high'); const conf=num('calc_conf')||95;
+ if(a==null||b==null){$('#manualOutput').className='notice'; $('#manualOutput').innerHTML='Enter a and b to compute ab.'; return;}
+ const ab=a*b; let out=`<strong>Indirect effect ab = ${fmt(ab)}</strong>. `;
+ if(cp!=null) out+=`Implied total effect c = c′ + ab = ${fmt(cp)} + ${fmt(ab)} = <strong>${fmt(cp+ab)}</strong>. `;
+ if(c!=null&&cp!=null) out+=`Entered c is ${fmt(c)}; difference from c′ + ab is ${fmt(c-(cp+ab))}. `;
+ if(lo!=null&&hi!=null){ const supported=(lo>0&&hi>0)||(lo<0&&hi<0); out+=`The ${conf}% bootstrap CI is [${fmt(lo)}, ${fmt(hi)}], which ${supported?'excludes':'includes'} zero. ${supported?'This supports the indirect effect, subject to design and measurement quality.':'This does not support the indirect effect.'} `; }
+ else out+='Bootstrap confidence intervals are preferred and cannot be reconstructed accurately from only a, b, and their standard errors. ';
+ if(cp!=null){ out+=`Direct and indirect effects are ${Math.sign(cp)===Math.sign(ab)?'in the same direction':'in opposite directions or one is zero'}. Do not use c′ as a condition for mediation. `; }
+ $('#manualOutput').className='notice '+((lo!=null&&hi!=null&&lo*hi>0)?'ok':'info'); $('#manualOutput').innerHTML=out;
+}
+function parseCSV(text){
+ const rows=[]; let row=[], cell='', q=false;
+ for(let i=0;i<text.length;i++){const ch=text[i], next=text[i+1];
+  if(ch==='"'&&q&&next==='"'){cell+='"';i++;continue} if(ch==='"'){q=!q;continue}
+  if(ch===','&&!q){row.push(cell.trim());cell='';continue}
+  if((ch==='\n'||ch==='\r')&&!q){ if(ch==='\r'&&next==='\n')i++; row.push(cell.trim()); if(row.some(x=>x!==''))rows.push(row); row=[]; cell=''; continue}
+  cell+=ch;
+ }
+ row.push(cell.trim()); if(row.some(x=>x!=='')) rows.push(row); return rows;
+}
+function parseCSVFromTextarea(){
+ const text=$('#csvText').value.trim(); if(!text){$('#csvStatus').textContent='No CSV text found.';return;}
+ const rows=parseCSV(text); loadParsed(rows);
+}
+function readCSVFile(e){ const f=e.target.files[0]; if(!f)return; const r=new FileReader(); r.onload=()=>{$('#csvText').value=r.result; loadParsed(parseCSV(r.result));}; r.readAsText(f); }
+function loadParsed(rows){
+ if(rows.length<3){$('#csvStatus').textContent='Need a header row and at least two data rows.'; return;}
+ parsedHeaders=rows[0].map((h,i)=>h||('Column_'+(i+1))); parsedRows=rows.slice(1).map(r=>{const o={}; parsedHeaders.forEach((h,i)=>{const v=parseFloat(r[i]); o[h]=Number.isFinite(v)?v:null}); return o;}).filter(o=>parsedHeaders.every(h=>o[h]!=null));
+ $('#csvStatus').textContent=`Parsed ${parsedRows.length} complete numeric rows and ${parsedHeaders.length} columns.`; $('#csvSelectors').style.display='block';
+ ['csvX','csvM','csvY'].forEach(id=>{const s=$('#'+id); s.innerHTML=parsedHeaders.map(h=>`<option value="${esc(h)}">${esc(h)}</option>`).join('')});
+ if(parsedHeaders.length>=3){$('#csvX').selectedIndex=0; $('#csvM').selectedIndex=1; $('#csvY').selectedIndex=2;}
+ $('#controlChecks').innerHTML=parsedHeaders.map(h=>`<label><input type="checkbox" value="${esc(h)}"> ${esc(h)}</label>`).join('');
+}
+function matrixTranspose(A){return A[0].map((_,i)=>A.map(r=>r[i]))}
+function matMul(A,B){return A.map(r=>B[0].map((_,j)=>r.reduce((s,_,k)=>s+r[k]*B[k][j],0)))}
+function inv(A){
+ const n=A.length; let M=A.map((r,i)=>r.concat(Array.from({length:n},(_,j)=>i===j?1:0)));
+ for(let i=0;i<n;i++){let max=i; for(let k=i+1;k<n;k++) if(Math.abs(M[k][i])>Math.abs(M[max][i])) max=k; [M[i],M[max]]=[M[max],M[i]]; const piv=M[i][i]; if(Math.abs(piv)<1e-12) throw new Error('Singular matrix. Remove collinear variables or controls.'); for(let j=0;j<2*n;j++) M[i][j]/=piv; for(let k=0;k<n;k++){if(k===i)continue; const f=M[k][i]; for(let j=0;j<2*n;j++) M[k][j]-=f*M[i][j];}}
+ return M.map(r=>r.slice(n));
+}
+function ols(y, cols){
+ const X=parsedRows.map(o=>[1].concat(cols.map(c=>o[c]))); const Y=parsedRows.map(o=>[o[y]]); const Xt=matrixTranspose(X); const XtX=matMul(Xt,X); const XtY=matMul(Xt,Y); const XtXinv=inv(XtX); const B=matMul(XtXinv,XtY).map(r=>r[0]);
+ const preds=X.map(r=>r.reduce((s,v,i)=>s+v*B[i],0)); const yv=Y.map(r=>r[0]); const mean=yv.reduce((a,b)=>a+b,0)/yv.length; const sse=yv.reduce((s,v,i)=>s+(v-preds[i])**2,0); const sst=yv.reduce((s,v)=>s+(v-mean)**2,0); const df=Math.max(1,yv.length-X[0].length); const mse=sse/df; const se=XtXinv.map((r,i)=>Math.sqrt(Math.max(0,mse*r[i]))); return {B,se,r2:sst?1-sse/sst:NaN,n:yv.length,df,cols:['Intercept'].concat(cols)};
+}
+function runCsvAnalysis(){
+ try{
+  if(!parsedRows.length) throw new Error('Parse CSV first.'); const X=$('#csvX').value, M=$('#csvM').value, Y=$('#csvY').value; const controls=$all('#controlChecks input:checked').map(c=>c.value).filter(c=>![X,M,Y].includes(c));
+  if(X===M||X===Y||M===Y) throw new Error('Choose distinct X, M, and Y columns.');
+  const aMod=ols(M,[X].concat(controls)); const cMod=ols(Y,[X].concat(controls)); const bMod=ols(Y,[M,X].concat(controls)); const a=aMod.B[1], b=bMod.B[1], cp=bMod.B[2], c=cMod.B[1], ab=a*b;
+  const boot=parseInt($('#bootN').value,10)||5000, conf=parseFloat($('#csvConf').value)||95; const original=parsedRows.slice(); const abVals=[];
+  for(let r=0;r<boot;r++){ parsedRows=Array.from({length:original.length},()=>original[Math.floor(Math.random()*original.length)]); try{const aa=ols(M,[X].concat(controls)).B[1]; const bb=ols(Y,[M,X].concat(controls)).B[1]; if(Number.isFinite(aa*bb)) abVals.push(aa*bb);}catch(e){} }
+  parsedRows=original; abVals.sort((x,y)=>x-y); const alpha=(100-conf)/100; const low=quantile(abVals,alpha/2), high=quantile(abVals,1-alpha/2); const supported=(low>0&&high>0)||(low<0&&high<0);
+  state.calc_a=String(a); state.calc_b=String(b); state.calc_c=String(c); state.calc_cprime=String(cp); state.calc_low=String(low); state.calc_high=String(high); state.calc_conf=String(conf); save(); hydrate(); updateManualCalc();
+  $('#csvOutput').className='notice '+(supported?'ok':'caution'); $('#csvOutput').innerHTML=`<strong>OLS mediation results</strong><br>Rows used: ${original.length}. Controls: ${controls.length?controls.map(esc).join(', '):'none'}.<br>Path a (${esc(X)} → ${esc(M)}): ${fmt(a)}. Path b (${esc(M)} → ${esc(Y)} controlling for ${esc(X)}): ${fmt(b)}. Total effect c: ${fmt(c)}. Direct effect c′: ${fmt(cp)}. Indirect effect ab: <strong>${fmt(ab)}</strong>.<br>${conf}% percentile bootstrap CI for ab based on ${abVals.length} successful resamples: [${fmt(low)}, ${fmt(high)}], which ${supported?'excludes':'includes'} zero.<br><br><strong>Model summaries</strong><br>M model R² = ${fmt(aMod.r2)}; Y total-effect model R² = ${fmt(cMod.r2)}; Y direct/mediator model R² = ${fmt(bMod.r2)}.`;
+  updateAll();
+ }catch(err){$('#csvOutput').className='notice danger'; $('#csvOutput').textContent=err.message;}
+}
+function quantile(arr,p){ if(!arr.length)return NaN; const pos=(arr.length-1)*p, lo=Math.floor(pos), hi=Math.ceil(pos); if(lo===hi)return arr[lo]; return arr[lo]+(arr[hi]-arr[lo])*(pos-lo); }
+function claimInfo(){
+ const d=designRating(); const meas=$('#measureMetric').textContent; let phrase='The results provide evidence consistent with an indirect effect.'; let level='Basic';
+ const cross=val('crossSectional')==='yes'||val('designType')==='Cross-sectional';
+ if(cross){phrase='The results are consistent with mediation, but causal interpretation is limited by the design.'; level='Cautious'}
+ else if(d.label.startsWith('Strong')&&val('randomAssignment')==='yes'){phrase='The design supports stronger causal mediation claims because it uses experimental manipulation and/or longitudinal panel evidence.'; level='Strong'}
+ else if(d.score>=6){phrase='The design provides stronger evidence for the proposed mediating process because X, M, and Y were temporally ordered.'; level='Moderate'}
+ if(val('abSupported')==='yes' && !cross && d.score>=6) phrase='The results support the proposed indirect effect.';
+ if(meas==='High') level='Cautious'; return {phrase,level};
+}
+function updateClaims(){
+ const c=claimInfo(); $('#claimMetric').textContent=c.level; $('#claimOutput').className='notice '+(c.level==='Strong'?'ok':c.level==='Cautious'?'caution':'info'); $('#claimOutput').innerHTML=`<strong>Recommended reporting phrase:</strong> “${esc(c.phrase)}”`;
+ const warns=[]; if(val('crossSectional')==='yes'||val('designType')==='Cross-sectional') warns.push('Data are cross-sectional. Avoid strong causal mediation language.');
+ if(val('xPrecedesM')==='no'||val('mPrecedesY')==='no') warns.push('X, M, and Y are not temporally ordered.');
+ if($('#measureMetric').textContent==='High') warns.push('Measurement reliability or validity is weak, unknown, or insufficiently addressed.');
+ if(val('omittedAddressed')==='no'||val('endogeneity')==='no') warns.push('Omitted variables or endogeneity remain plausible.');
+ if(val('modelType')==='partial'&&!nonempty('directJustification')) warns.push('A direct path is included without theoretical justification.');
+ if(val('abSupported')==='no') warns.push('The indirect effect is not supported.');
+ if(val('bootstrapUsed')==='no') warns.push('The indirect effect has not been tested with a bootstrap confidence interval.');
+ $('#claimWarnings').innerHTML=warns.length?warns.map(w=>`<div class="notice caution">${esc(w)}</div>`):'<div class="notice ok">No major overclaiming warnings based on current entries.</div>';
+}
+function updateMistakes(){
+ for(let i=1;i<=6;i++){const k='mistake'+i, s=val(k), el=$('#'+k+'_fb'); if(!el)continue; if(s==='avoided') el.innerHTML='<div class="mini badgeGood">Status: avoided.</div>'; else if(s==='risk') el.innerHTML='<div class="mini badgeWarn">Status: at risk. Revise before submission.</div>'; else if(s==='present') el.innerHTML='<div class="mini badgeDanger">Status: present. This issue should be fixed.</div>'; else el.innerHTML='<div class="mini">Select a status for automatic feedback.</div>';}
+}
+function paragraphTemplates(){
+ const X=val('x')||'[X]', M=val('m')||'[M]', Y=val('y')||'[Y]', domain=val('domain')||'[research domain]', framework=val('framework')||'[theoretical framework]';
+ const model=val('modelType')==='partial'?'partial mediation':val('modelType')==='complete'?'complete mediation':'mediation'; const claim=claimInfo().phrase;
+ const cross=val('crossSectional')==='yes'||val('designType')==='Cross-sectional';
+ return [
+ ['Hypothesis statement',`Hypothesis: ${M} mediates the relationship between ${X} and ${Y}. Specifically, ${X} is expected to affect ${M}, and ${M} is expected to transmit the effect of ${X} to ${Y}.`],
+ ['Theory paragraph',`Drawing on ${framework}, we propose that ${X} shapes ${Y} through ${M}. The theoretical logic is that ${X} changes the intervening process represented by ${M}, and this process, in turn, affects ${Y}. Thus, the central prediction is not merely that ${X} and ${Y} are related, but that part of the relationship operates through the mechanism represented by ${M}.`],
+ ['Research design paragraph',`The study examines this mediating process in ${domain} using a ${val('designType')||'[design type]'} design with ${val('sample')||'[sample/population]'}. The unit of analysis is ${val('unit')||'[unit]'}, the level of theory is ${val('levelTheory')||'[level of theory]'}, and the level of measurement is ${val('levelMeasurement')||'[level of measurement]'}. The design ${cross?'uses cross-sectional data, so causal claims are stated cautiously':'is intended to establish temporal ordering among X, M, and Y'}.`],
+ ['Measurement paragraph',`${X}, ${M}, and ${Y} were measured using indicators selected to align with their construct definitions. We evaluated reliability, construct validity, measurement timing, and possible same-source concerns for each variable. Because measurement error can bias mediation path estimates, the analysis and interpretation explicitly consider the quality of the measures used for X, M, and Y.`],
+ ['Analysis paragraph',`We tested mediation by estimating the path from ${X} to ${M} (path a), the path from ${M} to ${Y} controlling for ${X} when the direct path was modeled (path b), and the indirect effect, ab. The indirect effect was evaluated directly rather than requiring a significant total effect as a prerequisite.`],
+ ['Indirect-effect results paragraph',`The estimated indirect effect of ${X} on ${Y} through ${M} was ab = [insert estimate]. The interpretation of mediation is based on the magnitude, direction, and confidence interval for this indirect effect, not on the significance or nonsignificance of the total effect alone.`],
+ ['Bootstrap confidence interval paragraph',`We used nonparametric bootstrap confidence intervals to evaluate the indirect effect because the product of coefficients that forms ab is not generally normally distributed. The [insert confidence level]% bootstrap confidence interval for ab was [insert lower limit, upper limit].`],
+ ['Direct-effect interpretation paragraph',`The direct effect c′ represents the remaining association between ${X} and ${Y} after accounting for ${M}; it is not itself part of the mediated effect. Therefore, c′ is interpreted only to the extent that the theory justifies a direct path from ${X} to ${Y}. The conclusion about mediation is based on evidence for the indirect effect ab.`],
+ ['Limitations paragraph for cross-sectional designs', cross?`Because the data are cross-sectional, the results should be interpreted as consistent with the proposed mediating process rather than as definitive causal evidence. Mediation implies a temporal sequence in which ${X} precedes ${M} and ${M} precedes ${Y}; future research should use longitudinal, panel, experimental, or otherwise temporally ordered designs to strengthen causal inference.`:`Although the design provides temporal information, causal inference still depends on the plausibility of the identification assumptions, the quality of the measures, and the adequacy of controls for omitted variables and endogeneity.`],
+ ['Measurement-error caution paragraph',`Measurement error in ${X}, ${M}, or ${Y} can bias estimates of the mediation paths upward or downward. We therefore interpret the indirect effect in light of reliability and construct-validity evidence and, where appropriate, recommend multiple indicators and latent-variable modeling in future work.`],
+ ['Endogeneity and omitted-variable caution paragraph',`Because omitted variables could create spurious X–M, M–Y, or X–Y relations, the analysis should address plausible alternative explanations. When endogeneity cannot be ruled out, the manuscript should present the results as evidence consistent with the proposed indirect effect rather than as conclusive causal proof.`],
+ ['Reviewer-response paragraph',`We revised the mediation analysis to focus on the indirect effect ab, avoid requiring a significant total effect as a prerequisite, avoid treating c′ as a condition for mediation, align the direct path with theory, temper causal language according to the design, and address measurement quality and omitted-variable concerns.`]
+ ];
+}
+function generateReporting(){
+ const wrap=$('#reportingBlocks'); const blocks=paragraphTemplates(); wrap.innerHTML='';
+ blocks.forEach((b,i)=>{const id='para_'+i; const div=document.createElement('div'); div.className='card'; div.style.boxShadow='none'; div.innerHTML=`<div class="row space"><h3>${esc(b[0])}</h3><button type="button" class="smallbtn" data-copy-target="${id}">Copy</button></div><textarea id="${id}" class="tall">${b[1]}</textarea>`; wrap.appendChild(div);});
+}
+function updateReviewer(){
+ let yes=0, part=0, no=0, total=0; for(let i=0;i<15;i++){const v=val('rev_'+i); if(v&&v!=='na'){total++; if(v==='yes')yes++; else if(v==='partial')part++; else if(v==='no')no++;}}
+ const score=total?Math.round(((yes+0.5*part)/total)*100):0; let cls=score>=85?'ok':score>=60?'caution':'danger';
+ $('#reviewerScore').className='notice '+cls; $('#reviewerScore').innerHTML=total?`<strong>Reviewer checklist score: ${score}%</strong>. Yes: ${yes}; partly: ${part}; no: ${no}. ${score<85?'Revise all partly/no items before submission.':'The manuscript appears strong on the checklist, subject to substantive review.'}`:'Complete the reviewer checklist to generate a score.';
+}
+function completeness(){
+ const fields=['title','domain','rq','framework','x','m','y','sample','unit','designType','n','waves','theory_xm','theory_my','theory_transmit','temporalLogic','modelType','xPrecedesM','mPrecedesY','multiOccasion','x_def','m_def','y_def','abSupported','bootstrapUsed'];
+ const done=fields.filter(nonempty).length; return Math.round(done/fields.length*100);
+}
+function updateProgress(){
+ const pct=completeness(); $('#overallBar').style.width=pct+'%'; $('#overallText').textContent=pct+'% complete';
+ const groups={overview:['title','domain','rq','framework','x','m','y'],theory:['theory_xm','theory_my','theory_transmit','temporalLogic'],model:['modelType'],design:['xPrecedesM','mPrecedesY','crossSectional'],measurement:['x_def','m_def','y_def'],analysis:['abSupported','bootstrapUsed'],calculator:['calc_a','calc_b'],claims:['causalLanguage'],mistakes:['mistake1','mistake2','mistake3','mistake4','mistake5','mistake6'],reporting:['x','m','y'],reviewer:['rev_0','rev_1','rev_2'],final:['title','x','m','y'],about:['title']};
+ $all('#toc li').forEach(li=>{const arr=groups[li.dataset.toc]||[]; const ok=arr.length?arr.every(nonempty):false; li.classList.toggle('done',ok);});
+}
+function updateFinalReport(){
+ const X=val('x')||'[X]', M=val('m')||'[M]', Y=val('y')||'[Y]'; const d=designRating(), t=theoryRating(), c=claimInfo();
+ const risks=[]; if(d.score<6) risks.push('Design does not yet strongly support temporal or causal mediation inference.'); if($('#measureMetric').textContent!=='Low') risks.push('Measurement risk should be reduced or acknowledged.'); if(val('modelType')==='partial'&&!nonempty('directJustification')) risks.push('Direct path lacks a conceptual justification.'); if(val('bootstrapUsed')==='no') risks.push('Indirect effect should be tested with bootstrap confidence intervals.'); if(!risks.length) risks.push('No major risks identified from current entries.');
+ const fixes=[]; if(d.score<6) fixes.push('Use longitudinal, panel, experimental, or otherwise temporally ordered data where possible.'); if(t.score<7) fixes.push('Strengthen the mechanism explanation, rival explanations, and assumptions.'); if($('#measureMetric').textContent!=='Low') fixes.push('Improve reliability/validity evidence and consider multiple indicators or latent-variable SEM when appropriate.'); if(val('abSupported')!=='yes') fixes.push('Estimate and report the indirect effect ab with a confidence interval.');
+ const report=`<h3>${esc(val('title')||'Mediation Readiness Report')}</h3>
+ <p><strong>X:</strong> ${esc(X)} &nbsp; <strong>M:</strong> ${esc(M)} &nbsp; <strong>Y:</strong> ${esc(Y)}</p>
+ <p><strong>Proposed mediation logic:</strong> ${esc(X)} is expected to affect ${esc(Y)} through ${esc(M)}. The indirect effect is ab.</p>
+ <p><strong>Model selected:</strong> ${esc($('#modelType option:checked')?.textContent||val('modelType')||'Not selected')}</p>
+ <p><strong>Design quality rating:</strong> ${esc(d.label)}.</p>
+ <p><strong>Measurement quality rating:</strong> ${esc($('#measureMetric').textContent)} risk.</p>
+ <p><strong>Analysis plan:</strong> Estimate paths a and b, compute ab, and test the indirect effect using nonparametric bootstrap confidence intervals. Interpret c′ only if the direct path is theoretically justified.</p>
+ <p><strong>Indirect-effect testing plan:</strong> ${val('bootstrapUsed')==='yes'?'Bootstrap confidence intervals are planned or used.':'Bootstrap confidence intervals should be used.'}</p>
+ <p><strong>Appropriate claim strength:</strong> “${esc(c.phrase)}”</p>
+ <h3>Key risks</h3><ul>${risks.map(r=>'<li>'+esc(r)+'</li>').join('')}</ul>
+ <h3>Recommended fixes</h3><ul>${fixes.map(r=>'<li>'+esc(r)+'</li>').join('')}</ul>
+ <h3>Copy-ready methods paragraph</h3><p>${esc(paragraphTemplates()[4][1])}</p>
+ <h3>Copy-ready results paragraph</h3><p>${esc(paragraphTemplates()[5][1])} ${esc(paragraphTemplates()[6][1])}</p>
+ <h3>Copy-ready limitations paragraph</h3><p>${esc(paragraphTemplates()[8][1])}</p>
+ <h3>Reviewer checklist result</h3><p>${esc($('#reviewerScore').innerText||'Complete the reviewer checklist to generate this result.')}</p>`;
+ $('#finalReport').innerHTML=report; $('#finalReportText').value=$('#finalReport').innerText;
+}
+function fmt(x){return Number.isFinite(x)?(Math.abs(x)>=100?x.toFixed(2):x.toFixed(4)).replace(/\.0000$/,''):String(x)}
+function updateAll(){updateOverview(); updateTheory(); updateModel(); updateDesign(); updateMeasurement(); updateAnalysis(); updateManualCalc(); updateClaims(); updateMistakes(); updateReviewer(); updateProgress(); if($('.section.active')?.dataset.section==='final')updateFinalReport();}
+setupNav(); buildMeasureBlocks(); buildMistakes(); buildReviewer(); hydrate(); bindInputs(); updateAll();
+})();
+</script>
+<!-- Begin Countercentral code v 7.0 --> 
+<span id="wts2576"></span> 
+<script>var wts=document.createElement('script');wts.async=true; 
+wts.src='https://server2.countercentral.com/log7.js';document.head.appendChild(wts); 
+wts.onload = function(){ wtslog7(2576,1); }; 
+</script><noscript><a href="https://www.countercentral.com"> 
+<img src="https://server2.countercentral.com/7/1/2576.png"  
+alt="Countercentral web traffic analysis"></a></noscript> 
+<!-- End Countercentral code v 7.0 --> 
+</body>
+</html>
