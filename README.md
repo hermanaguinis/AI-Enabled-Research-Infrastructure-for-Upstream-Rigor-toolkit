@@ -131,7 +131,7 @@ This project uses dual licensing:
 
 ## Data handling and privacy
 
-No tool collects, transmits, or stores participant or personal data. All computation happens locally in the user's browser; no tool makes external network calls. See [`docs/data-handling-statement.md`](docs/data-handling-statement.md) for the full privacy-by-design model, including which tools use `localStorage` versus session-only memory.
+No tool transmits or stores participant or personal data on any server. All computation happens locally in the user's browser, and no tool makes external network calls. Some tools persist user-entered content locally in the user's own browser (localStorage) so a session survives a reload; others are session-only. See docs/data-handling-statement.md for the full model.
 
 ## Background
 
