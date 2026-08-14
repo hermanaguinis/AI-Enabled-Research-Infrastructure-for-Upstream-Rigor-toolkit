@@ -2,7 +2,7 @@
 
 **Topic:** Causal Inference and Control Variables
 **Original source page:** https://www.hermanaguinis.com/controlvariables.html
-**Primary cited source:** Bernerth, J. & Aguinis, H. 2016. A critical review and best-practice recommendations for control variable usage. Personnel Psychology, 69(1): 229-283. 
+**Primary cited source:** Bernerth JB, Aguinis H (2016) A critical review and best-practice recommendations for control variable usage. Personnel Psychology 69(1):229–283. 
 
 ## Description
 
