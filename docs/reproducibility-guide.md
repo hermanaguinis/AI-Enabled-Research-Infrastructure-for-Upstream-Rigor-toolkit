@@ -3,8 +3,7 @@
 ## Clone the repository
 
 ```
-git clone https://github.com/REPLACE-WITH-YOUR-GITHUB-USERNAME/research-methodology-toolkit.git
-cd research-methodology-toolkit
+git clone https://github.com/hermanaguinis/AI-Enabled-Research-Infrastructure-for-Upstream-Rigor-toolkit.git cd AI-Enabled-Research-Infrastructure-for-Upstream-Rigor-toolkit
 ```
 
 ## Open a tool locally
