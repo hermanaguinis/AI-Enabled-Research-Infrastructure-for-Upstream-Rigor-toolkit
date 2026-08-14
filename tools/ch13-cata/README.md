@@ -2,7 +2,7 @@
 
 **Topic:** Qualitative and Mixed-Methods Research
 **Original source page:** https://www.hermanaguinis.com/CATA.html
-**Primary cited source:** Journal of Management article (specific citation not named in proposal text -- confirm before publishing)
+**Primary cited source:** McKenny AF, Aguinis H, Short JC, Anglin AH (2018) What doesn't get measured does exist: Improving the accuracy of computer-aided text analysis. J. Management 44(7):2909–2933.
 
 ## Description
 
