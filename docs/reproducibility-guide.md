@@ -3,7 +3,8 @@
 ## Clone the repository
 
 ```
-git clone https://github.com/hermanaguinis/AI-Enabled-Research-Infrastructure-for-Upstream-Rigor-toolkit.git cd AI-Enabled-Research-Infrastructure-for-Upstream-Rigor-toolkit
+ggit clone https://github.com/hermanaguinis/AI-Enabled-Research-Infrastructure-for-Upstream-Rigor-toolkit.git
+cd AI-Enabled-Research-Infrastructure-for-Upstream-Rigor-toolkit
 ```
 
 ## Open a tool locally
