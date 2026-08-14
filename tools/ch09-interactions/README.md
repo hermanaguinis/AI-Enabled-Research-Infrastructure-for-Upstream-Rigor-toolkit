@@ -2,7 +2,7 @@
 
 **Topic:** Moderation and Mediation
 **Original source page:** https://www.hermanaguinis.com/interactions.html
-**Primary cited source:** Source article's 96-paper review (specific citation not named in proposal text -- confirm before publishing)
+**Primary cited source:** Murphy KR, Aguinis H (2022) Reporting interaction effects: Visualization, effect size, and interpretation. J. Management 48(8):2159–2166
 
 ## Description
 
